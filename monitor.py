@@ -12,18 +12,19 @@ Fuente sísmica:
 
 Fuente GNSS:
     CSN / OWL
-    C1 · LXE / LXN / LXZ
+    Red C1
+    Canales LXE / LXN / LXZ
 
 Ejecución:
-    UN SOLO CICLO.
+    UN SOLO CICLO
 
 Diseñado para:
     GitHub Actions
 
 Flujo:
-    sismologia.cl
+    CSN sismologia.cl
         ↓
-    eventos recientes
+    detección de sismos recientes
         ↓
     estaciones GNSS cercanas
         ↓
@@ -35,20 +36,21 @@ Flujo:
         ↓
     RES = POST tardío - PRE
         ↓
-    SNR + estabilidad + persistencia + coherencia
+    estabilidad + incertidumbre + SNR
+        ↓
+    persistencia temporal
+        ↓
+    coherencia espacial
         ↓
     VALID_RES
         ↓
     mapa
         ↓
-    X
-
-IMPORTANTE:
-    RES representa un cambio residual de posición GNSS PRE→POST.
-    Es una estimación automática preliminar.
+    publicación en X
 
 ============================================================
 """
+
 
 # ============================================================
 # IMPORTS
@@ -72,6 +74,7 @@ import numpy as np
 import pandas as pd
 
 import matplotlib
+
 matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
@@ -86,87 +89,78 @@ import tweepy
 
 
 # ============================================================
-# UTILIDAD CONFIG
-# ============================================================
-
-def env_bool(name, default=False):
-
-    value = os.getenv(name)
-
-    if value is None:
-        return default
-
-    return value.strip().lower() in {
-        "1",
-        "true",
-        "yes",
-        "y",
-        "on"
-    }
-
-
-# ============================================================
 # CONFIGURACIÓN GENERAL
 # ============================================================
 
-TEST_LATEST_EVENT = env_bool(
-    "TEST_LATEST_EVENT",
-    False
-)
-
-ENABLE_X = env_bool(
-    "ENABLE_X",
-    True
-)
-
-DRY_RUN = env_bool(
-    "DRY_RUN",
-    True
-)
-
 # ------------------------------------------------------------
-# Detección.
+# PUBLICACIÓN
+# ------------------------------------------------------------
+
+ENABLE_X = True
+
+# False = publica realmente
+# True  = sólo prueba
+DRY_RUN = False
+
+TEST_LATEST_EVENT = False
+
+
+# ============================================================
+# CREDENCIALES X
+# ============================================================
 #
-# Se recomienda 10 minutos aunque GitHub Actions se ejecute
-# cada 5 minutos, para tolerar retrasos del scheduler.
-# ------------------------------------------------------------
+# REEMPLAZAR LOS 4 VALORES.
+#
+# IMPORTANTE:
+# El repositorio debe ser PRIVADO.
+#
+# ============================================================
 
-RECENT_EVENT_WINDOW_MINUTES = int(
-    os.getenv(
-        "RECENT_EVENT_WINDOW_MINUTES",
-        "10"
-    )
-)
+X_API_KEY = "TU_API_KEY"
 
-# ------------------------------------------------------------
-# El RES tardío utiliza datos hasta +600 s.
-# ------------------------------------------------------------
+X_API_SECRET = "TU_API_SECRET"
+
+X_ACCESS_TOKEN = "TU_ACCESS_TOKEN"
+
+X_ACCESS_TOKEN_SECRET = "TU_ACCESS_TOKEN_SECRET"
+
+
+# ============================================================
+# DETECCIÓN SÍSMICA
+# ============================================================
+#
+# GitHub Actions puede ejecutarse cada 5 minutos.
+#
+# Se mantiene una ventana de 10 minutos para evitar perder
+# eventos si el scheduler se retrasa.
+#
+# ============================================================
+
+RECENT_EVENT_WINDOW_MINUTES = 10
+
+# El RES final requiere datos hasta +600 s.
 
 MIN_ANALYSIS_AGE_SECONDS = 615
 
-# ------------------------------------------------------------
-# Tiempo máximo desde la detección durante el cual un evento
-# puede seguir siendo reanalizado.
-# ------------------------------------------------------------
+# Tiempo máximo para continuar intentando procesar un evento
+# después de haber sido detectado.
 
-MAX_PENDING_RETRY_MINUTES = int(
-    os.getenv(
-        "MAX_PENDING_RETRY_MINUTES",
-        "90"
-    )
-)
+MAX_PENDING_RETRY_MINUTES = 90
 
 
 # ============================================================
 # ESCALA GNSS
 # ============================================================
+#
+# Actualmente asumimos:
+#
+# 1 metro = 1.000.000 counts
+#
+# La publicación está permitida aunque SCALE_VERIFIED=False.
+#
+# ============================================================
 
-COUNTS_PER_METER = float(
-    os.getenv(
-        "COUNTS_PER_METER",
-        "1000000"
-    )
-)
+COUNTS_PER_METER = 1_000_000.0
 
 COUNTS_PER_MM = (
     COUNTS_PER_METER
@@ -174,18 +168,9 @@ COUNTS_PER_MM = (
     1000.0
 )
 
-SCALE_VERIFIED = env_bool(
-    "SCALE_VERIFIED",
-    False
-)
+SCALE_VERIFIED = False
 
-# El usuario decidió permitir publicación aun con la escala
-# marcada como no verificada.
-
-REQUIRE_SCALE_VERIFIED_FOR_REAL_POST = env_bool(
-    "REQUIRE_SCALE_VERIFIED_FOR_REAL_POST",
-    False
-)
+REQUIRE_SCALE_VERIFIED_FOR_REAL_POST = False
 
 
 # ============================================================
@@ -218,6 +203,7 @@ FDSN_STATION_URL = (
 )
 
 GNSS_NETWORK = "C1"
+
 GNSS_CHANNEL_PATTERN = "LX?"
 
 
@@ -226,31 +212,37 @@ GNSS_CHANNEL_PATTERN = "LX?"
 # ============================================================
 
 MAX_STATION_DISTANCE_KM = 300.0
+
 MAX_NEAREST_STATIONS = 15
 
 
 # ============================================================
-# VENTANAS GNSS
+# VENTANAS TEMPORALES
 # ============================================================
 
 # PRE:
-# -10 min → -2 min
+# 10 minutos antes → 2 minutos antes
 
 PRE_START_SECONDS = -600
+
 PRE_END_SECONDS = -120
 
-# POST temprano:
-# mínimo +180 s
-# o llegada lenta + margen
+
+# POST temprano
 
 EARLY_POST_MIN_START_SECONDS = 180
+
 EARLY_POST_END_SECONDS = 300
+
 EARLY_POST_AFTER_SLOW_WAVE_SECONDS = 45
 
-# POST tardío:
-# +8 min → +10 min
+
+# POST tardío
+#
+# Es el utilizado para calcular el RES publicado.
 
 LATE_POST_START_SECONDS = 480
+
 LATE_POST_END_SECONDS = 600
 
 
@@ -261,17 +253,20 @@ LATE_POST_END_SECONDS = 600
 BLOCK_SECONDS = 30
 
 MIN_PRE_BLOCKS = 8
+
 MIN_EARLY_POST_BLOCKS = 2
+
 MIN_LATE_POST_BLOCKS = 3
 
 MIN_SAMPLES_PER_BLOCK = 10
 
 
 # ============================================================
-# PROPAGACIÓN HEURÍSTICA
+# VELOCIDADES HEURÍSTICAS
 # ============================================================
 
 FAST_WAVE_VELOCITY_KM_S = 8.0
+
 SLOW_WAVE_VELOCITY_KM_S = 2.5
 
 
@@ -287,9 +282,11 @@ MIN_COMPONENT_CENTER_UNCERTAINTY_MM = 0.50
 # ============================================================
 
 MAX_PRE_BLOCK_SCATTER_H_MM = 12.0
+
 MAX_POST_BLOCK_SCATTER_H_MM = 12.0
 
 MAX_PRE_DRIFT_H_MM_PER_MIN = 5.0
+
 MAX_POST_DRIFT_H_MM_PER_MIN = 5.0
 
 
@@ -300,7 +297,9 @@ MAX_POST_DRIFT_H_MM_PER_MIN = 5.0
 MIN_RES_HORIZONTAL_MM = 1.0
 
 MIN_RES_SNR_CANDIDATE = 2.0
+
 MIN_RES_SNR_MODERATE = 2.5
+
 MIN_RES_SNR_HIGH = 3.5
 
 
@@ -309,9 +308,11 @@ MIN_RES_SNR_HIGH = 3.5
 # ============================================================
 
 PERSISTENCE_ABS_TOL_MM = 5.0
+
 PERSISTENCE_REL_TOL = 0.75
 
 PERSISTENCE_MAX_AZIMUTH_DIFF_DEG = 75.0
+
 PERSISTENCE_DIRECTION_MIN_MM = 3.0
 
 
@@ -322,9 +323,11 @@ PERSISTENCE_DIRECTION_MIN_MM = 3.0
 COHERENCE_MAX_DISTANCE_KM = 180.0
 
 COHERENCE_MAX_VECTOR_DIFF_MM = 12.0
+
 COHERENCE_REL_VECTOR_DIFF = 1.0
 
 COHERENCE_MAX_AZIMUTH_DIFF_DEG = 80.0
+
 COHERENCE_DIRECTION_MIN_MM = 3.0
 
 MIN_COHERENT_NEIGHBORS_HIGH = 1
@@ -337,31 +340,8 @@ MIN_COHERENT_NEIGHBORS_HIGH = 1
 ENABLE_PLAUSIBILITY_FILTER = True
 
 
-def plausibility_limit_mm(magnitude):
-
-    if not finite(magnitude):
-        return np.inf
-
-    magnitude = float(magnitude)
-
-    # Estos son filtros deliberadamente amplios para impedir
-    # que saltos extremadamente grandes sean publicados
-    # automáticamente como desplazamiento tectónico.
-
-    if magnitude < 4.0:
-        return 50.0
-
-    if magnitude < 5.0:
-        return 150.0
-
-    if magnitude < 6.0:
-        return 500.0
-
-    return np.inf
-
-
 # ============================================================
-# QC PUBLICABLE
+# PUBLICACIÓN
 # ============================================================
 
 PUBLISH_QC_LEVELS = {
@@ -375,16 +355,18 @@ PUBLISH_QC_LEVELS = {
 # ============================================================
 
 MAP_LON_MIN = -77.5
+
 MAP_LON_MAX = -65.0
 
 MAP_LAT_MIN = -58.0
+
 MAP_LAT_MAX = -17.0
 
 VECTOR_TARGET_DEGREES = 0.42
 
 
 # ============================================================
-# ESTILO
+# TEXTOS DE LA LÁMINA
 # ============================================================
 
 BRAND_TITLE = (
@@ -399,17 +381,33 @@ MAP_TITLE = (
     "Vectores RES estaciones cercanas"
 )
 
+
+# ============================================================
+# COLORES
+# ============================================================
+
 COLOR_NAVY = "#0F172A"
+
 COLOR_RED = "#DC2626"
+
 COLOR_ORANGE = "#F59E0B"
+
 COLOR_GREEN = "#059669"
+
 COLOR_BLUE = "#2563EB"
+
 COLOR_GRAY = "#64748B"
+
 COLOR_LIGHT_GRAY = "#F1F5F9"
+
 COLOR_BORDER = "#CBD5E1"
+
 COLOR_MUTED = "#475569"
+
 COLOR_WHITE = "#FFFFFF"
+
 COLOR_SEA = "#F8FAFC"
+
 COLOR_LAND = "#E2E8F0"
 
 
@@ -488,43 +486,10 @@ NE_DIR = (
 
 
 # ============================================================
-# PERSISTENCIA GITHUB
+# PERSISTENCIA DEL ESTADO EN GITHUB
 # ============================================================
 
-PERSIST_STATE_TO_GIT = env_bool(
-    "PERSIST_STATE_TO_GIT",
-    True
-)
-
-
-# ============================================================
-# CREDENCIALES X
-# ============================================================
-#
-# Deben venir desde GitHub Actions Secrets:
-#
-# X_API_KEY
-# X_API_SECRET
-# X_ACCESS_TOKEN
-# X_ACCESS_TOKEN_SECRET
-#
-# ============================================================
-
-X_API_KEY = os.getenv(
-    "X_API_KEY"
-)
-
-X_API_SECRET = os.getenv(
-    "X_API_SECRET"
-)
-
-X_ACCESS_TOKEN = os.getenv(
-    "X_ACCESS_TOKEN"
-)
-
-X_ACCESS_TOKEN_SECRET = os.getenv(
-    "X_ACCESS_TOKEN_SECRET"
-)
+PERSIST_STATE_TO_GIT = True
 
 
 # ============================================================
@@ -537,7 +502,7 @@ http.headers.update(
     {
         "User-Agent":
             "Mozilla/5.0 "
-            "CSN-GNSS-RES-Monitor-GitHub/1.0"
+            "CSN-GNSS-RES-Monitor/1.0"
     }
 )
 
@@ -566,6 +531,7 @@ def numeric(value):
     try:
 
         if value is None:
+
             return np.nan
 
         if isinstance(
@@ -578,7 +544,9 @@ def numeric(value):
             )
         ):
 
-            value = float(value)
+            value = float(
+                value
+            )
 
             return (
                 value
@@ -598,6 +566,7 @@ def numeric(value):
         )
 
         if not match:
+
             return np.nan
 
         return float(
@@ -611,31 +580,34 @@ def numeric(value):
 
 def ensure_utc(value):
 
-    ts = pd.Timestamp(
+    timestamp = pd.Timestamp(
         value
     )
 
-    if ts.tzinfo is None:
+    if timestamp.tzinfo is None:
 
-        ts = ts.tz_localize(
+        timestamp = timestamp.tz_localize(
             "UTC"
         )
 
     else:
 
-        ts = ts.tz_convert(
+        timestamp = timestamp.tz_convert(
             "UTC"
         )
 
-    return ts
+    return timestamp
 
 
 def repair_text(text):
 
     if text is None:
+
         return ""
 
-    text = str(text)
+    text = str(
+        text
+    )
 
     if (
         "Ã" in text
@@ -647,8 +619,12 @@ def repair_text(text):
 
             text = (
                 text
-                .encode("latin1")
-                .decode("utf-8")
+                .encode(
+                    "latin1"
+                )
+                .decode(
+                    "utf-8"
+                )
             )
 
         except Exception:
@@ -664,7 +640,10 @@ def fmt(
     suffix=""
 ):
 
-    if not finite(value):
+    if not finite(
+        value
+    ):
+
         return "-"
 
     return (
@@ -675,7 +654,10 @@ def fmt(
 
 def format_age(seconds):
 
-    if not finite(seconds):
+    if not finite(
+        seconds
+    ):
+
         return "-"
 
     seconds = max(
@@ -684,7 +666,10 @@ def format_age(seconds):
     )
 
     if seconds < 60:
-        return f"{seconds} s"
+
+        return (
+            f"{seconds} s"
+        )
 
     minutes = (
         seconds
@@ -693,7 +678,10 @@ def format_age(seconds):
     )
 
     if minutes < 60:
-        return f"{minutes} min"
+
+        return (
+            f"{minutes} min"
+        )
 
     hours = (
         minutes
@@ -738,13 +726,13 @@ def haversine_km(
         float(lon2)
     )
 
-    dlat = (
+    delta_lat = (
         lat2
         -
         lat1
     )
 
-    dlon = (
+    delta_lon = (
         lon2
         -
         lon1
@@ -752,15 +740,19 @@ def haversine_km(
 
     a = (
         math.sin(
-            dlat / 2
+            delta_lat / 2
         ) ** 2
         +
-        math.cos(lat1)
+        math.cos(
+            lat1
+        )
         *
-        math.cos(lat2)
+        math.cos(
+            lat2
+        )
         *
         math.sin(
-            dlon / 2
+            delta_lon / 2
         ) ** 2
     )
 
@@ -801,31 +793,31 @@ def vector_azimuth(
 
 
 def angular_difference_deg(
-    a,
-    b
+    angle_a,
+    angle_b
 ):
 
     if (
-        not finite(a)
+        not finite(angle_a)
         or
-        not finite(b)
+        not finite(angle_b)
     ):
 
         return np.nan
 
-    diff = (
+    difference = (
         abs(
-            float(a)
+            float(angle_a)
             -
-            float(b)
+            float(angle_b)
         )
         %
         360
     )
 
     return min(
-        diff,
-        360 - diff
+        difference,
+        360 - difference
     )
 
 
@@ -837,10 +829,13 @@ def mad(values):
     )
 
     values = values[
-        np.isfinite(values)
+        np.isfinite(
+            values
+        )
     ]
 
     if len(values) == 0:
+
         return np.nan
 
     center = np.median(
@@ -862,7 +857,10 @@ def robust_sigma(values):
         values
     )
 
-    if not finite(value):
+    if not finite(
+        value
+    ):
+
         return np.nan
 
     return (
@@ -872,6 +870,35 @@ def robust_sigma(values):
     )
 
 
+def plausibility_limit_mm(
+    magnitude
+):
+
+    if not finite(
+        magnitude
+    ):
+
+        return np.inf
+
+    magnitude = float(
+        magnitude
+    )
+
+    if magnitude < 4.0:
+
+        return 50.0
+
+    if magnitude < 5.0:
+
+        return 150.0
+
+    if magnitude < 6.0:
+
+        return 500.0
+
+    return np.inf
+
+
 # ============================================================
 # ESTADO
 # ============================================================
@@ -879,13 +906,9 @@ def robust_sigma(values):
 def default_state():
 
     return {
-
         "detected": {},
-
         "posted": {},
-
         "dry_run_seen": {},
-
         "expired": {}
     }
 
@@ -932,7 +955,9 @@ def load_state():
     return state
 
 
-def save_state(state):
+def save_state(
+    state
+):
 
     with open(
         STATE_FILE,
@@ -949,12 +974,13 @@ def save_state(state):
 
 
 # ============================================================
-# GUARDAR ESTADO EN EL REPOSITORIO
+# PERSISTIR ESTADO EN GITHUB
 # ============================================================
 
 def persist_state_to_git():
 
     if not PERSIST_STATE_TO_GIT:
+
         return
 
     if (
@@ -969,6 +995,7 @@ def persist_state_to_git():
         return
 
     if not STATE_FILE.exists():
+
         return
 
     try:
@@ -1022,6 +1049,11 @@ def persist_state_to_git():
         )
 
         if diff.returncode == 0:
+
+            print(
+                "Estado sin cambios."
+            )
+
             return
 
         subprocess.run(
@@ -1051,8 +1083,8 @@ def persist_state_to_git():
     except Exception as exc:
 
         print(
-            "ADVERTENCIA: no fue posible "
-            "persistir monitor_state.json:"
+            "ADVERTENCIA: "
+            "no se pudo persistir monitor_state.json:"
         )
 
         print(
@@ -1061,21 +1093,21 @@ def persist_state_to_git():
 
 
 # ============================================================
-# EVENTO
+# EVENTOS
 # ============================================================
 
 def make_event_id(
     event_time,
-    lat,
-    lon,
+    latitude,
+    longitude,
     depth,
     magnitude
 ):
 
     fingerprint = (
         f"{ensure_utc(event_time)}|"
-        f"{float(lat):.4f}|"
-        f"{float(lon):.4f}|"
+        f"{float(latitude):.4f}|"
+        f"{float(longitude):.4f}|"
         f"{depth}|"
         f"{magnitude}"
     )
@@ -1091,7 +1123,9 @@ def make_event_id(
     )
 
 
-def serialize_event(event):
+def serialize_event(
+    event
+):
 
     return {
 
@@ -1175,7 +1209,9 @@ def serialize_event(event):
     }
 
 
-def deserialize_event(data):
+def deserialize_event(
+    data
+):
 
     return {
 
@@ -1270,7 +1306,9 @@ def catalog_url_for_date(
     )
 
 
-def parse_daily_catalog(html):
+def parse_daily_catalog(
+    html
+):
 
     soup = BeautifulSoup(
         html,
@@ -1279,7 +1317,7 @@ def parse_daily_catalog(html):
 
     events = []
 
-    for tr in soup.find_all(
+    for row in soup.find_all(
         "tr"
     ):
 
@@ -1291,7 +1329,7 @@ def parse_daily_catalog(html):
                 )
             )
             for cell in
-            tr.find_all(
+            row.find_all(
                 [
                     "td",
                     "th"
@@ -1300,6 +1338,7 @@ def parse_daily_catalog(html):
         ]
 
         if len(cells) < 5:
+
             continue
 
         utc_match = re.search(
@@ -1309,6 +1348,7 @@ def parse_daily_catalog(html):
         )
 
         if not utc_match:
+
             continue
 
         event_time = pd.to_datetime(
@@ -1337,28 +1377,32 @@ def parse_daily_catalog(html):
         )
 
         if not region:
+
             region = "Chile"
 
-        coords = re.findall(
+        coordinates = re.findall(
             r"[-+]?\d+(?:[.,]\d+)?",
             cells[2]
         )
 
-        if len(coords) < 2:
+        if len(
+            coordinates
+        ) < 2:
+
             continue
 
-        lat = numeric(
-            coords[0]
+        latitude = numeric(
+            coordinates[0]
         )
 
-        lon = numeric(
-            coords[1]
+        longitude = numeric(
+            coordinates[1]
         )
 
         if (
-            not finite(lat)
+            not finite(latitude)
             or
-            not finite(lon)
+            not finite(longitude)
         ):
 
             continue
@@ -1367,20 +1411,24 @@ def parse_daily_catalog(html):
             cells[3]
         )
 
-        mag_match = re.search(
+        magnitude_match = re.search(
             r"([-+]?\d+(?:[.,]\d+)?)"
             r"(?:\s+([A-Za-z0-9]+))?",
             cells[4]
         )
 
-        if mag_match:
+        if magnitude_match:
 
             magnitude = numeric(
-                mag_match.group(1)
+                magnitude_match.group(
+                    1
+                )
             )
 
-            mag_type = (
-                mag_match.group(2)
+            magnitude_type = (
+                magnitude_match.group(
+                    2
+                )
                 or
                 ""
             )
@@ -1388,12 +1436,13 @@ def parse_daily_catalog(html):
         else:
 
             magnitude = np.nan
-            mag_type = ""
+
+            magnitude_type = ""
 
         event_id = make_event_id(
             event_time,
-            lat,
-            lon,
+            latitude,
+            longitude,
             depth,
             magnitude
         )
@@ -1407,10 +1456,14 @@ def parse_daily_catalog(html):
                     event_time,
 
                 "latitude":
-                    float(lat),
+                    float(
+                        latitude
+                    ),
 
                 "longitude":
-                    float(lon),
+                    float(
+                        longitude
+                    ),
 
                 "depth_km":
                     depth,
@@ -1419,7 +1472,7 @@ def parse_daily_catalog(html):
                     magnitude,
 
                 "mag_type":
-                    mag_type,
+                    magnitude_type,
 
                 "region":
                     region
@@ -1454,7 +1507,7 @@ def fetch_daily_catalog(
     except Exception as exc:
 
         print(
-            "  ERROR:",
+            "ERROR catálogo:",
             exc
         )
 
@@ -1465,8 +1518,10 @@ def fetch_daily_catalog(
     )
 
     print(
-        "  Eventos:",
-        len(events)
+        "Eventos:",
+        len(
+            events
+        )
     )
 
     return events
@@ -1594,6 +1649,7 @@ def get_gnss_station_inventory():
         return pd.DataFrame()
 
     rows = []
+
     header = None
 
     for raw_line in (
@@ -1604,9 +1660,12 @@ def get_gnss_station_inventory():
         line = raw_line.strip()
 
         if not line:
+
             continue
 
-        if line.startswith("#"):
+        if line.startswith(
+            "#"
+        ):
 
             possible = [
                 item.strip()
@@ -1645,13 +1704,13 @@ def get_gnss_station_inventory():
                 "Station"
             )
 
-            lat = numeric(
+            latitude = numeric(
                 record.get(
                     "Latitude"
                 )
             )
 
-            lon = numeric(
+            longitude = numeric(
                 record.get(
                     "Longitude"
                 )
@@ -1660,25 +1719,27 @@ def get_gnss_station_inventory():
         else:
 
             if len(parts) < 6:
+
                 continue
 
             network = parts[0]
+
             station = parts[1]
 
-            lat = numeric(
+            latitude = numeric(
                 parts[4]
             )
 
-            lon = numeric(
+            longitude = numeric(
                 parts[5]
             )
 
         if (
             station
             and
-            finite(lat)
+            finite(latitude)
             and
-            finite(lon)
+            finite(longitude)
         ):
 
             network = (
@@ -1690,19 +1751,27 @@ def get_gnss_station_inventory():
             rows.append(
                 {
                     "network":
-                        str(network),
+                        str(
+                            network
+                        ),
 
                     "station":
-                        str(station),
+                        str(
+                            station
+                        ),
 
                     "key":
                         f"{network}.{station}",
 
                     "latitude":
-                        float(lat),
+                        float(
+                            latitude
+                        ),
 
                     "longitude":
-                        float(lon)
+                        float(
+                            longitude
+                        )
                 }
             )
 
@@ -1781,7 +1850,7 @@ def select_nearby_stations(
 
 
 # ============================================================
-# DESCARGA GNSS
+# DESCARGA HISTÓRICA GNSS
 # ============================================================
 
 def fetch_station_history(
@@ -1881,17 +1950,16 @@ def fetch_station_history(
 
 
 # ============================================================
-# MINISEED → COMPONENTES
+# STREAM → E / N / Z
 # ============================================================
 
-def stream_components(stream):
+def stream_components(
+    stream
+):
 
     components = {
-
         "E": [],
-
         "N": [],
-
         "Z": []
     }
 
@@ -1926,27 +1994,29 @@ def stream_components(stream):
 
             continue
 
+        dataframe = pd.DataFrame(
+            {
+                "time":
+                    pd.to_datetime(
+                        trace.times(
+                            "timestamp"
+                        ),
+                        unit="s",
+                        utc=True
+                    ),
+
+                component:
+                    np.asarray(
+                        trace.data,
+                        dtype=float
+                    )
+            }
+        )
+
         components[
             component
         ].append(
-            pd.DataFrame(
-                {
-                    "time":
-                        pd.to_datetime(
-                            trace.times(
-                                "timestamp"
-                            ),
-                            unit="s",
-                            utc=True
-                        ),
-
-                    component:
-                        np.asarray(
-                            trace.data,
-                            dtype=float
-                        )
-                }
-            )
+            dataframe
         )
 
     output = {}
@@ -2088,7 +2158,7 @@ def align_components(
 
 
 # ============================================================
-# PROPAGACIÓN
+# TIEMPOS DE PROPAGACIÓN
 # ============================================================
 
 def calculate_wave_times(
@@ -2102,7 +2172,7 @@ def calculate_wave_times(
 
         depth_km = 0.0
 
-    hypocentral_km = math.sqrt(
+    hypocentral_distance = math.sqrt(
 
         float(
             epicentral_distance_km
@@ -2116,13 +2186,13 @@ def calculate_wave_times(
     )
 
     fast_arrival = (
-        hypocentral_km
+        hypocentral_distance
         /
         FAST_WAVE_VELOCITY_KM_S
     )
 
     slow_arrival = (
-        hypocentral_km
+        hypocentral_distance
         /
         SLOW_WAVE_VELOCITY_KM_S
     )
@@ -2139,7 +2209,7 @@ def calculate_wave_times(
     return {
 
         "hypocentral_distance_km":
-            hypocentral_km,
+            hypocentral_distance,
 
         "fast_arrival_seconds":
             fast_arrival,
@@ -2153,7 +2223,7 @@ def calculate_wave_times(
 
 
 # ============================================================
-# BLOQUES ROBUSTOS
+# BLOQUES
 # ============================================================
 
 def make_block_medians(
@@ -2219,7 +2289,9 @@ def make_block_medians(
         row = {
 
             "block_id":
-                int(block_id),
+                int(
+                    block_id
+                ),
 
             "time_seconds":
                 float(
@@ -2231,7 +2303,9 @@ def make_block_medians(
                 ),
 
             "sample_count":
-                len(block),
+                len(
+                    block
+                ),
 
             "E":
                 float(
@@ -2298,7 +2372,7 @@ def make_block_medians(
 
 
 # ============================================================
-# ESTADÍSTICA ROBUSTA
+# POSICIÓN ROBUSTA
 # ============================================================
 
 def robust_block_component(
@@ -2314,7 +2388,9 @@ def robust_block_component(
     )
 
     values = values[
-        np.isfinite(values)
+        np.isfinite(
+            values
+        )
     ]
 
     count = len(
@@ -2324,18 +2400,10 @@ def robust_block_component(
     if count == 0:
 
         return {
-
-            "center":
-                np.nan,
-
-            "scatter_mm":
-                np.nan,
-
-            "center_unc_mm":
-                np.nan,
-
-            "n":
-                0
+            "center": np.nan,
+            "scatter_mm": np.nan,
+            "center_unc_mm": np.nan,
+            "n": 0
         }
 
     center = float(
@@ -2363,7 +2431,7 @@ def robust_block_component(
         scatter_mm
     ):
 
-        center_unc_mm = (
+        center_uncertainty = (
             scatter_mm
             /
             math.sqrt(
@@ -2374,19 +2442,18 @@ def robust_block_component(
             )
         )
 
-        center_unc_mm = max(
-            center_unc_mm,
+        center_uncertainty = max(
+            center_uncertainty,
             MIN_COMPONENT_CENTER_UNCERTAINTY_MM
         )
 
     else:
 
-        center_unc_mm = (
+        center_uncertainty = (
             MIN_COMPONENT_CENTER_UNCERTAINTY_MM
         )
 
     return {
-
         "center":
             center,
 
@@ -2394,7 +2461,7 @@ def robust_block_component(
             scatter_mm,
 
         "center_unc_mm":
-            center_unc_mm,
+            center_uncertainty,
 
         "n":
             count
@@ -2448,7 +2515,6 @@ def robust_block_position(
     )
 
     return {
-
         "E":
             east,
 
@@ -2464,11 +2530,13 @@ def robust_block_position(
 
 
 # ============================================================
-# DERIVA
+# DERIVA ROBUSTA
 # ============================================================
 #
-# Sólo se utiliza para QC.
-# NO corrige ni extrapola la señal.
+# La deriva sólo se usa para QC.
+#
+# NO se resta.
+# NO se extrapola.
 #
 # ============================================================
 
@@ -2603,7 +2671,7 @@ def horizontal_block_drift(
 
 
 # ============================================================
-# RES
+# CALCULAR RES
 # ============================================================
 
 def calculate_residual(
@@ -2660,13 +2728,21 @@ def calculate_residual(
     )
 
     if (
-        not finite(east_pre)
+        not finite(
+            east_pre
+        )
         or
-        not finite(north_pre)
+        not finite(
+            north_pre
+        )
         or
-        not finite(east_post)
+        not finite(
+            east_post
+        )
         or
-        not finite(north_post)
+        not finite(
+            north_post
+        )
     ):
 
         return None
@@ -2692,9 +2768,13 @@ def calculate_residual(
         /
         COUNTS_PER_MM
         if (
-            finite(up_post)
+            finite(
+                up_post
+            )
             and
-            finite(up_pre)
+            finite(
+                up_pre
+            )
         )
         else
         np.nan
@@ -2821,18 +2901,10 @@ def evaluate_persistence(
     ):
 
         return {
-
-            "available":
-                False,
-
-            "valid":
-                False,
-
-            "vector_difference_mm":
-                np.nan,
-
-            "azimuth_difference_deg":
-                np.nan
+            "available": False,
+            "valid": False,
+            "vector_difference_mm": np.nan,
+            "azimuth_difference_deg": np.nan
         }
 
     vector_difference = math.sqrt(
@@ -3128,17 +3200,15 @@ def analyze_station_res(
         )
     )
 
-    stream, status = (
-        fetch_station_history(
-            station[
-                "network"
-            ],
-            station[
-                "station"
-            ],
-            start_time,
-            end_time
-        )
+    stream, status = fetch_station_history(
+        station[
+            "network"
+        ],
+        station[
+            "station"
+        ],
+        start_time,
+        end_time
     )
 
     result[
@@ -3190,7 +3260,9 @@ def analyze_station_res(
     )
 
     if (
-        len(pre_blocks)
+        len(
+            pre_blocks
+        )
         <
         MIN_PRE_BLOCKS
     ):
@@ -3218,7 +3290,9 @@ def analyze_station_res(
     )
 
     if (
-        len(late_blocks)
+        len(
+            late_blocks
+        )
         <
         MIN_LATE_POST_BLOCKS
     ):
@@ -3258,7 +3332,7 @@ def analyze_station_res(
     )
 
     # --------------------------------------------------------
-    # POSICIONES ROBUSTAS
+    # POSICIONES
     # --------------------------------------------------------
 
     pre_position = robust_block_position(
@@ -3274,7 +3348,9 @@ def analyze_station_res(
             early_blocks
         )
         if (
-            len(early_blocks)
+            len(
+                early_blocks
+            )
             >=
             MIN_EARLY_POST_BLOCKS
         )
@@ -3303,7 +3379,7 @@ def analyze_station_res(
     ] = late_scatter
 
     # --------------------------------------------------------
-    # DERIVA QC
+    # DERIVA
     # --------------------------------------------------------
 
     pre_drift = horizontal_block_drift(
@@ -3371,7 +3447,7 @@ def analyze_station_res(
     )
 
     # --------------------------------------------------------
-    # RES PRINCIPAL
+    # RES TARDÍO
     # --------------------------------------------------------
 
     late_res = calculate_residual(
@@ -3409,7 +3485,7 @@ def analyze_station_res(
     # PLAUSIBILIDAD
     # --------------------------------------------------------
 
-    plausibility_limit = plausibility_limit_mm(
+    limit = plausibility_limit_mm(
         event[
             "magnitude"
         ]
@@ -3423,7 +3499,7 @@ def analyze_station_res(
             "dH_mm"
         ]
         <=
-        plausibility_limit
+        limit
     )
 
     res_valid = (
@@ -3777,7 +3853,9 @@ def evaluate_spatial_coherence(
 # QC FINAL
 # ============================================================
 
-def classify_final_qc(row):
+def classify_final_qc(
+    row
+):
 
     if not bool(
         row.get(
@@ -3811,7 +3889,9 @@ def classify_final_qc(row):
     )
 
     if (
-        not finite(snr)
+        not finite(
+            snr
+        )
         or
         snr
         <
@@ -3851,6 +3931,8 @@ def classify_final_qc(row):
         )
     )
 
+    # QC ALTO
+
     if (
         snr
         >=
@@ -3869,6 +3951,8 @@ def classify_final_qc(row):
             "ALTO",
             "VALID_RES"
         )
+
+    # QC MODERADO
 
     if (
         snr
@@ -3942,7 +4026,7 @@ def analyze_event(
     if nearby.empty:
 
         print(
-            "Sin estaciones GNSS cercanas."
+            "No existen estaciones GNSS cercanas."
         )
 
         return pd.DataFrame()
@@ -3957,7 +4041,9 @@ def analyze_event(
 
     print(
         "Analizando",
-        len(nearby),
+        len(
+            nearby
+        ),
         "estaciones GNSS..."
     )
 
@@ -3967,7 +4053,7 @@ def analyze_event(
     ):
 
         print(
-            f"  [{number:02d}/{len(nearby):02d}] "
+            f"[{number:02d}/{len(nearby):02d}] "
             f"{station['key']} · "
             f"{station['distance_km']:.1f} km"
         )
@@ -4013,7 +4099,9 @@ def analyze_event(
 # PUBLICABLES
 # ============================================================
 
-def station_is_publishable(row):
+def station_is_publishable(
+    row
+):
 
     if not bool(
         row.get(
@@ -4062,20 +4150,15 @@ def station_is_publishable(row):
 
         return False
 
-    required_fields = [
-
+    fields = [
         "residual_dE_mm",
-
         "residual_dN_mm",
-
         "residual_dH_mm",
-
         "residual_sigma_H_mm",
-
         "residual_snr"
     ]
 
-    for field in required_fields:
+    for field in fields:
 
         if not finite(
             row.get(
@@ -4114,9 +4197,7 @@ def get_publishable_stations(
         return work
 
     quality_rank = {
-
         "ALTO": 2,
-
         "MODERADO": 1
     }
 
@@ -4268,7 +4349,9 @@ def load_chile_outline():
     return None
 
 
-def result_color(row):
+def result_color(
+    row
+):
 
     if (
         row.get(
@@ -4415,6 +4498,8 @@ def create_social_sheet(
             zorder=1
         )
 
+    # Epicentro
+
     axis.scatter(
         event[
             "longitude"
@@ -4463,6 +4548,10 @@ def create_social_sheet(
         else
         0.02
     )
+
+    # --------------------------------------------------------
+    # VECTORES RES
+    # --------------------------------------------------------
 
     for _, row in (
         publishable.iterrows()
@@ -4563,12 +4652,20 @@ def create_social_sheet(
             zorder=20
         )
 
+    # --------------------------------------------------------
+    # ZOOM
+    # --------------------------------------------------------
+
     longitude_margin = max(
         0.65,
         (
-            max(longitudes)
+            max(
+                longitudes
+            )
             -
-            min(longitudes)
+            min(
+                longitudes
+            )
         )
         *
         0.30
@@ -4577,9 +4674,13 @@ def create_social_sheet(
     latitude_margin = max(
         0.65,
         (
-            max(latitudes)
+            max(
+                latitudes
+            )
             -
-            min(latitudes)
+            min(
+                latitudes
+            )
         )
         *
         0.30
@@ -4588,13 +4689,17 @@ def create_social_sheet(
     axis.set_xlim(
         max(
             MAP_LON_MIN,
-            min(longitudes)
+            min(
+                longitudes
+            )
             -
             longitude_margin
         ),
         min(
             MAP_LON_MAX,
-            max(longitudes)
+            max(
+                longitudes
+            )
             +
             longitude_margin
         )
@@ -4603,13 +4708,17 @@ def create_social_sheet(
     axis.set_ylim(
         max(
             MAP_LAT_MIN,
-            min(latitudes)
+            min(
+                latitudes
+            )
             -
             latitude_margin
         ),
         min(
             MAP_LAT_MAX,
-            max(latitudes)
+            max(
+                latitudes
+            )
             +
             latitude_margin
         )
@@ -4650,6 +4759,8 @@ def create_social_sheet(
     info.axis(
         "off"
     )
+
+    # Datos sísmicos
 
     info.add_patch(
         patches.FancyBboxPatch(
@@ -4734,9 +4845,7 @@ def create_social_sheet(
         color=COLOR_MUTED
     )
 
-    # --------------------------------------------------------
-    # RES PRINCIPAL
-    # --------------------------------------------------------
+    # RES
 
     info.add_patch(
         patches.FancyBboxPatch(
@@ -4811,6 +4920,8 @@ def create_social_sheet(
         )
     )
 
+    # Lugar
+
     info.text(
         0.02,
         0.08,
@@ -4859,9 +4970,7 @@ def create_social_sheet(
     footer.text(
         0,
         0.20,
-        (
-            "Resultado automático preliminar."
-        ),
+        "Resultado automático preliminar.",
         fontsize=7.7,
         color=COLOR_MUTED
     )
@@ -4902,7 +5011,7 @@ def create_social_sheet(
 
 
 # ============================================================
-# TEXTO X
+# TEXTO DEL TWEET
 # ============================================================
 
 def build_x_text(
@@ -4928,7 +5037,7 @@ def build_x_text(
         "-"
     )
 
-    mag_type = (
+    magnitude_type = (
         str(
             event.get(
                 "mag_type",
@@ -4959,7 +5068,7 @@ def build_x_text(
         "🇨🇱 Desplazamiento geodésico residual GNSS observado\n\n"
         f"UTC: {event_time}\n"
         f"Magnitud: {magnitude}"
-        f"{(' ' + mag_type) if mag_type else ''}\n"
+        f"{(' ' + magnitude_type) if magnitude_type else ''}\n"
         f"Profundidad: {depth} km\n"
         f"{region}"
     )
@@ -4968,31 +5077,39 @@ def build_x_text(
 
 
 # ============================================================
-# X
+# CONFIGURACIÓN X
 # ============================================================
 
 def configure_x():
 
-    missing = []
-
     credentials = {
 
-        "3q8t7oa8234vSwtOVjRtnTWG6":
+        "X_API_KEY":
             X_API_KEY,
 
-        "EyQoEUAPTYuXNIdCIDmmhgtHisGwvtsUXyEegfCWE4OZ5s4aAo":
+        "X_API_SECRET":
             X_API_SECRET,
 
-        "2561368769-3zvUDFEcBznky2knY6SLEYvfjnTstbdldYOL06U":
+        "X_ACCESS_TOKEN":
             X_ACCESS_TOKEN,
 
-        "iwrLsWBbGqFj4wA1WzxyZ5X4JsiyOwxhXzOfihpaqejLv":
+        "X_ACCESS_TOKEN_SECRET":
             X_ACCESS_TOKEN_SECRET
     }
 
+    missing = []
+
     for name, value in credentials.items():
 
-        if not value:
+        if (
+            not value
+            or
+            str(
+                value
+            ).startswith(
+                "TU_"
+            )
+        ):
 
             missing.append(
                 name
@@ -5001,7 +5118,7 @@ def configure_x():
     if missing:
 
         raise RuntimeError(
-            "Faltan secretos X: "
+            "Faltan credenciales X: "
             +
             ", ".join(
                 missing
@@ -5038,6 +5155,10 @@ def configure_x():
     )
 
 
+# ============================================================
+# PUBLICAR X
+# ============================================================
+
 def publish_to_x(
     image_path,
     text,
@@ -5047,13 +5168,17 @@ def publish_to_x(
 
     print()
 
-    print("=" * 80)
+    print(
+        "=" * 80
+    )
 
     print(
         "POST PREPARADO"
     )
 
-    print("=" * 80)
+    print(
+        "=" * 80
+    )
 
     print(
         text
@@ -5071,8 +5196,7 @@ def publish_to_x(
         print()
 
         print(
-            "DRY_RUN=True → "
-            "NO PUBLICADO EN X"
+            "DRY_RUN=True → NO PUBLICADO EN X"
         )
 
         return None
@@ -5122,23 +5246,17 @@ def publish_to_x(
 
     post_id = None
 
-    if (
-        response
-        and
-        response.data
-    ):
+    try:
 
         post_id = (
-            response.data.get(
+            response.data[
                 "id"
-            )
-            if isinstance(
-                response.data,
-                dict
-            )
-            else
-            None
+            ]
         )
+
+    except Exception:
+
+        pass
 
     print()
 
@@ -5155,7 +5273,7 @@ def publish_to_x(
 
 
 # ============================================================
-# MOSTRAR TABLA EN LOG
+# TABLA DE RESULTADOS
 # ============================================================
 
 def print_results_table(
@@ -5222,7 +5340,8 @@ def print_results_table(
     columns = [
         column
         for column in columns
-        if column in results.columns
+        if column in
+        results.columns
     ]
 
     with pd.option_context(
@@ -5266,14 +5385,18 @@ def process_event(
 
     print()
 
-    print("=" * 80)
+    print(
+        "=" * 80
+    )
 
     print(
         "ANÁLISIS RES",
         event_id
     )
 
-    print("=" * 80)
+    print(
+        "=" * 80
+    )
 
     print(
         "UTC:",
@@ -5355,17 +5478,17 @@ def process_event(
     )
 
     print(
-        "  Históricos válidos:",
+        "Históricos válidos:",
         valid_count
     )
 
     print(
-        "  VALID_RES:",
+        "VALID_RES:",
         valid_res_count
     )
 
     print(
-        "  Publicables:",
+        "Estaciones publicables:",
         len(
             publishable
         )
@@ -5380,8 +5503,7 @@ def process_event(
         )
 
         print(
-            "No existe un RES suficientemente "
-            "robusto para publicación."
+            "No existe un RES suficientemente robusto."
         )
 
         return False
@@ -5392,9 +5514,7 @@ def process_event(
         chile
     )
 
-    if (
-        not image_path.exists()
-    ):
+    if not image_path.exists():
 
         print(
             "Mapa no generado."
@@ -5409,13 +5529,13 @@ def process_event(
         image_path
     )
 
-    text = build_x_text(
+    tweet_text = build_x_text(
         event
     )
 
     post_id = publish_to_x(
         image_path,
-        text,
+        tweet_text,
         media_api,
         client
     )
@@ -5431,7 +5551,9 @@ def process_event(
         ][event_id] = {
 
             "processed_at":
-                str(now),
+                str(
+                    now
+                ),
 
             "map":
                 str(
@@ -5446,7 +5568,9 @@ def process_event(
         ][event_id] = {
 
             "posted_at":
-                str(now),
+                str(
+                    now
+                ),
 
             "post_id":
                 post_id,
@@ -5468,16 +5592,13 @@ def process_event(
         state
     )
 
-    # Muy importante en GitHub:
-    # después de publicar guardamos inmediatamente el estado.
-
     persist_state_to_git()
 
     return True
 
 
 # ============================================================
-# EXPIRAR PENDIENTES
+# LIMPIAR PENDIENTES VIEJOS
 # ============================================================
 
 def prune_old_pending(
@@ -5509,14 +5630,14 @@ def prune_old_pending(
 
             continue
 
-        pending_age_seconds = (
+        pending_age = (
             now
             -
             detected_at
         ).total_seconds()
 
         if (
-            pending_age_seconds
+            pending_age
             >
             MAX_PENDING_RETRY_MINUTES
             *
@@ -5541,7 +5662,9 @@ def prune_old_pending(
         ][event_id] = {
 
             "expired_at":
-                str(now),
+                str(
+                    now
+                ),
 
             "event":
                 (
@@ -5569,7 +5692,7 @@ def prune_old_pending(
 
 
 # ============================================================
-# DETECTAR EVENTOS
+# DETECTAR NUEVOS EVENTOS
 # ============================================================
 
 def detect_new_events(
@@ -5660,8 +5783,10 @@ def detect_new_events(
     print()
 
     print(
-        f"Eventos <= "
-        f"{RECENT_EVENT_WINDOW_MINUTES} min:",
+        (
+            f"Eventos dentro de "
+            f"{RECENT_EVENT_WINDOW_MINUTES} min:"
+        ),
         len(
             recent
         )
@@ -5673,7 +5798,7 @@ def detect_new_events(
 
         print(
             (
-                f"  M{fmt(row['magnitude'], 1)} · "
+                f"M{fmt(row['magnitude'], 1)} · "
                 f"{ensure_utc(row['time']).strftime('%H:%M:%S UTC')} · "
                 f"{format_age(row['age_seconds'])} · "
                 f"{row['region']}"
@@ -5757,7 +5882,9 @@ def detect_new_events(
         ][event_id] = {
 
             "detected_at":
-                str(now),
+                str(
+                    now
+                ),
 
             "event":
                 serialize_event(
@@ -5816,7 +5943,7 @@ def detect_new_events(
 
 
 # ============================================================
-# PROCESAR PENDIENTES
+# PROCESAR EVENTOS PENDIENTES
 # ============================================================
 
 def process_pending_events(
@@ -5906,6 +6033,8 @@ def process_pending_events(
             )
         )
 
+        # Esperar hasta disponer del POST tardío
+
         if (
             event_age
             <
@@ -5917,6 +6046,8 @@ def process_pending_events(
             )
 
             continue
+
+        # Expiración
 
         if (
             retry_age
@@ -5938,7 +6069,9 @@ def process_pending_events(
             ][event_id] = {
 
                 "expired_at":
-                    str(now),
+                    str(
+                        now
+                    ),
 
                 "event":
                     (
@@ -5980,6 +6113,8 @@ def process_pending_events(
 
         except Exception as exc:
 
+            print()
+
             print(
                 "ERROR EVENTO:",
                 event_id
@@ -6010,7 +6145,9 @@ def run_single_cycle(
 
     print()
 
-    print("=" * 80)
+    print(
+        "=" * 80
+    )
 
     print(
         now.strftime(
@@ -6019,7 +6156,9 @@ def run_single_cycle(
         "consultando sismologia.cl..."
     )
 
-    print("=" * 80)
+    print(
+        "=" * 80
+    )
 
     prune_old_pending(
         state,
@@ -6045,21 +6184,30 @@ def run_single_cycle(
         now
     )
 
+    # Siempre guardar estado aunque no exista publicación.
+
     save_state(
         state
     )
+
+    # Persistir detected/posted/expired para la siguiente
+    # ejecución de GitHub Actions.
 
     persist_state_to_git()
 
     print()
 
-    print("=" * 80)
+    print(
+        "=" * 80
+    )
 
     print(
         "CICLO FINALIZADO"
     )
 
-    print("=" * 80)
+    print(
+        "=" * 80
+    )
 
 
 # ============================================================
@@ -6070,26 +6218,30 @@ def main():
 
     print()
 
-    print("=" * 80)
+    print(
+        "=" * 80
+    )
 
     print(
         "Desplazamiento geodésico residual GNSS observado"
     )
 
-    print("=" * 80)
+    print(
+        "=" * 80
+    )
 
     print(
         "Ejecución: UN SOLO CICLO"
     )
 
     print(
-        "Ventana de detección:",
+        "Ventana detección:",
         RECENT_EVENT_WINDOW_MINUTES,
         "min"
     )
 
     print(
-        "Análisis RES disponible desde:",
+        "Análisis desde:",
         MIN_ANALYSIS_AGE_SECONDS,
         "s"
     )
@@ -6115,7 +6267,7 @@ def main():
     )
 
     # --------------------------------------------------------
-    # INVENTARIO GNSS
+    # INVENTARIO
     # --------------------------------------------------------
 
     print()
@@ -6167,8 +6319,10 @@ def main():
 
     state = load_state()
 
+    print()
+
     print(
-        "Pendientes cargados:",
+        "Pendientes:",
         len(
             state[
                 "detected"
@@ -6177,10 +6331,19 @@ def main():
     )
 
     print(
-        "Eventos publicados:",
+        "Publicados:",
         len(
             state[
                 "posted"
+            ]
+        )
+    )
+
+    print(
+        "Expirados:",
+        len(
+            state[
+                "expired"
             ]
         )
     )
@@ -6190,6 +6353,7 @@ def main():
     # --------------------------------------------------------
 
     media_api = None
+
     client = None
 
     if (
@@ -6208,8 +6372,12 @@ def main():
             configure_x()
         )
 
+        print(
+            "X configurado."
+        )
+
     # --------------------------------------------------------
-    # CICLO
+    # EJECUCIÓN
     # --------------------------------------------------------
 
     run_single_cycle(
