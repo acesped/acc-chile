@@ -1,0 +1,72 @@
+name: GNSS Residual Monitor
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gnss-residual-monitor
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 20
+
+    env:
+      PYTHONUNBUFFERED: "1"
+
+      ENABLE_X: "true"
+      DRY_RUN: "false"
+
+      TEST_LATEST_EVENT: "false"
+
+      RECENT_EVENT_WINDOW_MINUTES: "10"
+      MAX_PENDING_RETRY_MINUTES: "90"
+
+      COUNTS_PER_METER: "1000000"
+
+      SCALE_VERIFIED: "false"
+      REQUIRE_SCALE_VERIFIED_FOR_REAL_POST: "false"
+
+      PERSIST_STATE_TO_GIT: "true"
+
+      X_API_KEY: ${{ secrets.X_API_KEY }}
+      X_API_SECRET: ${{ secrets.X_API_SECRET }}
+      X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+      X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Show configuration
+        run: |
+          echo "GitHub Actions GNSS monitor"
+          echo "RECENT_EVENT_WINDOW_MINUTES=$RECENT_EVENT_WINDOW_MINUTES"
+          echo "DRY_RUN=$DRY_RUN"
+          echo "ENABLE_X=$ENABLE_X"
+          echo "SCALE_VERIFIED=$SCALE_VERIFIED"
+
+      - name: Run GNSS monitor
+        run: |
+          python monitor.py
