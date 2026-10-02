@@ -133,7 +133,7 @@ X_ACCESS_TOKEN_SECRET = "iwrLsWBbGqFj4wA1WzxyZ5X4JsiyOwxhXzOfihpaqejLv"
 #
 # ============================================================
 
-RECENT_EVENT_WINDOW_MINUTES = 10
+RECENT_EVENT_WINDOW_MINUTES = 100
 
 # El RES final requiere datos hasta +600 s.
 
