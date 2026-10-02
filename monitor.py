@@ -116,13 +116,10 @@ TEST_LATEST_EVENT = False
 #
 # ============================================================
 
-X_API_KEY = "TU_API_KEY"
-
-X_API_SECRET = "TU_API_SECRET"
-
-X_ACCESS_TOKEN = "TU_ACCESS_TOKEN"
-
-X_ACCESS_TOKEN_SECRET = "TU_ACCESS_TOKEN_SECRET"
+X_API_KEY = "3q8t7oa8234vSwtOVjRtnTWG6"
+X_API_SECRET = "EyQoEUAPTYuXNIdCIDmmhgtHisGwvtsUXyEegfCWE4OZ5s4aAo"
+X_ACCESS_TOKEN = "2561368769-3zvUDFEcBznky2knY6SLEYvfjnTstbdldYOL06U"
+X_ACCESS_TOKEN_SECRET = "iwrLsWBbGqFj4wA1WzxyZ5X4JsiyOwxhXzOfihpaqejLv"
 
 
 # ============================================================
