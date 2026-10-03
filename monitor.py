@@ -116,10 +116,10 @@ TEST_LATEST_EVENT = False
 #
 # ============================================================
 
-X_API_KEY = "Paokwmxgt0F3xhhFCEpwp3VXD"
-X_API_SECRET = "Vse0UtGPkhdqKvlFT1frVKG72loXlbbxFqWlvvRijacc92mzWj"
-X_ACCESS_TOKEN = "2106457141796052993-ewXnBhXBhDDB62DlGk8LH4r0lVYjuR"
-X_ACCESS_TOKEN_SECRET = "YNMy5CpAfbHMWIK6UqcrqZBMcPILrjcGssc92eb29eTkR"
+X_API_KEY = "t5792SuVlfx41hDSWYmHVQJiG"
+X_API_SECRET = "WCOUY5z1SqlylH1XYQM9P5guowMC3RogGWIF2hLvSFJKna3HVw"
+X_ACCESS_TOKEN = "2106457141796052993-NpB8nf6yLTbPjJEu4TIHwJfbCCHU7h"
+X_ACCESS_TOKEN_SECRET = "jCDFy4L4suq6Z6qnHOhJ4CuduqWs5173JgriRqn76L5MZ"
 
 
 # ============================================================
