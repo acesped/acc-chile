@@ -1,18 +1,5 @@
 {
   "detected": {
-    "csn_8971ccbc1fc0ca60": {
-      "detected_at": "2026-10-03 19:31:49.710858+00:00",
-      "event": {
-        "event_id": "csn_8971ccbc1fc0ca60",
-        "time": "2026-10-03 12:58:53+00:00",
-        "latitude": -33.279,
-        "longitude": -72.097,
-        "depth_km": 30.0,
-        "magnitude": 2.5,
-        "mag_type": "Mlv",
-        "region": "44 km al O de El Tabo"
-      }
-    },
     "csn_7c33061132e9c335": {
       "detected_at": "2026-10-03 19:31:49.710858+00:00",
       "event": {
@@ -375,6 +362,11 @@
       "posted_at": "2026-10-03 19:32:17.715679+00:00",
       "post_id": "2106467392960508092",
       "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_418fa942d0091893.png"
+    },
+    "csn_8971ccbc1fc0ca60": {
+      "posted_at": "2026-10-03 19:32:24.787017+00:00",
+      "post_id": "2106467422693884116",
+      "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_8971ccbc1fc0ca60.png"
     }
   },
   "dry_run_seen": {},
