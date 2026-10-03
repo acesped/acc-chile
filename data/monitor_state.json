@@ -26,19 +26,6 @@
         "region": "71 km al SE de Socaire"
       }
     },
-    "csn_ca62f40fc4e13c45": {
-      "detected_at": "2026-10-03 19:31:49.710858+00:00",
-      "event": {
-        "event_id": "csn_ca62f40fc4e13c45",
-        "time": "2026-10-03 02:18:00+00:00",
-        "latitude": -21.705,
-        "longitude": -68.507,
-        "depth_km": 136.0,
-        "magnitude": 3.5,
-        "mag_type": "Mlv",
-        "region": "60 km al SO de Ollagüe"
-      }
-    },
     "csn_d8b456582b5492d1": {
       "detected_at": "2026-10-03 19:31:49.710858+00:00",
       "event": {
@@ -263,6 +250,11 @@
       "posted_at": "2026-10-03 19:34:07.670622+00:00",
       "post_id": "2106467853964910622",
       "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_6d4b80fa1fc83a6c.png"
+    },
+    "csn_ca62f40fc4e13c45": {
+      "posted_at": "2026-10-03 19:34:14.752975+00:00",
+      "post_id": "2106467883949948986",
+      "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_ca62f40fc4e13c45.png"
     }
   },
   "dry_run_seen": {},
