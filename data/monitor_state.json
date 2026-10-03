@@ -1,18 +1,5 @@
 {
   "detected": {
-    "csn_7c33061132e9c335": {
-      "detected_at": "2026-10-03 19:31:49.710858+00:00",
-      "event": {
-        "event_id": "csn_7c33061132e9c335",
-        "time": "2026-10-03 12:07:57+00:00",
-        "latitude": -24.155,
-        "longitude": -67.221,
-        "depth_km": 191.0,
-        "magnitude": 2.6,
-        "mag_type": "Mlv",
-        "region": "92 km al O de San Antonio de los Cobres"
-      }
-    },
     "csn_5380b71162d0b054": {
       "detected_at": "2026-10-03 19:31:49.710858+00:00",
       "event": {
@@ -367,6 +354,11 @@
       "posted_at": "2026-10-03 19:32:24.787017+00:00",
       "post_id": "2106467422693884116",
       "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_8971ccbc1fc0ca60.png"
+    },
+    "csn_7c33061132e9c335": {
+      "posted_at": "2026-10-03 19:32:29.512257+00:00",
+      "post_id": "2106467442407207304",
+      "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_7c33061132e9c335.png"
     }
   },
   "dry_run_seen": {},
