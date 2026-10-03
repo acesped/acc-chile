@@ -1,16 +1,16 @@
 {
   "detected": {
-    "csn_b284ecb3d405d6b3": {
-      "detected_at": "2026-10-03 21:10:39.544723+00:00",
+    "csn_7b7393b8b4488495": {
+      "detected_at": "2026-10-03 21:20:40.209557+00:00",
       "event": {
-        "event_id": "csn_b284ecb3d405d6b3",
-        "time": "2026-10-03 21:04:25+00:00",
-        "latitude": -21.65,
-        "longitude": -68.645,
-        "depth_km": 127.0,
-        "magnitude": 2.8,
+        "event_id": "csn_7b7393b8b4488495",
+        "time": "2026-10-03 21:16:01+00:00",
+        "latitude": -38.704,
+        "longitude": -75.089,
+        "depth_km": 20.0,
+        "magnitude": 3.9,
         "mag_type": "Mlv",
-        "region": "62 km al SO de Ollagüe"
+        "region": "144 km al O de Tirúa"
       }
     }
   },
@@ -184,6 +184,11 @@
       "posted_at": "2026-10-03 21:10:49.051258+00:00",
       "post_id": "2106492186644586951",
       "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_5d350ce144ff4573.png"
+    },
+    "csn_b284ecb3d405d6b3": {
+      "posted_at": "2026-10-03 21:20:47.108884+00:00",
+      "post_id": "2106494695140389204",
+      "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_b284ecb3d405d6b3.png"
     }
   },
   "dry_run_seen": {},
