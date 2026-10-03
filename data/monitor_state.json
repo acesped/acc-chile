@@ -26,19 +26,6 @@
         "region": "71 km al SE de Socaire"
       }
     },
-    "csn_a072d005de2be03e": {
-      "detected_at": "2026-10-03 19:31:49.710858+00:00",
-      "event": {
-        "event_id": "csn_a072d005de2be03e",
-        "time": "2026-10-03 06:49:16+00:00",
-        "latitude": -23.52,
-        "longitude": -68.714,
-        "depth_km": 103.0,
-        "magnitude": 2.5,
-        "mag_type": "Mlv",
-        "region": "84 km al O de Socaire"
-      }
-    },
     "csn_bea4207a30734211": {
       "detected_at": "2026-10-03 19:31:49.710858+00:00",
       "event": {
@@ -303,6 +290,11 @@
       "posted_at": "2026-10-03 19:33:30.866617+00:00",
       "post_id": "2106467699731976422",
       "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_d9effac2cfb24c7a.png"
+    },
+    "csn_a072d005de2be03e": {
+      "posted_at": "2026-10-03 19:33:39.201230+00:00",
+      "post_id": "2106467734792130622",
+      "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_a072d005de2be03e.png"
     }
   },
   "dry_run_seen": {},
