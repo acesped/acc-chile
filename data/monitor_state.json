@@ -1,5 +1,19 @@
 {
-  "detected": {},
+  "detected": {
+    "csn_ac9dbb7e71ce7e60": {
+      "detected_at": "2026-10-03 00:00:40.777065+00:00",
+      "event": {
+        "event_id": "csn_ac9dbb7e71ce7e60",
+        "time": "2026-10-02 23:53:55+00:00",
+        "latitude": -22.427,
+        "longitude": -68.004,
+        "depth_km": 193.0,
+        "magnitude": 3.4,
+        "mag_type": "Mlv",
+        "region": "58 km al N de San Pedro de Atacama"
+      }
+    }
+  },
   "posted": {
     "csn_eb98fc5207a25dca": {
       "posted_at": "2026-10-02 19:19:39.227077+00:00",
