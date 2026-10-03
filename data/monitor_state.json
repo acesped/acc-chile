@@ -64,6 +64,19 @@
         "mag_type": "Mlv",
         "region": "27 km al SE de María Elena"
       }
+    },
+    "csn_5d350ce144ff4573": {
+      "detected_at": "2026-10-03 21:00:39.841387+00:00",
+      "event": {
+        "event_id": "csn_5d350ce144ff4573",
+        "time": "2026-10-03 20:52:13+00:00",
+        "latitude": -21.181,
+        "longitude": -68.886,
+        "depth_km": 119.0,
+        "magnitude": 3.1,
+        "mag_type": "Mlv",
+        "region": "46 km al SO de Mina Collahuasi"
+      }
     }
   },
   "posted": {
