@@ -1,5 +1,344 @@
 {
-  "detected": {},
+  "detected": {
+    "csn_82fc7ee388089c08": {
+      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+      "event": {
+        "event_id": "csn_82fc7ee388089c08",
+        "time": "2026-10-03 15:27:14+00:00",
+        "latitude": -21.535,
+        "longitude": -68.632,
+        "depth_km": 134.0,
+        "magnitude": 2.8,
+        "mag_type": "Mlv",
+        "region": "52 km al SO de Ollagüe"
+      }
+    },
+    "csn_401f49eec795cbc5": {
+      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+      "event": {
+        "event_id": "csn_401f49eec795cbc5",
+        "time": "2026-10-03 14:46:31+00:00",
+        "latitude": -23.121,
+        "longitude": -66.911,
+        "depth_km": 219.0,
+        "magnitude": 2.7,
+        "mag_type": "Mlv",
+        "region": "113 km al NE de Socaire"
+      }
+    },
+    "csn_418fa942d0091893": {
+      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+      "event": {
+        "event_id": "csn_418fa942d0091893",
+        "time": "2026-10-03 14:25:27+00:00",
+        "latitude": -21.225,
+        "longitude": -68.985,
+        "depth_km": 118.0,
+        "magnitude": 3.0,
+        "mag_type": "Mlv",
+        "region": "56 km al SO de Mina Collahuasi"
+      }
+    },
+    "csn_8971ccbc1fc0ca60": {
+      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+      "event": {
+        "event_id": "csn_8971ccbc1fc0ca60",
+        "time": "2026-10-03 12:58:53+00:00",
+        "latitude": -33.279,
+        "longitude": -72.097,
+        "depth_km": 30.0,
+        "magnitude": 2.5,
+        "mag_type": "Mlv",
+        "region": "44 km al O de El Tabo"
+      }
+    },
+    "csn_7c33061132e9c335": {
+      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+      "event": {
+        "event_id": "csn_7c33061132e9c335",
+        "time": "2026-10-03 12:07:57+00:00",
+        "latitude": -24.155,
+        "longitude": -67.221,
+        "depth_km": 191.0,
+        "magnitude": 2.6,
+        "mag_type": "Mlv",
+        "region": "92 km al O de San Antonio de los Cobres"
+      }
+    },
+    "csn_5380b71162d0b054": {
+      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+      "event": {
+        "event_id": "csn_5380b71162d0b054",
+        "time": "2026-10-03 11:49:48+00:00",
+        "latitude": -19.103,
+        "longitude": -70.067,
+        "depth_km": 34.0,
+        "magnitude": 2.9,
+        "mag_type": "Mlv",
+        "region": "13 km al NE de Cuya"
+      }
+    },
+    "csn_60b18790fe7b7b8f": {
+      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+      "event": {
+        "event_id": "csn_60b18790fe7b7b8f",
+        "time": "2026-10-03 11:14:01+00:00",
+        "latitude": -22.708,
+        "longitude": -69.134,
+        "depth_km": 87.0,
+        "magnitude": 2.8,
+        "mag_type": "Mlv",
+        "region": "28 km al NE de Sierra Gorda"
+      }
+    },
+    "csn_8b246665c5d2805d": {
+      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+      "event": {
+        "event_id": "csn_8b246665c5d2805d",
+        "time": "2026-10-03 11:11:21+00:00",
+        "latitude": -21.899,
+        "longitude": -68.641,
+        "depth_km": 124.0,
+        "magnitude": 2.8,
+        "mag_type": "Mlv",
+        "region": "70 km al NE de Calama"
+      }
+    },
+    "csn_9c80262a91faa01e": {
+      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+      "event": {
+        "event_id": "csn_9c80262a91faa01e",
+        "time": "2026-10-03 09:16:14+00:00",
+        "latitude": -28.624,
+        "longitude": -70.277,
+        "depth_km": 86.0,
+        "magnitude": 3.3,
+        "mag_type": "Mlv",
+        "region": "25 km al NE de Alto del Carmen"
+      }
+    },
+    "csn_cfba98957ceb7a93": {
+      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+      "event": {
+        "event_id": "csn_cfba98957ceb7a93",
+        "time": "2026-10-03 09:09:52+00:00",
+        "latitude": -23.314,
+        "longitude": -68.009,
+        "depth_km": 145.0,
+        "magnitude": 3.0,
+        "mag_type": "Mlv",
+        "region": "33 km al NO de Socaire"
+      }
+    },
+    "csn_6ae3a38151accbb3": {
+      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+      "event": {
+        "event_id": "csn_6ae3a38151accbb3",
+        "time": "2026-10-03 08:54:49+00:00",
+        "latitude": -35.555,
+        "longitude": -70.97,
+        "depth_km": 102.0,
+        "magnitude": 3.5,
+        "mag_type": "Mlv",
+        "region": "65 km al E de Talca"
+      }
+    },
+    "csn_7ebd7bc2d8eff629": {
+      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+      "event": {
+        "event_id": "csn_7ebd7bc2d8eff629",
+        "time": "2026-10-03 08:36:44+00:00",
+        "latitude": -30.734,
+        "longitude": -71.313,
+        "depth_km": 52.0,
+        "magnitude": 3.7,
+        "mag_type": "Mlv",
+        "region": "12 km al NO de Punitaqui"
+      }
+    },
+    "csn_75aa729614e048ef": {
+      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+      "event": {
+        "event_id": "csn_75aa729614e048ef",
+        "time": "2026-10-03 07:59:33+00:00",
+        "latitude": -24.144,
+        "longitude": -67.546,
+        "depth_km": 212.0,
+        "magnitude": 3.1,
+        "mag_type": "Mlv",
+        "region": "71 km al SE de Socaire"
+      }
+    },
+    "csn_d9effac2cfb24c7a": {
+      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+      "event": {
+        "event_id": "csn_d9effac2cfb24c7a",
+        "time": "2026-10-03 06:52:00+00:00",
+        "latitude": -20.875,
+        "longitude": -69.164,
+        "depth_km": 113.0,
+        "magnitude": 2.9,
+        "mag_type": "Mlv",
+        "region": "46 km al SE de Pica"
+      }
+    },
+    "csn_a072d005de2be03e": {
+      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+      "event": {
+        "event_id": "csn_a072d005de2be03e",
+        "time": "2026-10-03 06:49:16+00:00",
+        "latitude": -23.52,
+        "longitude": -68.714,
+        "depth_km": 103.0,
+        "magnitude": 2.5,
+        "mag_type": "Mlv",
+        "region": "84 km al O de Socaire"
+      }
+    },
+    "csn_bea4207a30734211": {
+      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+      "event": {
+        "event_id": "csn_bea4207a30734211",
+        "time": "2026-10-03 06:14:48+00:00",
+        "latitude": -21.181,
+        "longitude": -68.827,
+        "depth_km": 128.0,
+        "magnitude": 2.5,
+        "mag_type": "Mlv",
+        "region": "43 km al SO de Mina Collahuasi"
+      }
+    },
+    "csn_926698389ab6a768": {
+      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+      "event": {
+        "event_id": "csn_926698389ab6a768",
+        "time": "2026-10-03 06:05:28+00:00",
+        "latitude": -19.991,
+        "longitude": -69.197,
+        "depth_km": 102.0,
+        "magnitude": 3.0,
+        "mag_type": "Mlv",
+        "region": "57 km al N de Pica"
+      }
+    },
+    "csn_32009d0f93075ca7": {
+      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+      "event": {
+        "event_id": "csn_32009d0f93075ca7",
+        "time": "2026-10-03 05:41:04+00:00",
+        "latitude": -39.13,
+        "longitude": -74.756,
+        "depth_km": 11.0,
+        "magnitude": 3.3,
+        "mag_type": "Mlv",
+        "region": "137 km al O de Toltén"
+      }
+    },
+    "csn_6d4b80fa1fc83a6c": {
+      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+      "event": {
+        "event_id": "csn_6d4b80fa1fc83a6c",
+        "time": "2026-10-03 03:55:10+00:00",
+        "latitude": -20.393,
+        "longitude": -69.003,
+        "depth_km": 124.0,
+        "magnitude": 2.5,
+        "mag_type": "Mlv",
+        "region": "36 km al E de Pica"
+      }
+    },
+    "csn_ca62f40fc4e13c45": {
+      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+      "event": {
+        "event_id": "csn_ca62f40fc4e13c45",
+        "time": "2026-10-03 02:18:00+00:00",
+        "latitude": -21.705,
+        "longitude": -68.507,
+        "depth_km": 136.0,
+        "magnitude": 3.5,
+        "mag_type": "Mlv",
+        "region": "60 km al SO de Ollagüe"
+      }
+    },
+    "csn_d8b456582b5492d1": {
+      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+      "event": {
+        "event_id": "csn_d8b456582b5492d1",
+        "time": "2026-10-03 01:40:17+00:00",
+        "latitude": -33.729,
+        "longitude": -70.111,
+        "depth_km": 11.0,
+        "magnitude": 2.5,
+        "mag_type": "Mlv",
+        "region": "24 km al E de San José de Maipo"
+      }
+    },
+    "csn_788bc7608bfda860": {
+      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+      "event": {
+        "event_id": "csn_788bc7608bfda860",
+        "time": "2026-10-03 01:27:39+00:00",
+        "latitude": -21.68,
+        "longitude": -69.841,
+        "depth_km": 62.0,
+        "magnitude": 2.5,
+        "mag_type": "Mlv",
+        "region": "32 km al O de Quillagua"
+      }
+    },
+    "csn_60e90b00ae5b1136": {
+      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+      "event": {
+        "event_id": "csn_60e90b00ae5b1136",
+        "time": "2026-10-02 23:53:55+00:00",
+        "latitude": -22.396,
+        "longitude": -67.986,
+        "depth_km": 189.0,
+        "magnitude": 3.4,
+        "mag_type": "Mlv",
+        "region": "62 km al N de San Pedro de Atacama"
+      }
+    },
+    "csn_31c9132efa1a1cd7": {
+      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+      "event": {
+        "event_id": "csn_31c9132efa1a1cd7",
+        "time": "2026-10-02 23:11:06+00:00",
+        "latitude": -21.136,
+        "longitude": -68.941,
+        "depth_km": 121.0,
+        "magnitude": 2.5,
+        "mag_type": "Mlv",
+        "region": "45 km al SO de Mina Collahuasi"
+      }
+    },
+    "csn_96e13beaf31b8e2c": {
+      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+      "event": {
+        "event_id": "csn_96e13beaf31b8e2c",
+        "time": "2026-10-02 22:40:22+00:00",
+        "latitude": -32.727,
+        "longitude": -71.689,
+        "depth_km": 15.0,
+        "magnitude": 2.5,
+        "mag_type": "Mlv",
+        "region": "16 km al O de Quintero"
+      }
+    },
+    "csn_6f98bb4236d3d6f5": {
+      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+      "event": {
+        "event_id": "csn_6f98bb4236d3d6f5",
+        "time": "2026-10-02 22:36:49+00:00",
+        "latitude": -22.544,
+        "longitude": -69.506,
+        "depth_km": 39.0,
+        "magnitude": 2.7,
+        "mag_type": "Mlv",
+        "region": "27 km al SE de María Elena"
+      }
+    }
+  },
   "posted": {
     "csn_eb98fc5207a25dca": {
       "posted_at": "2026-10-02 19:19:39.227077+00:00",
@@ -55,6 +394,11 @@
       "posted_at": "2026-10-03 18:50:46.670198+00:00",
       "post_id": "2106456944516935766",
       "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_501ee7e30b5295ef.png"
+    },
+    "csn_8ead58619d020b3a": {
+      "posted_at": "2026-10-03 19:31:58.427614+00:00",
+      "post_id": "2106467312136298655",
+      "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_8ead58619d020b3a.png"
     }
   },
   "dry_run_seen": {},
