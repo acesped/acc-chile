@@ -1,5 +1,19 @@
 {
-  "detected": {},
+  "detected": {
+    "csn_2925694e0cf77128": {
+      "detected_at": "2026-10-03 09:00:45.410514+00:00",
+      "event": {
+        "event_id": "csn_2925694e0cf77128",
+        "time": "2026-10-03 08:54:50+00:00",
+        "latitude": -35.509,
+        "longitude": -70.96,
+        "depth_km": 10.0,
+        "magnitude": 3.4,
+        "mag_type": "Mlv",
+        "region": "63 km al SE de Curicó"
+      }
+    }
+  },
   "posted": {
     "csn_eb98fc5207a25dca": {
       "posted_at": "2026-10-02 19:19:39.227077+00:00",
