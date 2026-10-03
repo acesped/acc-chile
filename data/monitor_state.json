@@ -13,19 +13,6 @@
         "region": "33 km al NO de Socaire"
       }
     },
-    "csn_7ebd7bc2d8eff629": {
-      "detected_at": "2026-10-03 19:31:49.710858+00:00",
-      "event": {
-        "event_id": "csn_7ebd7bc2d8eff629",
-        "time": "2026-10-03 08:36:44+00:00",
-        "latitude": -30.734,
-        "longitude": -71.313,
-        "depth_km": 52.0,
-        "magnitude": 3.7,
-        "mag_type": "Mlv",
-        "region": "12 km al NO de Punitaqui"
-      }
-    },
     "csn_75aa729614e048ef": {
       "detected_at": "2026-10-03 19:31:49.710858+00:00",
       "event": {
@@ -319,6 +306,11 @@
       "posted_at": "2026-10-03 19:33:12.875300+00:00",
       "post_id": "2106467624314081365",
       "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_6ae3a38151accbb3.png"
+    },
+    "csn_7ebd7bc2d8eff629": {
+      "posted_at": "2026-10-03 19:33:20.797374+00:00",
+      "post_id": "2106467657545601476",
+      "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_7ebd7bc2d8eff629.png"
     }
   },
   "dry_run_seen": {},
