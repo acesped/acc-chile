@@ -1,19 +1,5 @@
 {
-  "detected": {
-    "csn_ac9dbb7e71ce7e60": {
-      "detected_at": "2026-10-03 00:00:40.777065+00:00",
-      "event": {
-        "event_id": "csn_ac9dbb7e71ce7e60",
-        "time": "2026-10-02 23:53:55+00:00",
-        "latitude": -22.427,
-        "longitude": -68.004,
-        "depth_km": 193.0,
-        "magnitude": 3.4,
-        "mag_type": "Mlv",
-        "region": "58 km al N de San Pedro de Atacama"
-      }
-    }
-  },
+  "detected": {},
   "posted": {
     "csn_eb98fc5207a25dca": {
       "posted_at": "2026-10-02 19:19:39.227077+00:00",
@@ -29,6 +15,11 @@
       "posted_at": "2026-10-02 22:50:45.768146+00:00",
       "post_id": "2106154951097606431",
       "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_54ccf10eedab5f0f.png"
+    },
+    "csn_ac9dbb7e71ce7e60": {
+      "posted_at": "2026-10-03 00:10:43.136180+00:00",
+      "post_id": "2106175072511598632",
+      "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_ac9dbb7e71ce7e60.png"
     }
   },
   "dry_run_seen": {},
