@@ -5062,7 +5062,7 @@ def build_x_text(
     )
 
     text = (
-        "🇨🇱 Desplazamiento geodésico residual GNSS observado\n\n"
+        "🇨🇱 Desplazamiento geodésico residual observado\n\n"
         f"UTC: {event_time}\n"
         f"Magnitud: {magnitude}"
         f"{(' ' + magnitude_type) if magnitude_type else ''}\n"
