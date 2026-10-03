@@ -26,19 +26,6 @@
         "region": "71 km al SE de Socaire"
       }
     },
-    "csn_d8b456582b5492d1": {
-      "detected_at": "2026-10-03 19:31:49.710858+00:00",
-      "event": {
-        "event_id": "csn_d8b456582b5492d1",
-        "time": "2026-10-03 01:40:17+00:00",
-        "latitude": -33.729,
-        "longitude": -70.111,
-        "depth_km": 11.0,
-        "magnitude": 2.5,
-        "mag_type": "Mlv",
-        "region": "24 km al E de San José de Maipo"
-      }
-    },
     "csn_788bc7608bfda860": {
       "detected_at": "2026-10-03 19:31:49.710858+00:00",
       "event": {
@@ -255,6 +242,11 @@
       "posted_at": "2026-10-03 19:34:14.752975+00:00",
       "post_id": "2106467883949948986",
       "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_ca62f40fc4e13c45.png"
+    },
+    "csn_d8b456582b5492d1": {
+      "posted_at": "2026-10-03 19:34:21.874645+00:00",
+      "post_id": "2106467913758884161",
+      "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_d8b456582b5492d1.png"
     }
   },
   "dry_run_seen": {},
