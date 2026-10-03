@@ -26,19 +26,6 @@
         "region": "71 km al SE de Socaire"
       }
     },
-    "csn_60e90b00ae5b1136": {
-      "detected_at": "2026-10-03 19:31:49.710858+00:00",
-      "event": {
-        "event_id": "csn_60e90b00ae5b1136",
-        "time": "2026-10-02 23:53:55+00:00",
-        "latitude": -22.396,
-        "longitude": -67.986,
-        "depth_km": 189.0,
-        "magnitude": 3.4,
-        "mag_type": "Mlv",
-        "region": "62 km al N de San Pedro de Atacama"
-      }
-    },
     "csn_31c9132efa1a1cd7": {
       "detected_at": "2026-10-03 19:31:49.710858+00:00",
       "event": {
@@ -239,6 +226,11 @@
       "posted_at": "2026-10-03 19:40:52.303170+00:00",
       "post_id": "2106469551110000877",
       "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_788bc7608bfda860.png"
+    },
+    "csn_60e90b00ae5b1136": {
+      "posted_at": "2026-10-03 19:40:59.064218+00:00",
+      "post_id": "2106469579681575423",
+      "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_60e90b00ae5b1136.png"
     }
   },
   "dry_run_seen": {},
