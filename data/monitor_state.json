@@ -1,19 +1,5 @@
 {
-  "detected": {
-    "csn_a0a3d7c8d926c82c": {
-      "detected_at": "2026-10-03 15:00:43.349867+00:00",
-      "event": {
-        "event_id": "csn_a0a3d7c8d926c82c",
-        "time": "2026-10-03 14:51:07+00:00",
-        "latitude": -23.782,
-        "longitude": -67.211,
-        "depth_km": 208.0,
-        "magnitude": 2.7,
-        "mag_type": "Mlv",
-        "region": "72 km al E de Socaire"
-      }
-    }
-  },
+  "detected": {},
   "posted": {
     "csn_eb98fc5207a25dca": {
       "posted_at": "2026-10-02 19:19:39.227077+00:00",
@@ -59,6 +45,11 @@
       "posted_at": "2026-10-03 09:10:44.241633+00:00",
       "post_id": "2106310972566540658",
       "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_2925694e0cf77128.png"
+    },
+    "csn_a0a3d7c8d926c82c": {
+      "posted_at": "2026-10-03 15:10:44.515056+00:00",
+      "post_id": "2106401570686464088",
+      "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_a0a3d7c8d926c82c.png"
     }
   },
   "dry_run_seen": {},
