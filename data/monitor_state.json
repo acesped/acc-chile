@@ -1,81 +1,16 @@
 {
   "detected": {
-    "csn_cfba98957ceb7a93": {
-      "detected_at": "2026-10-03 19:31:49.710858+00:00",
+    "csn_b284ecb3d405d6b3": {
+      "detected_at": "2026-10-03 21:10:39.544723+00:00",
       "event": {
-        "event_id": "csn_cfba98957ceb7a93",
-        "time": "2026-10-03 09:09:52+00:00",
-        "latitude": -23.314,
-        "longitude": -68.009,
-        "depth_km": 145.0,
-        "magnitude": 3.0,
+        "event_id": "csn_b284ecb3d405d6b3",
+        "time": "2026-10-03 21:04:25+00:00",
+        "latitude": -21.65,
+        "longitude": -68.645,
+        "depth_km": 127.0,
+        "magnitude": 2.8,
         "mag_type": "Mlv",
-        "region": "33 km al NO de Socaire"
-      }
-    },
-    "csn_75aa729614e048ef": {
-      "detected_at": "2026-10-03 19:31:49.710858+00:00",
-      "event": {
-        "event_id": "csn_75aa729614e048ef",
-        "time": "2026-10-03 07:59:33+00:00",
-        "latitude": -24.144,
-        "longitude": -67.546,
-        "depth_km": 212.0,
-        "magnitude": 3.1,
-        "mag_type": "Mlv",
-        "region": "71 km al SE de Socaire"
-      }
-    },
-    "csn_31c9132efa1a1cd7": {
-      "detected_at": "2026-10-03 19:31:49.710858+00:00",
-      "event": {
-        "event_id": "csn_31c9132efa1a1cd7",
-        "time": "2026-10-02 23:11:06+00:00",
-        "latitude": -21.136,
-        "longitude": -68.941,
-        "depth_km": 121.0,
-        "magnitude": 2.5,
-        "mag_type": "Mlv",
-        "region": "45 km al SO de Mina Collahuasi"
-      }
-    },
-    "csn_96e13beaf31b8e2c": {
-      "detected_at": "2026-10-03 19:31:49.710858+00:00",
-      "event": {
-        "event_id": "csn_96e13beaf31b8e2c",
-        "time": "2026-10-02 22:40:22+00:00",
-        "latitude": -32.727,
-        "longitude": -71.689,
-        "depth_km": 15.0,
-        "magnitude": 2.5,
-        "mag_type": "Mlv",
-        "region": "16 km al O de Quintero"
-      }
-    },
-    "csn_6f98bb4236d3d6f5": {
-      "detected_at": "2026-10-03 19:31:49.710858+00:00",
-      "event": {
-        "event_id": "csn_6f98bb4236d3d6f5",
-        "time": "2026-10-02 22:36:49+00:00",
-        "latitude": -22.544,
-        "longitude": -69.506,
-        "depth_km": 39.0,
-        "magnitude": 2.7,
-        "mag_type": "Mlv",
-        "region": "27 km al SE de María Elena"
-      }
-    },
-    "csn_5d350ce144ff4573": {
-      "detected_at": "2026-10-03 21:00:39.841387+00:00",
-      "event": {
-        "event_id": "csn_5d350ce144ff4573",
-        "time": "2026-10-03 20:52:13+00:00",
-        "latitude": -21.181,
-        "longitude": -68.886,
-        "depth_km": 119.0,
-        "magnitude": 3.1,
-        "mag_type": "Mlv",
-        "region": "46 km al SO de Mina Collahuasi"
+        "region": "62 km al SO de Ollagüe"
       }
     }
   },
@@ -244,8 +179,79 @@
       "posted_at": "2026-10-03 19:40:59.064218+00:00",
       "post_id": "2106469579681575423",
       "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_60e90b00ae5b1136.png"
+    },
+    "csn_5d350ce144ff4573": {
+      "posted_at": "2026-10-03 21:10:49.051258+00:00",
+      "post_id": "2106492186644586951",
+      "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_5d350ce144ff4573.png"
     }
   },
   "dry_run_seen": {},
-  "expired": {}
+  "expired": {
+    "csn_cfba98957ceb7a93": {
+      "expired_at": "2026-10-03 21:10:39.544723+00:00",
+      "event": {
+        "event_id": "csn_cfba98957ceb7a93",
+        "time": "2026-10-03 09:09:52+00:00",
+        "latitude": -23.314,
+        "longitude": -68.009,
+        "depth_km": 145.0,
+        "magnitude": 3.0,
+        "mag_type": "Mlv",
+        "region": "33 km al NO de Socaire"
+      }
+    },
+    "csn_75aa729614e048ef": {
+      "expired_at": "2026-10-03 21:10:39.544723+00:00",
+      "event": {
+        "event_id": "csn_75aa729614e048ef",
+        "time": "2026-10-03 07:59:33+00:00",
+        "latitude": -24.144,
+        "longitude": -67.546,
+        "depth_km": 212.0,
+        "magnitude": 3.1,
+        "mag_type": "Mlv",
+        "region": "71 km al SE de Socaire"
+      }
+    },
+    "csn_31c9132efa1a1cd7": {
+      "expired_at": "2026-10-03 21:10:39.544723+00:00",
+      "event": {
+        "event_id": "csn_31c9132efa1a1cd7",
+        "time": "2026-10-02 23:11:06+00:00",
+        "latitude": -21.136,
+        "longitude": -68.941,
+        "depth_km": 121.0,
+        "magnitude": 2.5,
+        "mag_type": "Mlv",
+        "region": "45 km al SO de Mina Collahuasi"
+      }
+    },
+    "csn_96e13beaf31b8e2c": {
+      "expired_at": "2026-10-03 21:10:39.544723+00:00",
+      "event": {
+        "event_id": "csn_96e13beaf31b8e2c",
+        "time": "2026-10-02 22:40:22+00:00",
+        "latitude": -32.727,
+        "longitude": -71.689,
+        "depth_km": 15.0,
+        "magnitude": 2.5,
+        "mag_type": "Mlv",
+        "region": "16 km al O de Quintero"
+      }
+    },
+    "csn_6f98bb4236d3d6f5": {
+      "expired_at": "2026-10-03 21:10:39.544723+00:00",
+      "event": {
+        "event_id": "csn_6f98bb4236d3d6f5",
+        "time": "2026-10-02 22:36:49+00:00",
+        "latitude": -22.544,
+        "longitude": -69.506,
+        "depth_km": 39.0,
+        "magnitude": 2.7,
+        "mag_type": "Mlv",
+        "region": "27 km al SE de María Elena"
+      }
+    }
+  }
 }
