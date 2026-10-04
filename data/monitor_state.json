@@ -1,19 +1,5 @@
 {
-  "detected": {
-    "csn_30719e102a877c70": {
-      "detected_at": "2026-10-04 14:01:53.942908+00:00",
-      "event": {
-        "event_id": "csn_30719e102a877c70",
-        "time": "2026-10-04 13:57:38+00:00",
-        "latitude": -39.007,
-        "longitude": -72.686,
-        "depth_km": 39.0,
-        "magnitude": 4.3,
-        "mag_type": "Mlv",
-        "region": "31 km al S de Temuco"
-      }
-    }
-  },
+  "detected": {},
   "posted": {
     "csn_eb98fc5207a25dca": {
       "posted_at": "2026-10-02 19:19:39.227077+00:00",
@@ -194,6 +180,11 @@
       "posted_at": "2026-10-03 21:30:47.071501+00:00",
       "post_id": "2106497211538264196",
       "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_7b7393b8b4488495.png"
+    },
+    "csn_30719e102a877c70": {
+      "posted_at": "2026-10-04 14:10:46.446620+00:00",
+      "post_id": "2106748867001671699",
+      "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_30719e102a877c70.png"
     }
   },
   "dry_run_seen": {},
