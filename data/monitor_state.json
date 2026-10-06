@@ -1,19 +1,5 @@
 {
-  "detected": {
-    "csn_652bf7a9949ba4ed": {
-      "detected_at": "2026-10-06 00:50:42.280006+00:00",
-      "event": {
-        "event_id": "csn_652bf7a9949ba4ed",
-        "time": "2026-10-06 00:41:27+00:00",
-        "latitude": -19.833,
-        "longitude": -69.252,
-        "depth_km": 107.0,
-        "magnitude": 4.4,
-        "mag_type": "Mlv",
-        "region": "61 km al S de Camiña"
-      }
-    }
-  },
+  "detected": {},
   "posted": {
     "csn_eb98fc5207a25dca": {
       "posted_at": "2026-10-02 19:19:39.227077+00:00",
@@ -199,6 +185,11 @@
       "posted_at": "2026-10-04 14:10:46.446620+00:00",
       "post_id": "2106748867001671699",
       "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_30719e102a877c70.png"
+    },
+    "csn_652bf7a9949ba4ed": {
+      "posted_at": "2026-10-06 01:00:57.875948+00:00",
+      "post_id": "2107274880677040195",
+      "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_652bf7a9949ba4ed.png"
     }
   },
   "dry_run_seen": {},
