@@ -1,5 +1,19 @@
 {
-  "detected": {},
+  "detected": {
+    "csn_3ca9b915d521676e": {
+      "detected_at": "2026-10-07 15:50:41.060450+00:00",
+      "event": {
+        "event_id": "csn_3ca9b915d521676e",
+        "time": "2026-10-07 15:46:17+00:00",
+        "latitude": -21.109,
+        "longitude": -68.841,
+        "depth_km": 103.0,
+        "magnitude": 4.3,
+        "mag_type": "Mlv",
+        "region": "37 km al SO de Mina Collahuasi"
+      }
+    }
+  },
   "posted": {
     "csn_eb98fc5207a25dca": {
       "posted_at": "2026-10-02 19:19:39.227077+00:00",
