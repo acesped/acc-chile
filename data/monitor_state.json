@@ -1,19 +1,5 @@
 {
-  "detected": {
-    "csn_3ca9b915d521676e": {
-      "detected_at": "2026-10-07 15:50:41.060450+00:00",
-      "event": {
-        "event_id": "csn_3ca9b915d521676e",
-        "time": "2026-10-07 15:46:17+00:00",
-        "latitude": -21.109,
-        "longitude": -68.841,
-        "depth_km": 103.0,
-        "magnitude": 4.3,
-        "mag_type": "Mlv",
-        "region": "37 km al SO de Mina Collahuasi"
-      }
-    }
-  },
+  "detected": {},
   "posted": {
     "csn_eb98fc5207a25dca": {
       "posted_at": "2026-10-02 19:19:39.227077+00:00",
@@ -209,6 +195,11 @@
       "posted_at": "2026-10-06 06:30:49.550735+00:00",
       "post_id": "2107357893234131429",
       "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_6d5181e7640b1af2.png"
+    },
+    "csn_3ca9b915d521676e": {
+      "posted_at": "2026-10-07 16:00:51.044674+00:00",
+      "post_id": "2107863732336402631",
+      "map": "/home/runner/work/gnss-chile/gnss-chile/output/res_csn_3ca9b915d521676e.png"
     }
   },
   "dry_run_seen": {},
