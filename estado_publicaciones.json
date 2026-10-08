@@ -1,0 +1,21 @@
+{
+  "cuenta_id": null,
+  "eventos": {
+    "2026_10_385789": {
+      "evento": {
+        "t": "2026-10-08T05:35:54.000000Z",
+        "lat": -22.12,
+        "lon": -68.65,
+        "mag": 4.7,
+        "mag_texto": "4.7 Mw",
+        "prof": 125.0,
+        "referencia": "49 km al NE de Calama",
+        "url": "https://www.sismologia.cl/sismicidad/informes/2026/10/385789.html"
+      },
+      "estado": "pendiente",
+      "detectado": 1791471796.5214846,
+      "intentos": 0,
+      "tweet_id": null
+    }
+  }
+}
