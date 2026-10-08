@@ -12,10 +12,12 @@
         "referencia": "49 km al NE de Calama",
         "url": "https://www.sismologia.cl/sismicidad/informes/2026/10/385789.html"
       },
-      "estado": "procesando",
+      "estado": "enviando",
       "detectado": 1791471796.5214846,
       "intentos": 1,
-      "tweet_id": null
+      "tweet_id": null,
+      "texto": "Sismo M 4.7 Mw | 49 km al NE de Calama\n08/10/2026 02:35:54\nProfundidad: 125 km.\nEpicentro: lat -22.1200°, lon -68.6500°.\nhttps://www.sismologia.cl/sismicidad/informes/2026/10/385789.html",
+      "media_id": "2108211741100302336"
     }
   }
 }
