@@ -1,0 +1,73 @@
+name: CSN - Video a X
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publicar el video en X"
+        type: boolean
+        required: true
+        default: true
+
+permissions:
+  contents: write
+
+# Impide ejecuciones simultáneas que puedan duplicar publicaciones.
+concurrency:
+  group: csn-video-monitor
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    name: Detectar sismos y generar publicaciones
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    env:
+      PYTHONUNBUFFERED: "1"
+      MPLBACKEND: "Agg"
+
+      CSN_OUTPUT: output
+      CSN_FDSN: https://owl.csn.uchile.cl
+      STATE_BRANCH: csn-state
+
+      # Token automático de GitHub para guardar el estado.
+      # No necesitas crear un Secret llamado GH_TOKEN.
+      GH_TOKEN: ${{ github.token }}
+
+      # Ejecuciones programadas: publicar.
+      # Ejecuciones manuales: respetar la casilla seleccionada.
+      PUBLISH_TO_X: ${{ github.event_name == 'schedule' && 'true' || inputs.publish && 'true' || 'false' }}
+
+      # Las credenciales de X ya están dentro de monitor.py.
+
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Ejecutar monitor
+        run: python -u monitor.py
+
+      - name: Guardar mapas, gráficos, videos y CSV
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: csn-resultados-${{ github.run_id }}-${{ github.run_attempt }}
+          path: output/
+          if-no-files-found: ignore
+          retention-days: 7
