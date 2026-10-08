@@ -95,7 +95,7 @@ def boolean(name, default=False):
 @dataclass
 class Config:
     mag: float = 4.0
-    lookback: float = 12
+    lookback: float = 24
     pre: float = 60
     post: float = 120
     margin: float = 30
