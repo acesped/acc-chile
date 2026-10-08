@@ -81,7 +81,7 @@ FDSN = os.getenv(
 ).rstrip("/")
 
 MAG_MIN = 4.0
-HORAS_BUSQUEDA = 12
+HORAS_BUSQUEDA = 15
 
 PRE_SEG = 60
 POST_SEG = 120
