@@ -2,4218 +2,1592 @@
 # -*- coding: utf-8 -*-
 
 """
-============================================================
-DESPLAZAMIENTO GEODÉSICO RESIDUAL GNSS OBSERVADO
-============================================================
+CSN -> ACELERACIÓN VERTICAL -> MAPA / GRÁFICO / VIDEO -> X
 
-Fuente sísmica:
-    Centro Sismológico Nacional de Chile
-    https://www.sismologia.cl
+Programa autónomo para GitHub Actions.
+Una sola ejecución por invocación.
 
-Fuente GNSS:
-    CSN / OWL
-    Red C1
-    Canales LXE / LXN / LXZ
+- Busca sismos M >= 4 en las últimas 12 horas.
+- Procesa eventos nuevos y pendientes dentro de esa ventana.
+- Descarga acelerogramas verticales HNZ / ENZ disponibles en CSN.
+- Corrige la respuesta instrumental y trabaja en cm/s².
+- Genera mapa.png, grafico.png, resumen.png, video.mp4 y CSV.
+- Publica el video en X.
+- Conserva el estado en la rama csn-state del repositorio.
+- No depende de Colab ni de Google Drive.
+- La programación cada 10 minutos pertenece al workflow YAML.
 
-Ejecución:
-    UN SOLO CICLO
+Procesamiento:
+    Componentes verticales de acelerómetros.
+    Detrend lineal.
+    Corrección de respuesta instrumental a aceleración.
+    Prefiltro dependiente de la frecuencia de muestreo.
+    Resumen visual: máximo |aZ| por segundo.
 
-Diseñado para:
-    GitHub Actions
+Los valores mostrados son picos verticales del registro filtrado.
+No representan PGA horizontal ni intensidad macrosísmica.
 
-Flujo:
-    detección de sismos recientes M >= 4.0
-        ↓
-    estaciones GNSS cercanas
-        ↓
-    PRE robusto
-        ↓
-    POST temprano y POST tardío
-        ↓
-    RES = POST tardío - PRE
-        ↓
-    estabilidad + incertidumbre + SNR
-        ↓
-    persistencia temporal
-        ↓
-    coherencia espacial
-        ↓
-    VALID_RES
-        ↓
-    mapa
-        ↓
-    publicación en X
-
-Presentación:
-    SNR como indicador principal en tamaño grande.
-    RES ± incertidumbre como información secundaria.
-============================================================
+Protección ante duplicados:
+    Antes de enviar un tweet se persiste el estado "enviando".
+    Si el envío queda sin confirmación, no se repite automáticamente.
+    Requiere mantener el estado y la configuración concurrency del YAML.
 """
 
-# ============================================================
-# IMPORTS
-# ============================================================
-
+import base64
+import csv
 import io
+import json
+import logging
+import math
 import os
 import re
-import json
-import math
-import hashlib
-import zipfile
-import textwrap
-import traceback
 import subprocess
+import sys
+import time
+import unicodedata
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
-
-import requests
-import numpy as np
-import pandas as pd
+from urllib.parse import quote, urljoin, urlparse
+from zoneinfo import ZoneInfo
 
 import matplotlib
 
 matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-import geopandas as gpd
+import numpy as np
+import requests
+import imageio_ffmpeg
 
 from bs4 import BeautifulSoup
-from obspy import read as obspy_read
-
-import tweepy
-
-
-# ============================================================
-# CONFIGURACIÓN GENERAL
-# ============================================================
-
-ENABLE_X = True
-
-# False = publica realmente.
-# True = sólo prueba.
-DRY_RUN = False
-
-TEST_LATEST_EVENT = False
+from matplotlib.animation import FFMpegWriter
+from matplotlib.colors import Normalize
+from obspy import UTCDateTime, read, read_inventory
+from obspy.geodetics import gps2dist_azimuth
+from requests_oauthlib import OAuth1
 
 
-# ============================================================
-# CREDENCIALES X
-# ============================================================
+# ================================================================
+# CONFIGURACIÓN
+# ================================================================
+
+# ================================================================
+# CREDENCIALES DE X DIRECTAMENTE EN EL CÓDIGO
+# ================================================================
 
 X_API_KEY = "t5792SuVlfx41hDSWYmHVQJiG"
 X_API_SECRET = "WCOUY5z1SqlylH1XYQM9P5guowMC3RogGWIF2hLvSFJKna3HVw"
 X_ACCESS_TOKEN = "2106457141796052993-NpB8nf6yLTbPjJEu4TIHwJfbCCHU7h"
 X_ACCESS_TOKEN_SECRET = "jCDFy4L4suq6Z6qnHOhJ4CuduqWs5173JgriRqn76L5MZ"
 
+CSN = "https://www.sismologia.cl"
+FDSN = os.getenv(
+    "CSN_FDSN",
+    "https://owl.csn.uchile.cl",
+).rstrip("/")
 
-# ============================================================
-# DETECCIÓN SÍSMICA
-# ============================================================
+MAG_MIN = 4.0
+HORAS_BUSQUEDA = 12
 
-RECENT_EVENT_WINDOW_MINUTES = 10
+PRE_SEG = 60
+POST_SEG = 120
 
-MIN_EVENT_MAGNITUDE = 4.0
+# Datos adicionales para reducir efectos de borde al filtrar.
+MARGEN_SEG = 30
 
-# El RES final requiere datos hasta +600 segundos.
-MIN_ANALYSIS_AGE_SECONDS = 615
+# Tiempo adicional antes de intentar descargar un evento reciente.
+LATENCIA_SEG = 120
 
-MAX_PENDING_RETRY_MINUTES = 90
+RADIO_KM = 350.0
+MAX_ESTACIONES = 12
+TRABAJADORES = 4
 
+# Se usan únicamente componentes verticales de acelerómetros.
+CANALES = "HNZ,ENZ"
 
-# ============================================================
-# ESCALA GNSS
-# ============================================================
+# Un cuadro resume un segundo de señal.
+# A 4 FPS, 180 segundos de datos se muestran en 45 segundos.
+FPS = 4
 
-COUNTS_PER_METER = 1_000_000.0
+PUBLICAR_EN_X = os.getenv(
+    "PUBLISH_TO_X", "true"
+).strip().lower() in {"true", "1", "yes"}
 
-COUNTS_PER_MM = COUNTS_PER_METER / 1000.0
+SALIDA = Path(os.getenv("CSN_OUTPUT", "output"))
 
-SCALE_VERIFIED = False
+API_X = "https://api.x.com/2"
+MAX_PROCESAMIENTO_X_SEG = 15 * 60
 
-REQUIRE_SCALE_VERIFIED_FOR_REAL_POST = False
-
-
-# ============================================================
-# FUENTES
-# ============================================================
-
-SISMOLOGIA_BASE = "https://www.sismologia.cl"
-
-CATALOG_TEMPLATE = (
-    SISMOLOGIA_BASE
-    + "/sismicidad/catalogo/{year}/{month}/{yyyymmdd}.html"
+STATE_BRANCH = os.getenv("STATE_BRANCH", "csn-state")
+STATE_PATH = (
+    "estado_publicaciones.json"
+    if PUBLICAR_EN_X
+    else "estado_simulaciones.json"
 )
 
-FDSN_DATASELECT_URL = (
-    "https://owl.csn.uchile.cl/fdsnws/dataselect/1/query"
-)
+# Evita comenzar eventos adicionales demasiado cerca del timeout.
+PRESUPUESTO_SEG = 35 * 60
 
-FDSN_STATION_URL = (
-    "https://owl.csn.uchile.cl/fdsnws/station/1/query"
-)
+TIMEOUT_HTTP = (15, 75)
 
-GNSS_NETWORK = "C1"
+LOG = logging.getLogger("csn-monitor")
 
-GNSS_CHANNEL_PATTERN = "LX?"
 
-
-# ============================================================
-# ESTACIONES
-# ============================================================
-
-MAX_STATION_DISTANCE_KM = 300.0
-
-MAX_NEAREST_STATIONS = 15
-
-
-# ============================================================
-# VENTANAS TEMPORALES
-# ============================================================
-
-PRE_START_SECONDS = -600
-PRE_END_SECONDS = -120
-
-EARLY_POST_MIN_START_SECONDS = 180
-EARLY_POST_END_SECONDS = 300
-EARLY_POST_AFTER_SLOW_WAVE_SECONDS = 45
-
-LATE_POST_START_SECONDS = 480
-LATE_POST_END_SECONDS = 600
-
-
-# ============================================================
-# BLOQUES ROBUSTOS
-# ============================================================
-
-BLOCK_SECONDS = 30
-
-MIN_PRE_BLOCKS = 8
-MIN_EARLY_POST_BLOCKS = 2
-MIN_LATE_POST_BLOCKS = 3
-
-MIN_SAMPLES_PER_BLOCK = 10
-
-
-# ============================================================
-# VELOCIDADES HEURÍSTICAS
-# ============================================================
-
-FAST_WAVE_VELOCITY_KM_S = 8.0
-
-SLOW_WAVE_VELOCITY_KM_S = 2.5
-
-
-# ============================================================
-# INCERTIDUMBRE
-# ============================================================
-
-MIN_COMPONENT_CENTER_UNCERTAINTY_MM = 0.50
-
-
-# ============================================================
-# ESTABILIDAD
-# ============================================================
-
-MAX_PRE_BLOCK_SCATTER_H_MM = 12.0
-
-MAX_POST_BLOCK_SCATTER_H_MM = 12.0
-
-MAX_PRE_DRIFT_H_MM_PER_MIN = 5.0
-
-MAX_POST_DRIFT_H_MM_PER_MIN = 5.0
-
-
-# ============================================================
-# DETECCIÓN RES
-# ============================================================
-
-MIN_RES_HORIZONTAL_MM = 1.0
-
-MIN_RES_SNR_CANDIDATE = 2.0
-
-MIN_RES_SNR_MODERATE = 2.5
-
-MIN_RES_SNR_HIGH = 3.5
-
-
-# ============================================================
-# PERSISTENCIA TEMPORAL
-# ============================================================
-
-PERSISTENCE_ABS_TOL_MM = 5.0
-
-PERSISTENCE_REL_TOL = 0.75
-
-PERSISTENCE_MAX_AZIMUTH_DIFF_DEG = 75.0
-
-PERSISTENCE_DIRECTION_MIN_MM = 3.0
-
-
-# ============================================================
-# COHERENCIA ESPACIAL
-# ============================================================
-
-COHERENCE_MAX_DISTANCE_KM = 180.0
-
-COHERENCE_MAX_VECTOR_DIFF_MM = 12.0
-
-COHERENCE_REL_VECTOR_DIFF = 1.0
-
-COHERENCE_MAX_AZIMUTH_DIFF_DEG = 80.0
-
-COHERENCE_DIRECTION_MIN_MM = 3.0
-
-MIN_COHERENT_NEIGHBORS_HIGH = 1
-
-
-# ============================================================
-# PLAUSIBILIDAD Y PUBLICACIÓN
-# ============================================================
-
-ENABLE_PLAUSIBILITY_FILTER = True
-
-PUBLISH_QC_LEVELS = {
-    "ALTO",
-    "MODERADO",
-}
-
-
-# ============================================================
-# MAPA
-# ============================================================
-
-MAP_LON_MIN = -77.5
-MAP_LON_MAX = -65.0
-
-MAP_LAT_MIN = -58.0
-MAP_LAT_MAX = -17.0
-
-VECTOR_TARGET_DEGREES = 0.42
-
-
-# ============================================================
-# TEXTOS DE LA LÁMINA
-# ============================================================
-
-BRAND_TITLE = (
-    "Desplazamiento geodésico residual GNSS observado"
-)
-
-BRAND_SUBTITLE = (
-    "Reporte automático generado por fuente externa"
-)
-
-MAP_TITLE = "Vectores RES estaciones cercanas"
-
-
-# ============================================================
-# COLORES
-# ============================================================
-
-COLOR_NAVY = "#0F172A"
-COLOR_RED = "#DC2626"
-COLOR_ORANGE = "#F59E0B"
-COLOR_GREEN = "#059669"
-COLOR_BLUE = "#2563EB"
-COLOR_GRAY = "#64748B"
-COLOR_LIGHT_GRAY = "#F1F5F9"
-COLOR_BORDER = "#CBD5E1"
-COLOR_MUTED = "#475569"
-COLOR_WHITE = "#FFFFFF"
-COLOR_SEA = "#F8FAFC"
-COLOR_LAND = "#E2E8F0"
-
-
-# ============================================================
-# NATURAL EARTH
-# ============================================================
-
-NATURAL_EARTH_URL = (
-    "https://naciscdn.org/"
-    "naturalearth/10m/cultural/"
-    "ne_10m_admin_0_countries.zip"
-)
-
-
-# ============================================================
-# DIRECTORIOS
-# ============================================================
-
-BASE_DIR = Path(
-    os.getenv(
-        "GITHUB_WORKSPACE",
-        Path(__file__).resolve().parent,
-    )
-)
-
-DATA_DIR = BASE_DIR / "data"
-
-OUTPUT_DIR = BASE_DIR / "output"
-
-CACHE_DIR = BASE_DIR / ".cache_csn"
-
-for directory in (
-    DATA_DIR,
-    OUTPUT_DIR,
-    CACHE_DIR,
-):
-    directory.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-STATE_FILE = DATA_DIR / "monitor_state.json"
-
-NE_ZIP_FILE = CACHE_DIR / "naturalearth.zip"
-
-NE_DIR = CACHE_DIR / "naturalearth"
-
-
-# ============================================================
-# PERSISTENCIA EN GITHUB
-# ============================================================
-
-PERSIST_STATE_TO_GIT = True
-
-
-# ============================================================
-# HTTP
-# ============================================================
-
-http = requests.Session()
-
-http.headers.update(
-    {
-        "User-Agent": (
-            "Mozilla/5.0 "
-            "CSN-GNSS-RES-Monitor/1.0"
-        )
-    }
-)
-
-
-# ============================================================
+# ================================================================
 # UTILIDADES
-# ============================================================
+# ================================================================
 
-def finite(value):
-    try:
-        return bool(
-            np.isfinite(float(value))
-        )
-    except Exception:
-        return False
+class ErrorEstado(RuntimeError):
+    pass
 
 
-def numeric(value):
-    try:
-        if value is None:
-            return np.nan
+class ErrorX(RuntimeError):
+    def __init__(self, status):
+        self.status = status
+        super().__init__(f"X respondió HTTP {status}")
 
-        if isinstance(
-            value,
-            (
-                int,
-                float,
-                np.integer,
-                np.floating,
-            ),
-        ):
-            value = float(value)
 
-            return (
-                value
-                if np.isfinite(value)
-                else np.nan
+class SinDatos(RuntimeError):
+    pass
+
+
+def normalizar(texto):
+    texto = unicodedata.normalize("NFKD", str(texto))
+    return "".join(
+        c for c in texto if not unicodedata.combining(c)
+    ).strip().lower()
+
+
+def numero(texto):
+    coincidencia = re.search(
+        r"[-+]?\d+(?:[.,]\d+)?",
+        str(texto).replace("−", "-"),
+    )
+    if not coincidencia:
+        raise ValueError(f"No se encontró un número en {texto!r}")
+    return float(coincidencia.group().replace(",", "."))
+
+
+def obtener(url, params=None, permitir_vacio=False):
+    # Una petición por llamada. Los reintentos ocurren en otra
+    # ejecución de Actions, no mediante un detector permanente.
+    respuesta = requests.get(
+        url,
+        params=params,
+        headers={"User-Agent": "CSN-Earthquake-Monitor/1.0"},
+        timeout=TIMEOUT_HTTP,
+    )
+
+    if permitir_vacio and respuesta.status_code in (204, 404):
+        return b""
+
+    respuesta.raise_for_status()
+    return respuesta.content
+
+
+def fecha_fdsn(t):
+    return UTCDateTime(t).strftime("%Y-%m-%dT%H:%M:%S.%f")
+
+
+def identificar_evento(url):
+    # Incluye año/mes para evitar depender solo del número de informe.
+    partes = urlparse(url).path.strip("/").split("/")
+    return "_".join(partes[-3:]).replace(".html", "")
+
+
+def hora_local(evento):
+    return UTCDateTime(evento["t"]).datetime.replace(
+        tzinfo=timezone.utc
+    ).astimezone(ZoneInfo("America/Santiago"))
+
+
+# ================================================================
+# INFORMES Y CATÁLOGOS CSN
+# ================================================================
+
+def leer_evento(url):
+    soup = BeautifulSoup(obtener(url), "html.parser")
+    campos = {}
+
+    for fila in soup.select("tr"):
+        celdas = fila.find_all(["td", "th"])
+        if len(celdas) >= 2:
+            etiqueta = normalizar(
+                celdas[0].get_text(" ", strip=True)
+            ).rstrip(":")
+            valor = " ".join(
+                celda.get_text(" ", strip=True)
+                for celda in celdas[1:]
             )
+            campos[etiqueta] = valor
 
-        text = (
-            str(value)
-            .strip()
-            .replace(",", ".")
-        )
+    def campo(nombre, obligatorio=True):
+        nombre = normalizar(nombre)
 
-        match = re.search(
-            r"[-+]?\d+(?:\.\d+)?",
-            text,
-        )
+        for etiqueta, valor in campos.items():
+            if etiqueta == nombre or etiqueta.startswith(nombre):
+                return valor
 
-        if not match:
-            return np.nan
-
-        return float(match.group())
-
-    except Exception:
-        return np.nan
-
-
-def ensure_utc(value):
-    timestamp = pd.Timestamp(value)
-
-    if timestamp.tzinfo is None:
-        return timestamp.tz_localize("UTC")
-
-    return timestamp.tz_convert("UTC")
-
-
-def repair_text(text):
-    if text is None:
-        return ""
-
-    text = str(text)
-
-    if "Ã" in text or "Â" in text:
-        try:
-            text = (
-                text
-                .encode("latin1")
-                .decode("utf-8")
+        if obligatorio:
+            raise ValueError(
+                f"Informe CSN sin campo reconocible: {nombre}"
             )
-        except Exception:
-            pass
-
-    return text.strip()
-
-
-def fmt(
-    value,
-    decimals=1,
-    suffix="",
-):
-    if not finite(value):
-        return "-"
-
-    return (
-        f"{float(value):.{decimals}f}"
-        f"{suffix}"
-    )
-
-
-def format_age(seconds):
-    if not finite(seconds):
-        return "-"
-
-    seconds = max(
-        0,
-        int(seconds),
-    )
-
-    if seconds < 60:
-        return f"{seconds} s"
-
-    minutes = seconds // 60
-
-    if minutes < 60:
-        return f"{minutes} min"
-
-    return (
-        f"{minutes // 60} h "
-        f"{minutes % 60} min"
-    )
-
-
-def haversine_km(
-    lat1,
-    lon1,
-    lat2,
-    lon2,
-):
-    radius = 6371.0088
-
-    lat1, lon1, lat2, lon2 = [
-        math.radians(float(value))
-        for value in (
-            lat1,
-            lon1,
-            lat2,
-            lon2,
-        )
-    ]
-
-    delta_lat = lat2 - lat1
-    delta_lon = lon2 - lon1
-
-    a = (
-        math.sin(delta_lat / 2) ** 2
-        +
-        math.cos(lat1)
-        *
-        math.cos(lat2)
-        *
-        math.sin(delta_lon / 2) ** 2
-    )
-
-    return (
-        2
-        *
-        radius
-        *
-        math.asin(math.sqrt(a))
-    )
-
-
-def vector_azimuth(
-    east_mm,
-    north_mm,
-):
-    if (
-        not finite(east_mm)
-        or not finite(north_mm)
-    ):
-        return np.nan
-
-    return (
-        np.degrees(
-            np.arctan2(
-                east_mm,
-                north_mm,
-            )
-        )
-        + 360
-    ) % 360
-
-
-def angular_difference_deg(
-    angle_a,
-    angle_b,
-):
-    if (
-        not finite(angle_a)
-        or not finite(angle_b)
-    ):
-        return np.nan
-
-    difference = (
-        abs(
-            float(angle_a)
-            - float(angle_b)
-        )
-        % 360
-    )
-
-    return min(
-        difference,
-        360 - difference,
-    )
-
-
-def mad(values):
-    values = np.asarray(
-        values,
-        dtype=float,
-    )
-
-    values = values[
-        np.isfinite(values)
-    ]
-
-    if len(values) == 0:
-        return np.nan
-
-    return np.median(
-        np.abs(
-            values
-            - np.median(values)
-        )
-    )
-
-
-def robust_sigma(values):
-    value = mad(values)
-
-    if not finite(value):
-        return np.nan
-
-    return 1.4826 * value
-
-
-def plausibility_limit_mm(magnitude):
-    if not finite(magnitude):
-        return np.inf
-
-    magnitude = float(magnitude)
-
-    if magnitude < 4.0:
-        return 50.0
-
-    if magnitude < 5.0:
-        return 150.0
-
-    if magnitude < 6.0:
-        return 500.0
-
-    return np.inf
-
-
-# ============================================================
-# ESTADO
-# ============================================================
-
-def default_state():
-    return {
-        "detected": {},
-        "posted": {},
-        "dry_run_seen": {},
-        "expired": {},
-    }
-
-
-def load_state():
-    if not STATE_FILE.exists():
-        return default_state()
-
-    try:
-        with open(
-            STATE_FILE,
-            "r",
-            encoding="utf-8",
-        ) as file:
-            state = json.load(file)
-
-    except Exception as exc:
-        print(
-            "No se pudo leer estado:",
-            exc,
-        )
-
-        state = default_state()
-
-    for key in [
-        "detected",
-        "posted",
-        "dry_run_seen",
-        "expired",
-    ]:
-        state.setdefault(key, {})
-
-    return state
-
-
-def save_state(state):
-    with open(
-        STATE_FILE,
-        "w",
-        encoding="utf-8",
-    ) as file:
-        json.dump(
-            state,
-            file,
-            ensure_ascii=False,
-            indent=2,
-        )
-
-
-# ============================================================
-# PERSISTIR ESTADO EN GITHUB
-# ============================================================
-
-def persist_state_to_git():
-    if not PERSIST_STATE_TO_GIT:
-        return
-
-    if (
-        os.getenv(
-            "GITHUB_ACTIONS",
-            "",
-        ).lower()
-        != "true"
-    ):
-        return
-
-    if not STATE_FILE.exists():
-        return
-
-    try:
-        subprocess.run(
-            [
-                "git",
-                "config",
-                "user.name",
-                "github-actions[bot]",
-            ],
-            cwd=BASE_DIR,
-            check=True,
-        )
-
-        subprocess.run(
-            [
-                "git",
-                "config",
-                "user.email",
-                (
-                    "41898282+github-actions[bot]"
-                    "@users.noreply.github.com"
-                ),
-            ],
-            cwd=BASE_DIR,
-            check=True,
-        )
-
-        relative_state = str(
-            STATE_FILE.relative_to(BASE_DIR)
-        )
-
-        subprocess.run(
-            [
-                "git",
-                "add",
-                relative_state,
-            ],
-            cwd=BASE_DIR,
-            check=True,
-        )
-
-        diff = subprocess.run(
-            [
-                "git",
-                "diff",
-                "--cached",
-                "--quiet",
-            ],
-            cwd=BASE_DIR,
-        )
-
-        if diff.returncode == 0:
-            print("Estado sin cambios.")
-            return
-
-        subprocess.run(
-            [
-                "git",
-                "commit",
-                "-m",
-                (
-                    "Update GNSS monitor state "
-                    "[skip ci]"
-                ),
-            ],
-            cwd=BASE_DIR,
-            check=True,
-        )
-
-        subprocess.run(
-            [
-                "git",
-                "push",
-            ],
-            cwd=BASE_DIR,
-            check=True,
-        )
-
-        print(
-            "Estado persistido en GitHub."
-        )
-
-    except Exception as exc:
-        print(
-            "ADVERTENCIA: no se pudo persistir "
-            "monitor_state.json:"
-        )
-        print(exc)
-
-
-# ============================================================
-# EVENTOS
-# ============================================================
-
-def make_event_id(
-    event_time,
-    latitude,
-    longitude,
-    depth,
-    magnitude,
-):
-    fingerprint = (
-        f"{ensure_utc(event_time)}|"
-        f"{float(latitude):.4f}|"
-        f"{float(longitude):.4f}|"
-        f"{depth}|"
-        f"{magnitude}"
-    )
-
-    return (
-        "csn_"
-        +
-        hashlib.sha1(
-            fingerprint.encode("utf-8")
-        ).hexdigest()[:16]
-    )
-
-
-def serialize_event(event):
-    return {
-        "event_id": str(
-            event["event_id"]
-        ),
-
-        "time": str(
-            ensure_utc(event["time"])
-        ),
-
-        "latitude": float(
-            event["latitude"]
-        ),
-
-        "longitude": float(
-            event["longitude"]
-        ),
-
-        "depth_km": (
-            float(event["depth_km"])
-            if finite(event["depth_km"])
-            else None
-        ),
-
-        "magnitude": (
-            float(event["magnitude"])
-            if finite(event["magnitude"])
-            else None
-        ),
-
-        "mag_type": str(
-            event.get("mag_type", "")
-        ),
-
-        "region": repair_text(
-            event.get("region", "")
-        ),
-    }
-
-
-def deserialize_event(data):
-    return {
-        "event_id": str(
-            data["event_id"]
-        ),
-
-        "time": ensure_utc(
-            data["time"]
-        ),
-
-        "latitude": float(
-            data["latitude"]
-        ),
-
-        "longitude": float(
-            data["longitude"]
-        ),
-
-        "depth_km": numeric(
-            data.get("depth_km")
-        ),
-
-        "magnitude": numeric(
-            data.get("magnitude")
-        ),
-
-        "mag_type": str(
-            data.get("mag_type", "")
-        ),
-
-        "region": repair_text(
-            data.get("region", "")
-        ),
-    }
-
-
-# ============================================================
-# CATÁLOGO CSN
-# ============================================================
-
-def catalog_url_for_date(date_utc):
-    date_utc = pd.Timestamp(date_utc)
-
-    return CATALOG_TEMPLATE.format(
-        year=date_utc.strftime("%Y"),
-        month=date_utc.strftime("%m"),
-        yyyymmdd=date_utc.strftime("%Y%m%d"),
-    )
-
-
-def parse_daily_catalog(html):
-    soup = BeautifulSoup(
-        html,
-        "html.parser",
-    )
-
-    events = []
-
-    for row in soup.find_all("tr"):
-        cells = [
-            repair_text(
-                cell.get_text(
-                    " ",
-                    strip=True,
-                )
-            )
-            for cell in row.find_all(
-                ["td", "th"]
-            )
-        ]
-
-        if len(cells) < 5:
-            continue
-
-        utc_match = re.search(
-            r"\d{4}-\d{2}-\d{2}\s+"
-            r"\d{2}:\d{2}:\d{2}",
-            cells[1],
-        )
-
-        if not utc_match:
-            continue
-
-        event_time = pd.to_datetime(
-            utc_match.group(),
-            format="%Y-%m-%d %H:%M:%S",
-            utc=True,
-            errors="coerce",
-        )
-
-        if pd.isna(event_time):
-            continue
-
-        region = re.sub(
-            r"^\d{4}-\d{2}-\d{2}\s+"
-            r"\d{2}:\d{2}:\d{2}\s*",
-            "",
-            cells[0],
-        ).strip()
-
-        region = repair_text(region)
-
-        if not region:
-            region = "Chile"
-
-        coordinates = re.findall(
-            r"[-+]?\d+(?:[.,]\d+)?",
-            cells[2],
-        )
-
-        if len(coordinates) < 2:
-            continue
-
-        latitude = numeric(
-            coordinates[0]
-        )
-
-        longitude = numeric(
-            coordinates[1]
-        )
-
-        if (
-            not finite(latitude)
-            or not finite(longitude)
-        ):
-            continue
-
-        depth = numeric(cells[3])
-
-        magnitude_match = re.search(
-            r"([-+]?\d+(?:[.,]\d+)?)"
-            r"(?:\s+([A-Za-z0-9]+))?",
-            cells[4],
-        )
-
-        if magnitude_match:
-            magnitude = numeric(
-                magnitude_match.group(1)
-            )
-
-            magnitude_type = (
-                magnitude_match.group(2)
-                or ""
-            )
-
-        else:
-            magnitude = np.nan
-            magnitude_type = ""
-
-        events.append(
-            {
-                "event_id": make_event_id(
-                    event_time,
-                    latitude,
-                    longitude,
-                    depth,
-                    magnitude,
-                ),
-
-                "time": event_time,
-
-                "latitude": float(latitude),
-
-                "longitude": float(longitude),
-
-                "depth_km": depth,
-
-                "magnitude": magnitude,
-
-                "mag_type": magnitude_type,
-
-                "region": region,
-            }
-        )
-
-    return events
-
-
-def fetch_daily_catalog(date_utc):
-    url = catalog_url_for_date(
-        date_utc
-    )
-
-    print("Catálogo:", url)
-
-    try:
-        response = http.get(
-            url,
-            timeout=30,
-        )
-
-        response.raise_for_status()
-
-    except Exception as exc:
-        print("ERROR catálogo:", exc)
-        return []
-
-    events = parse_daily_catalog(
-        response.text
-    )
-
-    print("Eventos:", len(events))
-
-    return events
-
-
-def get_current_earthquakes():
-    now = pd.Timestamp.now(tz="UTC")
-
-    dates = [
-        now.normalize(),
-
-        (
-            now
-            - pd.Timedelta(days=1)
-        ).normalize(),
-    ]
-
-    rows = []
-
-    for date_utc in dates:
-        rows.extend(
-            fetch_daily_catalog(date_utc)
-        )
-
-    if not rows:
-        return pd.DataFrame()
-
-    dataframe = pd.DataFrame(rows)
-
-    dataframe["time"] = pd.to_datetime(
-        dataframe["time"],
-        utc=True,
-        errors="coerce",
-    )
-
-    return (
-        dataframe
-        .dropna(
-            subset=[
-                "time",
-                "latitude",
-                "longitude",
-            ]
-        )
-        .drop_duplicates(
-            subset=["event_id"]
-        )
-        .sort_values(
-            "time",
-            ascending=False,
-        )
-        .reset_index(drop=True)
-    )
-
-
-# ============================================================
-# INVENTARIO GNSS
-# ============================================================
-
-def get_gnss_station_inventory():
-    params = {
-        "network": GNSS_NETWORK,
-        "channel": GNSS_CHANNEL_PATTERN,
-        "level": "channel",
-        "format": "text",
-        "nodata": 204,
-    }
-
-    try:
-        response = http.get(
-            FDSN_STATION_URL,
-            params=params,
-            timeout=45,
-        )
-
-    except Exception as exc:
-        print(
-            "Error inventario GNSS:",
-            exc,
-        )
-        return pd.DataFrame()
-
-    if response.status_code != 200:
-        print(
-            "FDSN Station HTTP:",
-            response.status_code,
-        )
-        return pd.DataFrame()
-
-    rows = []
-    header = None
-
-    for raw_line in response.text.splitlines():
-        line = raw_line.strip()
-
-        if not line:
-            continue
-
-        if line.startswith("#"):
-            possible = [
-                item.strip()
-                for item in (
-                    line
-                    .lstrip("#")
-                    .split("|")
-                )
-            ]
-
-            if "Network" in possible:
-                header = possible
-
-            continue
-
-        parts = [
-            item.strip()
-            for item in line.split("|")
-        ]
-
-        if header:
-            record = dict(
-                zip(header, parts)
-            )
-
-            network = record.get("Network")
-
-            station = record.get("Station")
-
-            latitude = numeric(
-                record.get("Latitude")
-            )
-
-            longitude = numeric(
-                record.get("Longitude")
-            )
-
-        else:
-            if len(parts) < 6:
-                continue
-
-            network = parts[0]
-            station = parts[1]
-
-            latitude = numeric(parts[4])
-            longitude = numeric(parts[5])
-
-        if (
-            station
-            and finite(latitude)
-            and finite(longitude)
-        ):
-            network = (
-                network
-                or GNSS_NETWORK
-            )
-
-            rows.append(
-                {
-                    "network": str(network),
-                    "station": str(station),
-                    "key": f"{network}.{station}",
-                    "latitude": float(latitude),
-                    "longitude": float(longitude),
-                }
-            )
-
-    if not rows:
-        return pd.DataFrame()
-
-    return (
-        pd.DataFrame(rows)
-        .drop_duplicates(
-            subset=[
-                "network",
-                "station",
-            ]
-        )
-        .reset_index(drop=True)
-    )
-
-
-# ============================================================
-# ESTACIONES CERCANAS
-# ============================================================
-
-def select_nearby_stations(
-    event,
-    stations,
-):
-    work = stations.copy()
-
-    work["distance_km"] = [
-        haversine_km(
-            event["latitude"],
-            event["longitude"],
-            row["latitude"],
-            row["longitude"],
-        )
-        for _, row in work.iterrows()
-    ]
-
-    return (
-        work[
-            work["distance_km"]
-            <= MAX_STATION_DISTANCE_KM
-        ]
-        .sort_values("distance_km")
-        .head(MAX_NEAREST_STATIONS)
-        .reset_index(drop=True)
-    )
-
-
-# ============================================================
-# DESCARGA HISTÓRICA GNSS
-# ============================================================
-
-def fetch_station_history(
-    network,
-    station,
-    start_time,
-    end_time,
-):
-    params = {
-        "network": network,
-        "station": station,
-        "location": "*",
-        "channel": GNSS_CHANNEL_PATTERN,
-
-        "starttime": ensure_utc(
-            start_time
-        ).strftime(
-            "%Y-%m-%dT%H:%M:%S"
-        ),
-
-        "endtime": ensure_utc(
-            end_time
-        ).strftime(
-            "%Y-%m-%dT%H:%M:%S"
-        ),
-
-        "nodata": 204,
-    }
-
-    try:
-        response = http.get(
-            FDSN_DATASELECT_URL,
-            params=params,
-            timeout=45,
-        )
-
-    except Exception as exc:
-        return None, f"HTTP {exc}"
-
-    if response.status_code == 204:
-        return None, "sin datos"
-
-    if response.status_code != 200:
-        return (
-            None,
-            f"HTTP {response.status_code}",
-        )
-
-    try:
-        stream = obspy_read(
-            io.BytesIO(response.content)
-        )
-
-    except Exception as exc:
-        return None, f"MiniSEED {exc}"
-
-    if len(stream) == 0:
-        return None, "vacío"
-
-    return stream, "OK"
-
-
-# ============================================================
-# STREAM → E / N / Z
-# ============================================================
-
-def stream_components(stream):
-    components = {
-        "E": [],
-        "N": [],
-        "Z": [],
-    }
-
-    for trace in stream:
-        channel = (
-            str(trace.stats.channel)
-            .upper()
-        )
-
-        if channel.endswith("E"):
-            component = "E"
-
-        elif channel.endswith("N"):
-            component = "N"
-
-        elif channel.endswith("Z"):
-            component = "Z"
-
-        else:
-            continue
-
-        dataframe = pd.DataFrame(
-            {
-                "time": pd.to_datetime(
-                    trace.times("timestamp"),
-                    unit="s",
-                    utc=True,
-                ),
-
-                component: np.asarray(
-                    trace.data,
-                    dtype=float,
-                ),
-            }
-        )
-
-        components[component].append(
-            dataframe
-        )
-
-    output = {}
-
-    for component in ["E", "N", "Z"]:
-        if not components[component]:
-            output[component] = pd.DataFrame(
-                columns=[
-                    "time",
-                    component,
-                ]
-            )
-
-        else:
-            output[component] = (
-                pd.concat(
-                    components[component],
-                    ignore_index=True,
-                )
-                .drop_duplicates(
-                    subset=["time"]
-                )
-                .sort_values("time")
-                .reset_index(drop=True)
-            )
-
-    return output
-
-
-def align_components(components):
-    east = components["E"].copy()
-    north = components["N"].copy()
-    up = components["Z"].copy()
-
-    if east.empty or north.empty:
-        return pd.DataFrame()
-
-    merged = pd.merge_asof(
-        east.sort_values("time"),
-        north.sort_values("time"),
-        on="time",
-        direction="nearest",
-        tolerance=pd.Timedelta(seconds=1),
-    )
-
-    merged = merged.dropna(
-        subset=["E", "N"]
-    )
-
-    if not up.empty:
-        merged = pd.merge_asof(
-            merged.sort_values("time"),
-            up.sort_values("time"),
-            on="time",
-            direction="nearest",
-            tolerance=pd.Timedelta(seconds=1),
-        )
-
-    else:
-        merged["Z"] = np.nan
-
-    return (
-        merged
-        .sort_values("time")
-        .reset_index(drop=True)
-    )
-
-
-# ============================================================
-# TIEMPOS DE PROPAGACIÓN
-# ============================================================
-
-def calculate_wave_times(
-    epicentral_distance_km,
-    depth_km,
-):
-    if not finite(depth_km):
-        depth_km = 0.0
-
-    hypocentral_distance = math.sqrt(
-        float(epicentral_distance_km) ** 2
-        +
-        float(depth_km) ** 2
-    )
-
-    fast_arrival = (
-        hypocentral_distance
-        / FAST_WAVE_VELOCITY_KM_S
-    )
-
-    slow_arrival = (
-        hypocentral_distance
-        / SLOW_WAVE_VELOCITY_KM_S
-    )
-
-    early_start = max(
-        EARLY_POST_MIN_START_SECONDS,
-
-        slow_arrival
-        + EARLY_POST_AFTER_SLOW_WAVE_SECONDS,
-    )
-
-    return {
-        "hypocentral_distance_km": (
-            hypocentral_distance
-        ),
-
-        "fast_arrival_seconds": (
-            fast_arrival
-        ),
-
-        "slow_arrival_seconds": (
-            slow_arrival
-        ),
-
-        "early_post_start_seconds": (
-            early_start
-        ),
-    }
-
-
-# ============================================================
-# BLOQUES
-# ============================================================
-
-def make_block_medians(
-    data,
-    start_seconds,
-    end_seconds,
-):
-    work = data[
-        (
-            data["seconds_from_event"]
-            >= start_seconds
-        )
-        &
-        (
-            data["seconds_from_event"]
-            < end_seconds
-        )
-    ].copy()
-
-    if work.empty:
-        return pd.DataFrame()
-
-    work["block_id"] = np.floor(
-        (
-            work["seconds_from_event"]
-            - start_seconds
-        )
-        / BLOCK_SECONDS
-    ).astype(int)
-
-    rows = []
-
-    for block_id, block in work.groupby(
-        "block_id"
-    ):
-        if len(block) < MIN_SAMPLES_PER_BLOCK:
-            continue
-
-        row = {
-            "block_id": int(block_id),
-
-            "time_seconds": float(
-                np.nanmedian(
-                    block["seconds_from_event"]
-                )
-            ),
-
-            "sample_count": len(block),
-
-            "E": float(
-                np.nanmedian(block["E"])
-            ),
-
-            "N": float(
-                np.nanmedian(block["N"])
-            ),
-        }
-
-        if (
-            "Z" in block.columns
-            and block["Z"].notna().any()
-        ):
-            row["Z"] = float(
-                np.nanmedian(block["Z"])
-            )
-
-        else:
-            row["Z"] = np.nan
-
-        rows.append(row)
-
-    if not rows:
-        return pd.DataFrame()
-
-    return (
-        pd.DataFrame(rows)
-        .sort_values("time_seconds")
-        .reset_index(drop=True)
-    )
-
-
-# ============================================================
-# POSICIÓN ROBUSTA
-# ============================================================
-
-def robust_block_component(
-    blocks,
-    component,
-):
-    values = np.asarray(
-        blocks[component],
-        dtype=float,
-    )
-
-    values = values[
-        np.isfinite(values)
-    ]
-
-    count = len(values)
-
-    if count == 0:
-        return {
-            "center": np.nan,
-            "scatter_mm": np.nan,
-            "center_unc_mm": np.nan,
-            "n": 0,
-        }
-
-    center = float(
-        np.median(values)
-    )
-
-    scatter_counts = robust_sigma(
-        values
-    )
-
-    scatter_mm = (
-        scatter_counts / COUNTS_PER_MM
-        if finite(scatter_counts)
-        else np.nan
-    )
-
-    if finite(scatter_mm):
-        center_uncertainty = max(
-            scatter_mm
-            / math.sqrt(max(count, 1)),
-
-            MIN_COMPONENT_CENTER_UNCERTAINTY_MM,
-        )
-
-    else:
-        center_uncertainty = (
-            MIN_COMPONENT_CENTER_UNCERTAINTY_MM
-        )
-
-    return {
-        "center": center,
-        "scatter_mm": scatter_mm,
-        "center_unc_mm": center_uncertainty,
-        "n": count,
-    }
-
-
-def robust_block_position(blocks):
-    east = robust_block_component(
-        blocks,
-        "E",
-    )
-
-    north = robust_block_component(
-        blocks,
-        "N",
-    )
-
-    up = robust_block_component(
-        blocks,
-        "Z",
-    )
-
-    scatter_horizontal = (
-        math.sqrt(
-            east["scatter_mm"] ** 2
-            +
-            north["scatter_mm"] ** 2
-        )
-        if (
-            finite(east["scatter_mm"])
-            and finite(north["scatter_mm"])
-        )
-        else np.nan
-    )
-
-    return {
-        "E": east,
-        "N": north,
-        "Z": up,
-        "scatter_H_mm": scatter_horizontal,
-    }
-
-
-# ============================================================
-# DERIVA ROBUSTA
-# ============================================================
-
-def block_slope_mm_per_min(
-    blocks,
-    component,
-):
-    work = blocks[
-        [
-            "time_seconds",
-            component,
-        ]
-    ].dropna()
-
-    if len(work) < 3:
-        return np.nan
-
-    times = np.asarray(
-        work["time_seconds"],
-        dtype=float,
-    )
-
-    values = np.asarray(
-        work[component],
-        dtype=float,
-    )
-
-    midpoint = np.median(times)
-
-    first = times <= midpoint
-    second = times > midpoint
-
-    if (
-        first.sum() < 1
-        or second.sum() < 1
-    ):
-        return np.nan
-
-    time_1 = np.median(times[first])
-    time_2 = np.median(times[second])
-
-    value_1 = np.median(values[first])
-    value_2 = np.median(values[second])
-
-    if time_2 == time_1:
-        return np.nan
-
-    counts_per_second = (
-        value_2 - value_1
-    ) / (
-        time_2 - time_1
-    )
-
-    return (
-        counts_per_second
-        / COUNTS_PER_MM
-        * 60.0
-    )
-
-
-def horizontal_block_drift(blocks):
-    east = block_slope_mm_per_min(
-        blocks,
-        "E",
-    )
-
-    north = block_slope_mm_per_min(
-        blocks,
-        "N",
-    )
-
-    if (
-        not finite(east)
-        or not finite(north)
-    ):
-        return np.nan
-
-    return math.sqrt(
-        east ** 2
-        + north ** 2
-    )
-
-
-# ============================================================
-# CALCULAR RES
-# ============================================================
-
-def calculate_residual(
-    pre_position,
-    post_position,
-):
-    east_pre = pre_position["E"]["center"]
-    north_pre = pre_position["N"]["center"]
-    up_pre = pre_position["Z"]["center"]
-
-    east_post = post_position["E"]["center"]
-    north_post = post_position["N"]["center"]
-    up_post = post_position["Z"]["center"]
-
-    if not all(
-        finite(value)
-        for value in (
-            east_pre,
-            north_pre,
-            east_post,
-            north_post,
-        )
-    ):
         return None
 
-    delta_east = (
-        east_post - east_pre
-    ) / COUNTS_PER_MM
+    texto_hora = campo("hora utc")
+    fecha = None
 
-    delta_north = (
-        north_post - north_pre
-    ) / COUNTS_PER_MM
-
-    delta_up = (
-        (up_post - up_pre) / COUNTS_PER_MM
-        if finite(up_post) and finite(up_pre)
-        else np.nan
+    patrones = (
+        (
+            r"\d{2}:\d{2}:\d{2}\s+\d{2}/\d{2}/\d{4}",
+            "%H:%M:%S %d/%m/%Y",
+        ),
+        (
+            r"\d{2}/\d{2}/\d{4}\s+\d{2}:\d{2}:\d{2}",
+            "%d/%m/%Y %H:%M:%S",
+        ),
+        (
+            r"\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}",
+            "%Y-%m-%d %H:%M:%S",
+        ),
     )
 
-    delta_horizontal = math.sqrt(
-        delta_east ** 2
-        + delta_north ** 2
-    )
+    for patron, formato in patrones:
+        coincidencia = re.search(patron, texto_hora)
+        if coincidencia:
+            fecha = datetime.strptime(
+                coincidencia.group(), formato
+            ).replace(tzinfo=timezone.utc)
+            break
 
-    delta_3d = (
-        math.sqrt(
-            delta_horizontal ** 2
-            + delta_up ** 2
-        )
-        if finite(delta_up)
-        else np.nan
-    )
+    if fecha is None:
+        raise ValueError("No se pudo interpretar la hora UTC de CSN")
 
-    sigma_east = math.sqrt(
-        pre_position["E"]["center_unc_mm"] ** 2
-        +
-        post_position["E"]["center_unc_mm"] ** 2
-    )
+    lat = numero(campo("latitud"))
+    lon = numero(campo("longitud"))
+    mag_texto = campo("magnitud")
+    mag = numero(mag_texto)
 
-    sigma_north = math.sqrt(
-        pre_position["N"]["center_unc_mm"] ** 2
-        +
-        post_position["N"]["center_unc_mm"] ** 2
-    )
+    if not (-90 <= lat <= 90 and -180 <= lon <= 180):
+        raise ValueError("Coordenadas inválidas")
 
-    sigma_horizontal = math.sqrt(
-        sigma_east ** 2
-        + sigma_north ** 2
-    )
+    if not 0 <= mag <= 10:
+        raise ValueError("Magnitud inválida")
 
-    snr = (
-        delta_horizontal / sigma_horizontal
-        if (
-            finite(sigma_horizontal)
-            and sigma_horizontal > 0
-        )
-        else np.nan
-    )
+    prof_texto = campo("profundidad", obligatorio=False)
+    try:
+        prof = numero(prof_texto)
+    except (ValueError, TypeError):
+        prof = None
 
     return {
-        "dE_mm": delta_east,
-        "dN_mm": delta_north,
-        "dU_mm": delta_up,
-        "dH_mm": delta_horizontal,
-        "d3D_mm": delta_3d,
-
-        "azimuth_deg": vector_azimuth(
-            delta_east,
-            delta_north,
-        ),
-
-        "sigma_H_mm": sigma_horizontal,
-        "snr": snr,
+        "t": str(UTCDateTime(fecha)),
+        "lat": lat,
+        "lon": lon,
+        "mag": mag,
+        "mag_texto": mag_texto.strip(),
+        "prof": prof,
+        "referencia": campo("referencia"),
+        "url": url,
     }
 
 
-# ============================================================
-# PERSISTENCIA TEMPORAL
-# ============================================================
-
-def evaluate_persistence(
-    early_res,
-    late_res,
-):
-    if early_res is None or late_res is None:
-        return {
-            "available": False,
-            "valid": False,
-            "vector_difference_mm": np.nan,
-            "azimuth_difference_deg": np.nan,
-        }
-
-    vector_difference = math.sqrt(
-        (
-            early_res["dE_mm"]
-            - late_res["dE_mm"]
-        ) ** 2
-        +
-        (
-            early_res["dN_mm"]
-            - late_res["dN_mm"]
-        ) ** 2
-    )
-
-    allowed_difference = max(
-        PERSISTENCE_ABS_TOL_MM,
-
-        PERSISTENCE_REL_TOL
-        *
-        max(
-            late_res["dH_mm"],
-            1.0,
-        ),
-    )
-
-    amplitude_valid = (
-        vector_difference
-        <= allowed_difference
-    )
-
-    azimuth_difference = angular_difference_deg(
-        early_res["azimuth_deg"],
-        late_res["azimuth_deg"],
-    )
-
-    if (
-        early_res["dH_mm"]
-        >= PERSISTENCE_DIRECTION_MIN_MM
-        and
-        late_res["dH_mm"]
-        >= PERSISTENCE_DIRECTION_MIN_MM
-    ):
-        direction_valid = (
-            finite(azimuth_difference)
-            and
-            azimuth_difference
-            <= PERSISTENCE_MAX_AZIMUTH_DIFF_DEG
-        )
-
-    else:
-        direction_valid = True
-
-    return {
-        "available": True,
-
-        "valid": bool(
-            amplitude_valid
-            and direction_valid
-        ),
-
-        "vector_difference_mm": (
-            vector_difference
-        ),
-
-        "azimuth_difference_deg": (
-            azimuth_difference
-        ),
-    }
-
-
-# ============================================================
-# RESULTADO VACÍO
-# ============================================================
-
-def empty_station_result(station):
-    return {
-        "station_key": station["key"],
-        "station_lat": station["latitude"],
-        "station_lon": station["longitude"],
-        "distance_km": station["distance_km"],
-
-        "valid": False,
-        "res_valid": False,
-
-        "detection_state": "NO_DATA",
-        "qc_level": "SIN DATOS",
-
-        "pre_blocks": 0,
-        "early_blocks": 0,
-        "late_blocks": 0,
-
-        "pre_scatter_H_mm": np.nan,
-        "late_scatter_H_mm": np.nan,
-
-        "pre_drift_H_mm_min": np.nan,
-        "late_drift_H_mm_min": np.nan,
-
-        "pre_stable": False,
-        "late_stable": False,
-
-        "early_res_dH_mm": np.nan,
-
-        "residual_dE_mm": np.nan,
-        "residual_dN_mm": np.nan,
-        "residual_dU_mm": np.nan,
-        "residual_dH_mm": np.nan,
-        "residual_d3D_mm": np.nan,
-        "residual_azimuth_deg": np.nan,
-        "residual_sigma_H_mm": np.nan,
-        "residual_snr": np.nan,
-
-        "persistence_valid": False,
-        "persistence_vector_diff_mm": np.nan,
-        "persistence_azimuth_diff_deg": np.nan,
-
-        "plausibility_valid": False,
-
-        "coherent": False,
-        "coherent_neighbors": 0,
-
-        "status": "",
-    }
-
-
-# ============================================================
-# ANALIZAR ESTACIÓN
-# ============================================================
-
-def analyze_station_res(
-    event,
-    station,
-    current_time,
-):
-    result = empty_station_result(station)
-
-    origin = ensure_utc(event["time"])
-
-    if (
-        current_time
-        <
-        origin
-        + pd.Timedelta(
-            seconds=LATE_POST_END_SECONDS
-        )
-    ):
-        result["status"] = (
-            "POST tardío aún incompleto"
-        )
-        return result
-
-    wave = calculate_wave_times(
-        station["distance_km"],
-        event["depth_km"],
-    )
-
-    early_start = wave[
-        "early_post_start_seconds"
-    ]
-
-    start_time = (
-        origin
-        + pd.Timedelta(
-            seconds=PRE_START_SECONDS
-        )
-    )
-
-    end_time = (
-        origin
-        + pd.Timedelta(
-            seconds=LATE_POST_END_SECONDS
-        )
-    )
-
-    stream, status = fetch_station_history(
-        station["network"],
-        station["station"],
-        start_time,
-        end_time,
-    )
-
-    result["status"] = status
-
-    if stream is None:
-        return result
-
-    data = align_components(
-        stream_components(stream)
-    )
-
-    if data.empty:
-        result["status"] = "sin E/N"
-        return result
-
-    data["seconds_from_event"] = (
-        data["time"] - origin
-    ).dt.total_seconds()
-
-    pre_blocks = make_block_medians(
-        data,
-        PRE_START_SECONDS,
-        PRE_END_SECONDS,
-    )
-
-    result["pre_blocks"] = len(pre_blocks)
-
-    if len(pre_blocks) < MIN_PRE_BLOCKS:
-        result["status"] = "PRE insuficiente"
-        return result
-
-    late_blocks = make_block_medians(
-        data,
-        LATE_POST_START_SECONDS,
-        LATE_POST_END_SECONDS,
-    )
-
-    result["late_blocks"] = len(late_blocks)
-
-    if len(late_blocks) < MIN_LATE_POST_BLOCKS:
-        result["status"] = (
-            "POST tardío insuficiente"
-        )
-        return result
-
-    early_blocks = pd.DataFrame()
-
-    if (
-        early_start
-        <
-        EARLY_POST_END_SECONDS
-        - BLOCK_SECONDS
-    ):
-        early_blocks = make_block_medians(
-            data,
-            early_start,
-            EARLY_POST_END_SECONDS,
-        )
-
-    result["early_blocks"] = len(
-        early_blocks
-    )
-
-    pre_position = robust_block_position(
-        pre_blocks
-    )
-
-    late_position = robust_block_position(
-        late_blocks
-    )
-
-    early_position = (
-        robust_block_position(early_blocks)
-        if len(early_blocks) >= MIN_EARLY_POST_BLOCKS
-        else None
-    )
-
-    pre_scatter = pre_position["scatter_H_mm"]
-
-    late_scatter = late_position["scatter_H_mm"]
-
-    result["pre_scatter_H_mm"] = pre_scatter
-    result["late_scatter_H_mm"] = late_scatter
-
-    pre_drift = horizontal_block_drift(
-        pre_blocks
-    )
-
-    late_drift = horizontal_block_drift(
-        late_blocks
-    )
-
-    result["pre_drift_H_mm_min"] = pre_drift
-
-    result["late_drift_H_mm_min"] = late_drift
-
-    pre_stable = (
-        finite(pre_scatter)
-        and pre_scatter <= MAX_PRE_BLOCK_SCATTER_H_MM
-        and finite(pre_drift)
-        and pre_drift <= MAX_PRE_DRIFT_H_MM_PER_MIN
-    )
-
-    late_stable = (
-        finite(late_scatter)
-        and late_scatter <= MAX_POST_BLOCK_SCATTER_H_MM
-        and finite(late_drift)
-        and late_drift <= MAX_POST_DRIFT_H_MM_PER_MIN
-    )
-
-    result["pre_stable"] = bool(pre_stable)
-
-    result["late_stable"] = bool(late_stable)
-
-    late_res = calculate_residual(
-        pre_position,
-        late_position,
-    )
-
-    if late_res is None:
-        result["status"] = "RES no calculable"
-        return result
-
-    early_res = (
-        calculate_residual(
-            pre_position,
-            early_position,
-        )
-        if early_position is not None
-        else None
-    )
-
-    persistence = evaluate_persistence(
-        early_res,
-        late_res,
-    )
-
-    limit = plausibility_limit_mm(
-        event["magnitude"]
-    )
-
-    plausibility_valid = (
-        True
-        if not ENABLE_PLAUSIBILITY_FILTER
-        else late_res["dH_mm"] <= limit
-    )
-
-    res_valid = (
-        finite(late_res["dH_mm"])
-        and
-        late_res["dH_mm"] >= MIN_RES_HORIZONTAL_MM
-    )
-
-    if (
-        not res_valid
-        or not finite(late_res["snr"])
-        or late_res["snr"] < MIN_RES_SNR_CANDIDATE
-    ):
-        detection_state = "NO_DETECTION"
-
-    elif not plausibility_valid:
-        detection_state = "REJECTED_PLAUSIBILITY"
-
-    else:
-        detection_state = "CANDIDATE"
-
-    result.update(
-        {
-            "valid": True,
-
-            "res_valid": bool(res_valid),
-
-            "detection_state": detection_state,
-
-            "early_res_dH_mm": (
-                early_res["dH_mm"]
-                if early_res
-                else np.nan
-            ),
-
-            "residual_dE_mm": late_res["dE_mm"],
-            "residual_dN_mm": late_res["dN_mm"],
-            "residual_dU_mm": late_res["dU_mm"],
-            "residual_dH_mm": late_res["dH_mm"],
-            "residual_d3D_mm": late_res["d3D_mm"],
-
-            "residual_azimuth_deg": (
-                late_res["azimuth_deg"]
-            ),
-
-            "residual_sigma_H_mm": (
-                late_res["sigma_H_mm"]
-            ),
-
-            "residual_snr": late_res["snr"],
-
-            "persistence_valid": (
-                persistence["valid"]
-            ),
-
-            "persistence_vector_diff_mm": (
-                persistence["vector_difference_mm"]
-            ),
-
-            "persistence_azimuth_diff_deg": (
-                persistence["azimuth_difference_deg"]
-            ),
-
-            "plausibility_valid": bool(
-                plausibility_valid
-            ),
-
-            "status": "OK",
-        }
-    )
-
-    return result
-
-
-# ============================================================
-# COHERENCIA ESPACIAL
-# ============================================================
-
-def stations_are_spatially_coherent(
-    station_a,
-    station_b,
-):
-    if (
-        station_a["detection_state"] != "CANDIDATE"
-        or station_b["detection_state"] != "CANDIDATE"
-    ):
-        return False
-
-    distance = haversine_km(
-        station_a["station_lat"],
-        station_a["station_lon"],
-        station_b["station_lat"],
-        station_b["station_lon"],
-    )
-
-    if distance > COHERENCE_MAX_DISTANCE_KM:
-        return False
-
-    vector_difference = math.sqrt(
-        (
-            station_a["residual_dE_mm"]
-            - station_b["residual_dE_mm"]
-        ) ** 2
-        +
-        (
-            station_a["residual_dN_mm"]
-            - station_b["residual_dN_mm"]
-        ) ** 2
-    )
-
-    reference_amplitude = max(
-        min(
-            station_a["residual_dH_mm"],
-            station_b["residual_dH_mm"],
-        ),
-        1.0,
-    )
-
-    allowed_difference = max(
-        COHERENCE_MAX_VECTOR_DIFF_MM,
-        COHERENCE_REL_VECTOR_DIFF
-        * reference_amplitude,
-    )
-
-    if vector_difference > allowed_difference:
-        return False
-
-    if (
-        station_a["residual_dH_mm"]
-        >= COHERENCE_DIRECTION_MIN_MM
-        and
-        station_b["residual_dH_mm"]
-        >= COHERENCE_DIRECTION_MIN_MM
-    ):
-        azimuth_difference = angular_difference_deg(
-            station_a["residual_azimuth_deg"],
-            station_b["residual_azimuth_deg"],
-        )
-
-        if (
-            not finite(azimuth_difference)
-            or
-            azimuth_difference
-            > COHERENCE_MAX_AZIMUTH_DIFF_DEG
-        ):
-            return False
-
-    return True
-
-
-def evaluate_spatial_coherence(results):
-    work = results.copy()
-
-    work["coherent"] = False
-
-    work["coherent_neighbors"] = 0
-
-    candidates = work[
-        work["detection_state"] == "CANDIDATE"
-    ].index.tolist()
-
-    for index_a in candidates:
-        neighbors = 0
-
-        for index_b in candidates:
-            if index_a == index_b:
-                continue
-
-            if stations_are_spatially_coherent(
-                work.loc[index_a],
-                work.loc[index_b],
-            ):
-                neighbors += 1
-
-        work.at[
-            index_a,
-            "coherent_neighbors",
-        ] = neighbors
-
-        work.at[
-            index_a,
-            "coherent",
-        ] = (
-            neighbors
-            >= MIN_COHERENT_NEIGHBORS_HIGH
-        )
-
-    return work
-
-
-# ============================================================
-# QC FINAL
-# ============================================================
-
-def classify_final_qc(row):
-    if not bool(row.get("valid", False)):
-        return "SIN DATOS", "NO_DATA"
-
-    if (
-        row.get("detection_state")
-        == "REJECTED_PLAUSIBILITY"
-    ):
-        return (
-            "RECHAZADO",
-            "REJECTED_PLAUSIBILITY",
-        )
-
-    snr = numeric(
-        row.get("residual_snr")
-    )
-
-    if (
-        not finite(snr)
-        or snr < MIN_RES_SNR_CANDIDATE
-    ):
-        return "BAJO", "NO_DETECTION"
-
-    persistence = bool(
-        row.get("persistence_valid", False)
-    )
-
-    pre_stable = bool(
-        row.get("pre_stable", False)
-    )
-
-    late_stable = bool(
-        row.get("late_stable", False)
-    )
-
-    coherent = bool(
-        row.get("coherent", False)
-    )
-
-    if (
-        snr >= MIN_RES_SNR_HIGH
-        and persistence
-        and pre_stable
-        and late_stable
-        and coherent
-    ):
-        return "ALTO", "VALID_RES"
-
-    if (
-        snr >= MIN_RES_SNR_MODERATE
-        and persistence
-        and pre_stable
-        and late_stable
-    ):
-        return "MODERADO", "VALID_RES"
-
-    return "BAJO", "CANDIDATE"
-
-
-def finalize_results(results):
-    work = evaluate_spatial_coherence(
-        results
-    )
-
-    classifications = work.apply(
-        classify_final_qc,
-        axis=1,
-    )
-
-    work["qc_level"] = [
-        item[0]
-        for item in classifications
-    ]
-
-    work["detection_state"] = [
-        item[1]
-        for item in classifications
-    ]
-
-    return work
-
-
-# ============================================================
-# ANALIZAR EVENTO
-# ============================================================
-
-def analyze_event(
-    event,
-    stations,
-):
-    nearby = select_nearby_stations(
-        event,
-        stations,
-    )
-
-    if nearby.empty:
-        print(
-            "No existen estaciones GNSS cercanas."
-        )
-        return pd.DataFrame()
-
-    current_time = pd.Timestamp.now(
-        tz="UTC"
-    )
-
-    rows = []
-
-    print(
-        "\nAnalizando",
-        len(nearby),
-        "estaciones GNSS...",
-    )
-
-    for number, (_, station) in enumerate(
-        nearby.iterrows(),
-        1,
-    ):
-        print(
-            f"[{number:02d}/{len(nearby):02d}] "
-            f"{station['key']} · "
-            f"{station['distance_km']:.1f} km"
-        )
+def enlaces_m4(contenido, pagina):
+    soup = BeautifulSoup(contenido, "html.parser")
+    encontrados = set()
+    filas_catalogo = 0
+
+    for fila in soup.select("tr"):
+        enlace = fila.find("a", href=re.compile(r"/informes/"))
+        celdas = fila.find_all("td")
+
+        if enlace is None or not celdas:
+            continue
+
+        filas_catalogo += 1
 
         try:
-            result = analyze_station_res(
-                event,
-                station,
-                current_time,
-            )
+            mag = numero(celdas[-1].get_text(" ", strip=True))
+        except ValueError:
+            # Si cambió la tabla, leer el informe en vez de perderlo.
+            mag = MAG_MIN
+
+        if mag >= MAG_MIN:
+            url = urljoin(pagina, enlace["href"])
+            host = urlparse(url).hostname or ""
+
+            if host in {"sismologia.cl", "www.sismologia.cl"}:
+                encontrados.add(url)
+
+    return encontrados, filas_catalogo
+
+
+def buscar_eventos_una_vez(inicio, fin):
+    paginas = [CSN + "/"]
+
+    # Incluye fechas UTC y locales para cubrir cruces de medianoche.
+    fechas = set()
+
+    for zona in (timezone.utc, ZoneInfo("America/Santiago")):
+        primero = inicio.datetime.replace(
+            tzinfo=timezone.utc
+        ).astimezone(zona).date()
+
+        ultimo = fin.datetime.replace(
+            tzinfo=timezone.utc
+        ).astimezone(zona).date()
+
+        while primero <= ultimo:
+            fechas.add(primero)
+            primero += timedelta(days=1)
+
+    for dia in sorted(fechas):
+        paginas.append(
+            f"{CSN}/sismicidad/catalogo/{dia:%Y/%m/%Y%m%d}.html"
+        )
+
+    enlaces = set()
+    filas_totales = 0
+    problemas = 0
+
+    for pagina in dict.fromkeys(paginas):
+        try:
+            contenido = obtener(pagina, permitir_vacio=True)
+            if not contenido:
+                LOG.warning("Catálogo no disponible: %s", pagina)
+                continue
+
+            encontrados, filas = enlaces_m4(contenido, pagina)
+            enlaces.update(encontrados)
+            filas_totales += filas
 
         except Exception as exc:
-            result = empty_station_result(
-                station
+            problemas += 1
+            LOG.warning(
+                "Fallo de catálogo: %s (%s)",
+                pagina,
+                type(exc).__name__,
             )
 
-            result["status"] = (
-                f"ERROR {exc}"
+    if filas_totales == 0:
+        raise RuntimeError(
+            "No se pudo reconocer ningún catálogo de CSN. "
+            "No se interpreta como ausencia de sismos."
+        )
+
+    eventos = {}
+
+    for url in sorted(enlaces):
+        try:
+            evento = leer_evento(url)
+            t = UTCDateTime(evento["t"])
+
+            if evento["mag"] >= MAG_MIN and inicio <= t <= fin:
+                eventos[identificar_evento(url)] = evento
+
+        except Exception as exc:
+            problemas += 1
+            LOG.warning(
+                "No se pudo leer %s (%s)",
+                url,
+                type(exc).__name__,
             )
 
-        rows.append(result)
-
-    results = pd.DataFrame(rows)
-
-    if results.empty:
-        return results
-
-    return finalize_results(results)
-
-
-# ============================================================
-# ESTACIONES PUBLICABLES
-# ============================================================
-
-def station_is_publishable(row):
-    if not bool(row.get("valid", False)):
-        return False
-
-    if (
-        row.get("detection_state")
-        != "VALID_RES"
-    ):
-        return False
-
-    if (
-        row.get("qc_level")
-        not in PUBLISH_QC_LEVELS
-    ):
-        return False
-
-    if not bool(
-        row.get("persistence_valid", False)
-    ):
-        return False
-
-    if not bool(
-        row.get("plausibility_valid", False)
-    ):
-        return False
-
-    fields = [
-        "residual_dE_mm",
-        "residual_dN_mm",
-        "residual_dH_mm",
-        "residual_sigma_H_mm",
-        "residual_snr",
-    ]
-
-    for field in fields:
-        if not finite(row.get(field)):
-            return False
-
-    return True
-
-
-def get_publishable_stations(results):
-    if results is None or results.empty:
-        return pd.DataFrame()
-
-    mask = results.apply(
-        station_is_publishable,
-        axis=1,
+    LOG.info(
+        "Sismos dentro de la ventana: %d; problemas de consulta: %d",
+        len(eventos),
+        problemas,
     )
 
-    work = results[mask].copy()
+    return eventos, problemas
 
-    if work.empty:
-        return work
 
-    quality_rank = {
-        "ALTO": 2,
-        "MODERADO": 1,
-    }
+# ================================================================
+# ESTADO PERSISTENTE DIRECTAMENTE EN GITHUB
+# ================================================================
 
-    work["_rank"] = (
-        work["qc_level"]
-        .map(quality_rank)
-        .fillna(0)
+class EstadoGitHub:
+    """
+    Usa la API Contents y su SHA para evitar sobreescrituras.
+
+    Cada cambio se guarda antes de continuar. Si falla el guardado,
+    se detiene el programa.
+
+    La rama de estado se crea desde la rama predeterminada si falta.
+    No se almacenan credenciales en el JSON.
+    """
+
+    def __init__(self):
+        self.repo = os.environ.get("GITHUB_REPOSITORY", "")
+        token = os.environ.get("GH_TOKEN", "")
+        self.api = os.environ.get(
+            "GITHUB_API_URL", "https://api.github.com"
+        ).rstrip("/")
+
+        if not self.repo or not token:
+            raise ErrorEstado(
+                "Faltan GITHUB_REPOSITORY o GH_TOKEN. "
+                "Ejecuta con el workflow proporcionado."
+            )
+
+        self.sesion = requests.Session()
+        self.sesion.headers.update({
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+        })
+
+        self.base = f"{self.api}/repos/{self.repo}"
+        self.sha = None
+        self.datos = {"cuenta_id": None, "eventos": {}}
+
+        self.crear_rama_si_falta()
+        self.cargar()
+
+    def comprobar(self, respuesta):
+        if not respuesta.ok:
+            raise ErrorEstado(
+                f"GitHub respondió HTTP {respuesta.status_code}. "
+                "Verifica contents: write y permisos de la rama "
+                f"{STATE_BRANCH}."
+            )
+        return respuesta.json()
+
+    def crear_rama_si_falta(self):
+        rama = quote(STATE_BRANCH, safe="")
+        respuesta = self.sesion.get(
+            f"{self.base}/git/ref/heads/{rama}",
+            timeout=TIMEOUT_HTTP,
+        )
+
+        if respuesta.status_code != 404:
+            self.comprobar(respuesta)
+            return
+
+        repo = self.comprobar(
+            self.sesion.get(self.base, timeout=TIMEOUT_HTTP)
+        )
+        predeterminada = quote(repo["default_branch"], safe="")
+
+        ref = self.comprobar(
+            self.sesion.get(
+                f"{self.base}/git/ref/heads/{predeterminada}",
+                timeout=TIMEOUT_HTTP,
+            )
+        )
+
+        self.comprobar(
+            self.sesion.post(
+                f"{self.base}/git/refs",
+                json={
+                    "ref": f"refs/heads/{STATE_BRANCH}",
+                    "sha": ref["object"]["sha"],
+                },
+                timeout=TIMEOUT_HTTP,
+            )
+        )
+
+    def cargar(self):
+        respuesta = self.sesion.get(
+            f"{self.base}/contents/{STATE_PATH}",
+            params={"ref": STATE_BRANCH},
+            timeout=TIMEOUT_HTTP,
+        )
+
+        if respuesta.status_code == 404:
+            return
+
+        archivo = self.comprobar(respuesta)
+        self.sha = archivo["sha"]
+        self.datos = json.loads(
+            base64.b64decode(archivo["content"]).decode("utf-8")
+        )
+
+        if not isinstance(self.datos.get("eventos"), dict):
+            raise ErrorEstado("El estado remoto tiene formato inválido")
+
+        cambio = False
+
+        for registro in self.datos["eventos"].values():
+            if registro.get("estado") == "enviando":
+                registro["estado"] = "resultado_incierto"
+                cambio = True
+            elif registro.get("estado") == "procesando":
+                registro["estado"] = "pendiente"
+                cambio = True
+
+        if cambio:
+            self.guardar()
+
+    def guardar(self):
+        contenido = json.dumps(
+            self.datos,
+            ensure_ascii=False,
+            indent=2,
+            allow_nan=False,
+        ).encode("utf-8")
+
+        payload = {
+            "message": "Actualizar estado CSN [skip ci]",
+            "branch": STATE_BRANCH,
+            "content": base64.b64encode(contenido).decode("ascii"),
+        }
+
+        if self.sha:
+            payload["sha"] = self.sha
+
+        # No repetir automáticamente una escritura cuyo resultado
+        # podría ser incierto. La siguiente ejecución relee el estado.
+        try:
+            respuesta = self.sesion.put(
+                f"{self.base}/contents/{STATE_PATH}",
+                json=payload,
+                timeout=TIMEOUT_HTTP,
+            )
+            datos = self.comprobar(respuesta)
+            self.sha = datos["content"]["sha"]
+
+        except ErrorEstado:
+            raise
+        except Exception as exc:
+            raise ErrorEstado(
+                "No se confirmó el guardado del estado en GitHub"
+            ) from exc
+
+    def actualizar(self, clave, **cambios):
+        self.datos["eventos"][clave].update(cambios)
+        self.guardar()
+
+    def cerrar(self):
+        self.sesion.close()
+
+
+# ================================================================
+# INVENTARIO DE ACELERÓMETROS
+# ================================================================
+
+def obtener_estaciones(evento):
+    t = UTCDateTime(evento["t"])
+    inicio = t - PRE_SEG - MARGEN_SEG
+    fin = t + POST_SEG + MARGEN_SEG
+
+    contenido = obtener(
+        FDSN + "/fdsnws/station/1/query",
+        params={
+            "network": "*",
+            "station": "*",
+            "location": "*",
+            "channel": CANALES,
+            "starttime": fecha_fdsn(inicio),
+            "endtime": fecha_fdsn(fin),
+            "latitude": evento["lat"],
+            "longitude": evento["lon"],
+            "maxradius": RADIO_KM / 111.195,
+            "level": "response",
+            "format": "xml",
+            "nodata": 204,
+        },
+        permitir_vacio=True,
     )
 
-    return (
-        work
-        .sort_values(
-            [
-                "_rank",
-                "coherent_neighbors",
-                "residual_snr",
-                "residual_dH_mm",
-            ],
-            ascending=[
-                False,
-                False,
-                False,
-                False,
-            ],
+    if not contenido:
+        raise SinDatos("CSN no devolvió inventario de acelerómetros")
+
+    inventario = read_inventory(io.BytesIO(contenido))
+    estaciones = {}
+
+    for red in inventario:
+        for estacion in red:
+            for canal in estacion:
+                if canal.code not in {"HNZ", "ENZ"}:
+                    continue
+
+                # Exigir que la época de metadatos cubra la ventana.
+                if canal.start_date and canal.start_date > inicio:
+                    continue
+                if canal.end_date and canal.end_date < fin:
+                    continue
+
+                lat = float(canal.latitude)
+                lon = float(canal.longitude)
+
+                distancia = gps2dist_azimuth(
+                    evento["lat"], evento["lon"], lat, lon
+                )[0] / 1000.0
+
+                if distancia > RADIO_KM:
+                    continue
+
+                if canal.response is None:
+                    continue
+
+                sensibilidad = canal.response.instrument_sensitivity
+                if sensibilidad is None:
+                    continue
+
+                unidades = str(
+                    sensibilidad.input_units
+                ).upper().replace(" ", "")
+
+                # No tratar cuentas digitales como aceleración física.
+                if unidades not in {
+                    "M/S**2", "M/S^2", "M/S/S", "M/S2"
+                }:
+                    continue
+
+                clave = f"{red.code}.{estacion.code}"
+                opcion = {
+                    "red": red.code,
+                    "estacion": estacion.code,
+                    "loc": canal.location_code or "",
+                    "canal": canal.code,
+                    "lat": lat,
+                    "lon": lon,
+                    "distancia_km": distancia,
+                    "id": (
+                        f"{red.code}.{estacion.code}."
+                        f"{canal.location_code or ''}.{canal.code}"
+                    ),
+                }
+
+                estaciones.setdefault(clave, []).append(opcion)
+
+    grupos = sorted(
+        estaciones.values(),
+        key=lambda opciones: opciones[0]["distancia_km"],
+    )[:MAX_ESTACIONES]
+
+    if not grupos:
+        raise SinDatos(
+            "No hay canales verticales con respuesta válida "
+            f"dentro de {RADIO_KM:g} km"
         )
-        .drop(columns=["_rank"])
-        .reset_index(drop=True)
-    )
+
+    return inventario, grupos
 
 
-# ============================================================
-# MAPA BASE
-# ============================================================
+# ================================================================
+# DESCARGA Y PROCESAMIENTO DE UNA ESTACIÓN
+# ================================================================
 
-def load_chile_outline():
-    try:
-        if not NE_ZIP_FILE.exists():
-            response = http.get(
-                NATURAL_EARTH_URL,
-                timeout=60,
+def procesar_estacion(opciones, inventario, evento):
+    t = UTCDateTime(evento["t"])
+    inicio = t - PRE_SEG - MARGEN_SEG
+    fin = t + POST_SEG + MARGEN_SEG
+
+    for opcion in sorted(
+        opciones,
+        key=lambda x: (x["canal"] != "HNZ", x["loc"]),
+    ):
+        try:
+            contenido = obtener(
+                FDSN + "/fdsnws/dataselect/1/query",
+                params={
+                    "network": opcion["red"],
+                    "station": opcion["estacion"],
+                    "location": opcion["loc"] or "--",
+                    "channel": opcion["canal"],
+                    "starttime": fecha_fdsn(inicio),
+                    "endtime": fecha_fdsn(fin),
+                    "nodata": 204,
+                },
+                permitir_vacio=True,
             )
 
-            response.raise_for_status()
-
-            NE_ZIP_FILE.write_bytes(
-                response.content
-            )
-
-        NE_DIR.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-
-        shapefiles = list(
-            NE_DIR.glob("*.shp")
-        )
-
-        if not shapefiles:
-            with zipfile.ZipFile(
-                NE_ZIP_FILE,
-                "r",
-            ) as archive:
-                archive.extractall(NE_DIR)
-
-            shapefiles = list(
-                NE_DIR.glob("*.shp")
-            )
-
-        if not shapefiles:
-            return None
-
-        world = gpd.read_file(
-            shapefiles[0]
-        )
-
-        for column in [
-            "ADMIN",
-            "NAME",
-            "NAME_LONG",
-            "SOVEREIGNT",
-        ]:
-            if column not in world.columns:
+            if not contenido:
                 continue
 
-            chile = world[
-                world[column]
-                .astype(str)
-                .str.lower()
-                .eq("chile")
-            ].copy()
+            st = read(io.BytesIO(contenido), format="MSEED")
+            st = st.select(
+                network=opcion["red"],
+                station=opcion["estacion"],
+                location=opcion["loc"],
+                channel=opcion["canal"],
+            )
 
-            if chile.empty:
+            if not st:
                 continue
 
-            if chile.crs is None:
-                chile = chile.set_crs(4326)
+            st.sort()
+            st.merge(method=0, fill_value=None)
 
-            else:
-                chile = chile.to_crs(4326)
+            if len(st) != 1:
+                continue
 
-            return chile
+            tr = st[0]
 
-    except Exception as exc:
-        print(
-            "Mapa base no disponible:",
-            exc,
-        )
+            # No rellenar huecos con ceros ni inventar muestras.
+            if np.ma.isMaskedArray(tr.data):
+                if np.ma.getmaskarray(tr.data).any():
+                    continue
+                tr.data = np.asarray(tr.data)
+
+            fs = float(tr.stats.sampling_rate)
+
+            if fs < 10:
+                continue
+
+            tolerancia = 1.5 / fs
+
+            if (
+                tr.stats.starttime > inicio + tolerancia
+                or tr.stats.endtime < fin - tolerancia
+            ):
+                continue
+
+            tr.data = np.asarray(tr.data, dtype=np.float64)
+
+            if not np.isfinite(tr.data).all():
+                continue
+            if np.ptp(tr.data) == 0:
+                continue
+
+            tr.detrend("linear")
+
+            nyquist = fs / 2
+            f3 = min(20.0, nyquist * 0.70)
+            f4 = min(25.0, nyquist * 0.90)
+
+            tr.remove_response(
+                inventory=inventario,
+                output="ACC",
+                pre_filt=(0.05, 0.10, f3, f4),
+                water_level=None,
+                zero_mean=True,
+                taper=True,
+                taper_fraction=0.05,
+            )
+
+            tr.trim(t - PRE_SEG, t + POST_SEG)
+
+            aceleracion = np.asarray(tr.data, dtype=float) * 100.0
+            tiempos = tr.times() + float(tr.stats.starttime - t)
+
+            if (
+                len(aceleracion) == 0
+                or not np.isfinite(aceleracion).all()
+            ):
+                continue
+
+            # Resumen por segundo, calculado con las muestras originales.
+            bordes = np.arange(-PRE_SEG, POST_SEG + 1, dtype=float)
+            serie = np.full(len(bordes) - 1, np.nan)
+
+            for i, (a, b) in enumerate(zip(bordes[:-1], bordes[1:])):
+                seleccion = (tiempos >= a) & (tiempos < b)
+                if seleccion.any():
+                    serie[i] = np.max(np.abs(aceleracion[seleccion]))
+
+            if not np.isfinite(serie).all():
+                continue
+
+            resultado = dict(opcion)
+            resultado.update({
+                "serie": serie,
+                "pico_cm_s2": float(np.max(np.abs(aceleracion))),
+                "fs": fs,
+                "f3": f3,
+                "f4": f4,
+            })
+
+            return resultado
+
+        except Exception as exc:
+            LOG.warning(
+                "Canal %s descartado (%s)",
+                opcion["id"],
+                type(exc).__name__,
+            )
 
     return None
 
 
-def result_color(row):
-    if row.get("qc_level") == "ALTO":
-        return COLOR_GREEN
+# ================================================================
+# FIGURAS, CSV Y VIDEO
+# ================================================================
 
-    return COLOR_ORANGE
+def generar_video(evento, resultados, carpeta):
+    carpeta.mkdir(parents=True, exist_ok=True)
 
+    with (carpeta / "estaciones.csv").open(
+        "w", newline="", encoding="utf-8"
+    ) as archivo:
+        campos = [
+            "id", "lat", "lon", "distancia_km",
+            "pico_cm_s2", "fs", "f3", "f4",
+        ]
+        escritor = csv.DictWriter(archivo, fieldnames=campos)
+        escritor.writeheader()
+        escritor.writerows({
+            campo: resultado[campo] for campo in campos
+        } for resultado in resultados)
 
-# ============================================================
-# CREAR LÁMINA
-#
-# CAMBIO SOLICITADO:
-#   SNR: indicador principal, fuente grande.
-#   RES ± incertidumbre: información secundaria.
-# ============================================================
+    segundos = np.arange(-PRE_SEG, POST_SEG, dtype=float)
+    matriz = np.array([r["serie"] for r in resultados])
 
-def create_social_sheet(
-    event,
-    publishable,
-    chile,
-):
-    if publishable.empty:
-        raise ValueError(
-            "Sin estaciones VALID_RES."
+    with (carpeta / "aceleracion_por_segundo.csv").open(
+        "w", newline="", encoding="utf-8"
+    ) as archivo:
+        escritor = csv.writer(archivo)
+        escritor.writerow(
+            ["segundos_desde_origen"] + [r["id"] for r in resultados]
         )
+        for i, segundo in enumerate(segundos):
+            escritor.writerow(
+                [segundo] + matriz[:, i].tolist()
+            )
 
-    # Conserva la selección original:
-    # QC, vecinos coherentes, SNR y RES.
-    primary = publishable.iloc[0]
-
-    figure = plt.figure(
-        figsize=(16, 9),
-        facecolor=COLOR_WHITE,
+    (carpeta / "evento.json").write_text(
+        json.dumps(evento, ensure_ascii=False, indent=2),
+        encoding="utf-8",
     )
 
-    # --------------------------------------------------------
-    # CABECERA
-    # --------------------------------------------------------
-
-    header = figure.add_axes(
-        [0, 0.85, 1, 0.15]
-    )
-
-    header.axis("off")
-
-    header.add_patch(
-        patches.Rectangle(
-            (0, 0),
-            1,
-            1,
-            transform=header.transAxes,
-            color=COLOR_NAVY,
-        )
-    )
-
-    header.text(
-        0.035,
-        0.64,
-        BRAND_TITLE,
-        fontsize=22,
-        fontweight="bold",
-        color=COLOR_WHITE,
-        va="center",
-    )
-
-    header.text(
-        0.035,
-        0.25,
-        BRAND_SUBTITLE,
-        fontsize=11.5,
-        color="#CBD5E1",
-        va="center",
-    )
-
-    header.text(
-        0.96,
-        0.64,
-        "PRELIMINAR",
-        fontsize=12,
-        fontweight="bold",
-        color=COLOR_WHITE,
-        ha="right",
-        va="center",
-        bbox=dict(
-            boxstyle="round,pad=0.5",
-            facecolor=COLOR_RED,
-            edgecolor="none",
-        ),
-    )
-
-    # --------------------------------------------------------
-    # MAPA
-    # --------------------------------------------------------
-
-    axis = figure.add_axes(
-        [0.035, 0.11, 0.61, 0.69]
-    )
-
-    axis.set_facecolor(COLOR_SEA)
-
-    if chile is not None and not chile.empty:
-        chile.plot(
-            ax=axis,
-            facecolor=COLOR_LAND,
-            edgecolor=COLOR_GRAY,
-            linewidth=0.7,
-            zorder=1,
-        )
-
-    axis.scatter(
-        event["longitude"],
-        event["latitude"],
-        marker="*",
-        s=650,
-        color=COLOR_RED,
-        edgecolor=COLOR_NAVY,
-        linewidth=1.5,
-        zorder=30,
-    )
-
-    longitudes = [event["longitude"]]
-
-    latitudes = [event["latitude"]]
-
-    maximum_res = (
-        publishable["residual_dH_mm"].max()
-    )
-
-    vector_scale = (
-        VECTOR_TARGET_DEGREES / maximum_res
-        if finite(maximum_res) and maximum_res > 0
-        else 0.02
-    )
-
-    for _, row in publishable.iterrows():
-        longitude = float(
-            row["station_lon"]
-        )
-
-        latitude = float(
-            row["station_lat"]
-        )
-
-        longitudes.append(longitude)
-        latitudes.append(latitude)
-
-        color = result_color(row)
-
-        axis.scatter(
-            longitude,
-            latitude,
-            s=90,
-            color=color,
-            edgecolor=COLOR_NAVY,
-            linewidth=0.9,
-            zorder=15,
-        )
-
-        delta_x = (
-            row["residual_dE_mm"]
-            * vector_scale
-        )
-
-        delta_y = (
-            row["residual_dN_mm"]
-            * vector_scale
-        )
-
-        axis.arrow(
-            longitude,
-            latitude,
-            delta_x,
-            delta_y,
-            width=0.0035,
-            head_width=0.04,
-            head_length=0.05,
-            length_includes_head=True,
-            color=color,
-            zorder=14,
-        )
-
-        # También se muestra SNR antes que RES
-        # en las etiquetas de las estaciones.
-        axis.annotate(
-            (
-                f"{row['station_key']}\n"
-                f"SNR {row['residual_snr']:.1f} · "
-                f"QC {row['qc_level']}\n"
-                f"RES {row['residual_dH_mm']:.1f}"
-                f" ± {row['residual_sigma_H_mm']:.1f} mm"
-            ),
-            (longitude, latitude),
-            xytext=(5, 5),
-            textcoords="offset points",
-            fontsize=7,
-            bbox=dict(
-                boxstyle="round,pad=0.23",
-                facecolor=COLOR_WHITE,
-                edgecolor=color,
-                alpha=0.95,
-            ),
-            zorder=20,
-        )
-
-    longitude_margin = max(
-        0.65,
-        (
-            max(longitudes)
-            - min(longitudes)
-        ) * 0.30,
-    )
-
-    latitude_margin = max(
-        0.65,
-        (
-            max(latitudes)
-            - min(latitudes)
-        ) * 0.30,
-    )
-
-    axis.set_xlim(
-        max(
-            MAP_LON_MIN,
-            min(longitudes) - longitude_margin,
-        ),
-        min(
-            MAP_LON_MAX,
-            max(longitudes) + longitude_margin,
-        ),
-    )
-
-    axis.set_ylim(
-        max(
-            MAP_LAT_MIN,
-            min(latitudes) - latitude_margin,
-        ),
-        min(
-            MAP_LAT_MAX,
-            max(latitudes) + latitude_margin,
-        ),
-    )
-
-    axis.grid(alpha=0.25)
-
-    axis.set_xlabel("Longitud")
-
-    axis.set_ylabel("Latitud")
-
-    axis.set_title(
-        MAP_TITLE,
-        loc="left",
-        fontsize=13,
-        fontweight="bold",
-    )
-
-    # --------------------------------------------------------
-    # PANEL DERECHO: INFORMACIÓN DEL SISMO
-    # --------------------------------------------------------
-
-    info = figure.add_axes(
-        [0.675, 0.14, 0.29, 0.63]
-    )
-
-    info.axis("off")
-
-    info.add_patch(
-        patches.FancyBboxPatch(
-            (0, 0.54),
-            1,
-            0.43,
-            boxstyle="round,pad=0.014",
-            facecolor=COLOR_LIGHT_GRAY,
-            edgecolor=COLOR_BORDER,
-        )
-    )
-
-    magnitude_text = (
-        f"M {event['magnitude']:.1f}"
-        if finite(event["magnitude"])
-        else "M ?"
-    )
-
-    info.text(
-        0.05,
-        0.88,
-        magnitude_text,
-        fontsize=34,
-        fontweight="bold",
-        color=COLOR_RED,
-    )
-
-    info.text(
-        0.05,
-        0.80,
-        ensure_utc(
-            event["time"]
-        ).strftime(
-            "%Y-%m-%d %H:%M:%S UTC"
-        ),
-        fontsize=10.5,
-        fontweight="bold",
-    )
-
-    info.text(
-        0.05,
-        0.72,
-        (
-            "Profundidad: "
-            f"{fmt(event['depth_km'], 1, ' km')}"
-        ),
-        fontsize=10.5,
-    )
-
-    info.text(
-        0.05,
-        0.65,
-        f"Latitud: {event['latitude']:.3f}°",
-        fontsize=9.5,
-        color=COLOR_MUTED,
-    )
-
-    info.text(
-        0.05,
-        0.59,
-        f"Longitud: {event['longitude']:.3f}°",
-        fontsize=9.5,
-        color=COLOR_MUTED,
-    )
-
-    # --------------------------------------------------------
-    # PANEL ACTUALIZADO:
-    # SNR GRANDE + RES COMO SUBINFORMACIÓN
-    # --------------------------------------------------------
-
-    info.add_patch(
-        patches.FancyBboxPatch(
-            (0, 0.15),
-            1,
-            0.32,
-            boxstyle="round,pad=0.014",
-            facecolor=COLOR_WHITE,
-            edgecolor=COLOR_BORDER,
-        )
-    )
-
-    info.text(
-        0.05,
-        0.430,
-        "SNR · RELACIÓN SEÑAL / RUIDO",
-        fontsize=10,
-        fontweight="bold",
-        color=COLOR_MUTED,
-        va="center",
-    )
-
-    # SNR es adimensional: no lleva unidad mm.
-    info.text(
-        0.05,
-        0.337,
-        f"{primary['residual_snr']:.1f}",
-        fontsize=44,
-        fontweight="bold",
-        color=result_color(primary),
-        va="center",
-    )
-
-    # RES pasa a ser información secundaria.
-    info.text(
-        0.05,
-        0.252,
-        (
-            "RES validado: "
-            f"{primary['residual_dH_mm']:.1f}"
-            f" ± {primary['residual_sigma_H_mm']:.1f} mm"
-        ),
-        fontsize=12,
-        color=COLOR_NAVY,
-        va="center",
-    )
-
-    info.text(
-        0.05,
-        0.192,
-        (
-            f"{primary['station_key']} · "
-            f"Az {primary['residual_azimuth_deg']:.0f}° · "
-            f"QC {primary['qc_level']}"
-        ),
-        fontsize=10,
-        color=COLOR_MUTED,
-        va="center",
-    )
-
-    info.text(
-        0.02,
-        0.08,
-        textwrap.fill(
-            repair_text(event["region"]),
-            42,
-        ),
-        fontsize=10.5,
-        fontweight="bold",
-        va="top",
-        color=COLOR_NAVY,
-    )
-
-    # --------------------------------------------------------
-    # PIE DE LÁMINA
-    # --------------------------------------------------------
-
-    footer = figure.add_axes(
-        [0.035, 0.015, 0.93, 0.06]
-    )
-
-    footer.axis("off")
-
-    footer.text(
-        0,
-        0.65,
-        (
-            "RES = cambio robusto de posición GNSS "
-            "entre ventanas PRE y POST."
-        ),
-        fontsize=8,
-        color=COLOR_MUTED,
-    )
-
-    footer.text(
-        0,
-        0.20,
-        "Resultado automático preliminar.",
-        fontsize=7.7,
-        color=COLOR_MUTED,
-    )
-
-    footer.text(
-        1,
-        0.20,
-        (
-            "Datos: Centro Sismológico Nacional · Chile"
-        ),
-        fontsize=7.4,
-        color=COLOR_MUTED,
-        ha="right",
-    )
-
-    output = (
-        OUTPUT_DIR
-        / f"res_{event['event_id']}.png"
-    )
-
-    plt.savefig(
-        output,
-        dpi=180,
-        bbox_inches="tight",
-        facecolor=COLOR_WHITE,
-    )
-
-    plt.close(figure)
-
-    return output
-
-
-# ============================================================
-# TEXTO DEL TWEET
-# ============================================================
-
-def build_x_text(event):
-    event_time = ensure_utc(
-        event["time"]
-    ).strftime(
-        "%Y-%m-%d %H:%M:%S"
-    )
-
-    magnitude = (
-        f"{event['magnitude']:.1f}"
-        if finite(event["magnitude"])
-        else "-"
-    )
-
-    magnitude_type = str(
-        event.get("mag_type", "")
-    ).strip()
-
-    depth = (
-        f"{event['depth_km']:.1f}"
-        if finite(event["depth_km"])
-        else "-"
-    )
-
-    region = repair_text(
-        event.get("region", "Chile")
-    )
-
-    text = (
-        "🇨🇱 Desplazamiento geodésico residual observado\n\n"
-        f"UTC: {event_time}\n"
-        f"Magnitud: {magnitude}"
-        f"{(' ' + magnitude_type) if magnitude_type else ''}\n"
-        f"Profundidad: {depth} km\n"
-        f"{region}"
-    )
-
-    return text[:280]
-
-
-# ============================================================
-# CONFIGURACIÓN X
-# ============================================================
-
-def configure_x():
-    credentials = {
-        "X_API_KEY": X_API_KEY,
-        "X_API_SECRET": X_API_SECRET,
-        "X_ACCESS_TOKEN": X_ACCESS_TOKEN,
-        "X_ACCESS_TOKEN_SECRET": X_ACCESS_TOKEN_SECRET,
-    }
-
-    missing = [
-        name
-        for name, value in credentials.items()
-        if (
-            not value
-            or str(value).startswith("TU_")
-        )
-    ]
-
-    if missing:
-        raise RuntimeError(
-            "Faltan credenciales X: "
-            + ", ".join(missing)
-        )
-
-    auth = tweepy.OAuth1UserHandler(
-        X_API_KEY,
-        X_API_SECRET,
-        X_ACCESS_TOKEN,
-        X_ACCESS_TOKEN_SECRET,
-    )
-
-    media_api = tweepy.API(
-        auth,
-        wait_on_rate_limit=True,
-    )
-
-    client = tweepy.Client(
-        consumer_key=X_API_KEY,
-        consumer_secret=X_API_SECRET,
-        access_token=X_ACCESS_TOKEN,
-        access_token_secret=X_ACCESS_TOKEN_SECRET,
-        wait_on_rate_limit=True,
-    )
-
-    return media_api, client
-
-
-# ============================================================
-# PUBLICAR X
-# ============================================================
-
-def publish_to_x(
-    image_path,
-    text,
-    media_api,
-    client,
-):
-    print("\n" + "=" * 80)
-
-    print("POST PREPARADO")
-
-    print("=" * 80)
-
-    print(text)
-
-    print("\nImagen:", image_path)
-
-    if DRY_RUN:
-        print(
-            "\nDRY_RUN=True → NO PUBLICADO EN X"
-        )
-        return None
-
-    if (
-        REQUIRE_SCALE_VERIFIED_FOR_REAL_POST
-        and not SCALE_VERIFIED
-    ):
-        raise RuntimeError(
-            "Publicación bloqueada: "
-            "SCALE_VERIFIED=False."
-        )
-
-    media = media_api.media_upload(
-        filename=str(image_path)
-    )
+    # Cartografía de Natural Earth. Si la descarga falla,
+    # queda un mapa de coordenadas explícitamente identificado.
+    geometria = None
 
     try:
-        media_api.create_media_metadata(
-            media.media_id,
-            (
-                "Mapa de desplazamiento geodésico "
-                "residual GNSS observado alrededor "
-                "de un evento sísmico en Chile."
-            ),
+        from cartopy.io import shapereader
+
+        ruta = shapereader.natural_earth(
+            resolution="110m",
+            category="physical",
+            name="coastline",
         )
+        lector = shapereader.Reader(ruta)
+        geometria = list(lector.geometries())
+        lector.close()
 
     except Exception as exc:
-        print(
-            "Alt text no agregado:",
-            exc,
+        LOG.warning(
+            "Costa no disponible; mapa con coordenadas (%s)",
+            type(exc).__name__,
         )
 
-    response = client.create_tweet(
-        text=text,
-        media_ids=[media.media_id],
+    plt.rcParams.update({
+        "font.size": 10,
+        "axes.titlesize": 12,
+        "axes.labelsize": 10,
+        "figure.facecolor": "#f5f7fb",
+        "axes.facecolor": "white",
+    })
+
+    fig = plt.figure(figsize=(12.8, 7.2), dpi=100)
+    ax_mapa = fig.add_axes([0.07, 0.17, 0.34, 0.65])
+    ax_grafico = fig.add_axes([0.49, 0.17, 0.46, 0.65])
+
+    titulo = (
+        f"Sismo M {evento['mag_texto']} · "
+        f"{evento['referencia']}"
+    )
+    fig.suptitle(titulo, fontsize=15, fontweight="bold", y=0.97)
+
+    prof = (
+        f"{evento['prof']:g} km"
+        if evento["prof"] is not None
+        else "no informada"
     )
 
-    post_id = None
-
-    try:
-        post_id = response.data["id"]
-
-    except Exception:
-        pass
-
-    print("\nPUBLICADO EN X")
-
-    print("Post ID:", post_id)
-
-    return post_id
-
-
-# ============================================================
-# TABLA DE RESULTADOS
-# ============================================================
-
-def print_results_table(results):
-    columns = [
-        "station_key",
-        "distance_km",
-        "pre_blocks",
-        "early_blocks",
-        "late_blocks",
-        "pre_scatter_H_mm",
-        "late_scatter_H_mm",
-        "pre_drift_H_mm_min",
-        "late_drift_H_mm_min",
-        "early_res_dH_mm",
-        "residual_dE_mm",
-        "residual_dN_mm",
-        "residual_dU_mm",
-        "residual_dH_mm",
-        "residual_sigma_H_mm",
-        "residual_snr",
-        "persistence_vector_diff_mm",
-        "persistence_azimuth_diff_deg",
-        "persistence_valid",
-        "pre_stable",
-        "late_stable",
-        "plausibility_valid",
-        "coherent_neighbors",
-        "coherent",
-        "detection_state",
-        "qc_level",
-        "status",
-    ]
-
-    columns = [
-        column
-        for column in columns
-        if column in results.columns
-    ]
-
-    with pd.option_context(
-        "display.max_columns",
-        None,
-        "display.width",
-        250,
-        "display.max_rows",
-        100,
-    ):
-        print()
-
-        print(
-            results[columns].to_string(
-                index=False
-            )
-        )
-
-
-# ============================================================
-# PROCESAR EVENTO
-# ============================================================
-
-def process_event(
-    event,
-    stations,
-    chile,
-    state,
-    media_api,
-    client,
-):
-    event_id = str(event["event_id"])
-
-    print("\n" + "=" * 80)
-
-    print("ANÁLISIS RES", event_id)
-
-    print("=" * 80)
-
-    print("UTC:", event["time"])
-
-    print(
-        "Magnitud:",
-        event["magnitude"],
-        event["mag_type"],
+    fig.text(
+        0.5, 0.90,
+        f"{hora_local(evento):%d/%m/%Y %H:%M:%S}  |  "
+        f"Profundidad: {prof}  |  "
+        f"Epicentro: {evento['lat']:.4f}, {evento['lon']:.4f}",
+        ha="center",
+        fontsize=10,
     )
 
-    print(
-        "Profundidad:",
-        event["depth_km"],
-        "km",
+    lats = np.array([r["lat"] for r in resultados])
+    lons = np.array([r["lon"] for r in resultados])
+
+    margen_lat = 0.5
+    margen_lon = 0.6
+
+    ax_mapa.set_xlim(
+        min(lons.min(), evento["lon"]) - margen_lon,
+        max(lons.max(), evento["lon"]) + margen_lon,
+    )
+    ax_mapa.set_ylim(
+        min(lats.min(), evento["lat"]) - margen_lat,
+        max(lats.max(), evento["lat"]) + margen_lat,
     )
 
-    print("Lugar:", event["region"])
-
-    results = analyze_event(
-        event,
-        stations,
-    )
-
-    if results.empty:
-        print("Sin resultados GNSS.")
-        return False
-
-    print_results_table(results)
-
-    publishable = get_publishable_stations(
-        results
-    )
-
-    valid_count = int(
-        results["valid"]
-        .fillna(False)
-        .sum()
-    )
-
-    valid_res_count = int(
-        (
-            results["detection_state"]
-            == "VALID_RES"
-        ).sum()
-    )
-
-    print("\nRESUMEN")
-
-    print(
-        "Históricos válidos:",
-        valid_count,
-    )
-
-    print(
-        "VALID_RES:",
-        valid_res_count,
-    )
-
-    print(
-        "Estaciones publicables:",
-        len(publishable),
-    )
-
-    if publishable.empty:
-        print(
-            "\nNO SE GENERA MAPA / TWEET."
-        )
-
-        print(
-            "No existe un RES suficientemente robusto."
-        )
-
-        return False
-
-    image_path = create_social_sheet(
-        event,
-        publishable,
-        chile,
-    )
-
-    if not image_path.exists():
-        print("Mapa no generado.")
-        return False
-
-    print(
-        "\nMAPA GENERADO:",
-        image_path,
-    )
-
-    tweet_text = build_x_text(event)
-
-    post_id = publish_to_x(
-        image_path,
-        tweet_text,
-        media_api,
-        client,
-    )
-
-    now = pd.Timestamp.now(tz="UTC")
-
-    if DRY_RUN:
-        state["dry_run_seen"][event_id] = {
-            "processed_at": str(now),
-            "map": str(image_path),
-        }
-
-    else:
-        state["posted"][event_id] = {
-            "posted_at": str(now),
-            "post_id": post_id,
-            "map": str(image_path),
-        }
-
-    state["detected"].pop(
-        event_id,
-        None,
-    )
-
-    save_state(state)
-
-    persist_state_to_git()
-
-    return True
-
-
-# ============================================================
-# LIMPIAR PENDIENTES VIEJOS
-# ============================================================
-
-def prune_old_pending(
-    state,
-    now,
-):
-    expired_ids = []
-
-    for event_id, record in list(
-        state["detected"].items()
-    ):
-        try:
-            detected_at = ensure_utc(
-                record["detected_at"]
-            )
-
-        except Exception:
-            expired_ids.append(event_id)
-            continue
-
-        pending_age = (
-            now - detected_at
-        ).total_seconds()
-
-        if (
-            pending_age
-            > MAX_PENDING_RETRY_MINUTES * 60
-        ):
-            expired_ids.append(event_id)
-
-    for event_id in expired_ids:
-        record = state["detected"].pop(
-            event_id,
-            None,
-        )
-
-        state["expired"][event_id] = {
-            "expired_at": str(now),
-
-            "event": (
-                record.get("event")
-                if record
-                else None
-            ),
-        }
-
-    if expired_ids:
-        print(
-            "Pendientes expirados:",
-            len(expired_ids),
-        )
-
-        save_state(state)
-
-
-# ============================================================
-# DETECTAR NUEVOS EVENTOS
-# ============================================================
-
-def detect_new_events(
-    earthquakes,
-    state,
-    now,
-):
-    if earthquakes.empty:
-        print(
-            "Eventos CSN recuperados: 0"
-        )
-        return 0
-
-    print(
-        "Eventos CSN recuperados:",
-        len(earthquakes),
-    )
-
-    latest = earthquakes.iloc[0]
-
-    latest_age = (
-        now - ensure_utc(latest["time"])
-    ).total_seconds()
-
-    print(
-        "\nÚltimo evento catálogo: "
-        f"M{fmt(latest['magnitude'], 1)} · "
-        f"{ensure_utc(latest['time']).strftime('%H:%M:%S UTC')} · "
-        f"edad {format_age(latest_age)}"
-    )
-
-    print(
-        "Lugar:",
-        latest["region"],
-    )
-
-    recent = earthquakes.copy()
-
-    recent["age_seconds"] = (
-        now - recent["time"]
-    ).dt.total_seconds()
-
-    # --------------------------------------------------------
-    # FILTRO TEMPORAL
-    # --------------------------------------------------------
-
-    recent = recent[
-        (
-            recent["age_seconds"] >= 0
-        )
-        &
-        (
-            recent["age_seconds"]
-            <= RECENT_EVENT_WINDOW_MINUTES * 60
-        )
-    ].copy()
-
-    # --------------------------------------------------------
-    # FILTRO DE MAGNITUD
-    # --------------------------------------------------------
-
-    recent["magnitude_numeric"] = (
-        recent["magnitude"].apply(numeric)
-    )
-
-    recent = recent[
-        recent["magnitude_numeric"].apply(finite)
-        &
-        (
-            recent["magnitude_numeric"]
-            >= MIN_EVENT_MAGNITUDE
-        )
-    ].copy()
-
-    recent["magnitude"] = (
-        recent["magnitude_numeric"]
-    )
-
-    recent = recent.drop(
-        columns=["magnitude_numeric"]
-    )
-
-    print(
-        f"\nEventos M >= {MIN_EVENT_MAGNITUDE:.1f} "
-        f"dentro de {RECENT_EVENT_WINDOW_MINUTES} min:",
-        len(recent),
-    )
-
-    for _, row in recent.iterrows():
-        print(
-            f"M{fmt(row['magnitude'], 1)} · "
-            f"{ensure_utc(row['time']).strftime('%H:%M:%S UTC')} · "
-            f"{format_age(row['age_seconds'])} · "
-            f"{row['region']}"
-        )
-
-    # --------------------------------------------------------
-    # MODO DE PRUEBA
-    # --------------------------------------------------------
-
-    if TEST_LATEST_EVENT and recent.empty:
-        eligible = earthquakes.copy()
-
-        eligible["magnitude_numeric"] = (
-            eligible["magnitude"].apply(numeric)
-        )
-
-        eligible = eligible[
-            eligible["magnitude_numeric"].apply(finite)
-            &
-            (
-                eligible["magnitude_numeric"]
-                >= MIN_EVENT_MAGNITUDE
-            )
-        ].copy()
-
-        if not eligible.empty:
-            eligible = eligible.sort_values(
-                "time",
-                ascending=False,
-            )
-
-            test_event = (
-                eligible.iloc[0].to_dict()
-            )
-
-            test_event["magnitude"] = (
-                test_event["magnitude_numeric"]
-            )
-
-            test_event.pop(
-                "magnitude_numeric",
-                None,
-            )
-
-            test_event["age_seconds"] = (
-                now
-                - ensure_utc(test_event["time"])
-            ).total_seconds()
-
-            recent = pd.DataFrame(
-                [test_event]
-            )
-
-            print(
-                "\nTEST_LATEST_EVENT: "
-                "usando evento elegible más reciente "
-                f"M >= {MIN_EVENT_MAGNITUDE:.1f}"
-            )
-
-        else:
-            print(
-                "\nTEST_LATEST_EVENT: "
-                "no existen eventos "
-                f"M >= {MIN_EVENT_MAGNITUDE:.1f} "
-                "en el catálogo recuperado."
-            )
-
-    new_count = 0
-
-    for _, row in recent.iterrows():
-        event = row.to_dict()
-
-        # Segunda protección de magnitud.
-        event_magnitude = numeric(
-            event.get("magnitude")
-        )
-
-        if (
-            not finite(event_magnitude)
-            or event_magnitude < MIN_EVENT_MAGNITUDE
-        ):
-            print(
-                "Evento ignorado por magnitud:",
-                event.get("magnitude"),
-            )
-            continue
-
-        event["magnitude"] = float(
-            event_magnitude
-        )
-
-        event_id = str(
-            event["event_id"]
-        )
-
-        if event_id in state["posted"]:
-            continue
-
-        if event_id in state["detected"]:
-            continue
-
-        if event_id in state["expired"]:
-            continue
-
-        if (
-            DRY_RUN
-            and event_id in state["dry_run_seen"]
-        ):
-            continue
-
-        state["detected"][event_id] = {
-            "detected_at": str(now),
-
-            "event": serialize_event(event),
-        }
-
-        new_count += 1
-
-        print(
-            "\n>>> NUEVO EVENTO M >= "
-            f"{MIN_EVENT_MAGNITUDE:.1f}"
-        )
-
-        print("ID:", event_id)
-        print("M:", event["magnitude"])
-        print("UTC:", event["time"])
-        print("Lugar:", event["region"])
-
-    if new_count:
-        save_state(state)
-
-    print(
-        "\nEventos nuevos elegibles:",
-        new_count,
-    )
-
-    return new_count
-
-
-# ============================================================
-# PROCESAR EVENTOS PENDIENTES
-# ============================================================
-
-def process_pending_events(
-    stations,
-    chile,
-    state,
-    media_api,
-    client,
-    now,
-):
-    pending_ids = list(
-        state["detected"].keys()
-    )
-
-    print(
-        "\nEventos pendientes:",
-        len(pending_ids),
-    )
-
-    for event_id in pending_ids:
-        record = state["detected"].get(
-            event_id
-        )
-
-        if not record:
-            continue
-
-        event = deserialize_event(
-            record["event"]
-        )
-
-        # ----------------------------------------------------
-        # FILTRO DEFENSIVO PARA ESTADO ANTIGUO
-        # ----------------------------------------------------
-
-        event_magnitude = numeric(
-            event.get("magnitude")
-        )
-
-        if (
-            not finite(event_magnitude)
-            or event_magnitude < MIN_EVENT_MAGNITUDE
-        ):
-            print("\n" + "-" * 80)
-
-            print(
-                "Pendiente descartado por magnitud:",
-                event_id,
-            )
-
-            print(
-                "Magnitud:",
-                event.get("magnitude"),
-            )
-
-            print(
-                "Umbral:",
-                f"M >= {MIN_EVENT_MAGNITUDE:.1f}",
-            )
-
-            removed_record = state["detected"].pop(
-                event_id,
-                None,
-            )
-
-            state["expired"][event_id] = {
-                "expired_at": str(now),
-
-                "reason": (
-                    "magnitude_below_threshold"
-                ),
-
-                "minimum_magnitude": (
-                    MIN_EVENT_MAGNITUDE
-                ),
-
-                "event": (
-                    removed_record.get("event")
-                    if removed_record
-                    else None
-                ),
-            }
-
-            save_state(state)
-            continue
-
-        event["magnitude"] = float(
-            event_magnitude
-        )
-
-        event_age = (
-            now - event["time"]
-        ).total_seconds()
-
-        detected_at = ensure_utc(
-            record["detected_at"]
-        )
-
-        retry_age = (
-            now - detected_at
-        ).total_seconds()
-
-        print("\n" + "-" * 80)
-
-        print("Pendiente:", event_id)
-
-        print(
-            "Magnitud:",
-            f"M{event['magnitude']:.1f}",
-        )
-
-        print(
-            "Edad del sismo:",
-            format_age(event_age),
-        )
-
-        print(
-            "Tiempo pendiente:",
-            format_age(retry_age),
-        )
-
-        if event_age < MIN_ANALYSIS_AGE_SECONDS:
-            print(
-                "Esperando POST hasta +600 s."
-            )
-            continue
-
-        if (
-            retry_age
-            > MAX_PENDING_RETRY_MINUTES * 60
-        ):
-            record = state["detected"].pop(
-                event_id,
-                None,
-            )
-
-            state["expired"][event_id] = {
-                "expired_at": str(now),
-
-                "event": (
-                    record.get("event")
-                    if record
-                    else None
-                ),
-            }
-
-            save_state(state)
-
-            print("Evento expirado.")
-            continue
-
-        try:
-            success = process_event(
-                event,
-                stations,
-                chile,
-                state,
-                media_api,
-                client,
-            )
-
-            if not success:
-                print(
-                    "Sin VALID_RES por ahora."
+    if geometria is not None:
+        for geom in geometria:
+            partes = geom.geoms if hasattr(geom, "geoms") else [geom]
+            for parte in partes:
+                x, y = parte.xy
+                ax_mapa.plot(
+                    x, y, color="#697586", linewidth=0.8, zorder=1
                 )
 
+    ax_mapa.set_aspect(
+        1 / max(0.2, math.cos(math.radians(evento["lat"])))
+    )
+    ax_mapa.grid(alpha=0.25)
+    ax_mapa.set_xlabel("Longitud")
+    ax_mapa.set_ylabel("Latitud")
+    ax_mapa.set_title(
+        "Estaciones observadas"
+        if geometria is not None
+        else "Estaciones · mapa sin costa"
+    )
+
+    maximo = max(float(matriz.max()), 1e-9)
+    norma = Normalize(vmin=0, vmax=maximo)
+
+    puntos = ax_mapa.scatter(
+        lons, lats,
+        c=matriz.max(axis=1),
+        cmap="YlOrRd",
+        norm=norma,
+        s=85,
+        edgecolors="#333333",
+        linewidths=0.6,
+        zorder=3,
+    )
+
+    ax_mapa.scatter(
+        [evento["lon"]], [evento["lat"]],
+        marker="*",
+        s=240,
+        color="#1478ce",
+        edgecolors="white",
+        zorder=4,
+        label="Epicentro",
+    )
+    ax_mapa.legend(loc="best", fontsize=8)
+
+    for i, r in enumerate(resultados):
+        ax_mapa.annotate(
+            r["estacion"],
+            (r["lon"], r["lat"]),
+            xytext=(4, 4),
+            textcoords="offset points",
+            fontsize=7,
+        )
+
+    barra = fig.colorbar(
+        puntos, ax=ax_mapa, fraction=0.045, pad=0.04
+    )
+    barra.set_label("|aZ| filtrada [cm/s²]", fontsize=9)
+
+    for resultado in resultados:
+        ax_grafico.plot(
+            segundos + 0.5,
+            resultado["serie"],
+            linewidth=0.9,
+            label=resultado["id"],
+        )
+
+    ax_grafico.axvline(0, color="#1478ce", linestyle="--", linewidth=1)
+    ax_grafico.set_xlim(-PRE_SEG, POST_SEG)
+    ax_grafico.set_ylim(0, maximo * 1.10)
+    ax_grafico.set_xlabel("Segundos respecto del origen")
+    ax_grafico.set_ylabel("Máximo |aZ| por segundo [cm/s²]")
+    ax_grafico.set_title("Aceleración vertical filtrada")
+    ax_grafico.grid(alpha=0.2)
+    ax_grafico.legend(fontsize=7, ncol=2, loc="upper right")
+
+    fig.text(
+        0.5, 0.065,
+        "Datos: CSN · Respuesta instrumental corregida · "
+        "Componente vertical, sin interpolación espacial",
+        ha="center", fontsize=9,
+    )
+    etiqueta = fig.text(
+        0.5, 0.025,
+        "Resumen de la ventana completa",
+        ha="center", fontsize=10,
+    )
+
+    # Exportar resumen y cada panel por separado.
+    fig.canvas.draw()
+    fig.savefig(carpeta / "resumen.png", dpi=150)
+
+    renderer = fig.canvas.get_renderer()
+    caja_mapa = ax_mapa.get_tightbbox(renderer)
+    caja_color = barra.ax.get_tightbbox(renderer)
+
+    from matplotlib.transforms import Bbox
+
+    caja_mapa = Bbox.union([caja_mapa, caja_color])
+    caja_mapa = caja_mapa.transformed(
+        fig.dpi_scale_trans.inverted()
+    ).expanded(1.04, 1.04)
+
+    caja_grafico = ax_grafico.get_tightbbox(renderer).transformed(
+        fig.dpi_scale_trans.inverted()
+    ).expanded(1.04, 1.04)
+
+    fig.savefig(
+        carpeta / "mapa.png", dpi=150, bbox_inches=caja_mapa
+    )
+    fig.savefig(
+        carpeta / "grafico.png", dpi=150, bbox_inches=caja_grafico
+    )
+
+    cursor = ax_grafico.axvline(
+        -PRE_SEG, color="#111111", linewidth=1.5
+    )
+
+    ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+    matplotlib.rcParams["animation.ffmpeg_path"] = ffmpeg
+
+    temporal = carpeta / "video_base.mp4"
+    destino = carpeta / "video.mp4"
+
+    writer = FFMpegWriter(
+        fps=FPS,
+        codec="libx264",
+        extra_args=["-pix_fmt", "yuv420p", "-crf", "21"],
+    )
+
+    try:
+        with writer.saving(fig, str(temporal), dpi=100):
+            for i, segundo in enumerate(segundos):
+                puntos.set_array(matriz[:, i])
+                cursor.set_xdata([segundo + 0.5, segundo + 0.5])
+                etiqueta.set_text(
+                    f"Intervalo: {segundo:+.0f} a "
+                    f"{segundo + 1:+.0f} s · Reproducción 4×"
+                )
+                writer.grab_frame()
+    finally:
+        plt.close(fig)
+
+    proceso = subprocess.run(
+        [
+            ffmpeg, "-y",
+            "-i", str(temporal),
+            "-vf", "fps=30,pad=ceil(iw/2)*2:ceil(ih/2)*2",
+            "-c:v", "libx264",
+            "-preset", "fast",
+            "-crf", "21",
+            "-pix_fmt", "yuv420p",
+            "-movflags", "+faststart",
+            "-an",
+            str(destino),
+        ],
+        capture_output=True,
+        text=True,
+        timeout=300,
+    )
+
+    if proceso.returncode != 0:
+        raise RuntimeError("FFmpeg no pudo preparar el video")
+
+    if not destino.is_file() or destino.stat().st_size == 0:
+        raise RuntimeError("El video generado está vacío")
+
+    temporal.unlink(missing_ok=True)
+
+    return destino
+
+
+def video_del_evento(evento, carpeta):
+    inventario, grupos = obtener_estaciones(evento)
+    resultados = []
+
+    with ThreadPoolExecutor(max_workers=TRABAJADORES) as executor:
+        futuros = [
+            executor.submit(
+                procesar_estacion, grupo, inventario, evento
+            )
+            for grupo in grupos
+        ]
+
+        for futuro in as_completed(futuros):
+            resultado = futuro.result()
+            if resultado is not None:
+                resultados.append(resultado)
+
+    resultados.sort(key=lambda r: r["distancia_km"])
+
+    LOG.info(
+        "Estaciones válidas: %d de %d",
+        len(resultados), len(grupos),
+    )
+
+    if not resultados:
+        raise SinDatos(
+            "No hay acelerogramas completos y calibrables. "
+            "Se reintentará en otra ejecución mientras el evento "
+            "permanezca dentro de la ventana de búsqueda."
+        )
+
+    return generar_video(evento, resultados, carpeta)
+
+
+# ================================================================
+# TEXTO Y AUTENTICACIÓN EN X
+# ================================================================
+
+def crear_sesion_x():
+    nombres = (
+        "X_API_KEY",
+        "X_API_SECRET",
+        "X_ACCESS_TOKEN",
+        "X_ACCESS_TOKEN_SECRET",
+    )
+    valores = [os.environ.get(nombre, "").strip() for nombre in nombres]
+
+    faltantes = [
+        nombre for nombre, valor in zip(nombres, valores)
+        if not valor or valor.startswith("PEGA_AQUI")
+    ]
+
+    if faltantes:
+        raise RuntimeError(
+            "Faltan GitHub Secrets: " + ", ".join(faltantes)
+        )
+
+    sesion = requests.Session()
+    sesion.auth = OAuth1(*valores)
+    return sesion
+
+
+def respuesta_x(respuesta):
+    if not respuesta.ok:
+        raise ErrorX(respuesta.status_code)
+
+    if not respuesta.content:
+        return {}
+
+    contenido = respuesta.json()
+
+    if not isinstance(contenido, dict) or contenido.get("errors"):
+        raise RuntimeError("Respuesta de X no válida")
+
+    datos = contenido.get("data", {})
+
+    if not isinstance(datos, dict):
+        raise RuntimeError("Datos de X no válidos")
+
+    return datos
+
+
+def peso_texto(texto):
+    # Cota conservadora: URL t.co = 23; caracteres fuera del
+    # rango latino habitual cuentan como dos.
+    texto = re.sub(r"https?://\S+", "u" * 23, texto)
+    return sum(1 if ord(c) <= 0x10FF else 2 for c in texto)
+
+
+def texto_publicacion(evento):
+    local = hora_local(evento)
+    prof = (
+        f"{evento['prof']:g} km"
+        if evento["prof"] is not None
+        else "no informada"
+    )
+    referencia = " ".join(evento["referencia"].split())
+
+    def construir(lugar):
+        return (
+            f"Sismo M {evento['mag_texto']} | {lugar}\n"
+            f"{local:%d/%m/%Y %H:%M:%S}\n"
+            f"Profundidad: {prof}.\n"
+            f"Epicentro: lat {evento['lat']:.4f}°, "
+            f"lon {evento['lon']:.4f}°.\n"
+            f"{evento['url']}"
+        )
+
+    texto = construir(referencia)
+
+    while peso_texto(texto) > 275 and referencia:
+        referencia = referencia[:-1]
+        texto = construir(referencia.rstrip() + "…")
+
+    if peso_texto(texto) > 280:
+        raise RuntimeError("El texto del tweet es demasiado largo")
+
+    return texto
+
+
+# ================================================================
+# SUBIDA Y PUBLICACIÓN EN X
+# ================================================================
+
+def subir_video_x(sesion, ruta):
+    inicial = respuesta_x(
+        sesion.post(
+            API_X + "/media/upload/initialize",
+            json={
+                "media_type": "video/mp4",
+                "total_bytes": ruta.stat().st_size,
+                "media_category": "tweet_video",
+            },
+            timeout=(15, 90),
+        )
+    )
+    media_id = str(inicial["id"])
+
+    with ruta.open("rb") as archivo:
+        segmento = 0
+
+        while True:
+            bloque = archivo.read(4 * 1024 * 1024)
+            if not bloque:
+                break
+
+            respuesta_x(
+                sesion.post(
+                    API_X + f"/media/upload/{media_id}/append",
+                    data={"segment_index": str(segmento)},
+                    files={
+                        "media": (
+                            "segmento.mp4", bloque, "video/mp4"
+                        )
+                    },
+                    timeout=(15, 120),
+                )
+            )
+            segmento += 1
+
+    datos = respuesta_x(
+        sesion.post(
+            API_X + f"/media/upload/{media_id}/finalize",
+            timeout=(15, 90),
+        )
+    )
+
+    info = datos.get("processing_info")
+    limite = time.monotonic() + MAX_PROCESAMIENTO_X_SEG
+
+    while info:
+        estado = info.get("state")
+
+        if estado == "succeeded":
+            return media_id
+
+        if estado == "failed":
+            raise RuntimeError("X rechazó el procesamiento del video")
+
+        if estado not in {"pending", "in_progress"}:
+            raise RuntimeError("Estado de procesamiento de X desconocido")
+
+        restante = limite - time.monotonic()
+        if restante <= 0:
+            raise RuntimeError("Tiempo de procesamiento en X agotado")
+
+        espera = max(1, int(info.get("check_after_secs", 5)))
+        time.sleep(min(espera, restante))
+
+        datos = respuesta_x(
+            sesion.get(
+                API_X + "/media/upload",
+                params={"command": "STATUS", "media_id": media_id},
+                timeout=(15, 60),
+            )
+        )
+        info = datos.get("processing_info")
+
+        if not info:
+            raise RuntimeError("X no devolvió estado de procesamiento")
+
+    return media_id
+
+
+def publicar_evento(estado, sesion, clave, evento, ruta):
+    texto = texto_publicacion(evento)
+    LOG.info("Texto de publicación:\n%s", texto)
+
+    if not PUBLICAR_EN_X:
+        estado.actualizar(
+            clave,
+            estado="simulado",
+            texto=texto,
+            ultimo_error=None,
+        )
+        return
+
+    media_id = subir_video_x(sesion, ruta)
+
+    # Este cambio debe quedar confirmado en GitHub ANTES del POST.
+    estado.actualizar(
+        clave,
+        estado="enviando",
+        texto=texto,
+        media_id=media_id,
+    )
+
+    try:
+        respuesta = sesion.post(
+            API_X + "/tweets",
+            json={
+                "text": texto,
+                "media": {"media_ids": [media_id]},
+            },
+            timeout=(15, 90),
+        )
+    except requests.RequestException:
+        estado.actualizar(
+            clave,
+            estado="resultado_incierto",
+            ultimo_error="No se recibió confirmación del POST",
+        )
+        raise RuntimeError(
+            "Publicación incierta: revisar X antes de reintentar"
+        )
+
+    if respuesta.status_code >= 500 or respuesta.status_code == 408:
+        estado.actualizar(
+            clave,
+            estado="resultado_incierto",
+            ultimo_error=f"HTTP {respuesta.status_code} después del POST",
+        )
+        raise RuntimeError("Publicación incierta por respuesta de X")
+
+    if not respuesta.ok:
+        estado.actualizar(
+            clave,
+            estado="pendiente",
+            ultimo_error=f"X HTTP {respuesta.status_code}",
+        )
+        raise ErrorX(respuesta.status_code)
+
+    try:
+        tweet_id = str(respuesta_x(respuesta)["id"])
+    except Exception:
+        estado.actualizar(
+            clave,
+            estado="resultado_incierto",
+            ultimo_error="Respuesta del POST no reconocida",
+        )
+        raise RuntimeError("No se pudo confirmar el ID del tweet")
+
+    estado.actualizar(
+        clave,
+        estado="publicado",
+        tweet_id=tweet_id,
+        publicado=time.time(),
+        ultimo_error=None,
+    )
+    LOG.info("Publicado: https://x.com/i/status/%s", tweet_id)
+
+
+# ================================================================
+# EJECUCIÓN ÚNICA
+# ================================================================
+
+def ejecutar_una_vez():
+    inicio_ejecucion = time.monotonic()
+    fin = UTCDateTime()
+    inicio = fin - HORAS_BUSQUEDA * 3600
+
+    LOG.info(
+        "CSN -> VIDEO -> X | M >= %.1f | últimas %d horas",
+        MAG_MIN, HORAS_BUSQUEDA,
+    )
+    LOG.info("Desde %s hasta %s UTC", inicio, fin)
+
+    estado = EstadoGitHub()
+    sesion_x = None
+    fallos = 0
+
+    try:
+        # Cargar el estado antes de buscar permite recuperar pendientes
+        # aunque el catálogo actual ya no enumere el evento.
+        try:
+            eventos, problemas = buscar_eventos_una_vez(inicio, fin)
+            if problemas:
+                fallos += 1
         except Exception as exc:
-            print(
-                "\nERROR EVENTO:",
-                event_id,
+            LOG.error("Falló la búsqueda CSN: %s", exc)
+            eventos = {}
+            fallos += 1
+
+        registros = estado.datos["eventos"]
+        cambios = False
+
+        for clave, evento in eventos.items():
+            if clave not in registros:
+                registros[clave] = {
+                    "evento": evento,
+                    "estado": "pendiente",
+                    "detectado": time.time(),
+                    "intentos": 0,
+                    "tweet_id": None,
+                }
+                cambios = True
+
+            elif registros[clave]["estado"] == "pendiente":
+                # Incorporar revisiones de CSN antes de publicar.
+                if registros[clave]["evento"] != evento:
+                    registros[clave]["evento"] = evento
+                    cambios = True
+
+        if cambios:
+            estado.guardar()
+
+        cola = []
+
+        for clave, registro in registros.items():
+            if registro.get("estado") != "pendiente":
+                continue
+
+            evento = registro["evento"]
+            t = UTCDateTime(evento["t"])
+
+            if inicio <= t <= fin and evento["mag"] >= MAG_MIN:
+                cola.append((clave, registro))
+
+        cola.sort(key=lambda item: item[1]["evento"]["t"])
+
+        if not cola:
+            LOG.info(
+                "No hay eventos nuevos o pendientes procesables. Fin."
+            )
+            return 1 if fallos else 0
+
+        # No mantener el runner dormido esperando un evento reciente.
+        listos = []
+
+        for clave, registro in cola:
+            disponible = (
+                UTCDateTime(registro["evento"]["t"])
+                + POST_SEG + MARGEN_SEG + LATENCIA_SEG
             )
 
-            print(exc)
+            if disponible <= fin:
+                listos.append((clave, registro))
+            else:
+                LOG.info(
+                    "%s: ventana posterior aún incompleta; "
+                    "queda para otra ejecución.",
+                    clave,
+                )
 
-            traceback.print_exc()
+        if not listos:
+            return 1 if fallos else 0
 
+        if PUBLICAR_EN_X:
+            sesion_x = crear_sesion_x()
+            cuenta = respuesta_x(
+                sesion_x.get(
+                    API_X + "/users/me",
+                    timeout=(15, 60),
+                )
+            )
+            cuenta_id = str(cuenta["id"])
+            LOG.info(
+                "Cuenta: @%s",
+                cuenta.get("username", cuenta_id),
+            )
+        else:
+            cuenta_id = "SIMULACION"
 
-# ============================================================
-# CICLO ÚNICO
-# ============================================================
+        anterior = estado.datos.get("cuenta_id")
 
-def run_single_cycle(
-    stations,
-    chile,
-    state,
-    media_api,
-    client,
-):
-    now = pd.Timestamp.now(tz="UTC")
+        if anterior is not None and anterior != cuenta_id:
+            raise ErrorEstado(
+                "El estado pertenece a otra cuenta de X"
+            )
 
-    print("\n" + "=" * 80)
+        if anterior is None:
+            estado.datos["cuenta_id"] = cuenta_id
+            estado.guardar()
 
-    print(
-        now.strftime(
-            "[%Y-%m-%d %H:%M:%S UTC]"
-        ),
-        "consultando sismologia.cl...",
-    )
+        SALIDA.mkdir(parents=True, exist_ok=True)
 
-    print("=" * 80)
+        for posicion, (clave, registro) in enumerate(listos, 1):
+            if time.monotonic() - inicio_ejecucion > PRESUPUESTO_SEG:
+                LOG.info(
+                    "Presupuesto de ejecución alcanzado. "
+                    "Los eventos restantes quedan pendientes."
+                )
+                break
 
-    prune_old_pending(
-        state,
-        now,
-    )
+            evento = registro["evento"]
 
-    earthquakes = get_current_earthquakes()
+            estado.actualizar(
+                clave,
+                estado="procesando",
+                intentos=registro.get("intentos", 0) + 1,
+            )
 
-    detect_new_events(
-        earthquakes,
-        state,
-        now,
-    )
+            LOG.info(
+                "[%d/%d] %s · M %s · %s",
+                posicion, len(listos), clave,
+                evento["mag_texto"], evento["referencia"],
+            )
 
-    process_pending_events(
-        stations,
-        chile,
-        state,
-        media_api,
-        client,
-        now,
-    )
+            try:
+                texto_publicacion(evento)
+                carpeta = SALIDA / clave
+                ruta = video_del_evento(evento, carpeta)
+                publicar_evento(
+                    estado, sesion_x, clave, evento, ruta
+                )
 
-    save_state(state)
+            except ErrorEstado:
+                # No continuar publicando si falla la persistencia.
+                raise
 
-    persist_state_to_git()
+            except Exception as exc:
+                fallos += 1
+                LOG.error(
+                    "No se completó %s: %s: %s",
+                    clave, type(exc).__name__, exc,
+                )
 
-    print("\n" + "=" * 80)
+                actual = registros[clave]["estado"]
 
-    print("CICLO FINALIZADO")
+                if actual == "procesando":
+                    estado.actualizar(
+                        clave,
+                        estado="pendiente",
+                        ultimo_error=str(exc)[:250],
+                    )
+                elif actual == "enviando":
+                    estado.actualizar(
+                        clave,
+                        estado="resultado_incierto",
+                        ultimo_error=type(exc).__name__,
+                    )
 
-    print("=" * 80)
+                if isinstance(exc, ErrorX) and exc.status in {
+                    401, 402, 403, 429
+                }:
+                    LOG.error(
+                        "Se detiene el lote por acceso o límites de X"
+                    )
+                    break
 
+        for clave, _ in listos:
+            LOG.info("%s: %s", clave, registros[clave]["estado"])
 
-# ============================================================
-# MAIN
-# ============================================================
+        return 1 if fallos else 0
+
+    finally:
+        if sesion_x is not None:
+            sesion_x.close()
+        estado.cerrar()
+
 
 def main():
-    print("\n" + "=" * 80)
-
-    print(
-        "Desplazamiento geodésico residual GNSS observado"
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s | %(levelname)s | %(message)s",
+        stream=sys.stdout,
     )
+    logging.getLogger("matplotlib").setLevel(logging.WARNING)
 
-    print("=" * 80)
-
-    print(
-        "Ejecución: UN SOLO CICLO"
-    )
-
-    print(
-        "Ventana detección:",
-        RECENT_EVENT_WINDOW_MINUTES,
-        "min",
-    )
-
-    print(
-        "Magnitud mínima:",
-        f"M >= {MIN_EVENT_MAGNITUDE:.1f}",
-    )
-
-    print(
-        "Análisis desde:",
-        MIN_ANALYSIS_AGE_SECONDS,
-        "s",
-    )
-
-    print("DRY_RUN:", DRY_RUN)
-
-    print("ENABLE_X:", ENABLE_X)
-
-    print(
-        "SCALE_VERIFIED:",
-        SCALE_VERIFIED,
-    )
-
-    print("Estado:", STATE_FILE)
-
-    print(
-        "\nObteniendo inventario GNSS CSN..."
-    )
-
-    stations = get_gnss_station_inventory()
-
-    if stations.empty:
-        raise RuntimeError(
-            "No se pudo obtener inventario GNSS."
+    try:
+        return ejecutar_una_vez()
+    except KeyboardInterrupt:
+        LOG.warning("Ejecución interrumpida")
+        return 130
+    except Exception as exc:
+        LOG.error(
+            "Ejecución detenida: %s: %s",
+            type(exc).__name__, exc,
         )
+        return 1
 
-    print(
-        "Estaciones GNSS:",
-        len(stations),
-    )
-
-    print(
-        "\nPreparando mapa base..."
-    )
-
-    chile = load_chile_outline()
-
-    if chile is None:
-        print(
-            "Mapa Natural Earth no disponible."
-        )
-
-    state = load_state()
-
-    print(
-        "\nPendientes:",
-        len(state["detected"]),
-    )
-
-    print(
-        "Publicados:",
-        len(state["posted"]),
-    )
-
-    print(
-        "Expirados:",
-        len(state["expired"]),
-    )
-
-    media_api = None
-    client = None
-
-    if ENABLE_X and not DRY_RUN:
-        print(
-            "\nConfigurando X..."
-        )
-
-        media_api, client = configure_x()
-
-        print("X configurado.")
-
-    run_single_cycle(
-        stations,
-        chile,
-        state,
-        media_api,
-        client,
-    )
-
-    print(
-        "\nEJECUCIÓN TERMINADA."
-    )
-
-
-# ============================================================
-# ENTRY POINT
-# ============================================================
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
