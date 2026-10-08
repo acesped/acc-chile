@@ -22,17 +22,13 @@ Diseñado para:
     GitHub Actions
 
 Flujo:
-    CSN sismologia.cl
-        ↓
     detección de sismos recientes M >= 4.0
         ↓
     estaciones GNSS cercanas
         ↓
     PRE robusto
         ↓
-    POST temprano
-        ↓
-    POST tardío
+    POST temprano y POST tardío
         ↓
     RES = POST tardío - PRE
         ↓
@@ -48,9 +44,11 @@ Flujo:
         ↓
     publicación en X
 
+Presentación:
+    SNR como indicador principal en tamaño grande.
+    RES ± incertidumbre como información secundaria.
 ============================================================
 """
-
 
 # ============================================================
 # IMPORTS
@@ -79,7 +77,6 @@ matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-
 import geopandas as gpd
 
 from bs4 import BeautifulSoup
@@ -92,14 +89,10 @@ import tweepy
 # CONFIGURACIÓN GENERAL
 # ============================================================
 
-# ------------------------------------------------------------
-# PUBLICACIÓN
-# ------------------------------------------------------------
-
 ENABLE_X = True
 
-# False = publica realmente
-# True  = sólo prueba
+# False = publica realmente.
+# True = sólo prueba.
 DRY_RUN = False
 
 TEST_LATEST_EVENT = False
@@ -107,15 +100,6 @@ TEST_LATEST_EVENT = False
 
 # ============================================================
 # CREDENCIALES X
-# ============================================================
-#
-# REEMPLAZAR LOS 4 VALORES.
-#
-# IMPORTANTE:
-# El repositorio debe ser PRIVADO.
-#
-# Las credenciales publicadas anteriormente deben rotarse.
-#
 # ============================================================
 
 X_API_KEY = "t5792SuVlfx41hDSWYmHVQJiG"
@@ -127,31 +111,13 @@ X_ACCESS_TOKEN_SECRET = "jCDFy4L4suq6Z6qnHOhJ4CuduqWs5173JgriRqn76L5MZ"
 # ============================================================
 # DETECCIÓN SÍSMICA
 # ============================================================
-#
-# GitHub Actions puede ejecutarse cada 5 minutos.
-#
-# Se mantiene una ventana de 10 minutos para evitar perder
-# eventos si el scheduler se retrasa.
-#
-# ============================================================
 
 RECENT_EVENT_WINDOW_MINUTES = 10
 
-# ------------------------------------------------------------
-# MAGNITUD MÍNIMA
-#
-# Sólo se detectarán, almacenarán y analizarán eventos
-# cuya magnitud CSN sea >= 4.0.
-# ------------------------------------------------------------
-
 MIN_EVENT_MAGNITUDE = 4.0
 
-# El RES final requiere datos hasta +600 s.
-
+# El RES final requiere datos hasta +600 segundos.
 MIN_ANALYSIS_AGE_SECONDS = 615
-
-# Tiempo máximo para continuar intentando procesar un evento
-# después de haber sido detectado.
 
 MAX_PENDING_RETRY_MINUTES = 90
 
@@ -159,22 +125,10 @@ MAX_PENDING_RETRY_MINUTES = 90
 # ============================================================
 # ESCALA GNSS
 # ============================================================
-#
-# Actualmente asumimos:
-#
-# 1 metro = 1.000.000 counts
-#
-# La publicación está permitida aunque SCALE_VERIFIED=False.
-#
-# ============================================================
 
 COUNTS_PER_METER = 1_000_000.0
 
-COUNTS_PER_MM = (
-    COUNTS_PER_METER
-    /
-    1000.0
-)
+COUNTS_PER_MM = COUNTS_PER_METER / 1000.0
 
 SCALE_VERIFIED = False
 
@@ -182,32 +136,22 @@ REQUIRE_SCALE_VERIFIED_FOR_REAL_POST = False
 
 
 # ============================================================
-# SISMOLOGIA.CL
+# FUENTES
 # ============================================================
 
-SISMOLOGIA_BASE = (
-    "https://www.sismologia.cl"
-)
+SISMOLOGIA_BASE = "https://www.sismologia.cl"
 
 CATALOG_TEMPLATE = (
     SISMOLOGIA_BASE
-    + "/sismicidad/catalogo/"
-      "{year}/{month}/{yyyymmdd}.html"
+    + "/sismicidad/catalogo/{year}/{month}/{yyyymmdd}.html"
 )
 
-
-# ============================================================
-# GNSS CSN
-# ============================================================
-
 FDSN_DATASELECT_URL = (
-    "https://owl.csn.uchile.cl/"
-    "fdsnws/dataselect/1/query"
+    "https://owl.csn.uchile.cl/fdsnws/dataselect/1/query"
 )
 
 FDSN_STATION_URL = (
-    "https://owl.csn.uchile.cl/"
-    "fdsnws/station/1/query"
+    "https://owl.csn.uchile.cl/fdsnws/station/1/query"
 )
 
 GNSS_NETWORK = "C1"
@@ -228,29 +172,14 @@ MAX_NEAREST_STATIONS = 15
 # VENTANAS TEMPORALES
 # ============================================================
 
-# PRE:
-# 10 minutos antes → 2 minutos antes
-
 PRE_START_SECONDS = -600
-
 PRE_END_SECONDS = -120
 
-
-# POST temprano
-
 EARLY_POST_MIN_START_SECONDS = 180
-
 EARLY_POST_END_SECONDS = 300
-
 EARLY_POST_AFTER_SLOW_WAVE_SECONDS = 45
 
-
-# POST tardío
-#
-# Es el utilizado para calcular el RES publicado.
-
 LATE_POST_START_SECONDS = 480
-
 LATE_POST_END_SECONDS = 600
 
 
@@ -261,9 +190,7 @@ LATE_POST_END_SECONDS = 600
 BLOCK_SECONDS = 30
 
 MIN_PRE_BLOCKS = 8
-
 MIN_EARLY_POST_BLOCKS = 2
-
 MIN_LATE_POST_BLOCKS = 3
 
 MIN_SAMPLES_PER_BLOCK = 10
@@ -342,19 +269,14 @@ MIN_COHERENT_NEIGHBORS_HIGH = 1
 
 
 # ============================================================
-# PLAUSIBILIDAD
+# PLAUSIBILIDAD Y PUBLICACIÓN
 # ============================================================
 
 ENABLE_PLAUSIBILITY_FILTER = True
 
-
-# ============================================================
-# PUBLICACIÓN
-# ============================================================
-
 PUBLISH_QC_LEVELS = {
     "ALTO",
-    "MODERADO"
+    "MODERADO",
 }
 
 
@@ -363,11 +285,9 @@ PUBLISH_QC_LEVELS = {
 # ============================================================
 
 MAP_LON_MIN = -77.5
-
 MAP_LON_MAX = -65.0
 
 MAP_LAT_MIN = -58.0
-
 MAP_LAT_MAX = -17.0
 
 VECTOR_TARGET_DEGREES = 0.42
@@ -385,9 +305,7 @@ BRAND_SUBTITLE = (
     "Reporte automático generado por fuente externa"
 )
 
-MAP_TITLE = (
-    "Vectores RES estaciones cercanas"
-)
+MAP_TITLE = "Vectores RES estaciones cercanas"
 
 
 # ============================================================
@@ -395,27 +313,16 @@ MAP_TITLE = (
 # ============================================================
 
 COLOR_NAVY = "#0F172A"
-
 COLOR_RED = "#DC2626"
-
 COLOR_ORANGE = "#F59E0B"
-
 COLOR_GREEN = "#059669"
-
 COLOR_BLUE = "#2563EB"
-
 COLOR_GRAY = "#64748B"
-
 COLOR_LIGHT_GRAY = "#F1F5F9"
-
 COLOR_BORDER = "#CBD5E1"
-
 COLOR_MUTED = "#475569"
-
 COLOR_WHITE = "#FFFFFF"
-
 COLOR_SEA = "#F8FAFC"
-
 COLOR_LAND = "#E2E8F0"
 
 
@@ -437,64 +344,35 @@ NATURAL_EARTH_URL = (
 BASE_DIR = Path(
     os.getenv(
         "GITHUB_WORKSPACE",
-        Path(__file__).resolve().parent
+        Path(__file__).resolve().parent,
     )
 )
 
-DATA_DIR = (
-    BASE_DIR
-    /
-    "data"
-)
+DATA_DIR = BASE_DIR / "data"
 
-OUTPUT_DIR = (
-    BASE_DIR
-    /
-    "output"
-)
+OUTPUT_DIR = BASE_DIR / "output"
 
-CACHE_DIR = (
-    BASE_DIR
-    /
-    ".cache_csn"
-)
+CACHE_DIR = BASE_DIR / ".cache_csn"
 
-DATA_DIR.mkdir(
-    parents=True,
-    exist_ok=True
-)
+for directory in (
+    DATA_DIR,
+    OUTPUT_DIR,
+    CACHE_DIR,
+):
+    directory.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
-OUTPUT_DIR.mkdir(
-    parents=True,
-    exist_ok=True
-)
+STATE_FILE = DATA_DIR / "monitor_state.json"
 
-CACHE_DIR.mkdir(
-    parents=True,
-    exist_ok=True
-)
+NE_ZIP_FILE = CACHE_DIR / "naturalearth.zip"
 
-STATE_FILE = (
-    DATA_DIR
-    /
-    "monitor_state.json"
-)
-
-NE_ZIP_FILE = (
-    CACHE_DIR
-    /
-    "naturalearth.zip"
-)
-
-NE_DIR = (
-    CACHE_DIR
-    /
-    "naturalearth"
-)
+NE_DIR = CACHE_DIR / "naturalearth"
 
 
 # ============================================================
-# PERSISTENCIA DEL ESTADO EN GITHUB
+# PERSISTENCIA EN GITHUB
 # ============================================================
 
 PERSIST_STATE_TO_GIT = True
@@ -508,9 +386,10 @@ http = requests.Session()
 
 http.headers.update(
     {
-        "User-Agent":
+        "User-Agent": (
             "Mozilla/5.0 "
             "CSN-GNSS-RES-Monitor/1.0"
+        )
     }
 )
 
@@ -520,26 +399,17 @@ http.headers.update(
 # ============================================================
 
 def finite(value):
-
     try:
-
         return bool(
-            np.isfinite(
-                float(value)
-            )
+            np.isfinite(float(value))
         )
-
     except Exception:
-
         return False
 
 
 def numeric(value):
-
     try:
-
         if value is None:
-
             return np.nan
 
         if isinstance(
@@ -548,13 +418,10 @@ def numeric(value):
                 int,
                 float,
                 np.integer,
-                np.floating
-            )
+                np.floating,
+            ),
         ):
-
-            value = float(
-                value
-            )
+            value = float(value)
 
             return (
                 value
@@ -570,73 +437,41 @@ def numeric(value):
 
         match = re.search(
             r"[-+]?\d+(?:\.\d+)?",
-            text
+            text,
         )
 
         if not match:
-
             return np.nan
 
-        return float(
-            match.group()
-        )
+        return float(match.group())
 
     except Exception:
-
         return np.nan
 
 
 def ensure_utc(value):
-
-    timestamp = pd.Timestamp(
-        value
-    )
+    timestamp = pd.Timestamp(value)
 
     if timestamp.tzinfo is None:
+        return timestamp.tz_localize("UTC")
 
-        timestamp = timestamp.tz_localize(
-            "UTC"
-        )
-
-    else:
-
-        timestamp = timestamp.tz_convert(
-            "UTC"
-        )
-
-    return timestamp
+    return timestamp.tz_convert("UTC")
 
 
 def repair_text(text):
-
     if text is None:
-
         return ""
 
-    text = str(
-        text
-    )
+    text = str(text)
 
-    if (
-        "Ã" in text
-        or
-        "Â" in text
-    ):
-
+    if "Ã" in text or "Â" in text:
         try:
-
             text = (
                 text
-                .encode(
-                    "latin1"
-                )
-                .decode(
-                    "utf-8"
-                )
+                .encode("latin1")
+                .decode("utf-8")
             )
-
         except Exception:
-
             pass
 
     return text.strip()
@@ -645,13 +480,9 @@ def repair_text(text):
 def fmt(
     value,
     decimals=1,
-    suffix=""
+    suffix="",
 ):
-
-    if not finite(
-        value
-    ):
-
+    if not finite(value):
         return "-"
 
     return (
@@ -661,51 +492,25 @@ def fmt(
 
 
 def format_age(seconds):
-
-    if not finite(
-        seconds
-    ):
-
+    if not finite(seconds):
         return "-"
 
     seconds = max(
         0,
-        int(seconds)
+        int(seconds),
     )
 
     if seconds < 60:
+        return f"{seconds} s"
 
-        return (
-            f"{seconds} s"
-        )
-
-    minutes = (
-        seconds
-        //
-        60
-    )
+    minutes = seconds // 60
 
     if minutes < 60:
-
-        return (
-            f"{minutes} min"
-        )
-
-    hours = (
-        minutes
-        //
-        60
-    )
-
-    minutes = (
-        minutes
-        %
-        60
-    )
+        return f"{minutes} min"
 
     return (
-        f"{hours} h "
-        f"{minutes} min"
+        f"{minutes // 60} h "
+        f"{minutes % 60} min"
     )
 
 
@@ -713,55 +518,31 @@ def haversine_km(
     lat1,
     lon1,
     lat2,
-    lon2
+    lon2,
 ):
-
     radius = 6371.0088
 
-    lat1 = math.radians(
-        float(lat1)
-    )
+    lat1, lon1, lat2, lon2 = [
+        math.radians(float(value))
+        for value in (
+            lat1,
+            lon1,
+            lat2,
+            lon2,
+        )
+    ]
 
-    lon1 = math.radians(
-        float(lon1)
-    )
-
-    lat2 = math.radians(
-        float(lat2)
-    )
-
-    lon2 = math.radians(
-        float(lon2)
-    )
-
-    delta_lat = (
-        lat2
-        -
-        lat1
-    )
-
-    delta_lon = (
-        lon2
-        -
-        lon1
-    )
+    delta_lat = lat2 - lat1
+    delta_lon = lon2 - lon1
 
     a = (
-        math.sin(
-            delta_lat / 2
-        ) ** 2
+        math.sin(delta_lat / 2) ** 2
         +
-        math.cos(
-            lat1
-        )
+        math.cos(lat1)
         *
-        math.cos(
-            lat2
-        )
+        math.cos(lat2)
         *
-        math.sin(
-            delta_lon / 2
-        ) ** 2
+        math.sin(delta_lon / 2) ** 2
     )
 
     return (
@@ -769,139 +550,98 @@ def haversine_km(
         *
         radius
         *
-        math.asin(
-            math.sqrt(a)
-        )
+        math.asin(math.sqrt(a))
     )
 
 
 def vector_azimuth(
     east_mm,
-    north_mm
+    north_mm,
 ):
-
     if (
         not finite(east_mm)
-        or
-        not finite(north_mm)
+        or not finite(north_mm)
     ):
-
         return np.nan
 
     return (
         np.degrees(
             np.arctan2(
                 east_mm,
-                north_mm
+                north_mm,
             )
         )
-        +
-        360
+        + 360
     ) % 360
 
 
 def angular_difference_deg(
     angle_a,
-    angle_b
+    angle_b,
 ):
-
     if (
         not finite(angle_a)
-        or
-        not finite(angle_b)
+        or not finite(angle_b)
     ):
-
         return np.nan
 
     difference = (
         abs(
             float(angle_a)
-            -
-            float(angle_b)
+            - float(angle_b)
         )
-        %
-        360
+        % 360
     )
 
     return min(
         difference,
-        360 - difference
+        360 - difference,
     )
 
 
 def mad(values):
-
     values = np.asarray(
         values,
-        dtype=float
+        dtype=float,
     )
 
     values = values[
-        np.isfinite(
-            values
-        )
+        np.isfinite(values)
     ]
 
     if len(values) == 0:
-
         return np.nan
-
-    center = np.median(
-        values
-    )
 
     return np.median(
         np.abs(
             values
-            -
-            center
+            - np.median(values)
         )
     )
 
 
 def robust_sigma(values):
+    value = mad(values)
 
-    value = mad(
-        values
-    )
-
-    if not finite(
-        value
-    ):
-
+    if not finite(value):
         return np.nan
 
-    return (
-        1.4826
-        *
-        value
-    )
+    return 1.4826 * value
 
 
-def plausibility_limit_mm(
-    magnitude
-):
-
-    if not finite(
-        magnitude
-    ):
-
+def plausibility_limit_mm(magnitude):
+    if not finite(magnitude):
         return np.inf
 
-    magnitude = float(
-        magnitude
-    )
+    magnitude = float(magnitude)
 
     if magnitude < 4.0:
-
         return 50.0
 
     if magnitude < 5.0:
-
         return 150.0
 
     if magnitude < 6.0:
-
         return 500.0
 
     return np.inf
@@ -912,38 +652,30 @@ def plausibility_limit_mm(
 # ============================================================
 
 def default_state():
-
     return {
         "detected": {},
         "posted": {},
         "dry_run_seen": {},
-        "expired": {}
+        "expired": {},
     }
 
 
 def load_state():
-
     if not STATE_FILE.exists():
-
         return default_state()
 
     try:
-
         with open(
             STATE_FILE,
             "r",
-            encoding="utf-8"
+            encoding="utf-8",
         ) as file:
-
-            state = json.load(
-                file
-            )
+            state = json.load(file)
 
     except Exception as exc:
-
         print(
             "No se pudo leer estado:",
-            exc
+            exc,
         )
 
         state = default_state()
@@ -952,32 +684,24 @@ def load_state():
         "detected",
         "posted",
         "dry_run_seen",
-        "expired"
+        "expired",
     ]:
-
-        state.setdefault(
-            key,
-            {}
-        )
+        state.setdefault(key, {})
 
     return state
 
 
-def save_state(
-    state
-):
-
+def save_state(state):
     with open(
         STATE_FILE,
         "w",
-        encoding="utf-8"
+        encoding="utf-8",
     ) as file:
-
         json.dump(
             state,
             file,
             ensure_ascii=False,
-            indent=2
+            indent=2,
         )
 
 
@@ -986,37 +710,31 @@ def save_state(
 # ============================================================
 
 def persist_state_to_git():
-
     if not PERSIST_STATE_TO_GIT:
-
         return
 
     if (
         os.getenv(
             "GITHUB_ACTIONS",
-            ""
+            "",
         ).lower()
-        !=
-        "true"
+        != "true"
     ):
-
         return
 
     if not STATE_FILE.exists():
-
         return
 
     try:
-
         subprocess.run(
             [
                 "git",
                 "config",
                 "user.name",
-                "github-actions[bot]"
+                "github-actions[bot]",
             ],
             cwd=BASE_DIR,
-            check=True
+            check=True,
         )
 
         subprocess.run(
@@ -1024,26 +742,27 @@ def persist_state_to_git():
                 "git",
                 "config",
                 "user.email",
-                "41898282+github-actions[bot]@users.noreply.github.com"
+                (
+                    "41898282+github-actions[bot]"
+                    "@users.noreply.github.com"
+                ),
             ],
             cwd=BASE_DIR,
-            check=True
+            check=True,
         )
 
         relative_state = str(
-            STATE_FILE.relative_to(
-                BASE_DIR
-            )
+            STATE_FILE.relative_to(BASE_DIR)
         )
 
         subprocess.run(
             [
                 "git",
                 "add",
-                relative_state
+                relative_state,
             ],
             cwd=BASE_DIR,
-            check=True
+            check=True,
         )
 
         diff = subprocess.run(
@@ -1051,17 +770,13 @@ def persist_state_to_git():
                 "git",
                 "diff",
                 "--cached",
-                "--quiet"
+                "--quiet",
             ],
-            cwd=BASE_DIR
+            cwd=BASE_DIR,
         )
 
         if diff.returncode == 0:
-
-            print(
-                "Estado sin cambios."
-            )
-
+            print("Estado sin cambios.")
             return
 
         subprocess.run(
@@ -1069,19 +784,22 @@ def persist_state_to_git():
                 "git",
                 "commit",
                 "-m",
-                "Update GNSS monitor state [skip ci]"
+                (
+                    "Update GNSS monitor state "
+                    "[skip ci]"
+                ),
             ],
             cwd=BASE_DIR,
-            check=True
+            check=True,
         )
 
         subprocess.run(
             [
                 "git",
-                "push"
+                "push",
             ],
             cwd=BASE_DIR,
-            check=True
+            check=True,
         )
 
         print(
@@ -1089,15 +807,11 @@ def persist_state_to_git():
         )
 
     except Exception as exc:
-
         print(
-            "ADVERTENCIA: "
-            "no se pudo persistir monitor_state.json:"
+            "ADVERTENCIA: no se pudo persistir "
+            "monitor_state.json:"
         )
-
-        print(
-            exc
-        )
+        print(exc)
 
 
 # ============================================================
@@ -1109,9 +823,8 @@ def make_event_id(
     latitude,
     longitude,
     depth,
-    magnitude
+    magnitude,
 ):
-
     fingerprint = (
         f"{ensure_utc(event_time)}|"
         f"{float(latitude):.4f}|"
@@ -1124,162 +837,84 @@ def make_event_id(
         "csn_"
         +
         hashlib.sha1(
-            fingerprint.encode(
-                "utf-8"
-            )
+            fingerprint.encode("utf-8")
         ).hexdigest()[:16]
     )
 
 
-def serialize_event(
-    event
-):
-
+def serialize_event(event):
     return {
+        "event_id": str(
+            event["event_id"]
+        ),
 
-        "event_id":
-            str(
-                event[
-                    "event_id"
-                ]
-            ),
+        "time": str(
+            ensure_utc(event["time"])
+        ),
 
-        "time":
-            str(
-                ensure_utc(
-                    event[
-                        "time"
-                    ]
-                )
-            ),
+        "latitude": float(
+            event["latitude"]
+        ),
 
-        "latitude":
-            float(
-                event[
-                    "latitude"
-                ]
-            ),
+        "longitude": float(
+            event["longitude"]
+        ),
 
-        "longitude":
-            float(
-                event[
-                    "longitude"
-                ]
-            ),
+        "depth_km": (
+            float(event["depth_km"])
+            if finite(event["depth_km"])
+            else None
+        ),
 
-        "depth_km":
-            (
-                float(
-                    event[
-                        "depth_km"
-                    ]
-                )
-                if finite(
-                    event[
-                        "depth_km"
-                    ]
-                )
-                else
-                None
-            ),
+        "magnitude": (
+            float(event["magnitude"])
+            if finite(event["magnitude"])
+            else None
+        ),
 
-        "magnitude":
-            (
-                float(
-                    event[
-                        "magnitude"
-                    ]
-                )
-                if finite(
-                    event[
-                        "magnitude"
-                    ]
-                )
-                else
-                None
-            ),
+        "mag_type": str(
+            event.get("mag_type", "")
+        ),
 
-        "mag_type":
-            str(
-                event.get(
-                    "mag_type",
-                    ""
-                )
-            ),
-
-        "region":
-            repair_text(
-                event.get(
-                    "region",
-                    ""
-                )
-            )
+        "region": repair_text(
+            event.get("region", "")
+        ),
     }
 
 
-def deserialize_event(
-    data
-):
-
+def deserialize_event(data):
     return {
+        "event_id": str(
+            data["event_id"]
+        ),
 
-        "event_id":
-            str(
-                data[
-                    "event_id"
-                ]
-            ),
+        "time": ensure_utc(
+            data["time"]
+        ),
 
-        "time":
-            ensure_utc(
-                data[
-                    "time"
-                ]
-            ),
+        "latitude": float(
+            data["latitude"]
+        ),
 
-        "latitude":
-            float(
-                data[
-                    "latitude"
-                ]
-            ),
+        "longitude": float(
+            data["longitude"]
+        ),
 
-        "longitude":
-            float(
-                data[
-                    "longitude"
-                ]
-            ),
+        "depth_km": numeric(
+            data.get("depth_km")
+        ),
 
-        "depth_km":
-            numeric(
-                data.get(
-                    "depth_km"
-                )
-            ),
+        "magnitude": numeric(
+            data.get("magnitude")
+        ),
 
-        "magnitude":
-            numeric(
-                data.get(
-                    "magnitude"
-                )
-            ),
+        "mag_type": str(
+            data.get("mag_type", "")
+        ),
 
-        "mag_type":
-            str(
-                data.get(
-                    "mag_type",
-                    ""
-                )
-            ),
-
-        "region":
-            repair_text(
-                data.get(
-                    "region",
-                    ""
-                )
-            )
+        "region": repair_text(
+            data.get("region", "")
+        ),
     }
 
 
@@ -1287,116 +922,77 @@ def deserialize_event(
 # CATÁLOGO CSN
 # ============================================================
 
-def catalog_url_for_date(
-    date_utc
-):
-
-    date_utc = pd.Timestamp(
-        date_utc
-    )
+def catalog_url_for_date(date_utc):
+    date_utc = pd.Timestamp(date_utc)
 
     return CATALOG_TEMPLATE.format(
-
-        year=
-            date_utc.strftime(
-                "%Y"
-            ),
-
-        month=
-            date_utc.strftime(
-                "%m"
-            ),
-
-        yyyymmdd=
-            date_utc.strftime(
-                "%Y%m%d"
-            )
+        year=date_utc.strftime("%Y"),
+        month=date_utc.strftime("%m"),
+        yyyymmdd=date_utc.strftime("%Y%m%d"),
     )
 
 
-def parse_daily_catalog(
-    html
-):
-
+def parse_daily_catalog(html):
     soup = BeautifulSoup(
         html,
-        "html.parser"
+        "html.parser",
     )
 
     events = []
 
-    for row in soup.find_all(
-        "tr"
-    ):
-
+    for row in soup.find_all("tr"):
         cells = [
             repair_text(
                 cell.get_text(
                     " ",
-                    strip=True
+                    strip=True,
                 )
             )
-            for cell in
-            row.find_all(
-                [
-                    "td",
-                    "th"
-                ]
+            for cell in row.find_all(
+                ["td", "th"]
             )
         ]
 
         if len(cells) < 5:
-
             continue
 
         utc_match = re.search(
             r"\d{4}-\d{2}-\d{2}\s+"
             r"\d{2}:\d{2}:\d{2}",
-            cells[1]
+            cells[1],
         )
 
         if not utc_match:
-
             continue
 
         event_time = pd.to_datetime(
             utc_match.group(),
-            format=
-                "%Y-%m-%d %H:%M:%S",
+            format="%Y-%m-%d %H:%M:%S",
             utc=True,
-            errors="coerce"
+            errors="coerce",
         )
 
-        if pd.isna(
-            event_time
-        ):
-
+        if pd.isna(event_time):
             continue
 
         region = re.sub(
             r"^\d{4}-\d{2}-\d{2}\s+"
             r"\d{2}:\d{2}:\d{2}\s*",
             "",
-            cells[0]
+            cells[0],
         ).strip()
 
-        region = repair_text(
-            region
-        )
+        region = repair_text(region)
 
         if not region:
-
             region = "Chile"
 
         coordinates = re.findall(
             r"[-+]?\d+(?:[.,]\d+)?",
-            cells[2]
+            cells[2],
         )
 
-        if len(
-            coordinates
-        ) < 2:
-
+        if len(coordinates) < 2:
             continue
 
         latitude = numeric(
@@ -1409,177 +1005,117 @@ def parse_daily_catalog(
 
         if (
             not finite(latitude)
-            or
-            not finite(longitude)
+            or not finite(longitude)
         ):
-
             continue
 
-        depth = numeric(
-            cells[3]
-        )
+        depth = numeric(cells[3])
 
         magnitude_match = re.search(
             r"([-+]?\d+(?:[.,]\d+)?)"
             r"(?:\s+([A-Za-z0-9]+))?",
-            cells[4]
+            cells[4],
         )
 
         if magnitude_match:
-
             magnitude = numeric(
-                magnitude_match.group(
-                    1
-                )
+                magnitude_match.group(1)
             )
 
             magnitude_type = (
-                magnitude_match.group(
-                    2
-                )
-                or
-                ""
+                magnitude_match.group(2)
+                or ""
             )
 
         else:
-
             magnitude = np.nan
-
             magnitude_type = ""
-
-        event_id = make_event_id(
-            event_time,
-            latitude,
-            longitude,
-            depth,
-            magnitude
-        )
 
         events.append(
             {
-                "event_id":
-                    event_id,
-
-                "time":
+                "event_id": make_event_id(
                     event_time,
-
-                "latitude":
-                    float(
-                        latitude
-                    ),
-
-                "longitude":
-                    float(
-                        longitude
-                    ),
-
-                "depth_km":
+                    latitude,
+                    longitude,
                     depth,
-
-                "magnitude":
                     magnitude,
+                ),
 
-                "mag_type":
-                    magnitude_type,
+                "time": event_time,
 
-                "region":
-                    region
+                "latitude": float(latitude),
+
+                "longitude": float(longitude),
+
+                "depth_km": depth,
+
+                "magnitude": magnitude,
+
+                "mag_type": magnitude_type,
+
+                "region": region,
             }
         )
 
     return events
 
 
-def fetch_daily_catalog(
-    date_utc
-):
-
+def fetch_daily_catalog(date_utc):
     url = catalog_url_for_date(
         date_utc
     )
 
-    print(
-        "Catálogo:",
-        url
-    )
+    print("Catálogo:", url)
 
     try:
-
         response = http.get(
             url,
-            timeout=30
+            timeout=30,
         )
 
         response.raise_for_status()
 
     except Exception as exc:
-
-        print(
-            "ERROR catálogo:",
-            exc
-        )
-
+        print("ERROR catálogo:", exc)
         return []
 
     events = parse_daily_catalog(
         response.text
     )
 
-    print(
-        "Eventos:",
-        len(
-            events
-        )
-    )
+    print("Eventos:", len(events))
 
     return events
 
 
 def get_current_earthquakes():
-
-    now = pd.Timestamp.now(
-        tz="UTC"
-    )
+    now = pd.Timestamp.now(tz="UTC")
 
     dates = [
-
         now.normalize(),
 
         (
             now
-            -
-            pd.Timedelta(
-                days=1
-            )
-        ).normalize()
+            - pd.Timedelta(days=1)
+        ).normalize(),
     ]
 
     rows = []
 
     for date_utc in dates:
-
         rows.extend(
-            fetch_daily_catalog(
-                date_utc
-            )
+            fetch_daily_catalog(date_utc)
         )
 
     if not rows:
-
         return pd.DataFrame()
 
-    dataframe = pd.DataFrame(
-        rows
-    )
+    dataframe = pd.DataFrame(rows)
 
-    dataframe[
-        "time"
-    ] = pd.to_datetime(
-        dataframe[
-            "time"
-        ],
+    dataframe["time"] = pd.to_datetime(
+        dataframe["time"],
         utc=True,
-        errors="coerce"
+        errors="coerce",
     )
 
     return (
@@ -1588,21 +1124,17 @@ def get_current_earthquakes():
             subset=[
                 "time",
                 "latitude",
-                "longitude"
+                "longitude",
             ]
         )
         .drop_duplicates(
-            subset=[
-                "event_id"
-            ]
+            subset=["event_id"]
         )
         .sort_values(
             "time",
-            ascending=False
+            ascending=False,
         )
-        .reset_index(
-            drop=True
-        )
+        .reset_index(drop=True)
     )
 
 
@@ -1611,195 +1143,123 @@ def get_current_earthquakes():
 # ============================================================
 
 def get_gnss_station_inventory():
-
     params = {
-
-        "network":
-            GNSS_NETWORK,
-
-        "channel":
-            GNSS_CHANNEL_PATTERN,
-
-        "level":
-            "channel",
-
-        "format":
-            "text",
-
-        "nodata":
-            204
+        "network": GNSS_NETWORK,
+        "channel": GNSS_CHANNEL_PATTERN,
+        "level": "channel",
+        "format": "text",
+        "nodata": 204,
     }
 
     try:
-
         response = http.get(
             FDSN_STATION_URL,
             params=params,
-            timeout=45
+            timeout=45,
         )
 
     except Exception as exc:
-
         print(
             "Error inventario GNSS:",
-            exc
+            exc,
         )
-
         return pd.DataFrame()
 
     if response.status_code != 200:
-
         print(
             "FDSN Station HTTP:",
-            response.status_code
+            response.status_code,
         )
-
         return pd.DataFrame()
 
     rows = []
-
     header = None
 
-    for raw_line in (
-        response.text
-        .splitlines()
-    ):
-
+    for raw_line in response.text.splitlines():
         line = raw_line.strip()
 
         if not line:
-
             continue
 
-        if line.startswith(
-            "#"
-        ):
-
+        if line.startswith("#"):
             possible = [
                 item.strip()
-                for item in
-                line
-                .lstrip("#")
-                .split("|")
+                for item in (
+                    line
+                    .lstrip("#")
+                    .split("|")
+                )
             ]
 
             if "Network" in possible:
-
                 header = possible
 
             continue
 
         parts = [
             item.strip()
-            for item in
-            line.split("|")
+            for item in line.split("|")
         ]
 
         if header:
-
             record = dict(
-                zip(
-                    header,
-                    parts
-                )
+                zip(header, parts)
             )
 
-            network = record.get(
-                "Network"
-            )
+            network = record.get("Network")
 
-            station = record.get(
-                "Station"
-            )
+            station = record.get("Station")
 
             latitude = numeric(
-                record.get(
-                    "Latitude"
-                )
+                record.get("Latitude")
             )
 
             longitude = numeric(
-                record.get(
-                    "Longitude"
-                )
+                record.get("Longitude")
             )
 
         else:
-
             if len(parts) < 6:
-
                 continue
 
             network = parts[0]
-
             station = parts[1]
 
-            latitude = numeric(
-                parts[4]
-            )
-
-            longitude = numeric(
-                parts[5]
-            )
+            latitude = numeric(parts[4])
+            longitude = numeric(parts[5])
 
         if (
             station
-            and
-            finite(latitude)
-            and
-            finite(longitude)
+            and finite(latitude)
+            and finite(longitude)
         ):
-
             network = (
                 network
-                or
-                GNSS_NETWORK
+                or GNSS_NETWORK
             )
 
             rows.append(
                 {
-                    "network":
-                        str(
-                            network
-                        ),
-
-                    "station":
-                        str(
-                            station
-                        ),
-
-                    "key":
-                        f"{network}.{station}",
-
-                    "latitude":
-                        float(
-                            latitude
-                        ),
-
-                    "longitude":
-                        float(
-                            longitude
-                        )
+                    "network": str(network),
+                    "station": str(station),
+                    "key": f"{network}.{station}",
+                    "latitude": float(latitude),
+                    "longitude": float(longitude),
                 }
             )
 
     if not rows:
-
         return pd.DataFrame()
 
     return (
-        pd.DataFrame(
-            rows
-        )
+        pd.DataFrame(rows)
         .drop_duplicates(
             subset=[
                 "network",
-                "station"
+                "station",
             ]
         )
-        .reset_index(
-            drop=True
-        )
+        .reset_index(drop=True)
     )
 
 
@@ -1809,51 +1269,28 @@ def get_gnss_station_inventory():
 
 def select_nearby_stations(
     event,
-    stations
+    stations,
 ):
-
     work = stations.copy()
 
-    work[
-        "distance_km"
-    ] = [
-
+    work["distance_km"] = [
         haversine_km(
-            event[
-                "latitude"
-            ],
-            event[
-                "longitude"
-            ],
-            row[
-                "latitude"
-            ],
-            row[
-                "longitude"
-            ]
+            event["latitude"],
+            event["longitude"],
+            row["latitude"],
+            row["longitude"],
         )
-
-        for _, row in
-        work.iterrows()
+        for _, row in work.iterrows()
     ]
 
     return (
         work[
-            work[
-                "distance_km"
-            ]
-            <=
-            MAX_STATION_DISTANCE_KM
+            work["distance_km"]
+            <= MAX_STATION_DISTANCE_KM
         ]
-        .sort_values(
-            "distance_km"
-        )
-        .head(
-            MAX_NEAREST_STATIONS
-        )
-        .reset_index(
-            drop=True
-        )
+        .sort_values("distance_km")
+        .head(MAX_NEAREST_STATIONS)
+        .reset_index(drop=True)
     )
 
 
@@ -1865,293 +1302,173 @@ def fetch_station_history(
     network,
     station,
     start_time,
-    end_time
+    end_time,
 ):
-
     params = {
+        "network": network,
+        "station": station,
+        "location": "*",
+        "channel": GNSS_CHANNEL_PATTERN,
 
-        "network":
-            network,
+        "starttime": ensure_utc(
+            start_time
+        ).strftime(
+            "%Y-%m-%dT%H:%M:%S"
+        ),
 
-        "station":
-            station,
+        "endtime": ensure_utc(
+            end_time
+        ).strftime(
+            "%Y-%m-%dT%H:%M:%S"
+        ),
 
-        "location":
-            "*",
-
-        "channel":
-            GNSS_CHANNEL_PATTERN,
-
-        "starttime":
-            ensure_utc(
-                start_time
-            ).strftime(
-                "%Y-%m-%dT%H:%M:%S"
-            ),
-
-        "endtime":
-            ensure_utc(
-                end_time
-            ).strftime(
-                "%Y-%m-%dT%H:%M:%S"
-            ),
-
-        "nodata":
-            204
+        "nodata": 204,
     }
 
     try:
-
         response = http.get(
             FDSN_DATASELECT_URL,
             params=params,
-            timeout=45
+            timeout=45,
         )
 
     except Exception as exc:
-
-        return (
-            None,
-            f"HTTP {exc}"
-        )
+        return None, f"HTTP {exc}"
 
     if response.status_code == 204:
-
-        return (
-            None,
-            "sin datos"
-        )
+        return None, "sin datos"
 
     if response.status_code != 200:
-
         return (
             None,
-            f"HTTP {response.status_code}"
+            f"HTTP {response.status_code}",
         )
 
     try:
-
         stream = obspy_read(
-            io.BytesIO(
-                response.content
-            )
+            io.BytesIO(response.content)
         )
 
     except Exception as exc:
-
-        return (
-            None,
-            f"MiniSEED {exc}"
-        )
+        return None, f"MiniSEED {exc}"
 
     if len(stream) == 0:
+        return None, "vacío"
 
-        return (
-            None,
-            "vacío"
-        )
-
-    return (
-        stream,
-        "OK"
-    )
+    return stream, "OK"
 
 
 # ============================================================
 # STREAM → E / N / Z
 # ============================================================
 
-def stream_components(
-    stream
-):
-
+def stream_components(stream):
     components = {
         "E": [],
         "N": [],
-        "Z": []
+        "Z": [],
     }
 
     for trace in stream:
-
         channel = (
-            str(
-                trace.stats.channel
-            )
+            str(trace.stats.channel)
             .upper()
         )
 
-        if channel.endswith(
-            "E"
-        ):
-
+        if channel.endswith("E"):
             component = "E"
 
-        elif channel.endswith(
-            "N"
-        ):
-
+        elif channel.endswith("N"):
             component = "N"
 
-        elif channel.endswith(
-            "Z"
-        ):
-
+        elif channel.endswith("Z"):
             component = "Z"
 
         else:
-
             continue
 
         dataframe = pd.DataFrame(
             {
-                "time":
-                    pd.to_datetime(
-                        trace.times(
-                            "timestamp"
-                        ),
-                        unit="s",
-                        utc=True
-                    ),
+                "time": pd.to_datetime(
+                    trace.times("timestamp"),
+                    unit="s",
+                    utc=True,
+                ),
 
-                component:
-                    np.asarray(
-                        trace.data,
-                        dtype=float
-                    )
+                component: np.asarray(
+                    trace.data,
+                    dtype=float,
+                ),
             }
         )
 
-        components[
-            component
-        ].append(
+        components[component].append(
             dataframe
         )
 
     output = {}
 
-    for component in [
-        "E",
-        "N",
-        "Z"
-    ]:
-
-        if not components[
-            component
-        ]:
-
-            output[
-                component
-            ] = pd.DataFrame(
+    for component in ["E", "N", "Z"]:
+        if not components[component]:
+            output[component] = pd.DataFrame(
                 columns=[
                     "time",
-                    component
+                    component,
                 ]
             )
 
         else:
-
-            output[
-                component
-            ] = (
+            output[component] = (
                 pd.concat(
-                    components[
-                        component
-                    ],
-                    ignore_index=True
+                    components[component],
+                    ignore_index=True,
                 )
                 .drop_duplicates(
-                    subset=[
-                        "time"
-                    ]
+                    subset=["time"]
                 )
-                .sort_values(
-                    "time"
-                )
-                .reset_index(
-                    drop=True
-                )
+                .sort_values("time")
+                .reset_index(drop=True)
             )
 
     return output
 
 
-def align_components(
-    components
-):
+def align_components(components):
+    east = components["E"].copy()
+    north = components["N"].copy()
+    up = components["Z"].copy()
 
-    east = components[
-        "E"
-    ].copy()
-
-    north = components[
-        "N"
-    ].copy()
-
-    up = components[
-        "Z"
-    ].copy()
-
-    if (
-        east.empty
-        or
-        north.empty
-    ):
-
+    if east.empty or north.empty:
         return pd.DataFrame()
 
     merged = pd.merge_asof(
-        east.sort_values(
-            "time"
-        ),
-        north.sort_values(
-            "time"
-        ),
+        east.sort_values("time"),
+        north.sort_values("time"),
         on="time",
         direction="nearest",
-        tolerance=
-            pd.Timedelta(
-                seconds=1
-            )
+        tolerance=pd.Timedelta(seconds=1),
     )
 
     merged = merged.dropna(
-        subset=[
-            "E",
-            "N"
-        ]
+        subset=["E", "N"]
     )
 
     if not up.empty:
-
         merged = pd.merge_asof(
-            merged.sort_values(
-                "time"
-            ),
-            up.sort_values(
-                "time"
-            ),
+            merged.sort_values("time"),
+            up.sort_values("time"),
             on="time",
             direction="nearest",
-            tolerance=
-                pd.Timedelta(
-                    seconds=1
-                )
+            tolerance=pd.Timedelta(seconds=1),
         )
 
     else:
-
-        merged[
-            "Z"
-        ] = np.nan
+        merged["Z"] = np.nan
 
     return (
         merged
-        .sort_values(
-            "time"
-        )
-        .reset_index(
-            drop=True
-        )
+        .sort_values("time")
+        .reset_index(drop=True)
     )
 
 
@@ -2161,56 +1478,50 @@ def align_components(
 
 def calculate_wave_times(
     epicentral_distance_km,
-    depth_km
+    depth_km,
 ):
-
-    if not finite(
-        depth_km
-    ):
-
+    if not finite(depth_km):
         depth_km = 0.0
 
     hypocentral_distance = math.sqrt(
-        float(
-            epicentral_distance_km
-        ) ** 2
+        float(epicentral_distance_km) ** 2
         +
-        float(
-            depth_km
-        ) ** 2
+        float(depth_km) ** 2
     )
 
     fast_arrival = (
         hypocentral_distance
-        /
-        FAST_WAVE_VELOCITY_KM_S
+        / FAST_WAVE_VELOCITY_KM_S
     )
 
     slow_arrival = (
         hypocentral_distance
-        /
-        SLOW_WAVE_VELOCITY_KM_S
+        / SLOW_WAVE_VELOCITY_KM_S
     )
 
     early_start = max(
         EARLY_POST_MIN_START_SECONDS,
+
         slow_arrival
-        +
-        EARLY_POST_AFTER_SLOW_WAVE_SECONDS
+        + EARLY_POST_AFTER_SLOW_WAVE_SECONDS,
     )
 
     return {
-        "hypocentral_distance_km":
-            hypocentral_distance,
+        "hypocentral_distance_km": (
+            hypocentral_distance
+        ),
 
-        "fast_arrival_seconds":
-            fast_arrival,
+        "fast_arrival_seconds": (
+            fast_arrival
+        ),
 
-        "slow_arrival_seconds":
-            slow_arrival,
+        "slow_arrival_seconds": (
+            slow_arrival
+        ),
 
-        "early_post_start_seconds":
+        "early_post_start_seconds": (
             early_start
+        ),
     }
 
 
@@ -2221,145 +1532,79 @@ def calculate_wave_times(
 def make_block_medians(
     data,
     start_seconds,
-    end_seconds
+    end_seconds,
 ):
-
     work = data[
         (
-            data[
-                "seconds_from_event"
-            ]
-            >=
-            start_seconds
+            data["seconds_from_event"]
+            >= start_seconds
         )
         &
         (
-            data[
-                "seconds_from_event"
-            ]
-            <
-            end_seconds
+            data["seconds_from_event"]
+            < end_seconds
         )
     ].copy()
 
     if work.empty:
-
         return pd.DataFrame()
 
-    work[
-        "block_id"
-    ] = np.floor(
+    work["block_id"] = np.floor(
         (
-            work[
-                "seconds_from_event"
-            ]
-            -
-            start_seconds
+            work["seconds_from_event"]
+            - start_seconds
         )
-        /
-        BLOCK_SECONDS
-    ).astype(
-        int
-    )
+        / BLOCK_SECONDS
+    ).astype(int)
 
     rows = []
 
-    for block_id, block in (
-        work.groupby(
-            "block_id"
-        )
+    for block_id, block in work.groupby(
+        "block_id"
     ):
-
-        if (
-            len(block)
-            <
-            MIN_SAMPLES_PER_BLOCK
-        ):
-
+        if len(block) < MIN_SAMPLES_PER_BLOCK:
             continue
 
         row = {
+            "block_id": int(block_id),
 
-            "block_id":
-                int(
-                    block_id
-                ),
-
-            "time_seconds":
-                float(
-                    np.nanmedian(
-                        block[
-                            "seconds_from_event"
-                        ]
-                    )
-                ),
-
-            "sample_count":
-                len(
-                    block
-                ),
-
-            "E":
-                float(
-                    np.nanmedian(
-                        block[
-                            "E"
-                        ]
-                    )
-                ),
-
-            "N":
-                float(
-                    np.nanmedian(
-                        block[
-                            "N"
-                        ]
-                    )
+            "time_seconds": float(
+                np.nanmedian(
+                    block["seconds_from_event"]
                 )
+            ),
+
+            "sample_count": len(block),
+
+            "E": float(
+                np.nanmedian(block["E"])
+            ),
+
+            "N": float(
+                np.nanmedian(block["N"])
+            ),
         }
 
         if (
             "Z" in block.columns
-            and
-            block[
-                "Z"
-            ].notna().any()
+            and block["Z"].notna().any()
         ):
-
-            row[
-                "Z"
-            ] = float(
-                np.nanmedian(
-                    block[
-                        "Z"
-                    ]
-                )
+            row["Z"] = float(
+                np.nanmedian(block["Z"])
             )
 
         else:
+            row["Z"] = np.nan
 
-            row[
-                "Z"
-            ] = np.nan
-
-        rows.append(
-            row
-        )
+        rows.append(row)
 
     if not rows:
-
         return pd.DataFrame()
 
     return (
-        pd.DataFrame(
-            rows
-        )
-        .sort_values(
-            "time_seconds"
-        )
-        .reset_index(
-            drop=True
-        )
+        pd.DataFrame(rows)
+        .sort_values("time_seconds")
+        .reset_index(drop=True)
     )
 
 
@@ -2369,39 +1614,29 @@ def make_block_medians(
 
 def robust_block_component(
     blocks,
-    component
+    component,
 ):
-
     values = np.asarray(
-        blocks[
-            component
-        ],
-        dtype=float
+        blocks[component],
+        dtype=float,
     )
 
     values = values[
-        np.isfinite(
-            values
-        )
+        np.isfinite(values)
     ]
 
-    count = len(
-        values
-    )
+    count = len(values)
 
     if count == 0:
-
         return {
             "center": np.nan,
             "scatter_mm": np.nan,
             "center_unc_mm": np.nan,
-            "n": 0
+            "n": 0,
         }
 
     center = float(
-        np.median(
-            values
-        )
+        np.median(values)
     )
 
     scatter_counts = robust_sigma(
@@ -2409,115 +1644,66 @@ def robust_block_component(
     )
 
     scatter_mm = (
-        scatter_counts
-        /
-        COUNTS_PER_MM
-        if finite(
-            scatter_counts
-        )
-        else
-        np.nan
+        scatter_counts / COUNTS_PER_MM
+        if finite(scatter_counts)
+        else np.nan
     )
 
-    if finite(
-        scatter_mm
-    ):
-
-        center_uncertainty = (
-            scatter_mm
-            /
-            math.sqrt(
-                max(
-                    count,
-                    1
-                )
-            )
-        )
-
+    if finite(scatter_mm):
         center_uncertainty = max(
-            center_uncertainty,
-            MIN_COMPONENT_CENTER_UNCERTAINTY_MM
+            scatter_mm
+            / math.sqrt(max(count, 1)),
+
+            MIN_COMPONENT_CENTER_UNCERTAINTY_MM,
         )
 
     else:
-
         center_uncertainty = (
             MIN_COMPONENT_CENTER_UNCERTAINTY_MM
         )
 
     return {
-        "center":
-            center,
-
-        "scatter_mm":
-            scatter_mm,
-
-        "center_unc_mm":
-            center_uncertainty,
-
-        "n":
-            count
+        "center": center,
+        "scatter_mm": scatter_mm,
+        "center_unc_mm": center_uncertainty,
+        "n": count,
     }
 
 
-def robust_block_position(
-    blocks
-):
-
+def robust_block_position(blocks):
     east = robust_block_component(
         blocks,
-        "E"
+        "E",
     )
 
     north = robust_block_component(
         blocks,
-        "N"
+        "N",
     )
 
     up = robust_block_component(
         blocks,
-        "Z"
+        "Z",
     )
 
     scatter_horizontal = (
         math.sqrt(
-            east[
-                "scatter_mm"
-            ] ** 2
+            east["scatter_mm"] ** 2
             +
-            north[
-                "scatter_mm"
-            ] ** 2
+            north["scatter_mm"] ** 2
         )
         if (
-            finite(
-                east[
-                    "scatter_mm"
-                ]
-            )
-            and
-            finite(
-                north[
-                    "scatter_mm"
-                ]
-            )
+            finite(east["scatter_mm"])
+            and finite(north["scatter_mm"])
         )
-        else
-        np.nan
+        else np.nan
     )
 
     return {
-        "E":
-            east,
-
-        "N":
-            north,
-
-        "Z":
-            up,
-
-        "scatter_H_mm":
-            scatter_horizontal
+        "E": east,
+        "N": north,
+        "Z": up,
+        "scatter_H_mm": scatter_horizontal,
     }
 
 
@@ -2527,131 +1713,81 @@ def robust_block_position(
 
 def block_slope_mm_per_min(
     blocks,
-    component
+    component,
 ):
-
     work = blocks[
         [
             "time_seconds",
-            component
+            component,
         ]
     ].dropna()
 
     if len(work) < 3:
-
         return np.nan
 
     times = np.asarray(
-        work[
-            "time_seconds"
-        ],
-        dtype=float
+        work["time_seconds"],
+        dtype=float,
     )
 
     values = np.asarray(
-        work[
-            component
-        ],
-        dtype=float
+        work[component],
+        dtype=float,
     )
 
-    midpoint = np.median(
-        times
-    )
+    midpoint = np.median(times)
 
-    first = (
-        times
-        <=
-        midpoint
-    )
-
-    second = (
-        times
-        >
-        midpoint
-    )
+    first = times <= midpoint
+    second = times > midpoint
 
     if (
         first.sum() < 1
-        or
-        second.sum() < 1
+        or second.sum() < 1
     ):
-
         return np.nan
 
-    time_1 = np.median(
-        times[
-            first
-        ]
-    )
+    time_1 = np.median(times[first])
+    time_2 = np.median(times[second])
 
-    time_2 = np.median(
-        times[
-            second
-        ]
-    )
-
-    value_1 = np.median(
-        values[
-            first
-        ]
-    )
-
-    value_2 = np.median(
-        values[
-            second
-        ]
-    )
+    value_1 = np.median(values[first])
+    value_2 = np.median(values[second])
 
     if time_2 == time_1:
-
         return np.nan
 
     counts_per_second = (
-        value_2
-        -
-        value_1
+        value_2 - value_1
     ) / (
-        time_2
-        -
-        time_1
+        time_2 - time_1
     )
 
     return (
         counts_per_second
-        /
-        COUNTS_PER_MM
-        *
-        60.0
+        / COUNTS_PER_MM
+        * 60.0
     )
 
 
-def horizontal_block_drift(
-    blocks
-):
-
+def horizontal_block_drift(blocks):
     east = block_slope_mm_per_min(
         blocks,
-        "E"
+        "E",
     )
 
     north = block_slope_mm_per_min(
         blocks,
-        "N"
+        "N",
     )
 
     if (
         not finite(east)
-        or
-        not finite(north)
+        or not finite(north)
     ):
-
         return np.nan
 
     return math.sqrt(
         east ** 2
-        +
-        north ** 2
+        + north ** 2
     )
 
 
@@ -2661,9 +1797,8 @@ def horizontal_block_drift(
 
 def calculate_residual(
     pre_position,
-    post_position
+    post_position,
 ):
-
     east_pre = pre_position["E"]["center"]
     north_pre = pre_position["N"]["center"]
     up_pre = pre_position["Z"]["center"]
@@ -2672,64 +1807,43 @@ def calculate_residual(
     north_post = post_position["N"]["center"]
     up_post = post_position["Z"]["center"]
 
-    if (
-        not finite(east_pre)
-        or
-        not finite(north_pre)
-        or
-        not finite(east_post)
-        or
-        not finite(north_post)
+    if not all(
+        finite(value)
+        for value in (
+            east_pre,
+            north_pre,
+            east_post,
+            north_post,
+        )
     ):
-
         return None
 
     delta_east = (
-        east_post
-        -
-        east_pre
+        east_post - east_pre
     ) / COUNTS_PER_MM
 
     delta_north = (
-        north_post
-        -
-        north_pre
+        north_post - north_pre
     ) / COUNTS_PER_MM
 
     delta_up = (
-        (
-            up_post
-            -
-            up_pre
-        )
-        /
-        COUNTS_PER_MM
-        if (
-            finite(up_post)
-            and
-            finite(up_pre)
-        )
-        else
-        np.nan
+        (up_post - up_pre) / COUNTS_PER_MM
+        if finite(up_post) and finite(up_pre)
+        else np.nan
     )
 
     delta_horizontal = math.sqrt(
         delta_east ** 2
-        +
-        delta_north ** 2
+        + delta_north ** 2
     )
 
     delta_3d = (
         math.sqrt(
             delta_horizontal ** 2
-            +
-            delta_up ** 2
+            + delta_up ** 2
         )
-        if finite(
-            delta_up
-        )
-        else
-        np.nan
+        if finite(delta_up)
+        else np.nan
     )
 
     sigma_east = math.sqrt(
@@ -2746,53 +1860,32 @@ def calculate_residual(
 
     sigma_horizontal = math.sqrt(
         sigma_east ** 2
-        +
-        sigma_north ** 2
+        + sigma_north ** 2
     )
 
     snr = (
-        delta_horizontal
-        /
-        sigma_horizontal
+        delta_horizontal / sigma_horizontal
         if (
-            finite(
-                sigma_horizontal
-            )
-            and
-            sigma_horizontal > 0
+            finite(sigma_horizontal)
+            and sigma_horizontal > 0
         )
-        else
-        np.nan
+        else np.nan
     )
 
     return {
+        "dE_mm": delta_east,
+        "dN_mm": delta_north,
+        "dU_mm": delta_up,
+        "dH_mm": delta_horizontal,
+        "d3D_mm": delta_3d,
 
-        "dE_mm":
+        "azimuth_deg": vector_azimuth(
             delta_east,
-
-        "dN_mm":
             delta_north,
+        ),
 
-        "dU_mm":
-            delta_up,
-
-        "dH_mm":
-            delta_horizontal,
-
-        "d3D_mm":
-            delta_3d,
-
-        "azimuth_deg":
-            vector_azimuth(
-                delta_east,
-                delta_north
-            ),
-
-        "sigma_H_mm":
-            sigma_horizontal,
-
-        "snr":
-            snr
+        "sigma_H_mm": sigma_horizontal,
+        "snr": snr,
     }
 
 
@@ -2802,108 +1895,81 @@ def calculate_residual(
 
 def evaluate_persistence(
     early_res,
-    late_res
+    late_res,
 ):
-
-    if (
-        early_res is None
-        or
-        late_res is None
-    ):
-
+    if early_res is None or late_res is None:
         return {
             "available": False,
             "valid": False,
             "vector_difference_mm": np.nan,
-            "azimuth_difference_deg": np.nan
+            "azimuth_difference_deg": np.nan,
         }
 
     vector_difference = math.sqrt(
         (
             early_res["dE_mm"]
-            -
-            late_res["dE_mm"]
+            - late_res["dE_mm"]
         ) ** 2
         +
         (
             early_res["dN_mm"]
-            -
-            late_res["dN_mm"]
+            - late_res["dN_mm"]
         ) ** 2
     )
 
     allowed_difference = max(
         PERSISTENCE_ABS_TOL_MM,
+
         PERSISTENCE_REL_TOL
         *
         max(
-            late_res[
-                "dH_mm"
-            ],
-            1.0
-        )
+            late_res["dH_mm"],
+            1.0,
+        ),
     )
 
     amplitude_valid = (
         vector_difference
-        <=
-        allowed_difference
+        <= allowed_difference
     )
 
     azimuth_difference = angular_difference_deg(
-        early_res[
-            "azimuth_deg"
-        ],
-        late_res[
-            "azimuth_deg"
-        ]
+        early_res["azimuth_deg"],
+        late_res["azimuth_deg"],
     )
 
     if (
-        early_res[
-            "dH_mm"
-        ]
-        >=
-        PERSISTENCE_DIRECTION_MIN_MM
+        early_res["dH_mm"]
+        >= PERSISTENCE_DIRECTION_MIN_MM
         and
-        late_res[
-            "dH_mm"
-        ]
-        >=
-        PERSISTENCE_DIRECTION_MIN_MM
+        late_res["dH_mm"]
+        >= PERSISTENCE_DIRECTION_MIN_MM
     ):
-
         direction_valid = (
-            finite(
-                azimuth_difference
-            )
+            finite(azimuth_difference)
             and
             azimuth_difference
-            <=
-            PERSISTENCE_MAX_AZIMUTH_DIFF_DEG
+            <= PERSISTENCE_MAX_AZIMUTH_DIFF_DEG
         )
 
     else:
-
         direction_valid = True
 
     return {
+        "available": True,
 
-        "available":
-            True,
+        "valid": bool(
+            amplitude_valid
+            and direction_valid
+        ),
 
-        "valid":
-            bool(
-                amplitude_valid
-                and
-                direction_valid
-            ),
+        "vector_difference_mm": (
+            vector_difference
+        ),
 
-        "vector_difference_mm":
-            vector_difference,
-
-        "azimuth_difference_deg":
+        "azimuth_difference_deg": (
             azimuth_difference
+        ),
     }
 
 
@@ -2911,110 +1977,53 @@ def evaluate_persistence(
 # RESULTADO VACÍO
 # ============================================================
 
-def empty_station_result(
-    station
-):
-
+def empty_station_result(station):
     return {
+        "station_key": station["key"],
+        "station_lat": station["latitude"],
+        "station_lon": station["longitude"],
+        "distance_km": station["distance_km"],
 
-        "station_key":
-            station["key"],
+        "valid": False,
+        "res_valid": False,
 
-        "station_lat":
-            station["latitude"],
+        "detection_state": "NO_DATA",
+        "qc_level": "SIN DATOS",
 
-        "station_lon":
-            station["longitude"],
+        "pre_blocks": 0,
+        "early_blocks": 0,
+        "late_blocks": 0,
 
-        "distance_km":
-            station["distance_km"],
+        "pre_scatter_H_mm": np.nan,
+        "late_scatter_H_mm": np.nan,
 
-        "valid":
-            False,
+        "pre_drift_H_mm_min": np.nan,
+        "late_drift_H_mm_min": np.nan,
 
-        "res_valid":
-            False,
+        "pre_stable": False,
+        "late_stable": False,
 
-        "detection_state":
-            "NO_DATA",
+        "early_res_dH_mm": np.nan,
 
-        "qc_level":
-            "SIN DATOS",
+        "residual_dE_mm": np.nan,
+        "residual_dN_mm": np.nan,
+        "residual_dU_mm": np.nan,
+        "residual_dH_mm": np.nan,
+        "residual_d3D_mm": np.nan,
+        "residual_azimuth_deg": np.nan,
+        "residual_sigma_H_mm": np.nan,
+        "residual_snr": np.nan,
 
-        "pre_blocks":
-            0,
+        "persistence_valid": False,
+        "persistence_vector_diff_mm": np.nan,
+        "persistence_azimuth_diff_deg": np.nan,
 
-        "early_blocks":
-            0,
+        "plausibility_valid": False,
 
-        "late_blocks":
-            0,
+        "coherent": False,
+        "coherent_neighbors": 0,
 
-        "pre_scatter_H_mm":
-            np.nan,
-
-        "late_scatter_H_mm":
-            np.nan,
-
-        "pre_drift_H_mm_min":
-            np.nan,
-
-        "late_drift_H_mm_min":
-            np.nan,
-
-        "pre_stable":
-            False,
-
-        "late_stable":
-            False,
-
-        "early_res_dH_mm":
-            np.nan,
-
-        "residual_dE_mm":
-            np.nan,
-
-        "residual_dN_mm":
-            np.nan,
-
-        "residual_dU_mm":
-            np.nan,
-
-        "residual_dH_mm":
-            np.nan,
-
-        "residual_d3D_mm":
-            np.nan,
-
-        "residual_azimuth_deg":
-            np.nan,
-
-        "residual_sigma_H_mm":
-            np.nan,
-
-        "residual_snr":
-            np.nan,
-
-        "persistence_valid":
-            False,
-
-        "persistence_vector_diff_mm":
-            np.nan,
-
-        "persistence_azimuth_diff_deg":
-            np.nan,
-
-        "plausibility_valid":
-            False,
-
-        "coherent":
-            False,
-
-        "coherent_neighbors":
-            0,
-
-        "status":
-            ""
+        "status": "",
     }
 
 
@@ -3025,45 +2034,28 @@ def empty_station_result(
 def analyze_station_res(
     event,
     station,
-    current_time
+    current_time,
 ):
+    result = empty_station_result(station)
 
-    result = empty_station_result(
-        station
-    )
-
-    origin = ensure_utc(
-        event[
-            "time"
-        ]
-    )
+    origin = ensure_utc(event["time"])
 
     if (
         current_time
         <
         origin
-        +
-        pd.Timedelta(
-            seconds=
-                LATE_POST_END_SECONDS
+        + pd.Timedelta(
+            seconds=LATE_POST_END_SECONDS
         )
     ):
-
-        result[
-            "status"
-        ] = (
+        result["status"] = (
             "POST tardío aún incompleto"
         )
-
         return result
 
     wave = calculate_wave_times(
-        station[
-            "distance_km"
-        ],
-        event[
-            "depth_km"
-        ]
+        station["distance_km"],
+        event["depth_km"],
     )
 
     early_start = wave[
@@ -3072,117 +2064,66 @@ def analyze_station_res(
 
     start_time = (
         origin
-        +
-        pd.Timedelta(
-            seconds=
-                PRE_START_SECONDS
+        + pd.Timedelta(
+            seconds=PRE_START_SECONDS
         )
     )
 
     end_time = (
         origin
-        +
-        pd.Timedelta(
-            seconds=
-                LATE_POST_END_SECONDS
+        + pd.Timedelta(
+            seconds=LATE_POST_END_SECONDS
         )
     )
 
     stream, status = fetch_station_history(
-        station[
-            "network"
-        ],
-        station[
-            "station"
-        ],
+        station["network"],
+        station["station"],
         start_time,
-        end_time
+        end_time,
     )
 
-    result[
-        "status"
-    ] = status
+    result["status"] = status
 
     if stream is None:
-
         return result
 
     data = align_components(
-        stream_components(
-            stream
-        )
+        stream_components(stream)
     )
 
     if data.empty:
-
-        result[
-            "status"
-        ] = "sin E/N"
-
+        result["status"] = "sin E/N"
         return result
 
-    data[
-        "seconds_from_event"
-    ] = (
-        data[
-            "time"
-        ]
-        -
-        origin
+    data["seconds_from_event"] = (
+        data["time"] - origin
     ).dt.total_seconds()
 
     pre_blocks = make_block_medians(
         data,
         PRE_START_SECONDS,
-        PRE_END_SECONDS
+        PRE_END_SECONDS,
     )
 
-    result[
-        "pre_blocks"
-    ] = len(
-        pre_blocks
-    )
+    result["pre_blocks"] = len(pre_blocks)
 
-    if (
-        len(
-            pre_blocks
-        )
-        <
-        MIN_PRE_BLOCKS
-    ):
-
-        result[
-            "status"
-        ] = "PRE insuficiente"
-
+    if len(pre_blocks) < MIN_PRE_BLOCKS:
+        result["status"] = "PRE insuficiente"
         return result
 
     late_blocks = make_block_medians(
         data,
         LATE_POST_START_SECONDS,
-        LATE_POST_END_SECONDS
+        LATE_POST_END_SECONDS,
     )
 
-    result[
-        "late_blocks"
-    ] = len(
-        late_blocks
-    )
+    result["late_blocks"] = len(late_blocks)
 
-    if (
-        len(
-            late_blocks
-        )
-        <
-        MIN_LATE_POST_BLOCKS
-    ):
-
-        result[
-            "status"
-        ] = (
+    if len(late_blocks) < MIN_LATE_POST_BLOCKS:
+        result["status"] = (
             "POST tardío insuficiente"
         )
-
         return result
 
     early_blocks = pd.DataFrame()
@@ -3191,19 +2132,15 @@ def analyze_station_res(
         early_start
         <
         EARLY_POST_END_SECONDS
-        -
-        BLOCK_SECONDS
+        - BLOCK_SECONDS
     ):
-
         early_blocks = make_block_medians(
             data,
             early_start,
-            EARLY_POST_END_SECONDS
+            EARLY_POST_END_SECONDS,
         )
 
-    result[
-        "early_blocks"
-    ] = len(
+    result["early_blocks"] = len(
         early_blocks
     )
 
@@ -3216,39 +2153,17 @@ def analyze_station_res(
     )
 
     early_position = (
-        robust_block_position(
-            early_blocks
-        )
-        if (
-            len(
-                early_blocks
-            )
-            >=
-            MIN_EARLY_POST_BLOCKS
-        )
-        else
-        None
+        robust_block_position(early_blocks)
+        if len(early_blocks) >= MIN_EARLY_POST_BLOCKS
+        else None
     )
 
-    pre_scatter = (
-        pre_position[
-            "scatter_H_mm"
-        ]
-    )
+    pre_scatter = pre_position["scatter_H_mm"]
 
-    late_scatter = (
-        late_position[
-            "scatter_H_mm"
-        ]
-    )
+    late_scatter = late_position["scatter_H_mm"]
 
-    result[
-        "pre_scatter_H_mm"
-    ] = pre_scatter
-
-    result[
-        "late_scatter_H_mm"
-    ] = late_scatter
+    result["pre_scatter_H_mm"] = pre_scatter
+    result["late_scatter_H_mm"] = late_scatter
 
     pre_drift = horizontal_block_drift(
         pre_blocks
@@ -3258,237 +2173,127 @@ def analyze_station_res(
         late_blocks
     )
 
-    result[
-        "pre_drift_H_mm_min"
-    ] = pre_drift
+    result["pre_drift_H_mm_min"] = pre_drift
 
-    result[
-        "late_drift_H_mm_min"
-    ] = late_drift
+    result["late_drift_H_mm_min"] = late_drift
 
     pre_stable = (
-        finite(
-            pre_scatter
-        )
-        and
-        pre_scatter
-        <=
-        MAX_PRE_BLOCK_SCATTER_H_MM
-        and
-        finite(
-            pre_drift
-        )
-        and
-        pre_drift
-        <=
-        MAX_PRE_DRIFT_H_MM_PER_MIN
+        finite(pre_scatter)
+        and pre_scatter <= MAX_PRE_BLOCK_SCATTER_H_MM
+        and finite(pre_drift)
+        and pre_drift <= MAX_PRE_DRIFT_H_MM_PER_MIN
     )
 
     late_stable = (
-        finite(
-            late_scatter
-        )
-        and
-        late_scatter
-        <=
-        MAX_POST_BLOCK_SCATTER_H_MM
-        and
-        finite(
-            late_drift
-        )
-        and
-        late_drift
-        <=
-        MAX_POST_DRIFT_H_MM_PER_MIN
+        finite(late_scatter)
+        and late_scatter <= MAX_POST_BLOCK_SCATTER_H_MM
+        and finite(late_drift)
+        and late_drift <= MAX_POST_DRIFT_H_MM_PER_MIN
     )
 
-    result[
-        "pre_stable"
-    ] = bool(
-        pre_stable
-    )
+    result["pre_stable"] = bool(pre_stable)
 
-    result[
-        "late_stable"
-    ] = bool(
-        late_stable
-    )
+    result["late_stable"] = bool(late_stable)
 
     late_res = calculate_residual(
         pre_position,
-        late_position
+        late_position,
     )
 
     if late_res is None:
-
-        result[
-            "status"
-        ] = "RES no calculable"
-
+        result["status"] = "RES no calculable"
         return result
 
-    early_res = None
-
-    if early_position is not None:
-
-        early_res = calculate_residual(
+    early_res = (
+        calculate_residual(
             pre_position,
-            early_position
+            early_position,
         )
+        if early_position is not None
+        else None
+    )
 
     persistence = evaluate_persistence(
         early_res,
-        late_res
+        late_res,
     )
 
     limit = plausibility_limit_mm(
-        event[
-            "magnitude"
-        ]
+        event["magnitude"]
     )
 
     plausibility_valid = (
         True
         if not ENABLE_PLAUSIBILITY_FILTER
-        else
-        late_res[
-            "dH_mm"
-        ]
-        <=
-        limit
+        else late_res["dH_mm"] <= limit
     )
 
     res_valid = (
-        finite(
-            late_res[
-                "dH_mm"
-            ]
-        )
+        finite(late_res["dH_mm"])
         and
-        late_res[
-            "dH_mm"
-        ]
-        >=
-        MIN_RES_HORIZONTAL_MM
+        late_res["dH_mm"] >= MIN_RES_HORIZONTAL_MM
     )
 
     if (
         not res_valid
-        or
-        not finite(
-            late_res[
-                "snr"
-            ]
-        )
-        or
-        late_res[
-            "snr"
-        ]
-        <
-        MIN_RES_SNR_CANDIDATE
+        or not finite(late_res["snr"])
+        or late_res["snr"] < MIN_RES_SNR_CANDIDATE
     ):
-
-        detection_state = (
-            "NO_DETECTION"
-        )
+        detection_state = "NO_DETECTION"
 
     elif not plausibility_valid:
-
-        detection_state = (
-            "REJECTED_PLAUSIBILITY"
-        )
+        detection_state = "REJECTED_PLAUSIBILITY"
 
     else:
-
-        detection_state = (
-            "CANDIDATE"
-        )
+        detection_state = "CANDIDATE"
 
     result.update(
         {
-            "valid":
-                True,
+            "valid": True,
 
-            "res_valid":
-                bool(
-                    res_valid
-                ),
+            "res_valid": bool(res_valid),
 
-            "detection_state":
-                detection_state,
+            "detection_state": detection_state,
 
-            "early_res_dH_mm":
-                (
-                    early_res[
-                        "dH_mm"
-                    ]
-                    if early_res
-                    else
-                    np.nan
-                ),
+            "early_res_dH_mm": (
+                early_res["dH_mm"]
+                if early_res
+                else np.nan
+            ),
 
-            "residual_dE_mm":
-                late_res[
-                    "dE_mm"
-                ],
+            "residual_dE_mm": late_res["dE_mm"],
+            "residual_dN_mm": late_res["dN_mm"],
+            "residual_dU_mm": late_res["dU_mm"],
+            "residual_dH_mm": late_res["dH_mm"],
+            "residual_d3D_mm": late_res["d3D_mm"],
 
-            "residual_dN_mm":
-                late_res[
-                    "dN_mm"
-                ],
+            "residual_azimuth_deg": (
+                late_res["azimuth_deg"]
+            ),
 
-            "residual_dU_mm":
-                late_res[
-                    "dU_mm"
-                ],
+            "residual_sigma_H_mm": (
+                late_res["sigma_H_mm"]
+            ),
 
-            "residual_dH_mm":
-                late_res[
-                    "dH_mm"
-                ],
+            "residual_snr": late_res["snr"],
 
-            "residual_d3D_mm":
-                late_res[
-                    "d3D_mm"
-                ],
+            "persistence_valid": (
+                persistence["valid"]
+            ),
 
-            "residual_azimuth_deg":
-                late_res[
-                    "azimuth_deg"
-                ],
+            "persistence_vector_diff_mm": (
+                persistence["vector_difference_mm"]
+            ),
 
-            "residual_sigma_H_mm":
-                late_res[
-                    "sigma_H_mm"
-                ],
+            "persistence_azimuth_diff_deg": (
+                persistence["azimuth_difference_deg"]
+            ),
 
-            "residual_snr":
-                late_res[
-                    "snr"
-                ],
+            "plausibility_valid": bool(
+                plausibility_valid
+            ),
 
-            "persistence_valid":
-                persistence[
-                    "valid"
-                ],
-
-            "persistence_vector_diff_mm":
-                persistence[
-                    "vector_difference_mm"
-                ],
-
-            "persistence_azimuth_diff_deg":
-                persistence[
-                    "azimuth_difference_deg"
-                ],
-
-            "plausibility_valid":
-                bool(
-                    plausibility_valid
-                ),
-
-            "status":
-                "OK"
+            "status": "OK",
         }
     )
 
@@ -3501,194 +2306,111 @@ def analyze_station_res(
 
 def stations_are_spatially_coherent(
     station_a,
-    station_b
+    station_b,
 ):
-
     if (
-        station_a[
-            "detection_state"
-        ]
-        !=
-        "CANDIDATE"
-        or
-        station_b[
-            "detection_state"
-        ]
-        !=
-        "CANDIDATE"
+        station_a["detection_state"] != "CANDIDATE"
+        or station_b["detection_state"] != "CANDIDATE"
     ):
-
         return False
 
     distance = haversine_km(
-        station_a[
-            "station_lat"
-        ],
-        station_a[
-            "station_lon"
-        ],
-        station_b[
-            "station_lat"
-        ],
-        station_b[
-            "station_lon"
-        ]
+        station_a["station_lat"],
+        station_a["station_lon"],
+        station_b["station_lat"],
+        station_b["station_lon"],
     )
 
-    if (
-        distance
-        >
-        COHERENCE_MAX_DISTANCE_KM
-    ):
-
+    if distance > COHERENCE_MAX_DISTANCE_KM:
         return False
 
     vector_difference = math.sqrt(
         (
-            station_a[
-                "residual_dE_mm"
-            ]
-            -
-            station_b[
-                "residual_dE_mm"
-            ]
+            station_a["residual_dE_mm"]
+            - station_b["residual_dE_mm"]
         ) ** 2
         +
         (
-            station_a[
-                "residual_dN_mm"
-            ]
-            -
-            station_b[
-                "residual_dN_mm"
-            ]
+            station_a["residual_dN_mm"]
+            - station_b["residual_dN_mm"]
         ) ** 2
     )
 
     reference_amplitude = max(
         min(
-            station_a[
-                "residual_dH_mm"
-            ],
-            station_b[
-                "residual_dH_mm"
-            ]
+            station_a["residual_dH_mm"],
+            station_b["residual_dH_mm"],
         ),
-        1.0
+        1.0,
     )
 
     allowed_difference = max(
         COHERENCE_MAX_VECTOR_DIFF_MM,
         COHERENCE_REL_VECTOR_DIFF
-        *
-        reference_amplitude
+        * reference_amplitude,
     )
 
-    if (
-        vector_difference
-        >
-        allowed_difference
-    ):
-
+    if vector_difference > allowed_difference:
         return False
 
     if (
-        station_a[
-            "residual_dH_mm"
-        ]
-        >=
-        COHERENCE_DIRECTION_MIN_MM
+        station_a["residual_dH_mm"]
+        >= COHERENCE_DIRECTION_MIN_MM
         and
-        station_b[
-            "residual_dH_mm"
-        ]
-        >=
-        COHERENCE_DIRECTION_MIN_MM
+        station_b["residual_dH_mm"]
+        >= COHERENCE_DIRECTION_MIN_MM
     ):
-
         azimuth_difference = angular_difference_deg(
-            station_a[
-                "residual_azimuth_deg"
-            ],
-            station_b[
-                "residual_azimuth_deg"
-            ]
+            station_a["residual_azimuth_deg"],
+            station_b["residual_azimuth_deg"],
         )
 
         if (
-            not finite(
-                azimuth_difference
-            )
+            not finite(azimuth_difference)
             or
             azimuth_difference
-            >
-            COHERENCE_MAX_AZIMUTH_DIFF_DEG
+            > COHERENCE_MAX_AZIMUTH_DIFF_DEG
         ):
-
             return False
 
     return True
 
 
-def evaluate_spatial_coherence(
-    results
-):
-
+def evaluate_spatial_coherence(results):
     work = results.copy()
 
-    work[
-        "coherent"
-    ] = False
+    work["coherent"] = False
 
-    work[
-        "coherent_neighbors"
-    ] = 0
+    work["coherent_neighbors"] = 0
 
     candidates = work[
-        work[
-            "detection_state"
-        ]
-        ==
-        "CANDIDATE"
+        work["detection_state"] == "CANDIDATE"
     ].index.tolist()
 
     for index_a in candidates:
-
         neighbors = 0
 
         for index_b in candidates:
-
-            if (
-                index_a
-                ==
-                index_b
-            ):
-
+            if index_a == index_b:
                 continue
 
             if stations_are_spatially_coherent(
-                work.loc[
-                    index_a
-                ],
-                work.loc[
-                    index_b
-                ]
+                work.loc[index_a],
+                work.loc[index_b],
             ):
-
                 neighbors += 1
 
         work.at[
             index_a,
-            "coherent_neighbors"
+            "coherent_neighbors",
         ] = neighbors
 
         work.at[
             index_a,
-            "coherent"
+            "coherent",
         ] = (
             neighbors
-            >=
-            MIN_COHERENT_NEIGHBORS_HIGH
+            >= MIN_COHERENT_NEIGHBORS_HIGH
         )
 
     return work
@@ -3698,153 +2420,83 @@ def evaluate_spatial_coherence(
 # QC FINAL
 # ============================================================
 
-def classify_final_qc(
-    row
-):
-
-    if not bool(
-        row.get(
-            "valid",
-            False
-        )
-    ):
-
-        return (
-            "SIN DATOS",
-            "NO_DATA"
-        )
+def classify_final_qc(row):
+    if not bool(row.get("valid", False)):
+        return "SIN DATOS", "NO_DATA"
 
     if (
-        row.get(
-            "detection_state"
-        )
-        ==
-        "REJECTED_PLAUSIBILITY"
+        row.get("detection_state")
+        == "REJECTED_PLAUSIBILITY"
     ):
-
         return (
             "RECHAZADO",
-            "REJECTED_PLAUSIBILITY"
+            "REJECTED_PLAUSIBILITY",
         )
 
     snr = numeric(
-        row.get(
-            "residual_snr"
-        )
+        row.get("residual_snr")
     )
 
     if (
-        not finite(
-            snr
-        )
-        or
-        snr
-        <
-        MIN_RES_SNR_CANDIDATE
+        not finite(snr)
+        or snr < MIN_RES_SNR_CANDIDATE
     ):
-
-        return (
-            "BAJO",
-            "NO_DETECTION"
-        )
+        return "BAJO", "NO_DETECTION"
 
     persistence = bool(
-        row.get(
-            "persistence_valid",
-            False
-        )
+        row.get("persistence_valid", False)
     )
 
     pre_stable = bool(
-        row.get(
-            "pre_stable",
-            False
-        )
+        row.get("pre_stable", False)
     )
 
     late_stable = bool(
-        row.get(
-            "late_stable",
-            False
-        )
+        row.get("late_stable", False)
     )
 
     coherent = bool(
-        row.get(
-            "coherent",
-            False
-        )
+        row.get("coherent", False)
     )
 
     if (
-        snr
-        >=
-        MIN_RES_SNR_HIGH
-        and
-        persistence
-        and
-        pre_stable
-        and
-        late_stable
-        and
-        coherent
+        snr >= MIN_RES_SNR_HIGH
+        and persistence
+        and pre_stable
+        and late_stable
+        and coherent
     ):
-
-        return (
-            "ALTO",
-            "VALID_RES"
-        )
+        return "ALTO", "VALID_RES"
 
     if (
-        snr
-        >=
-        MIN_RES_SNR_MODERATE
-        and
-        persistence
-        and
-        pre_stable
-        and
-        late_stable
+        snr >= MIN_RES_SNR_MODERATE
+        and persistence
+        and pre_stable
+        and late_stable
     ):
+        return "MODERADO", "VALID_RES"
 
-        return (
-            "MODERADO",
-            "VALID_RES"
-        )
-
-    return (
-        "BAJO",
-        "CANDIDATE"
-    )
+    return "BAJO", "CANDIDATE"
 
 
-def finalize_results(
-    results
-):
-
+def finalize_results(results):
     work = evaluate_spatial_coherence(
         results
     )
 
     classifications = work.apply(
         classify_final_qc,
-        axis=1
+        axis=1,
     )
 
-    work[
-        "qc_level"
-    ] = [
+    work["qc_level"] = [
         item[0]
-        for item in
-        classifications
+        for item in classifications
     ]
 
-    work[
-        "detection_state"
-    ] = [
+    work["detection_state"] = [
         item[1]
-        for item in
-        classifications
+        for item in classifications
     ]
 
     return work
@@ -3856,20 +2508,17 @@ def finalize_results(
 
 def analyze_event(
     event,
-    stations
+    stations,
 ):
-
     nearby = select_nearby_stations(
         event,
-        stations
+        stations,
     )
 
     if nearby.empty:
-
         print(
             "No existen estaciones GNSS cercanas."
         )
-
         return pd.DataFrame()
 
     current_time = pd.Timestamp.now(
@@ -3878,21 +2527,16 @@ def analyze_event(
 
     rows = []
 
-    print()
-
     print(
-        "Analizando",
-        len(
-            nearby
-        ),
-        "estaciones GNSS..."
+        "\nAnalizando",
+        len(nearby),
+        "estaciones GNSS...",
     )
 
     for number, (_, station) in enumerate(
         nearby.iterrows(),
-        1
+        1,
     ):
-
         print(
             f"[{number:02d}/{len(nearby):02d}] "
             f"{station['key']} · "
@@ -3900,95 +2544,59 @@ def analyze_event(
         )
 
         try:
-
             result = analyze_station_res(
                 event,
                 station,
-                current_time
+                current_time,
             )
 
         except Exception as exc:
-
             result = empty_station_result(
                 station
             )
 
-            result[
-                "status"
-            ] = (
+            result["status"] = (
                 f"ERROR {exc}"
             )
 
-        rows.append(
-            result
-        )
+        rows.append(result)
 
-    results = pd.DataFrame(
-        rows
-    )
+    results = pd.DataFrame(rows)
 
     if results.empty:
-
         return results
 
-    return finalize_results(
-        results
-    )
+    return finalize_results(results)
 
 
 # ============================================================
-# PUBLICABLES
+# ESTACIONES PUBLICABLES
 # ============================================================
 
-def station_is_publishable(
-    row
-):
-
-    if not bool(
-        row.get(
-            "valid",
-            False
-        )
-    ):
-
+def station_is_publishable(row):
+    if not bool(row.get("valid", False)):
         return False
 
     if (
-        row.get(
-            "detection_state"
-        )
-        !=
-        "VALID_RES"
+        row.get("detection_state")
+        != "VALID_RES"
     ):
-
         return False
 
     if (
-        row.get(
-            "qc_level"
-        )
-        not in
-        PUBLISH_QC_LEVELS
+        row.get("qc_level")
+        not in PUBLISH_QC_LEVELS
     ):
-
         return False
 
     if not bool(
-        row.get(
-            "persistence_valid",
-            False
-        )
+        row.get("persistence_valid", False)
     ):
-
         return False
 
     if not bool(
-        row.get(
-            "plausibility_valid",
-            False
-        )
+        row.get("plausibility_valid", False)
     ):
-
         return False
 
     fields = [
@@ -3996,64 +2604,39 @@ def station_is_publishable(
         "residual_dN_mm",
         "residual_dH_mm",
         "residual_sigma_H_mm",
-        "residual_snr"
+        "residual_snr",
     ]
 
     for field in fields:
-
-        if not finite(
-            row.get(
-                field
-            )
-        ):
-
+        if not finite(row.get(field)):
             return False
 
     return True
 
 
-def get_publishable_stations(
-    results
-):
-
-    if (
-        results is None
-        or
-        results.empty
-    ):
-
+def get_publishable_stations(results):
+    if results is None or results.empty:
         return pd.DataFrame()
 
     mask = results.apply(
         station_is_publishable,
-        axis=1
+        axis=1,
     )
 
-    work = results[
-        mask
-    ].copy()
+    work = results[mask].copy()
 
     if work.empty:
-
         return work
 
     quality_rank = {
         "ALTO": 2,
-        "MODERADO": 1
+        "MODERADO": 1,
     }
 
-    work[
-        "_rank"
-    ] = (
-        work[
-            "qc_level"
-        ]
-        .map(
-            quality_rank
-        )
-        .fillna(
-            0
-        )
+    work["_rank"] = (
+        work["qc_level"]
+        .map(quality_rank)
+        .fillna(0)
     )
 
     return (
@@ -4063,23 +2646,17 @@ def get_publishable_stations(
                 "_rank",
                 "coherent_neighbors",
                 "residual_snr",
-                "residual_dH_mm"
+                "residual_dH_mm",
             ],
             ascending=[
                 False,
                 False,
                 False,
-                False
-            ]
+                False,
+            ],
         )
-        .drop(
-            columns=[
-                "_rank"
-            ]
-        )
-        .reset_index(
-            drop=True
-        )
+        .drop(columns=["_rank"])
+        .reset_index(drop=True)
     )
 
 
@@ -4088,14 +2665,11 @@ def get_publishable_stations(
 # ============================================================
 
 def load_chile_outline():
-
     try:
-
         if not NE_ZIP_FILE.exists():
-
             response = http.get(
                 NATURAL_EARTH_URL,
-                timeout=60
+                timeout=60,
             )
 
             response.raise_for_status()
@@ -4106,34 +2680,25 @@ def load_chile_outline():
 
         NE_DIR.mkdir(
             parents=True,
-            exist_ok=True
+            exist_ok=True,
         )
 
         shapefiles = list(
-            NE_DIR.glob(
-                "*.shp"
-            )
+            NE_DIR.glob("*.shp")
         )
 
         if not shapefiles:
-
             with zipfile.ZipFile(
                 NE_ZIP_FILE,
-                "r"
+                "r",
             ) as archive:
-
-                archive.extractall(
-                    NE_DIR
-                )
+                archive.extractall(NE_DIR)
 
             shapefiles = list(
-                NE_DIR.glob(
-                    "*.shp"
-                )
+                NE_DIR.glob("*.shp")
             )
 
         if not shapefiles:
-
             return None
 
         world = gpd.read_file(
@@ -4144,64 +2709,40 @@ def load_chile_outline():
             "ADMIN",
             "NAME",
             "NAME_LONG",
-            "SOVEREIGNT"
+            "SOVEREIGNT",
         ]:
-
             if column not in world.columns:
-
                 continue
 
             chile = world[
-                world[
-                    column
-                ]
+                world[column]
                 .astype(str)
                 .str.lower()
-                .eq(
-                    "chile"
-                )
+                .eq("chile")
             ].copy()
 
             if chile.empty:
-
                 continue
 
             if chile.crs is None:
-
-                chile = chile.set_crs(
-                    4326
-                )
+                chile = chile.set_crs(4326)
 
             else:
-
-                chile = chile.to_crs(
-                    4326
-                )
+                chile = chile.to_crs(4326)
 
             return chile
 
     except Exception as exc:
-
         print(
             "Mapa base no disponible:",
-            exc
+            exc,
         )
 
     return None
 
 
-def result_color(
-    row
-):
-
-    if (
-        row.get(
-            "qc_level"
-        )
-        ==
-        "ALTO"
-    ):
-
+def result_color(row):
+    if row.get("qc_level") == "ALTO":
         return COLOR_GREEN
 
     return COLOR_ORANGE
@@ -4209,58 +2750,48 @@ def result_color(
 
 # ============================================================
 # CREAR LÁMINA
+#
+# CAMBIO SOLICITADO:
+#   SNR: indicador principal, fuente grande.
+#   RES ± incertidumbre: información secundaria.
 # ============================================================
 
 def create_social_sheet(
     event,
     publishable,
-    chile
+    chile,
 ):
-
     if publishable.empty:
-
         raise ValueError(
             "Sin estaciones VALID_RES."
         )
 
-    primary = publishable.iloc[
-        0
-    ]
+    # Conserva la selección original:
+    # QC, vecinos coherentes, SNR y RES.
+    primary = publishable.iloc[0]
 
     figure = plt.figure(
-        figsize=(
-            16,
-            9
-        ),
-        facecolor=
-            COLOR_WHITE
+        figsize=(16, 9),
+        facecolor=COLOR_WHITE,
     )
+
+    # --------------------------------------------------------
+    # CABECERA
+    # --------------------------------------------------------
 
     header = figure.add_axes(
-        [
-            0,
-            0.85,
-            1,
-            0.15
-        ]
+        [0, 0.85, 1, 0.15]
     )
 
-    header.axis(
-        "off"
-    )
+    header.axis("off")
 
     header.add_patch(
         patches.Rectangle(
-            (
-                0,
-                0
-            ),
+            (0, 0),
             1,
             1,
-            transform=
-                header.transAxes,
-            color=
-                COLOR_NAVY
+            transform=header.transAxes,
+            color=COLOR_NAVY,
         )
     )
 
@@ -4271,7 +2802,7 @@ def create_social_sheet(
         fontsize=22,
         fontweight="bold",
         color=COLOR_WHITE,
-        va="center"
+        va="center",
     )
 
     header.text(
@@ -4280,7 +2811,7 @@ def create_social_sheet(
         BRAND_SUBTITLE,
         fontsize=11.5,
         color="#CBD5E1",
-        va="center"
+        va="center",
     )
 
     header.text(
@@ -4293,120 +2824,69 @@ def create_social_sheet(
         ha="right",
         va="center",
         bbox=dict(
-            boxstyle=
-                "round,pad=0.5",
-            facecolor=
-                COLOR_RED,
-            edgecolor=
-                "none"
-        )
+            boxstyle="round,pad=0.5",
+            facecolor=COLOR_RED,
+            edgecolor="none",
+        ),
     )
+
+    # --------------------------------------------------------
+    # MAPA
+    # --------------------------------------------------------
 
     axis = figure.add_axes(
-        [
-            0.035,
-            0.11,
-            0.61,
-            0.69
-        ]
+        [0.035, 0.11, 0.61, 0.69]
     )
 
-    axis.set_facecolor(
-        COLOR_SEA
-    )
+    axis.set_facecolor(COLOR_SEA)
 
-    if (
-        chile is not None
-        and
-        not chile.empty
-    ):
-
+    if chile is not None and not chile.empty:
         chile.plot(
             ax=axis,
-            facecolor=
-                COLOR_LAND,
-            edgecolor=
-                COLOR_GRAY,
+            facecolor=COLOR_LAND,
+            edgecolor=COLOR_GRAY,
             linewidth=0.7,
-            zorder=1
+            zorder=1,
         )
 
     axis.scatter(
-        event[
-            "longitude"
-        ],
-        event[
-            "latitude"
-        ],
+        event["longitude"],
+        event["latitude"],
         marker="*",
         s=650,
         color=COLOR_RED,
         edgecolor=COLOR_NAVY,
         linewidth=1.5,
-        zorder=30
+        zorder=30,
     )
 
-    longitudes = [
-        event[
-            "longitude"
-        ]
-    ]
+    longitudes = [event["longitude"]]
 
-    latitudes = [
-        event[
-            "latitude"
-        ]
-    ]
+    latitudes = [event["latitude"]]
 
     maximum_res = (
-        publishable[
-            "residual_dH_mm"
-        ]
-        .max()
+        publishable["residual_dH_mm"].max()
     )
 
     vector_scale = (
-        VECTOR_TARGET_DEGREES
-        /
-        maximum_res
-        if (
-            finite(
-                maximum_res
-            )
-            and
-            maximum_res > 0
-        )
-        else
-        0.02
+        VECTOR_TARGET_DEGREES / maximum_res
+        if finite(maximum_res) and maximum_res > 0
+        else 0.02
     )
 
-    for _, row in (
-        publishable.iterrows()
-    ):
-
+    for _, row in publishable.iterrows():
         longitude = float(
-            row[
-                "station_lon"
-            ]
+            row["station_lon"]
         )
 
         latitude = float(
-            row[
-                "station_lat"
-            ]
+            row["station_lat"]
         )
 
-        longitudes.append(
-            longitude
-        )
+        longitudes.append(longitude)
+        latitudes.append(latitude)
 
-        latitudes.append(
-            latitude
-        )
-
-        color = result_color(
-            row
-        )
+        color = result_color(row)
 
         axis.scatter(
             longitude,
@@ -4415,23 +2895,17 @@ def create_social_sheet(
             color=color,
             edgecolor=COLOR_NAVY,
             linewidth=0.9,
-            zorder=15
+            zorder=15,
         )
 
         delta_x = (
-            row[
-                "residual_dE_mm"
-            ]
-            *
-            vector_scale
+            row["residual_dE_mm"]
+            * vector_scale
         )
 
         delta_y = (
-            row[
-                "residual_dN_mm"
-            ]
-            *
-            vector_scale
+            row["residual_dN_mm"]
+            * vector_scale
         )
 
         axis.arrow(
@@ -4444,167 +2918,108 @@ def create_social_sheet(
             head_length=0.05,
             length_includes_head=True,
             color=color,
-            zorder=14
+            zorder=14,
         )
 
+        # También se muestra SNR antes que RES
+        # en las etiquetas de las estaciones.
         axis.annotate(
             (
                 f"{row['station_key']}\n"
-                f"RES {row['residual_dH_mm']:.1f}"
-                f" ± {row['residual_sigma_H_mm']:.1f} mm\n"
                 f"SNR {row['residual_snr']:.1f} · "
-                f"QC {row['qc_level']}"
+                f"QC {row['qc_level']}\n"
+                f"RES {row['residual_dH_mm']:.1f}"
+                f" ± {row['residual_sigma_H_mm']:.1f} mm"
             ),
-            (
-                longitude,
-                latitude
-            ),
-            xytext=(
-                5,
-                5
-            ),
-            textcoords=
-                "offset points",
+            (longitude, latitude),
+            xytext=(5, 5),
+            textcoords="offset points",
             fontsize=7,
             bbox=dict(
-                boxstyle=
-                    "round,pad=0.23",
-                facecolor=
-                    COLOR_WHITE,
-                edgecolor=
-                    color,
-                alpha=
-                    0.95
+                boxstyle="round,pad=0.23",
+                facecolor=COLOR_WHITE,
+                edgecolor=color,
+                alpha=0.95,
             ),
-            zorder=20
+            zorder=20,
         )
 
     longitude_margin = max(
         0.65,
         (
-            max(
-                longitudes
-            )
-            -
-            min(
-                longitudes
-            )
-        )
-        *
-        0.30
+            max(longitudes)
+            - min(longitudes)
+        ) * 0.30,
     )
 
     latitude_margin = max(
         0.65,
         (
-            max(
-                latitudes
-            )
-            -
-            min(
-                latitudes
-            )
-        )
-        *
-        0.30
+            max(latitudes)
+            - min(latitudes)
+        ) * 0.30,
     )
 
     axis.set_xlim(
         max(
             MAP_LON_MIN,
-            min(
-                longitudes
-            )
-            -
-            longitude_margin
+            min(longitudes) - longitude_margin,
         ),
         min(
             MAP_LON_MAX,
-            max(
-                longitudes
-            )
-            +
-            longitude_margin
-        )
+            max(longitudes) + longitude_margin,
+        ),
     )
 
     axis.set_ylim(
         max(
             MAP_LAT_MIN,
-            min(
-                latitudes
-            )
-            -
-            latitude_margin
+            min(latitudes) - latitude_margin,
         ),
         min(
             MAP_LAT_MAX,
-            max(
-                latitudes
-            )
-            +
-            latitude_margin
-        )
+            max(latitudes) + latitude_margin,
+        ),
     )
 
-    axis.grid(
-        alpha=0.25
-    )
+    axis.grid(alpha=0.25)
 
-    axis.set_xlabel(
-        "Longitud"
-    )
+    axis.set_xlabel("Longitud")
 
-    axis.set_ylabel(
-        "Latitud"
-    )
+    axis.set_ylabel("Latitud")
 
     axis.set_title(
         MAP_TITLE,
         loc="left",
         fontsize=13,
-        fontweight="bold"
+        fontweight="bold",
     )
+
+    # --------------------------------------------------------
+    # PANEL DERECHO: INFORMACIÓN DEL SISMO
+    # --------------------------------------------------------
 
     info = figure.add_axes(
-        [
-            0.675,
-            0.14,
-            0.29,
-            0.63
-        ]
+        [0.675, 0.14, 0.29, 0.63]
     )
 
-    info.axis(
-        "off"
-    )
+    info.axis("off")
 
     info.add_patch(
         patches.FancyBboxPatch(
-            (
-                0,
-                0.54
-            ),
+            (0, 0.54),
             1,
             0.43,
-            boxstyle=
-                "round,pad=0.014",
-            facecolor=
-                COLOR_LIGHT_GRAY,
-            edgecolor=
-                COLOR_BORDER
+            boxstyle="round,pad=0.014",
+            facecolor=COLOR_LIGHT_GRAY,
+            edgecolor=COLOR_BORDER,
         )
     )
 
     magnitude_text = (
         f"M {event['magnitude']:.1f}"
-        if finite(
-            event[
-                "magnitude"
-            ]
-        )
-        else
-        "M ?"
+        if finite(event["magnitude"])
+        else "M ?"
     )
 
     info.text(
@@ -4613,157 +3028,133 @@ def create_social_sheet(
         magnitude_text,
         fontsize=34,
         fontweight="bold",
-        color=COLOR_RED
+        color=COLOR_RED,
     )
 
     info.text(
         0.05,
         0.80,
         ensure_utc(
-            event[
-                "time"
-            ]
+            event["time"]
         ).strftime(
             "%Y-%m-%d %H:%M:%S UTC"
         ),
         fontsize=10.5,
-        fontweight="bold"
+        fontweight="bold",
     )
 
     info.text(
         0.05,
         0.72,
         (
-            f"Profundidad: "
+            "Profundidad: "
             f"{fmt(event['depth_km'], 1, ' km')}"
         ),
-        fontsize=10.5
+        fontsize=10.5,
     )
 
     info.text(
         0.05,
         0.65,
-        (
-            f"Latitud: "
-            f"{event['latitude']:.3f}°"
-        ),
+        f"Latitud: {event['latitude']:.3f}°",
         fontsize=9.5,
-        color=COLOR_MUTED
+        color=COLOR_MUTED,
     )
 
     info.text(
         0.05,
         0.59,
-        (
-            f"Longitud: "
-            f"{event['longitude']:.3f}°"
-        ),
+        f"Longitud: {event['longitude']:.3f}°",
         fontsize=9.5,
-        color=COLOR_MUTED
+        color=COLOR_MUTED,
     )
+
+    # --------------------------------------------------------
+    # PANEL ACTUALIZADO:
+    # SNR GRANDE + RES COMO SUBINFORMACIÓN
+    # --------------------------------------------------------
 
     info.add_patch(
         patches.FancyBboxPatch(
-            (
-                0,
-                0.17
-            ),
+            (0, 0.15),
             1,
-            0.28,
-            boxstyle=
-                "round,pad=0.014",
-            facecolor=
-                COLOR_WHITE,
-            edgecolor=
-                COLOR_BORDER
+            0.32,
+            boxstyle="round,pad=0.014",
+            facecolor=COLOR_WHITE,
+            edgecolor=COLOR_BORDER,
         )
     )
 
     info.text(
         0.05,
-        0.395,
-        "MÁXIMO RES VALIDADO",
-        fontsize=9.5,
+        0.430,
+        "SNR · RELACIÓN SEÑAL / RUIDO",
+        fontsize=10,
         fontweight="bold",
-        color=COLOR_MUTED
+        color=COLOR_MUTED,
+        va="center",
     )
 
+    # SNR es adimensional: no lleva unidad mm.
     info.text(
         0.05,
-        0.30,
+        0.337,
+        f"{primary['residual_snr']:.1f}",
+        fontsize=44,
+        fontweight="bold",
+        color=result_color(primary),
+        va="center",
+    )
+
+    # RES pasa a ser información secundaria.
+    info.text(
+        0.05,
+        0.252,
         (
+            "RES validado: "
             f"{primary['residual_dH_mm']:.1f}"
+            f" ± {primary['residual_sigma_H_mm']:.1f} mm"
         ),
-        fontsize=32,
-        fontweight="bold",
-        color=result_color(
-            primary
-        )
-    )
-
-    info.text(
-        0.32,
-        0.30,
-        "mm",
         fontsize=12,
-        fontweight="bold"
+        color=COLOR_NAVY,
+        va="center",
     )
 
     info.text(
         0.05,
-        0.245,
+        0.192,
         (
             f"{primary['station_key']} · "
-            f"Az "
-            f"{primary['residual_azimuth_deg']:.0f}°"
-        ),
-        fontsize=10
-    )
-
-    info.text(
-        0.05,
-        0.195,
-        (
-            f"±{primary['residual_sigma_H_mm']:.1f} mm · "
-            f"SNR {primary['residual_snr']:.1f} · "
+            f"Az {primary['residual_azimuth_deg']:.0f}° · "
             f"QC {primary['qc_level']}"
         ),
-        fontsize=9.5,
-        fontweight="bold",
-        color=result_color(
-            primary
-        )
+        fontsize=10,
+        color=COLOR_MUTED,
+        va="center",
     )
 
     info.text(
         0.02,
         0.08,
         textwrap.fill(
-            repair_text(
-                event[
-                    "region"
-                ]
-            ),
-            42
+            repair_text(event["region"]),
+            42,
         ),
         fontsize=10.5,
         fontweight="bold",
         va="top",
-        color=COLOR_NAVY
+        color=COLOR_NAVY,
     )
+
+    # --------------------------------------------------------
+    # PIE DE LÁMINA
+    # --------------------------------------------------------
 
     footer = figure.add_axes(
-        [
-            0.035,
-            0.015,
-            0.93,
-            0.06
-        ]
+        [0.035, 0.015, 0.93, 0.06]
     )
 
-    footer.axis(
-        "off"
-    )
+    footer.axis("off")
 
     footer.text(
         0,
@@ -4773,7 +3164,7 @@ def create_social_sheet(
             "entre ventanas PRE y POST."
         ),
         fontsize=8,
-        color=COLOR_MUTED
+        color=COLOR_MUTED,
     )
 
     footer.text(
@@ -4781,7 +3172,7 @@ def create_social_sheet(
         0.20,
         "Resultado automático preliminar.",
         fontsize=7.7,
-        color=COLOR_MUTED
+        color=COLOR_MUTED,
     )
 
     footer.text(
@@ -4792,29 +3183,22 @@ def create_social_sheet(
         ),
         fontsize=7.4,
         color=COLOR_MUTED,
-        ha="right"
+        ha="right",
     )
 
     output = (
         OUTPUT_DIR
-        /
-        (
-            f"res_"
-            f"{event['event_id']}"
-            ".png"
-        )
+        / f"res_{event['event_id']}.png"
     )
 
     plt.savefig(
         output,
         dpi=180,
         bbox_inches="tight",
-        facecolor=COLOR_WHITE
+        facecolor=COLOR_WHITE,
     )
 
-    plt.close(
-        figure
-    )
+    plt.close(figure)
 
     return output
 
@@ -4823,54 +3207,31 @@ def create_social_sheet(
 # TEXTO DEL TWEET
 # ============================================================
 
-def build_x_text(
-    event
-):
-
+def build_x_text(event):
     event_time = ensure_utc(
-        event[
-            "time"
-        ]
+        event["time"]
     ).strftime(
         "%Y-%m-%d %H:%M:%S"
     )
 
     magnitude = (
         f"{event['magnitude']:.1f}"
-        if finite(
-            event[
-                "magnitude"
-            ]
-        )
-        else
-        "-"
+        if finite(event["magnitude"])
+        else "-"
     )
 
-    magnitude_type = (
-        str(
-            event.get(
-                "mag_type",
-                ""
-            )
-        ).strip()
-    )
+    magnitude_type = str(
+        event.get("mag_type", "")
+    ).strip()
 
     depth = (
         f"{event['depth_km']:.1f}"
-        if finite(
-            event[
-                "depth_km"
-            ]
-        )
-        else
-        "-"
+        if finite(event["depth_km"])
+        else "-"
     )
 
     region = repair_text(
-        event.get(
-            "region",
-            "Chile"
-        )
+        event.get("region", "Chile")
     )
 
     text = (
@@ -4890,78 +3251,49 @@ def build_x_text(
 # ============================================================
 
 def configure_x():
-
     credentials = {
-
-        "X_API_KEY":
-            X_API_KEY,
-
-        "X_API_SECRET":
-            X_API_SECRET,
-
-        "X_ACCESS_TOKEN":
-            X_ACCESS_TOKEN,
-
-        "X_ACCESS_TOKEN_SECRET":
-            X_ACCESS_TOKEN_SECRET
+        "X_API_KEY": X_API_KEY,
+        "X_API_SECRET": X_API_SECRET,
+        "X_ACCESS_TOKEN": X_ACCESS_TOKEN,
+        "X_ACCESS_TOKEN_SECRET": X_ACCESS_TOKEN_SECRET,
     }
 
-    missing = []
-
-    for name, value in credentials.items():
-
+    missing = [
+        name
+        for name, value in credentials.items()
         if (
             not value
-            or
-            str(
-                value
-            ).startswith(
-                "TU_"
-            )
-        ):
-
-            missing.append(
-                name
-            )
+            or str(value).startswith("TU_")
+        )
+    ]
 
     if missing:
-
         raise RuntimeError(
             "Faltan credenciales X: "
-            +
-            ", ".join(
-                missing
-            )
+            + ", ".join(missing)
         )
 
     auth = tweepy.OAuth1UserHandler(
         X_API_KEY,
         X_API_SECRET,
         X_ACCESS_TOKEN,
-        X_ACCESS_TOKEN_SECRET
+        X_ACCESS_TOKEN_SECRET,
     )
 
     media_api = tweepy.API(
         auth,
-        wait_on_rate_limit=True
+        wait_on_rate_limit=True,
     )
 
     client = tweepy.Client(
-        consumer_key=
-            X_API_KEY,
-        consumer_secret=
-            X_API_SECRET,
-        access_token=
-            X_ACCESS_TOKEN,
-        access_token_secret=
-            X_ACCESS_TOKEN_SECRET,
-        wait_on_rate_limit=True
+        consumer_key=X_API_KEY,
+        consumer_secret=X_API_SECRET,
+        access_token=X_ACCESS_TOKEN,
+        access_token_secret=X_ACCESS_TOKEN_SECRET,
+        wait_on_rate_limit=True,
     )
 
-    return (
-        media_api,
-        client
-    )
+    return media_api, client
 
 
 # ============================================================
@@ -4972,111 +3304,69 @@ def publish_to_x(
     image_path,
     text,
     media_api,
-    client
+    client,
 ):
+    print("\n" + "=" * 80)
 
-    print()
+    print("POST PREPARADO")
 
-    print(
-        "=" * 80
-    )
+    print("=" * 80)
 
-    print(
-        "POST PREPARADO"
-    )
+    print(text)
 
-    print(
-        "=" * 80
-    )
-
-    print(
-        text
-    )
-
-    print()
-
-    print(
-        "Imagen:",
-        image_path
-    )
+    print("\nImagen:", image_path)
 
     if DRY_RUN:
-
-        print()
-
         print(
-            "DRY_RUN=True → NO PUBLICADO EN X"
+            "\nDRY_RUN=True → NO PUBLICADO EN X"
         )
-
         return None
 
     if (
         REQUIRE_SCALE_VERIFIED_FOR_REAL_POST
-        and
-        not SCALE_VERIFIED
+        and not SCALE_VERIFIED
     ):
-
         raise RuntimeError(
             "Publicación bloqueada: "
             "SCALE_VERIFIED=False."
         )
 
     media = media_api.media_upload(
-        filename=
-            str(
-                image_path
-            )
+        filename=str(image_path)
     )
 
     try:
-
         media_api.create_media_metadata(
             media.media_id,
             (
                 "Mapa de desplazamiento geodésico "
                 "residual GNSS observado alrededor "
                 "de un evento sísmico en Chile."
-            )
+            ),
         )
 
     except Exception as exc:
-
         print(
             "Alt text no agregado:",
-            exc
+            exc,
         )
 
     response = client.create_tweet(
         text=text,
-        media_ids=[
-            media.media_id
-        ]
+        media_ids=[media.media_id],
     )
 
     post_id = None
 
     try:
-
-        post_id = (
-            response.data[
-                "id"
-            ]
-        )
+        post_id = response.data["id"]
 
     except Exception:
-
         pass
 
-    print()
+    print("\nPUBLICADO EN X")
 
-    print(
-        "PUBLICADO EN X"
-    )
-
-    print(
-        "Post ID:",
-        post_id
-    )
+    print("Post ID:", post_id)
 
     return post_id
 
@@ -5085,12 +3375,8 @@ def publish_to_x(
 # TABLA DE RESULTADOS
 # ============================================================
 
-def print_results_table(
-    results
-):
-
+def print_results_table(results):
     columns = [
-
         "station_key",
         "distance_km",
         "pre_blocks",
@@ -5117,14 +3403,13 @@ def print_results_table(
         "coherent",
         "detection_state",
         "qc_level",
-        "status"
+        "status",
     ]
 
     columns = [
         column
         for column in columns
-        if column in
-        results.columns
+        if column in results.columns
     ]
 
     with pd.option_context(
@@ -5133,15 +3418,12 @@ def print_results_table(
         "display.width",
         250,
         "display.max_rows",
-        100
+        100,
     ):
-
         print()
 
         print(
-            results[
-                columns
-            ].to_string(
+            results[columns].to_string(
                 index=False
             )
         )
@@ -5157,132 +3439,80 @@ def process_event(
     chile,
     state,
     media_api,
-    client
+    client,
 ):
+    event_id = str(event["event_id"])
 
-    event_id = str(
-        event[
-            "event_id"
-        ]
-    )
+    print("\n" + "=" * 80)
 
-    print()
+    print("ANÁLISIS RES", event_id)
 
-    print(
-        "=" * 80
-    )
+    print("=" * 80)
 
-    print(
-        "ANÁLISIS RES",
-        event_id
-    )
-
-    print(
-        "=" * 80
-    )
-
-    print(
-        "UTC:",
-        event[
-            "time"
-        ]
-    )
+    print("UTC:", event["time"])
 
     print(
         "Magnitud:",
-        event[
-            "magnitude"
-        ],
-        event[
-            "mag_type"
-        ]
+        event["magnitude"],
+        event["mag_type"],
     )
 
     print(
         "Profundidad:",
-        event[
-            "depth_km"
-        ],
-        "km"
+        event["depth_km"],
+        "km",
     )
 
-    print(
-        "Lugar:",
-        event[
-            "region"
-        ]
-    )
+    print("Lugar:", event["region"])
 
     results = analyze_event(
         event,
-        stations
+        stations,
     )
 
     if results.empty:
-
-        print(
-            "Sin resultados GNSS."
-        )
-
+        print("Sin resultados GNSS.")
         return False
 
-    print_results_table(
-        results
-    )
+    print_results_table(results)
 
     publishable = get_publishable_stations(
         results
     )
 
     valid_count = int(
-        results[
-            "valid"
-        ]
-        .fillna(
-            False
-        )
+        results["valid"]
+        .fillna(False)
         .sum()
     )
 
     valid_res_count = int(
         (
-            results[
-                "detection_state"
-            ]
-            ==
-            "VALID_RES"
+            results["detection_state"]
+            == "VALID_RES"
         ).sum()
     )
 
-    print()
-
-    print(
-        "RESUMEN"
-    )
+    print("\nRESUMEN")
 
     print(
         "Históricos válidos:",
-        valid_count
+        valid_count,
     )
 
     print(
         "VALID_RES:",
-        valid_res_count
+        valid_res_count,
     )
 
     print(
         "Estaciones publicables:",
-        len(
-            publishable
-        )
+        len(publishable),
     )
 
     if publishable.empty:
-
-        print()
-
         print(
-            "NO SE GENERA MAPA / TWEET."
+            "\nNO SE GENERA MAPA / TWEET."
         )
 
         print(
@@ -5294,86 +3524,48 @@ def process_event(
     image_path = create_social_sheet(
         event,
         publishable,
-        chile
+        chile,
     )
 
     if not image_path.exists():
-
-        print(
-            "Mapa no generado."
-        )
-
+        print("Mapa no generado.")
         return False
 
-    print()
-
     print(
-        "MAPA GENERADO:",
-        image_path
+        "\nMAPA GENERADO:",
+        image_path,
     )
 
-    tweet_text = build_x_text(
-        event
-    )
+    tweet_text = build_x_text(event)
 
     post_id = publish_to_x(
         image_path,
         tweet_text,
         media_api,
-        client
+        client,
     )
 
-    now = pd.Timestamp.now(
-        tz="UTC"
-    )
+    now = pd.Timestamp.now(tz="UTC")
 
     if DRY_RUN:
-
-        state[
-            "dry_run_seen"
-        ][event_id] = {
-
-            "processed_at":
-                str(
-                    now
-                ),
-
-            "map":
-                str(
-                    image_path
-                )
+        state["dry_run_seen"][event_id] = {
+            "processed_at": str(now),
+            "map": str(image_path),
         }
 
     else:
-
-        state[
-            "posted"
-        ][event_id] = {
-
-            "posted_at":
-                str(
-                    now
-                ),
-
-            "post_id":
-                post_id,
-
-            "map":
-                str(
-                    image_path
-                )
+        state["posted"][event_id] = {
+            "posted_at": str(now),
+            "post_id": post_id,
+            "map": str(image_path),
         }
 
-    state[
-        "detected"
-    ].pop(
+    state["detected"].pop(
         event_id,
-        None
+        None,
     )
 
-    save_state(
-        state
-    )
+    save_state(state)
 
     persist_state_to_git()
 
@@ -5386,92 +3578,55 @@ def process_event(
 
 def prune_old_pending(
     state,
-    now
+    now,
 ):
-
     expired_ids = []
 
     for event_id, record in list(
-        state[
-            "detected"
-        ].items()
+        state["detected"].items()
     ):
-
         try:
-
             detected_at = ensure_utc(
-                record[
-                    "detected_at"
-                ]
+                record["detected_at"]
             )
 
         except Exception:
-
-            expired_ids.append(
-                event_id
-            )
-
+            expired_ids.append(event_id)
             continue
 
         pending_age = (
-            now
-            -
-            detected_at
+            now - detected_at
         ).total_seconds()
 
         if (
             pending_age
-            >
-            MAX_PENDING_RETRY_MINUTES
-            *
-            60
+            > MAX_PENDING_RETRY_MINUTES * 60
         ):
-
-            expired_ids.append(
-                event_id
-            )
+            expired_ids.append(event_id)
 
     for event_id in expired_ids:
-
-        record = state[
-            "detected"
-        ].pop(
+        record = state["detected"].pop(
             event_id,
-            None
+            None,
         )
 
-        state[
-            "expired"
-        ][event_id] = {
+        state["expired"][event_id] = {
+            "expired_at": str(now),
 
-            "expired_at":
-                str(
-                    now
-                ),
-
-            "event":
-                (
-                    record.get(
-                        "event"
-                    )
-                    if record
-                    else
-                    None
-                )
+            "event": (
+                record.get("event")
+                if record
+                else None
+            ),
         }
 
     if expired_ids:
-
         print(
             "Pendientes expirados:",
-            len(
-                expired_ids
-            )
+            len(expired_ids),
         )
 
-        save_state(
-            state
-        )
+        save_state(state)
 
 
 # ============================================================
@@ -5481,66 +3636,41 @@ def prune_old_pending(
 def detect_new_events(
     earthquakes,
     state,
-    now
+    now,
 ):
-
     if earthquakes.empty:
-
         print(
             "Eventos CSN recuperados: 0"
         )
-
         return 0
 
     print(
         "Eventos CSN recuperados:",
-        len(
-            earthquakes
-        )
+        len(earthquakes),
     )
 
-    latest = earthquakes.iloc[
-        0
-    ]
+    latest = earthquakes.iloc[0]
 
     latest_age = (
-        now
-        -
-        ensure_utc(
-            latest[
-                "time"
-            ]
-        )
+        now - ensure_utc(latest["time"])
     ).total_seconds()
 
-    print()
-
     print(
-        (
-            f"Último evento catálogo: "
-            f"M{fmt(latest['magnitude'], 1)} · "
-            f"{ensure_utc(latest['time']).strftime('%H:%M:%S UTC')} · "
-            f"edad {format_age(latest_age)}"
-        )
+        "\nÚltimo evento catálogo: "
+        f"M{fmt(latest['magnitude'], 1)} · "
+        f"{ensure_utc(latest['time']).strftime('%H:%M:%S UTC')} · "
+        f"edad {format_age(latest_age)}"
     )
 
     print(
         "Lugar:",
-        latest[
-            "region"
-        ]
+        latest["region"],
     )
 
     recent = earthquakes.copy()
 
-    recent[
-        "age_seconds"
-    ] = (
-        now
-        -
-        recent[
-            "time"
-        ]
+    recent["age_seconds"] = (
+        now - recent["time"]
     ).dt.total_seconds()
 
     # --------------------------------------------------------
@@ -5549,350 +3679,183 @@ def detect_new_events(
 
     recent = recent[
         (
-            recent[
-                "age_seconds"
-            ]
-            >=
-            0
+            recent["age_seconds"] >= 0
         )
         &
         (
-            recent[
-                "age_seconds"
-            ]
-            <=
-            RECENT_EVENT_WINDOW_MINUTES
-            *
-            60
+            recent["age_seconds"]
+            <= RECENT_EVENT_WINDOW_MINUTES * 60
         )
     ].copy()
 
     # --------------------------------------------------------
     # FILTRO DE MAGNITUD
-    #
-    # Sólo eventos con magnitud válida y M >= 4.0.
     # --------------------------------------------------------
 
-    recent[
-        "magnitude_numeric"
-    ] = recent[
-        "magnitude"
-    ].apply(
-        numeric
+    recent["magnitude_numeric"] = (
+        recent["magnitude"].apply(numeric)
     )
 
     recent = recent[
-        recent[
-            "magnitude_numeric"
-        ].apply(
-            finite
-        )
+        recent["magnitude_numeric"].apply(finite)
         &
         (
-            recent[
-                "magnitude_numeric"
-            ]
-            >=
-            MIN_EVENT_MAGNITUDE
+            recent["magnitude_numeric"]
+            >= MIN_EVENT_MAGNITUDE
         )
     ].copy()
 
-    # Conservamos magnitude como valor numérico normalizado.
-
-    recent[
-        "magnitude"
-    ] = recent[
-        "magnitude_numeric"
-    ]
+    recent["magnitude"] = (
+        recent["magnitude_numeric"]
+    )
 
     recent = recent.drop(
-        columns=[
-            "magnitude_numeric"
-        ]
+        columns=["magnitude_numeric"]
     )
-
-    print()
 
     print(
-        (
-            f"Eventos M >= {MIN_EVENT_MAGNITUDE:.1f} "
-            f"dentro de "
-            f"{RECENT_EVENT_WINDOW_MINUTES} min:"
-        ),
-        len(
-            recent
-        )
+        f"\nEventos M >= {MIN_EVENT_MAGNITUDE:.1f} "
+        f"dentro de {RECENT_EVENT_WINDOW_MINUTES} min:",
+        len(recent),
     )
 
-    for _, row in (
-        recent.iterrows()
-    ):
-
+    for _, row in recent.iterrows():
         print(
-            (
-                f"M{fmt(row['magnitude'], 1)} · "
-                f"{ensure_utc(row['time']).strftime('%H:%M:%S UTC')} · "
-                f"{format_age(row['age_seconds'])} · "
-                f"{row['region']}"
-            )
+            f"M{fmt(row['magnitude'], 1)} · "
+            f"{ensure_utc(row['time']).strftime('%H:%M:%S UTC')} · "
+            f"{format_age(row['age_seconds'])} · "
+            f"{row['region']}"
         )
 
     # --------------------------------------------------------
-    # TEST_LATEST_EVENT
-    #
-    # Incluso en modo prueba se respeta M >= 4.0.
-    # Se toma el evento elegible más reciente.
+    # MODO DE PRUEBA
     # --------------------------------------------------------
 
-    if (
-        TEST_LATEST_EVENT
-        and
-        recent.empty
-    ):
-
+    if TEST_LATEST_EVENT and recent.empty:
         eligible = earthquakes.copy()
 
-        eligible[
-            "magnitude_numeric"
-        ] = eligible[
-            "magnitude"
-        ].apply(
-            numeric
+        eligible["magnitude_numeric"] = (
+            eligible["magnitude"].apply(numeric)
         )
 
         eligible = eligible[
-            eligible[
-                "magnitude_numeric"
-            ].apply(
-                finite
-            )
+            eligible["magnitude_numeric"].apply(finite)
             &
             (
-                eligible[
-                    "magnitude_numeric"
-                ]
-                >=
-                MIN_EVENT_MAGNITUDE
+                eligible["magnitude_numeric"]
+                >= MIN_EVENT_MAGNITUDE
             )
         ].copy()
 
         if not eligible.empty:
-
             eligible = eligible.sort_values(
                 "time",
-                ascending=False
+                ascending=False,
             )
 
             test_event = (
-                eligible
-                .iloc[
-                    0
-                ]
-                .to_dict()
+                eligible.iloc[0].to_dict()
             )
 
-            test_event[
-                "magnitude"
-            ] = test_event[
-                "magnitude_numeric"
-            ]
+            test_event["magnitude"] = (
+                test_event["magnitude_numeric"]
+            )
 
             test_event.pop(
                 "magnitude_numeric",
-                None
+                None,
             )
 
-            test_age = (
+            test_event["age_seconds"] = (
                 now
-                -
-                ensure_utc(
-                    test_event[
-                        "time"
-                    ]
-                )
+                - ensure_utc(test_event["time"])
             ).total_seconds()
 
-            test_event[
-                "age_seconds"
-            ] = test_age
-
             recent = pd.DataFrame(
-                [
-                    test_event
-                ]
+                [test_event]
             )
 
-            print()
-
             print(
-                "TEST_LATEST_EVENT:"
-                " usando evento elegible más reciente "
+                "\nTEST_LATEST_EVENT: "
+                "usando evento elegible más reciente "
                 f"M >= {MIN_EVENT_MAGNITUDE:.1f}"
             )
 
         else:
-
-            print()
-
             print(
-                "TEST_LATEST_EVENT:"
-                " no existen eventos "
+                "\nTEST_LATEST_EVENT: "
+                "no existen eventos "
                 f"M >= {MIN_EVENT_MAGNITUDE:.1f} "
                 "en el catálogo recuperado."
             )
 
     new_count = 0
 
-    for _, row in (
-        recent.iterrows()
-    ):
-
+    for _, row in recent.iterrows():
         event = row.to_dict()
 
-        # ----------------------------------------------------
-        # SEGUNDA PROTECCIÓN DE MAGNITUD
-        # ----------------------------------------------------
-
+        # Segunda protección de magnitud.
         event_magnitude = numeric(
-            event.get(
-                "magnitude"
-            )
+            event.get("magnitude")
         )
 
         if (
-            not finite(
-                event_magnitude
-            )
-            or
-            event_magnitude
-            <
-            MIN_EVENT_MAGNITUDE
+            not finite(event_magnitude)
+            or event_magnitude < MIN_EVENT_MAGNITUDE
         ):
-
             print(
                 "Evento ignorado por magnitud:",
-                event.get(
-                    "magnitude"
-                )
+                event.get("magnitude"),
             )
-
             continue
 
-        event[
-            "magnitude"
-        ] = float(
+        event["magnitude"] = float(
             event_magnitude
         )
 
         event_id = str(
-            event[
-                "event_id"
-            ]
+            event["event_id"]
         )
 
-        if (
-            event_id
-            in
-            state[
-                "posted"
-            ]
-        ):
-
+        if event_id in state["posted"]:
             continue
 
-        if (
-            event_id
-            in
-            state[
-                "detected"
-            ]
-        ):
-
+        if event_id in state["detected"]:
             continue
 
-        if (
-            event_id
-            in
-            state[
-                "expired"
-            ]
-        ):
-
+        if event_id in state["expired"]:
             continue
 
         if (
             DRY_RUN
-            and
-            event_id
-            in
-            state[
-                "dry_run_seen"
-            ]
+            and event_id in state["dry_run_seen"]
         ):
-
             continue
 
-        state[
-            "detected"
-        ][event_id] = {
+        state["detected"][event_id] = {
+            "detected_at": str(now),
 
-            "detected_at":
-                str(
-                    now
-                ),
-
-            "event":
-                serialize_event(
-                    event
-                )
+            "event": serialize_event(event),
         }
 
         new_count += 1
 
-        print()
-
         print(
-            ">>> NUEVO EVENTO M >= "
+            "\n>>> NUEVO EVENTO M >= "
             f"{MIN_EVENT_MAGNITUDE:.1f}"
         )
 
-        print(
-            "ID:",
-            event_id
-        )
-
-        print(
-            "M:",
-            event[
-                "magnitude"
-            ]
-        )
-
-        print(
-            "UTC:",
-            event[
-                "time"
-            ]
-        )
-
-        print(
-            "Lugar:",
-            event[
-                "region"
-            ]
-        )
+        print("ID:", event_id)
+        print("M:", event["magnitude"])
+        print("UTC:", event["time"])
+        print("Lugar:", event["region"])
 
     if new_count:
-
-        save_state(
-            state
-        )
-
-    print()
+        save_state(state)
 
     print(
-        "Eventos nuevos elegibles:",
-        new_count
+        "\nEventos nuevos elegibles:",
+        new_count,
     )
 
     return new_count
@@ -5908,270 +3871,171 @@ def process_pending_events(
     state,
     media_api,
     client,
-    now
+    now,
 ):
-
     pending_ids = list(
-        state[
-            "detected"
-        ].keys()
+        state["detected"].keys()
     )
 
-    print()
-
     print(
-        "Eventos pendientes:",
-        len(
-            pending_ids
-        )
+        "\nEventos pendientes:",
+        len(pending_ids),
     )
 
     for event_id in pending_ids:
-
-        record = state[
-            "detected"
-        ].get(
+        record = state["detected"].get(
             event_id
         )
 
         if not record:
-
             continue
 
         event = deserialize_event(
-            record[
-                "event"
-            ]
+            record["event"]
         )
 
         # ----------------------------------------------------
         # FILTRO DEFENSIVO PARA ESTADO ANTIGUO
-        #
-        # Si monitor_state.json contiene algún evento M < 4
-        # detectado antes de este cambio, se elimina de
-        # pendientes y se registra como expirado/descartado.
         # ----------------------------------------------------
 
         event_magnitude = numeric(
-            event.get(
-                "magnitude"
-            )
+            event.get("magnitude")
         )
 
         if (
-            not finite(
-                event_magnitude
-            )
-            or
-            event_magnitude
-            <
-            MIN_EVENT_MAGNITUDE
+            not finite(event_magnitude)
+            or event_magnitude < MIN_EVENT_MAGNITUDE
         ):
-
-            print()
-
-            print(
-                "-" * 80
-            )
+            print("\n" + "-" * 80)
 
             print(
                 "Pendiente descartado por magnitud:",
-                event_id
+                event_id,
             )
 
             print(
                 "Magnitud:",
-                event.get(
-                    "magnitude"
-                )
+                event.get("magnitude"),
             )
 
             print(
                 "Umbral:",
-                f"M >= {MIN_EVENT_MAGNITUDE:.1f}"
+                f"M >= {MIN_EVENT_MAGNITUDE:.1f}",
             )
 
-            removed_record = state[
-                "detected"
-            ].pop(
+            removed_record = state["detected"].pop(
                 event_id,
-                None
+                None,
             )
 
-            state[
-                "expired"
-            ][event_id] = {
+            state["expired"][event_id] = {
+                "expired_at": str(now),
 
-                "expired_at":
-                    str(
-                        now
-                    ),
+                "reason": (
+                    "magnitude_below_threshold"
+                ),
 
-                "reason":
-                    "magnitude_below_threshold",
+                "minimum_magnitude": (
+                    MIN_EVENT_MAGNITUDE
+                ),
 
-                "minimum_magnitude":
-                    MIN_EVENT_MAGNITUDE,
-
-                "event":
-                    (
-                        removed_record.get(
-                            "event"
-                        )
-                        if removed_record
-                        else
-                        None
-                    )
+                "event": (
+                    removed_record.get("event")
+                    if removed_record
+                    else None
+                ),
             }
 
-            save_state(
-                state
-            )
-
+            save_state(state)
             continue
 
-        event[
-            "magnitude"
-        ] = float(
+        event["magnitude"] = float(
             event_magnitude
         )
 
         event_age = (
-            now
-            -
-            event[
-                "time"
-            ]
+            now - event["time"]
         ).total_seconds()
 
         detected_at = ensure_utc(
-            record[
-                "detected_at"
-            ]
+            record["detected_at"]
         )
 
         retry_age = (
-            now
-            -
-            detected_at
+            now - detected_at
         ).total_seconds()
 
-        print()
+        print("\n" + "-" * 80)
 
-        print(
-            "-" * 80
-        )
-
-        print(
-            "Pendiente:",
-            event_id
-        )
+        print("Pendiente:", event_id)
 
         print(
             "Magnitud:",
-            f"M{event['magnitude']:.1f}"
+            f"M{event['magnitude']:.1f}",
         )
 
         print(
             "Edad del sismo:",
-            format_age(
-                event_age
-            )
+            format_age(event_age),
         )
 
         print(
             "Tiempo pendiente:",
-            format_age(
-                retry_age
-            )
+            format_age(retry_age),
         )
 
-        if (
-            event_age
-            <
-            MIN_ANALYSIS_AGE_SECONDS
-        ):
-
+        if event_age < MIN_ANALYSIS_AGE_SECONDS:
             print(
                 "Esperando POST hasta +600 s."
             )
-
             continue
 
         if (
             retry_age
-            >
-            MAX_PENDING_RETRY_MINUTES
-            *
-            60
+            > MAX_PENDING_RETRY_MINUTES * 60
         ):
-
-            record = state[
-                "detected"
-            ].pop(
+            record = state["detected"].pop(
                 event_id,
-                None
+                None,
             )
 
-            state[
-                "expired"
-            ][event_id] = {
+            state["expired"][event_id] = {
+                "expired_at": str(now),
 
-                "expired_at":
-                    str(
-                        now
-                    ),
-
-                "event":
-                    (
-                        record.get(
-                            "event"
-                        )
-                        if record
-                        else
-                        None
-                    )
+                "event": (
+                    record.get("event")
+                    if record
+                    else None
+                ),
             }
 
-            save_state(
-                state
-            )
+            save_state(state)
 
-            print(
-                "Evento expirado."
-            )
-
+            print("Evento expirado.")
             continue
 
         try:
-
             success = process_event(
                 event,
                 stations,
                 chile,
                 state,
                 media_api,
-                client
+                client,
             )
 
             if not success:
-
                 print(
                     "Sin VALID_RES por ahora."
                 )
 
         except Exception as exc:
-
-            print()
-
             print(
-                "ERROR EVENTO:",
-                event_id
+                "\nERROR EVENTO:",
+                event_id,
             )
 
-            print(
-                exc
-            )
+            print(exc)
 
             traceback.print_exc()
 
@@ -6185,43 +4049,32 @@ def run_single_cycle(
     chile,
     state,
     media_api,
-    client
+    client,
 ):
+    now = pd.Timestamp.now(tz="UTC")
 
-    now = pd.Timestamp.now(
-        tz="UTC"
-    )
-
-    print()
-
-    print(
-        "=" * 80
-    )
+    print("\n" + "=" * 80)
 
     print(
         now.strftime(
             "[%Y-%m-%d %H:%M:%S UTC]"
         ),
-        "consultando sismologia.cl..."
+        "consultando sismologia.cl...",
     )
 
-    print(
-        "=" * 80
-    )
+    print("=" * 80)
 
     prune_old_pending(
         state,
-        now
+        now,
     )
 
-    earthquakes = (
-        get_current_earthquakes()
-    )
+    earthquakes = get_current_earthquakes()
 
     detect_new_events(
         earthquakes,
         state,
-        now
+        now,
     )
 
     process_pending_events(
@@ -6230,28 +4083,18 @@ def run_single_cycle(
         state,
         media_api,
         client,
-        now
+        now,
     )
 
-    save_state(
-        state
-    )
+    save_state(state)
 
     persist_state_to_git()
 
-    print()
+    print("\n" + "=" * 80)
 
-    print(
-        "=" * 80
-    )
+    print("CICLO FINALIZADO")
 
-    print(
-        "CICLO FINALIZADO"
-    )
-
-    print(
-        "=" * 80
-    )
+    print("=" * 80)
 
 
 # ============================================================
@@ -6259,20 +4102,13 @@ def run_single_cycle(
 # ============================================================
 
 def main():
-
-    print()
-
-    print(
-        "=" * 80
-    )
+    print("\n" + "=" * 80)
 
     print(
         "Desplazamiento geodésico residual GNSS observado"
     )
 
-    print(
-        "=" * 80
-    )
+    print("=" * 80)
 
     print(
         "Ejecución: UN SOLO CICLO"
@@ -6281,146 +4117,97 @@ def main():
     print(
         "Ventana detección:",
         RECENT_EVENT_WINDOW_MINUTES,
-        "min"
+        "min",
     )
 
     print(
         "Magnitud mínima:",
-        f"M >= {MIN_EVENT_MAGNITUDE:.1f}"
+        f"M >= {MIN_EVENT_MAGNITUDE:.1f}",
     )
 
     print(
         "Análisis desde:",
         MIN_ANALYSIS_AGE_SECONDS,
-        "s"
+        "s",
     )
 
-    print(
-        "DRY_RUN:",
-        DRY_RUN
-    )
+    print("DRY_RUN:", DRY_RUN)
 
-    print(
-        "ENABLE_X:",
-        ENABLE_X
-    )
+    print("ENABLE_X:", ENABLE_X)
 
     print(
         "SCALE_VERIFIED:",
-        SCALE_VERIFIED
+        SCALE_VERIFIED,
     )
+
+    print("Estado:", STATE_FILE)
 
     print(
-        "Estado:",
-        STATE_FILE
+        "\nObteniendo inventario GNSS CSN..."
     )
 
-    print()
-
-    print(
-        "Obteniendo inventario GNSS CSN..."
-    )
-
-    stations = (
-        get_gnss_station_inventory()
-    )
+    stations = get_gnss_station_inventory()
 
     if stations.empty:
-
         raise RuntimeError(
             "No se pudo obtener inventario GNSS."
         )
 
     print(
         "Estaciones GNSS:",
-        len(
-            stations
-        )
+        len(stations),
     )
-
-    print()
 
     print(
-        "Preparando mapa base..."
+        "\nPreparando mapa base..."
     )
 
-    chile = (
-        load_chile_outline()
-    )
+    chile = load_chile_outline()
 
     if chile is None:
-
         print(
             "Mapa Natural Earth no disponible."
         )
 
     state = load_state()
 
-    print()
-
     print(
-        "Pendientes:",
-        len(
-            state[
-                "detected"
-            ]
-        )
+        "\nPendientes:",
+        len(state["detected"]),
     )
 
     print(
         "Publicados:",
-        len(
-            state[
-                "posted"
-            ]
-        )
+        len(state["posted"]),
     )
 
     print(
         "Expirados:",
-        len(
-            state[
-                "expired"
-            ]
-        )
+        len(state["expired"]),
     )
 
     media_api = None
-
     client = None
 
-    if (
-        ENABLE_X
-        and
-        not DRY_RUN
-    ):
-
-        print()
-
+    if ENABLE_X and not DRY_RUN:
         print(
-            "Configurando X..."
+            "\nConfigurando X..."
         )
 
-        media_api, client = (
-            configure_x()
-        )
+        media_api, client = configure_x()
 
-        print(
-            "X configurado."
-        )
+        print("X configurado.")
 
     run_single_cycle(
         stations,
         chile,
         state,
         media_api,
-        client
+        client,
     )
 
-    print()
-
     print(
-        "EJECUCIÓN TERMINADA."
+        "\nEJECUCIÓN TERMINADA."
     )
 
 
@@ -6429,5 +4216,4 @@ def main():
 # ============================================================
 
 if __name__ == "__main__":
-
     main()
