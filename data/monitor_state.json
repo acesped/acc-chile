@@ -1,5 +1,19 @@
 {
-  "detected": {},
+  "detected": {
+    "csn_aa7be2d5edd48c8d": {
+      "detected_at": "2026-10-08 05:40:40.310342+00:00",
+      "event": {
+        "event_id": "csn_aa7be2d5edd48c8d",
+        "time": "2026-10-08 05:35:55+00:00",
+        "latitude": -22.177,
+        "longitude": -68.594,
+        "depth_km": 122.0,
+        "magnitude": 4.6,
+        "mag_type": "Mlv",
+        "region": "47 km al NE de Calama"
+      }
+    }
+  },
   "posted": {
     "csn_eb98fc5207a25dca": {
       "posted_at": "2026-10-02 19:19:39.227077+00:00",
