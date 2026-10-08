@@ -2,31 +2,31 @@
 # -*- coding: utf-8 -*-
 
 """
-CSN -> MAPA DE CALOR + GRÁFICO POR ESTACIÓN + VIDEO -> X
-
+CSN -> HEATMAP + ESTACIONES + VIDEO -> X
 Ejecución autónoma en GitHub Actions.
-Un ciclo por invocación. La programación está en el YAML.
 
-- Busca sismos M >= 4 en las últimas 12 horas.
-- Procesa nuevos y pendientes.
-- Consulta acelerómetros verticales HNZ / ENZ dentro de 350 km.
-- Sin límite fijo de cantidad de estaciones.
-- Una fila por estación en el gráfico.
-- Estaciones sin datos identificadas.
-- Interpolación espacial IDW, limitada por cobertura.
-- Conserva estado en GitHub antes de publicar.
-- Credenciales de X directamente en el código.
+- Un ciclo por ejecución.
+- Sismos M >= 4 en las últimas 12 horas.
+- Consulta nacional de acelerómetros ?N?.
+- Procesa componentes verticales.
+- Sin límite fijo de estaciones.
+- Conserva tramos válidos de registros parciales.
+- Los huecos permanecen como NaN, nunca como ceros.
+- Heatmap dinámico con cobertura espacial suficiente.
+- Gráfico PNG con todas las estaciones.
+- Video con páginas de estaciones y mapa completo.
+- Estado persistente en GitHub.
+- Recuperación ante errores transitorios de GitHub.
+- Protección frente a publicaciones duplicadas.
 
-IMPORTANTE:
-El mapa de calor es una estimación espacial a partir de mediciones.
-No simula propagación de ondas ni representa intensidad macrosísmica.
+Interpretación:
+Los valores son máximos absolutos por segundo de aceleración
+vertical filtrada, expresados en cm/s².
 
-La señal mostrada es máximo absoluto de aceleración vertical filtrada
-por segundo, en cm/s².
+La interpolación espacial es una estimación.
+No representa una simulación de propagación de ondas.
 
-Los gráficos por estación usan normalización individual para mostrar
-señales pequeñas. El pico físico aparece junto al nombre de la estación.
-El mapa conserva una escala física común durante todo el video.
+La programación cada 10 minutos pertenece al workflow YAML.
 """
 
 import base64
@@ -42,7 +42,12 @@ import sys
 import time
 import unicodedata
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from collections import OrderedDict
+from concurrent.futures import (
+    ThreadPoolExecutor,
+    wait,
+    FIRST_COMPLETED,
+)
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import quote, urljoin, urlparse
@@ -58,10 +63,8 @@ import imageio_ffmpeg
 
 from bs4 import BeautifulSoup
 from matplotlib.animation import FFMpegWriter
-from matplotlib.colors import Normalize
-from matplotlib.transforms import Bbox
+from matplotlib.colors import PowerNorm
 from obspy import UTCDateTime, read, read_inventory
-from obspy.geodetics import gps2dist_azimuth
 from requests_oauthlib import OAuth1
 from scipy.spatial import cKDTree, Delaunay, QhullError
 
@@ -85,34 +88,52 @@ POST_SEG = 120
 MARGEN_SEG = 30
 LATENCIA_SEG = 120
 
-RADIO_KM = 350.0
+# Extensión geográfica de consulta.
+# Incluye Chile continental y áreas limítrofes dentro del rectángulo.
+MIN_LAT = -56.0
+MAX_LAT = -17.0
+MIN_LON = -78.0
+MAX_LON = -65.0
 
-# No se limita la cantidad de estaciones.
-TRABAJADORES = 4
-CANALES = "HNZ,ENZ"
+# Segundo carácter N: acelerómetro.
+# Después se seleccionan componentes verticales por código/orientación.
+CANALES = "?N?"
 
-# Un cuadro representa un segundo de datos.
-# 180 segundos / 4 FPS = 45 segundos de video.
+TRABAJADORES = 6
+
+# Límites operativos, no límites de cantidad de estaciones.
+PRESUPUESTO_DESCARGA_SEG = 20 * 60
+PRESUPUESTO_LOTE_SEG = 35 * 60
+
+# Procesamiento de registros parciales.
+MIN_SEGMENTO_SEG = 12.0
+BORDE_DESCARTADO_SEG = 2.0
+COBERTURA_MIN_POR_SEGUNDO = 0.80
+
+# Un cuadro por segundo observado.
 FPS = 4
 
-# Configuración espacial.
-HEATMAP_RESOLUCION = 180
-HEATMAP_VECINOS = 8
-HEATMAP_POTENCIA = 2.0
+# Video: dos paneles de 20 estaciones.
+FILAS_POR_PANEL = 20
+ESTACIONES_POR_PAGINA = 2 * FILAS_POR_PANEL
 
-# Cada celda debe tener al menos tres estaciones válidas
-# dentro de esta distancia, además de estar dentro de su envolvente.
+# Interpolación.
+HEATMAP_RESOLUCION_X = 140
+HEATMAP_RESOLUCION_Y = 300
+HEATMAP_VECINOS = 8
 HEATMAP_MIN_VECINOS = 3
 HEATMAP_RADIO_KM = 150.0
+HEATMAP_POTENCIA = 2.0
+
+# Escala fija de colores durante el video.
+# Gamma < 1 mejora visibilidad de amplitudes pequeñas.
+HEATMAP_GAMMA = 0.40
 
 PUBLICAR_EN_X = os.getenv(
     "PUBLISH_TO_X", "true"
 ).strip().lower() in {"true", "1", "yes"}
 
 SALIDA = Path(os.getenv("CSN_OUTPUT", "output"))
-
-API_X = "https://api.x.com/2"
-MAX_PROCESAMIENTO_X_SEG = 15 * 60
 
 STATE_BRANCH = os.getenv("STATE_BRANCH", "csn-state")
 STATE_PATH = (
@@ -121,14 +142,19 @@ STATE_PATH = (
     else "estado_simulaciones.json"
 )
 
-PRESUPUESTO_SEG = 35 * 60
-TIMEOUT_HTTP = (15, 75)
+API_X = "https://api.x.com/2"
+MAX_PROCESAMIENTO_X_SEG = 15 * 60
+
+TIMEOUT_HTTP = (10, 45)
+GH_INTENTOS = 4
 
 LOG = logging.getLogger("csn-monitor")
 
+SEGUNDOS = np.arange(-PRE_SEG, POST_SEG, dtype=float)
+
 
 # =====================================================================
-# CREDENCIALES DE X
+# CREDENCIALES DIRECTAS DE X
 # =====================================================================
 
 X_API_KEY = "t5792SuVlfx41hDSWYmHVQJiG"
@@ -173,16 +199,16 @@ def numero(texto):
 
 
 def obtener(url, params=None, permitir_vacio=False):
-    respuesta = requests.get(
+    r = requests.get(
         url,
         params=params,
-        headers={"User-Agent": "CSN-Earthquake-Monitor/2.0"},
+        headers={"User-Agent": "CSN-Earthquake-Monitor/3.0"},
         timeout=TIMEOUT_HTTP,
     )
-    if permitir_vacio and respuesta.status_code in (204, 404):
+    if permitir_vacio and r.status_code in (204, 404):
         return b""
-    respuesta.raise_for_status()
-    return respuesta.content
+    r.raise_for_status()
+    return r.content
 
 
 def fecha_fdsn(t):
@@ -200,8 +226,19 @@ def hora_local(evento):
     ).astimezone(ZoneInfo("America/Santiago"))
 
 
+def distancia_km(lat1, lon1, lat2, lon2):
+    a1, a2 = np.radians([lat1, lat2])
+    da = a2 - a1
+    dl = np.radians(lon2 - lon1)
+    a = (
+        np.sin(da / 2) ** 2
+        + np.cos(a1) * np.cos(a2) * np.sin(dl / 2) ** 2
+    )
+    return float(6371.0 * 2 * np.arcsin(np.sqrt(np.clip(a, 0, 1))))
+
+
 # =====================================================================
-# CSN: INFORMES Y CATÁLOGOS
+# CSN
 # =====================================================================
 
 def leer_evento(url):
@@ -219,7 +256,6 @@ def leer_evento(url):
             )
 
     def campo(nombre, obligatorio=True):
-        nombre = normalizar(nombre)
         for clave, valor in campos.items():
             if clave == nombre or clave.startswith(nombre):
                 return valor
@@ -230,7 +266,7 @@ def leer_evento(url):
     fecha = None
     texto_hora = campo("hora utc")
 
-    patrones = (
+    for patron, formato in (
         (
             r"\d{2}:\d{2}:\d{2}\s+\d{2}/\d{2}/\d{4}",
             "%H:%M:%S %d/%m/%Y",
@@ -243,19 +279,16 @@ def leer_evento(url):
             r"\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}",
             "%Y-%m-%d %H:%M:%S",
         ),
-    )
-
-    for patron, formato in patrones:
-        coincidencia = re.search(patron, texto_hora)
-        if coincidencia:
-            texto = " ".join(coincidencia.group().split())
-            fecha = datetime.strptime(texto, formato).replace(
-                tzinfo=timezone.utc
-            )
+    ):
+        encontrado = re.search(patron, texto_hora)
+        if encontrado:
+            fecha = datetime.strptime(
+                " ".join(encontrado.group().split()), formato
+            ).replace(tzinfo=timezone.utc)
             break
 
     if fecha is None:
-        raise ValueError("Hora UTC de CSN no reconocida")
+        raise ValueError("Hora UTC no reconocida")
 
     lat = numero(campo("latitud"))
     lon = numero(campo("longitud"))
@@ -269,7 +302,7 @@ def leer_evento(url):
 
     try:
         prof = numero(campo("profundidad", False))
-    except (ValueError, TypeError):
+    except (TypeError, ValueError):
         prof = None
 
     return {
@@ -351,14 +384,13 @@ def buscar_eventos_una_vez(inicio, fin):
         except Exception as exc:
             problemas += 1
             LOG.warning(
-                "Fallo de catálogo %s: %s",
-                pagina, type(exc).__name__,
+                "Catálogo fallido: %s", type(exc).__name__
             )
 
     if filas_totales == 0:
         raise RuntimeError(
-            "No se reconocieron catálogos de CSN. "
-            "No equivale a ausencia de sismos."
+            "No se reconocieron catálogos CSN; "
+            "no se interpreta como ausencia de sismos."
         )
 
     eventos = {}
@@ -366,10 +398,11 @@ def buscar_eventos_una_vez(inicio, fin):
     for url in sorted(enlaces):
         try:
             evento = leer_evento(url)
-            t = UTCDateTime(evento["t"])
-            if evento["mag"] >= MAG_MIN and inicio <= t <= fin:
+            if (
+                evento["mag"] >= MAG_MIN
+                and inicio <= UTCDateTime(evento["t"]) <= fin
+            ):
                 eventos[identificar_evento(url)] = evento
-
         except Exception as exc:
             problemas += 1
             LOG.warning(
@@ -382,7 +415,7 @@ def buscar_eventos_una_vez(inicio, fin):
 
 
 # =====================================================================
-# ESTADO PERSISTENTE EN GITHUB
+# ESTADO GITHUB CON RECONCILIACIÓN TRAS ERRORES TRANSITORIOS
 # =====================================================================
 
 class EstadoGitHub:
@@ -394,9 +427,7 @@ class EstadoGitHub:
         ).rstrip("/")
 
         if not repo or not token:
-            raise ErrorEstado(
-                "Faltan GITHUB_REPOSITORY o GH_TOKEN en Actions"
-            )
+            raise ErrorEstado("Faltan GITHUB_REPOSITORY o GH_TOKEN")
 
         self.base = f"{api}/repos/{repo}"
         self.sesion = requests.Session()
@@ -408,109 +439,216 @@ class EstadoGitHub:
         self.sha = None
         self.datos = {"cuenta_id": None, "eventos": {}}
 
-        self.crear_rama_si_falta()
+        self.crear_rama()
         self.cargar()
 
-    def comprobar(self, respuesta):
-        if not respuesta.ok:
-            raise ErrorEstado(
-                f"GitHub HTTP {respuesta.status_code}. "
-                f"Verifica contents: write y la rama {STATE_BRANCH}."
-            )
-        return respuesta.json()
-
-    def crear_rama_si_falta(self):
-        rama = quote(STATE_BRANCH, safe="")
-        r = self.sesion.get(
-            f"{self.base}/git/ref/heads/{rama}",
-            timeout=TIMEOUT_HTTP,
+        LOG.info(
+            "Estado: repo=%s rama=%s archivo=%s registros=%d",
+            repo, STATE_BRANCH, STATE_PATH,
+            len(self.datos["eventos"]),
         )
+
+    def get(self, url, params=None):
+        ultimo = "sin respuesta"
+
+        for intento in range(GH_INTENTOS):
+            try:
+                r = self.sesion.get(
+                    url, params=params, timeout=TIMEOUT_HTTP
+                )
+                if r.status_code not in {
+                    408, 429, 500, 502, 503, 504
+                }:
+                    return r
+                ultimo = f"HTTP {r.status_code}"
+            except requests.RequestException as exc:
+                ultimo = type(exc).__name__
+
+            if intento + 1 < GH_INTENTOS:
+                time.sleep(min(2 ** (intento + 1), 15))
+
+        raise ErrorEstado(f"Lectura GitHub agotada: {ultimo}")
+
+    def json_ok(self, r):
+        if not r.ok:
+            raise ErrorEstado(f"GitHub HTTP {r.status_code}")
+        try:
+            return r.json()
+        except ValueError as exc:
+            raise ErrorEstado(
+                "GitHub devolvió una respuesta no JSON"
+            ) from exc
+
+    def crear_rama(self):
+        url_ref = (
+            f"{self.base}/git/ref/heads/"
+            f"{quote(STATE_BRANCH, safe='')}"
+        )
+        r = self.get(url_ref)
+
         if r.status_code != 404:
-            self.comprobar(r)
+            self.json_ok(r)
             return
 
-        repo = self.comprobar(
-            self.sesion.get(self.base, timeout=TIMEOUT_HTTP)
-        )
+        repo = self.json_ok(self.get(self.base))
         principal = quote(repo["default_branch"], safe="")
-        ref = self.comprobar(
-            self.sesion.get(
-                f"{self.base}/git/ref/heads/{principal}",
-                timeout=TIMEOUT_HTTP,
-            )
-        )
-        self.comprobar(
-            self.sesion.post(
-                f"{self.base}/git/refs",
-                json={
-                    "ref": f"refs/heads/{STATE_BRANCH}",
-                    "sha": ref["object"]["sha"],
-                },
-                timeout=TIMEOUT_HTTP,
-            )
+        ref = self.json_ok(
+            self.get(f"{self.base}/git/ref/heads/{principal}")
         )
 
-    def cargar(self):
-        r = self.sesion.get(
+        for intento in range(GH_INTENTOS):
+            try:
+                r = self.sesion.post(
+                    f"{self.base}/git/refs",
+                    json={
+                        "ref": f"refs/heads/{STATE_BRANCH}",
+                        "sha": ref["object"]["sha"],
+                    },
+                    timeout=TIMEOUT_HTTP,
+                )
+                if r.ok:
+                    return
+                codigo = r.status_code
+            except requests.RequestException:
+                codigo = None
+
+            # Comprobar si la creación ocurrió aunque la respuesta fallara.
+            comprobacion = self.get(url_ref)
+            if comprobacion.ok:
+                return
+            if comprobacion.status_code != 404:
+                self.json_ok(comprobacion)
+
+            if codigo not in {None, 408, 429, 500, 502, 503, 504}:
+                raise ErrorEstado(
+                    f"No se pudo crear {STATE_BRANCH}: HTTP {codigo}"
+                )
+
+            time.sleep(min(2 ** (intento + 1), 15))
+
+        raise ErrorEstado("No se confirmó la creación de la rama")
+
+    def leer_remoto(self):
+        r = self.get(
             f"{self.base}/contents/{STATE_PATH}",
             params={"ref": STATE_BRANCH},
-            timeout=TIMEOUT_HTTP,
         )
         if r.status_code == 404:
+            return None, None
+
+        archivo = self.json_ok(r)
+
+        try:
+            texto = base64.b64decode(
+                archivo["content"]
+            ).decode("utf-8")
+
+            if not texto.strip():
+                raise ErrorEstado(
+                    "El archivo de estado está vacío. "
+                    'Debe contener {"cuenta_id": null, "eventos": {}} '
+                    "si realmente es un registro nuevo."
+                )
+
+            datos = json.loads(texto)
+        except ErrorEstado:
+            raise
+        except Exception as exc:
+            raise ErrorEstado("Archivo de estado inválido") from exc
+
+        if not isinstance(datos.get("eventos"), dict):
+            raise ErrorEstado("El JSON no contiene eventos válidos")
+
+        return archivo["sha"], datos
+
+    def cargar(self):
+        self.sha, datos = self.leer_remoto()
+        if datos is None:
             return
 
-        archivo = self.comprobar(r)
-        self.sha = archivo["sha"]
-        self.datos = json.loads(
-            base64.b64decode(archivo["content"]).decode("utf-8")
-        )
-
-        if not isinstance(self.datos.get("eventos"), dict):
-            raise ErrorEstado("Estado remoto inválido")
-
+        self.datos = datos
         cambio = False
-        for registro in self.datos["eventos"].values():
-            if registro.get("estado") == "enviando":
-                registro["estado"] = "resultado_incierto"
+
+        for r in self.datos["eventos"].values():
+            if r.get("estado") == "enviando":
+                r["estado"] = "resultado_incierto"
                 cambio = True
-            elif registro.get("estado") == "procesando":
-                registro["estado"] = "pendiente"
+            elif r.get("estado") == "procesando":
+                r["estado"] = "pendiente"
                 cambio = True
 
         if cambio:
             self.guardar()
 
     def guardar(self):
+        deseado = json.loads(json.dumps(
+            self.datos, ensure_ascii=False, allow_nan=False
+        ))
         contenido = json.dumps(
-            self.datos,
-            ensure_ascii=False,
-            indent=2,
-            allow_nan=False,
+            deseado, ensure_ascii=False, indent=2
         ).encode("utf-8")
 
-        payload = {
-            "message": "Actualizar estado CSN [skip ci]",
-            "branch": STATE_BRANCH,
-            "content": base64.b64encode(contenido).decode("ascii"),
-        }
-        if self.sha:
-            payload["sha"] = self.sha
+        sha_base = self.sha
 
-        try:
-            resultado = self.comprobar(
-                self.sesion.put(
+        for intento in range(GH_INTENTOS):
+            payload = {
+                "message": "Actualizar estado CSN [skip ci]",
+                "branch": STATE_BRANCH,
+                "content": base64.b64encode(contenido).decode("ascii"),
+            }
+            if sha_base:
+                payload["sha"] = sha_base
+
+            codigo = None
+
+            try:
+                r = self.sesion.put(
                     f"{self.base}/contents/{STATE_PATH}",
                     json=payload,
                     timeout=TIMEOUT_HTTP,
                 )
-            )
-            self.sha = resultado["content"]["sha"]
-        except ErrorEstado:
-            raise
-        except Exception as exc:
-            raise ErrorEstado(
-                "No se confirmó el guardado del estado"
-            ) from exc
+                codigo = r.status_code
+
+                if r.ok:
+                    try:
+                        self.sha = r.json()["content"]["sha"]
+                        return
+                    except (ValueError, KeyError, TypeError):
+                        # Reconciliar abajo si la confirmación es irregular.
+                        codigo = None
+
+            except requests.RequestException:
+                pass
+
+            # Antes de repetir, averiguar si la escritura ya se completó.
+            sha_remoto, datos_remotos = self.leer_remoto()
+
+            if datos_remotos == deseado:
+                self.sha = sha_remoto
+                return
+
+            if sha_remoto != sha_base:
+                raise ErrorEstado(
+                    "El estado cambió en otra ejecución. "
+                    "Se detiene para evitar sobreescribirlo."
+                )
+
+            if codigo not in {
+                None, 408, 409, 429, 500, 502, 503, 504
+            }:
+                raise ErrorEstado(
+                    f"Guardado GitHub HTTP {codigo}. "
+                    "Verifica permisos si es 401/403."
+                )
+
+            if intento + 1 < GH_INTENTOS:
+                LOG.warning(
+                    "Guardado sin confirmar; reintento %d/%d",
+                    intento + 2, GH_INTENTOS,
+                )
+                time.sleep(min(2 ** (intento + 1), 15))
+
+        raise ErrorEstado("No se confirmó el guardado del estado")
 
     def actualizar(self, clave, **cambios):
         self.datos["eventos"][clave].update(cambios)
@@ -521,13 +659,11 @@ class EstadoGitHub:
 
 
 # =====================================================================
-# INVENTARIO: TODAS LAS ESTACIONES CANDIDATAS EN EL RADIO
+# INVENTARIO NACIONAL
 # =====================================================================
 
 def obtener_estaciones(evento):
     t = UTCDateTime(evento["t"])
-    inicio = t - PRE_SEG - MARGEN_SEG
-    fin = t + POST_SEG + MARGEN_SEG
 
     contenido = obtener(
         FDSN + "/fdsnws/station/1/query",
@@ -536,12 +672,13 @@ def obtener_estaciones(evento):
             "station": "*",
             "location": "*",
             "channel": CANALES,
-            "starttime": fecha_fdsn(inicio),
-            "endtime": fecha_fdsn(fin),
-            "latitude": evento["lat"],
-            "longitude": evento["lon"],
-            "maxradius": RADIO_KM / 111.195,
-            "level": "response",
+            "starttime": fecha_fdsn(t - PRE_SEG - MARGEN_SEG),
+            "endtime": fecha_fdsn(t + POST_SEG + MARGEN_SEG),
+            "minlatitude": MIN_LAT,
+            "maxlatitude": MAX_LAT,
+            "minlongitude": MIN_LON,
+            "maxlongitude": MAX_LON,
+            "level": "channel",
             "format": "xml",
             "nodata": 204,
         },
@@ -549,7 +686,7 @@ def obtener_estaciones(evento):
     )
 
     if not contenido:
-        raise SinDatos("CSN no devolvió inventario")
+        raise SinDatos("CSN no devolvió inventario nacional")
 
     inventario = read_inventory(io.BytesIO(contenido))
     estaciones = {}
@@ -557,173 +694,206 @@ def obtener_estaciones(evento):
     for red in inventario:
         for estacion in red:
             for canal in estacion:
-                if canal.code not in {"HNZ", "ENZ"}:
-                    continue
-
                 lat = float(canal.latitude)
                 lon = float(canal.longitude)
 
                 if not np.isfinite([lat, lon]).all():
                     continue
 
-                distancia = gps2dist_azimuth(
-                    evento["lat"], evento["lon"], lat, lon
-                )[0] / 1000.0
-
-                if distancia > RADIO_KM:
-                    continue
-
                 clave = f"{red.code}.{estacion.code}"
                 loc = canal.location_code or ""
 
-                motivo = ""
+                try:
+                    dip = float(canal.dip)
+                except (TypeError, ValueError):
+                    dip = np.nan
 
-                if canal.start_date and canal.start_date > inicio:
-                    motivo = "Metadatos no cubren el inicio"
-                elif canal.end_date and canal.end_date < fin:
-                    motivo = "Metadatos no cubren el final"
-                elif canal.response is None:
-                    motivo = "Sin respuesta instrumental"
-                else:
-                    sensibilidad = canal.response.instrument_sensitivity
-                    if sensibilidad is None:
-                        motivo = "Sin sensibilidad instrumental"
-                    else:
-                        unidades = str(
-                            sensibilidad.input_units
-                        ).upper().replace(" ", "")
-
-                        if unidades not in {
-                            "M/S**2", "M/S^2", "M/S/S", "M/S2"
-                        }:
-                            motivo = "Unidades de aceleración no reconocidas"
+                # Orientación casi vertical; si no hay orientación,
+                # aceptar el código Z.
+                vertical = (
+                    abs(dip) >= 75
+                    if np.isfinite(dip)
+                    else canal.code.endswith("Z")
+                )
 
                 opcion = {
                     "estacion_id": clave,
+                    "id": f"{clave}.{loc}.{canal.code}",
                     "red": red.code,
                     "estacion": estacion.code,
                     "loc": loc,
                     "canal": canal.code,
-                    "id": f"{clave}.{loc}.{canal.code}",
                     "lat": lat,
                     "lon": lon,
-                    "distancia_km": distancia,
-                    "problema_inventario": motivo,
+                    "vertical": bool(vertical),
+                    "distancia_km": distancia_km(
+                        evento["lat"], evento["lon"], lat, lon
+                    ),
                 }
 
-                estaciones.setdefault(clave, []).append(opcion)
+                if clave not in estaciones:
+                    estaciones[clave] = {
+                        "base": opcion,
+                        "opciones": {},
+                    }
 
-    grupos = sorted(
-        estaciones.values(),
-        key=lambda opciones: opciones[0]["distancia_km"],
-    )
+                if vertical:
+                    estaciones[clave]["opciones"][opcion["id"]] = opcion
+
+    grupos = []
+    for grupo in estaciones.values():
+        opciones = list(grupo["opciones"].values())
+        opciones.sort(
+            key=lambda o: (
+                not o["canal"].startswith("HN"),
+                not o["canal"].endswith("Z"),
+                o["id"],
+            )
+        )
+        grupos.append({
+            "base": grupo["base"],
+            "opciones": opciones,
+        })
+
+    grupos.sort(key=lambda g: g["base"]["distancia_km"])
 
     if not grupos:
-        raise SinDatos(
-            f"No hay estaciones HNZ/ENZ dentro de {RADIO_KM:g} km"
-        )
+        raise SinDatos("No hay estaciones de acelerómetros en el inventario")
 
     LOG.info(
-        "Estaciones candidatas: %d. Sin límite fijo.",
+        "Inventario: %d estaciones; %d con componente vertical; "
+        "sin límite de cantidad ni radio epicentral.",
         len(grupos),
+        sum(bool(g["opciones"]) for g in grupos),
     )
-    return inventario, grupos
+
+    return grupos
+
+
+def resultado_vacio(grupo, motivo):
+    r = dict(grupo["base"])
+    r.update({
+        "valida": False,
+        "serie": np.full(len(SEGUNDOS), np.nan),
+        "motivo": motivo,
+        "pico_cm_s2": None,
+        "cobertura_pct": 0.0,
+        "fs": None,
+        "f3": None,
+        "f4": None,
+    })
+    return r
 
 
 # =====================================================================
-# PROCESAMIENTO: REGISTRAR TAMBIÉN LOS DESCARTES
+# PROCESAMIENTO DE TRAMOS PARCIALES
 # =====================================================================
 
-def procesar_estacion(opciones, inventario, evento):
+def procesar_canal(opcion, evento):
     t = UTCDateTime(evento["t"])
     inicio = t - PRE_SEG - MARGEN_SEG
     fin = t + POST_SEG + MARGEN_SEG
 
-    opciones = sorted(
-        opciones,
-        key=lambda o: (
-            bool(o["problema_inventario"]),
-            o["canal"] != "HNZ",
-            o["loc"],
-        ),
+    parametros = {
+        "network": opcion["red"],
+        "station": opcion["estacion"],
+        "location": opcion["loc"] or "--",
+        "channel": opcion["canal"],
+        "starttime": fecha_fdsn(inicio),
+        "endtime": fecha_fdsn(fin),
+        "nodata": 204,
+    }
+
+    contenido = obtener(
+        FDSN + "/fdsnws/dataselect/1/query",
+        params=parametros,
+        permitir_vacio=True,
     )
 
+    if not contenido:
+        raise SinDatos("Sin registros")
+
+    st = read(io.BytesIO(contenido), format="MSEED")
+    st = st.select(
+        network=opcion["red"],
+        station=opcion["estacion"],
+        location=opcion["loc"],
+        channel=opcion["canal"],
+    )
+
+    if not st:
+        raise SinDatos("Canal ausente")
+
+    # Los huecos quedan enmascarados. split() crea tramos continuos.
+    st.sort()
+    st.merge(method=0, fill_value=None)
+    segmentos = st.split()
+
+    parametros_respuesta = dict(parametros)
+    parametros_respuesta.update({
+        "level": "response",
+        "format": "xml",
+    })
+
+    xml = obtener(
+        FDSN + "/fdsnws/station/1/query",
+        params=parametros_respuesta,
+        permitir_vacio=True,
+    )
+
+    if not xml:
+        raise SinDatos("Sin respuesta instrumental")
+
+    inv = read_inventory(io.BytesIO(xml))
+
+    serie = np.full(len(SEGUNDOS), np.nan)
+    frecuencias = []
+    filtros3 = []
+    filtros4 = []
     errores = []
 
-    for opcion in opciones:
-        if opcion["problema_inventario"]:
-            errores.append(
-                f"{opcion['id']}: {opcion['problema_inventario']}"
-            )
-            continue
-
+    for segmento in segmentos:
         try:
-            contenido = obtener(
-                FDSN + "/fdsnws/dataselect/1/query",
-                params={
-                    "network": opcion["red"],
-                    "station": opcion["estacion"],
-                    "location": opcion["loc"] or "--",
-                    "channel": opcion["canal"],
-                    "starttime": fecha_fdsn(inicio),
-                    "endtime": fecha_fdsn(fin),
-                    "nodata": 204,
-                },
-                permitir_vacio=True,
-            )
-
-            if not contenido:
-                raise SinDatos("Servidor sin registros")
-
-            st = read(io.BytesIO(contenido), format="MSEED")
-            st = st.select(
-                network=opcion["red"],
-                station=opcion["estacion"],
-                location=opcion["loc"],
-                channel=opcion["canal"],
-            )
-            if not st:
-                raise SinDatos("Canal solicitado ausente")
-
-            st.sort()
-            st.merge(method=0, fill_value=None)
-
-            if len(st) != 1:
-                raise SinDatos("Trazas incompatibles")
-
-            tr = st[0]
-
-            if np.ma.isMaskedArray(tr.data):
-                if np.ma.getmaskarray(tr.data).any():
-                    raise SinDatos("Huecos o solapamientos inconsistentes")
-                tr.data = np.asarray(tr.data)
-
+            tr = segmento.copy()
             fs = float(tr.stats.sampling_rate)
-            if fs < 10:
-                raise SinDatos("Frecuencia de muestreo menor a 10 Hz")
 
-            tolerancia = 1.5 / fs
-            if (
-                tr.stats.starttime > inicio + tolerancia
-                or tr.stats.endtime < fin - tolerancia
-            ):
-                raise SinDatos("Ventana temporal incompleta")
+            if fs < 1:
+                raise SinDatos("Muestreo menor a 1 Hz")
+
+            duracion = float(tr.stats.endtime - tr.stats.starttime)
+            if duracion < MIN_SEGMENTO_SEG:
+                raise SinDatos("Tramo demasiado corto")
 
             tr.data = np.asarray(tr.data, dtype=np.float64)
-
             if not np.isfinite(tr.data).all():
                 raise SinDatos("Muestras no finitas")
             if np.ptp(tr.data) == 0:
                 raise SinDatos("Señal constante")
 
-            tr.detrend("linear")
+            respuesta = inv.get_response(tr.id, tr.stats.starttime)
+            sensibilidad = respuesta.instrument_sensitivity
+            if sensibilidad is None:
+                raise SinDatos("Sin sensibilidad instrumental")
+
+            unidades = str(
+                sensibilidad.input_units
+            ).upper().replace(" ", "")
+
+            if unidades not in {
+                "M/S**2", "M/S^2", "M/S/S", "M/S2"
+            }:
+                raise SinDatos("Unidades de aceleración no reconocidas")
 
             nyquist = fs / 2
             f3 = min(20.0, nyquist * 0.70)
             f4 = min(25.0, nyquist * 0.90)
 
+            if not 0.05 < 0.10 < f3 < f4:
+                raise SinDatos("Muestreo incompatible con prefiltro")
+
+            tr.detrend("linear")
             tr.remove_response(
-                inventory=inventario,
+                inventory=inv,
                 output="ACC",
                 pre_filt=(0.05, 0.10, f3, f4),
                 water_level=None,
@@ -732,179 +902,299 @@ def procesar_estacion(opciones, inventario, evento):
                 taper_fraction=0.05,
             )
 
-            tr.trim(t - PRE_SEG, t + POST_SEG)
+            # Excluir bordes de cada tramo para reducir efectos
+            # del taper y la deconvolución alrededor de los huecos.
+            borde = max(
+                BORDE_DESCARTADO_SEG,
+                0.05 * duracion,
+            )
+            util_inicio = max(
+                tr.stats.starttime + borde,
+                t - PRE_SEG,
+            )
+            util_fin = min(
+                tr.stats.endtime - borde,
+                t + POST_SEG,
+            )
 
-            aceleracion = np.asarray(tr.data, dtype=float) * 100.0
+            if util_fin <= util_inicio:
+                continue
+
+            tr.trim(util_inicio, util_fin)
+
+            valores = np.asarray(tr.data, dtype=float) * 100.0
             tiempos = tr.times() + float(tr.stats.starttime - t)
 
-            if not len(aceleracion) or not np.isfinite(aceleracion).all():
-                raise SinDatos("Resultado de calibración inválido")
+            if not np.isfinite(valores).all():
+                raise SinDatos("Calibración no finita")
 
-            segundos = np.arange(-PRE_SEG, POST_SEG, dtype=float)
-            serie = np.full(len(segundos), np.nan)
+            minimo = max(1, int(math.ceil(
+                fs * COBERTURA_MIN_POR_SEGUNDO
+            )))
 
-            for i, segundo in enumerate(segundos):
+            for i, segundo in enumerate(SEGUNDOS):
                 seleccion = (
                     (tiempos >= segundo)
                     & (tiempos < segundo + 1)
                 )
-                if seleccion.any():
-                    serie[i] = np.max(np.abs(aceleracion[seleccion]))
 
-            if not np.isfinite(serie).all():
-                raise SinDatos("Intervalos de un segundo sin datos")
+                if int(seleccion.sum()) >= minimo:
+                    pico = float(np.max(np.abs(valores[seleccion])))
+                    if not np.isfinite(serie[i]) or pico > serie[i]:
+                        serie[i] = pico
 
-            resultado = dict(opcion)
-            resultado.update({
-                "valida": True,
-                "motivo": "",
-                "serie": serie,
-                "pico_cm_s2": float(np.max(np.abs(aceleracion))),
-                "fs": fs,
-                "f3": f3,
-                "f4": f4,
-            })
-            return resultado
+            frecuencias.append(fs)
+            filtros3.append(f3)
+            filtros4.append(f4)
 
         except SinDatos as exc:
-            errores.append(f"{opcion['id']}: {exc}")
+            errores.append(str(exc))
         except Exception as exc:
-            errores.append(
-                f"{opcion['id']}: {type(exc).__name__}"
-            )
+            errores.append(type(exc).__name__)
 
-    resultado = dict(opciones[0])
+    validos = np.isfinite(serie)
+
+    if not validos.any():
+        detalle = "; ".join(dict.fromkeys(errores))
+        raise SinDatos(detalle or "Sin segundos utilizables")
+
+    resultado = dict(opcion)
     resultado.update({
-        "valida": False,
-        "motivo": "; ".join(dict.fromkeys(errores)),
-        "serie": None,
-        "pico_cm_s2": None,
-        "fs": None,
-        "f3": None,
-        "f4": None,
+        "valida": True,
+        "serie": serie,
+        "pico_cm_s2": float(np.nanmax(serie)),
+        "cobertura_pct": float(validos.mean() * 100),
+        "fs": min(frecuencias),
+        "f3": min(filtros3),
+        "f4": min(filtros4),
+        "motivo": (
+            "Registro parcial; huecos conservados"
+            if not validos.all()
+            else ""
+        ),
     })
     return resultado
 
 
+def procesar_estacion(grupo, evento, limite):
+    if not grupo["opciones"]:
+        return resultado_vacio(
+            grupo, "Sin componente vertical identificable"
+        )
+
+    mejor = None
+    errores = []
+
+    # Elegir el canal con mayor cobertura. No combinar sensores
+    # distintos para inventar una continuidad temporal.
+    for opcion in grupo["opciones"]:
+        if time.monotonic() >= limite:
+            errores.append("Presupuesto de descarga alcanzado")
+            break
+
+        try:
+            r = procesar_canal(opcion, evento)
+
+            if (
+                mejor is None
+                or r["cobertura_pct"] > mejor["cobertura_pct"]
+            ):
+                mejor = r
+
+            if r["cobertura_pct"] >= 99.99:
+                break
+
+        except Exception as exc:
+            errores.append(
+                f"{opcion['id']}: "
+                + (
+                    str(exc)
+                    if isinstance(exc, SinDatos)
+                    else type(exc).__name__
+                )
+            )
+
+    if mejor is not None:
+        return mejor
+
+    return resultado_vacio(
+        grupo,
+        "; ".join(dict.fromkeys(errores)) or "Sin datos utilizables",
+    )
+
+
+def descargar_estaciones(grupos, evento):
+    limite = time.monotonic() + PRESUPUESTO_DESCARGA_SEG
+    resultados = []
+    siguiente = 0
+
+    # Mantener solo un número acotado de solicitudes activas.
+    with ThreadPoolExecutor(max_workers=TRABAJADORES) as executor:
+        activos = {}
+
+        while siguiente < len(grupos) or activos:
+            while (
+                siguiente < len(grupos)
+                and len(activos) < TRABAJADORES
+                and time.monotonic() < limite
+            ):
+                grupo = grupos[siguiente]
+                futuro = executor.submit(
+                    procesar_estacion, grupo, evento, limite
+                )
+                activos[futuro] = grupo
+                siguiente += 1
+
+            if not activos:
+                break
+
+            terminados, _ = wait(
+                activos,
+                timeout=10,
+                return_when=FIRST_COMPLETED,
+            )
+
+            for futuro in terminados:
+                grupo = activos.pop(futuro)
+                try:
+                    r = futuro.result()
+                except Exception as exc:
+                    r = resultado_vacio(
+                        grupo, f"Fallo de procesamiento: {type(exc).__name__}"
+                    )
+
+                resultados.append(r)
+                LOG.info(
+                    "Estación %d/%d: %s · cobertura %.1f%% · %s",
+                    len(resultados), len(grupos),
+                    r["estacion_id"], r["cobertura_pct"],
+                    r["motivo"] or "válida",
+                )
+
+        # Mantener identificadas también las estaciones no consultadas
+        # por agotamiento del tiempo operativo.
+        for grupo in grupos[siguiente:]:
+            resultados.append(resultado_vacio(
+                grupo,
+                "No consultada: presupuesto de descarga alcanzado",
+            ))
+
+    resultados.sort(key=lambda r: r["distancia_km"])
+    return resultados
+
+
 # =====================================================================
-# INTERPOLACIÓN ESPACIAL IDW CON MÁSCARA
+# HEATMAP DINÁMICO: SOLO ESTACIONES CON DATOS EN ESE SEGUNDO
 # =====================================================================
 
 class CampoEspacial:
-    """
-    Interpolación ponderada por distancia.
+    def __init__(self, resultados):
+        self.resultados = resultados
+        self.cache = OrderedDict()
 
-    Una celda solo se muestra cuando:
-    - Está dentro de la envolvente convexa de estaciones válidas.
-    - Tiene al menos tres ubicaciones dentro del radio establecido.
-
-    No se extrapola fuera de esa cobertura.
-    Estaciones prácticamente coincidentes se agrupan.
-    """
-
-    def __init__(self, validos, evento, limites):
-        self.forma = (
-            HEATMAP_RESOLUCION,
-            HEATMAP_RESOLUCION,
+        self.lons = np.linspace(
+            MIN_LON, MAX_LON, HEATMAP_RESOLUCION_X
         )
-        self.disponible = False
-        self.motivo = ""
-        self.grupos = []
+        self.lats = np.linspace(
+            MIN_LAT, MAX_LAT, HEATMAP_RESOLUCION_Y
+        )
+        xx, yy = np.meshgrid(self.lons, self.lats)
 
-        lon_min, lon_max, lat_min, lat_max = limites
-        self.lons = np.linspace(lon_min, lon_max, self.forma[1])
-        self.lats = np.linspace(lat_min, lat_max, self.forma[0])
-        self.lon_grid, self.lat_grid = np.meshgrid(
-            self.lons, self.lats
+        # Proyección azimutal equidistante centrada en Chile.
+        from pyproj import CRS, Transformer
+
+        destino = CRS.from_proj4(
+            "+proj=aeqd +lat_0=-36.5 +lon_0=-71 "
+            "+datum=WGS84 +units=m +no_defs"
+        )
+        self.transformar = Transformer.from_crs(
+            "EPSG:4326", destino, always_xy=True
         )
 
-        # Proyección local aproximada a kilómetros.
-        coslat = max(0.2, math.cos(math.radians(evento["lat"])))
+        x, y = self.transformar.transform(xx.ravel(), yy.ravel())
+        self.consultas = np.column_stack([x, y]) / 1000.0
+        self.forma = xx.shape
 
-        def proyectar(lon, lat):
-            return np.column_stack([
-                (np.asarray(lon) - evento["lon"]) * 111.195 * coslat,
-                (np.asarray(lat) - evento["lat"]) * 111.195,
-            ])
+    def preparar(self, mascara):
+        clave = tuple(np.flatnonzero(mascara).tolist())
 
-        ubicaciones = {}
-        for i, r in enumerate(validos):
-            clave = (round(r["lon"], 4), round(r["lat"], 4))
-            ubicaciones.setdefault(clave, []).append(i)
+        if clave in self.cache:
+            self.cache.move_to_end(clave)
+            return self.cache[clave]
 
-        coordenadas = list(ubicaciones)
-        self.grupos = list(ubicaciones.values())
+        grupos = {}
+        for indice in clave:
+            r = self.resultados[indice]
+            ubicacion = (round(r["lon"], 4), round(r["lat"], 4))
+            grupos.setdefault(ubicacion, []).append(indice)
 
-        if len(coordenadas) < HEATMAP_MIN_VECINOS:
-            self.motivo = "Menos de 3 ubicaciones válidas"
-            return
+        if len(grupos) < HEATMAP_MIN_VECINOS:
+            return None
 
-        xy = proyectar(
-            [c[0] for c in coordenadas],
-            [c[1] for c in coordenadas],
+        coords = list(grupos)
+        x, y = self.transformar.transform(
+            [p[0] for p in coords],
+            [p[1] for p in coords],
         )
-        consultas = proyectar(
-            self.lon_grid.ravel(),
-            self.lat_grid.ravel(),
-        )
+        puntos = np.column_stack([x, y]) / 1000.0
 
         try:
-            triangulacion = Delaunay(xy)
+            hull = Delaunay(puntos)
         except QhullError:
-            self.motivo = "Ubicaciones alineadas: sin área interpolable"
-            return
+            return None
 
-        k = min(HEATMAP_VECINOS, len(coordenadas))
-        distancias, indices = cKDTree(xy).query(consultas, k=k)
+        k = min(HEATMAP_VECINOS, len(coords))
+        d, ix = cKDTree(puntos).query(self.consultas, k=k)
 
-        dentro = triangulacion.find_simplex(consultas) >= 0
-        suficientes = (
-            (distancias <= HEATMAP_RADIO_KM).sum(axis=1)
-            >= HEATMAP_MIN_VECINOS
+        cobertura = (
+            (hull.find_simplex(self.consultas) >= 0)
+            & (
+                (d <= HEATMAP_RADIO_KM).sum(axis=1)
+                >= HEATMAP_MIN_VECINOS
+            )
         )
-
-        self.mascara = dentro & suficientes
 
         pesos = np.where(
-            distancias <= HEATMAP_RADIO_KM,
-            1.0 / np.maximum(distancias, 0.05) ** HEATMAP_POTENCIA,
+            d <= HEATMAP_RADIO_KM,
+            1 / np.maximum(d, 0.05) ** HEATMAP_POTENCIA,
             0.0,
         )
-        suma = pesos.sum(axis=1, keepdims=True)
-        pesos = pesos / np.maximum(suma, 1e-30)
-
-        self.indices = indices
-        self.pesos = pesos
-        self.disponible = bool(self.mascara.any())
-
-        if not self.disponible:
-            self.motivo = "Separación excesiva entre estaciones válidas"
-
-    def calcular(self, valores):
-        if not self.disponible:
-            return np.ma.masked_all(self.forma)
-
-        valores = np.asarray(valores, dtype=float)
-
-        # Promediar observaciones prácticamente coincidentes.
-        agrupados = np.array([
-            float(np.mean(valores[grupo]))
-            for grupo in self.grupos
-        ])
-
-        campo = np.sum(
-            self.pesos * agrupados[self.indices],
-            axis=1,
+        pesos /= np.maximum(
+            pesos.sum(axis=1, keepdims=True), 1e-30
         )
 
+        geometria = (
+            list(grupos.values()), ix, pesos, cobertura
+        )
+        self.cache[clave] = geometria
+
+        # No acumular matrices grandes para todos los patrones de huecos.
+        while len(self.cache) > 4:
+            self.cache.popitem(last=False)
+
+        return geometria
+
+    def calcular(self, valores):
+        mascara = np.isfinite(valores)
+        geometria = self.preparar(mascara)
+
+        if geometria is None:
+            return np.ma.masked_all(self.forma)
+
+        grupos, ix, pesos, cobertura = geometria
+        agrupados = np.array([
+            float(np.mean(valores[g])) for g in grupos
+        ])
+        z = (pesos * agrupados[ix]).sum(axis=1)
+
         return np.ma.array(
-            campo.reshape(self.forma),
-            mask=(~self.mascara).reshape(self.forma),
+            z.reshape(self.forma),
+            mask=(~cobertura).reshape(self.forma),
         )
 
 
 # =====================================================================
-# EXPORTAR RESULTADOS TABULARES
+# EXPORTACIÓN CSV Y GRÁFICOS
 # =====================================================================
 
 def guardar_resultados(evento, resultados, carpeta):
@@ -912,33 +1202,34 @@ def guardar_resultados(evento, resultados, carpeta):
 
     campos = [
         "estacion_id", "id", "lat", "lon", "distancia_km",
-        "valida", "motivo", "pico_cm_s2", "fs", "f3", "f4",
+        "valida", "cobertura_pct", "pico_cm_s2",
+        "fs", "f3", "f4", "motivo",
     ]
 
     with (carpeta / "estaciones.csv").open(
         "w", newline="", encoding="utf-8"
-    ) as archivo:
-        escritor = csv.DictWriter(archivo, fieldnames=campos)
+    ) as f:
+        escritor = csv.DictWriter(f, fieldnames=campos)
         escritor.writeheader()
         escritor.writerows({
-            campo: r.get(campo) for campo in campos
+            c: r.get(c) for c in campos
         } for r in resultados)
-
-    segundos = np.arange(-PRE_SEG, POST_SEG)
 
     with (carpeta / "aceleracion_por_segundo.csv").open(
         "w", newline="", encoding="utf-8"
-    ) as archivo:
-        escritor = csv.writer(archivo)
+    ) as f:
+        escritor = csv.writer(f)
         escritor.writerow(
             ["segundos_desde_origen"]
             + [r["estacion_id"] for r in resultados]
         )
-        for i, segundo in enumerate(segundos):
+        for i, segundo in enumerate(SEGUNDOS):
             escritor.writerow(
                 [int(segundo)]
                 + [
-                    float(r["serie"][i]) if r["valida"] else ""
+                    float(r["serie"][i])
+                    if np.isfinite(r["serie"][i])
+                    else ""
                     for r in resultados
                 ]
             )
@@ -949,357 +1240,374 @@ def guardar_resultados(evento, resultados, carpeta):
     )
 
 
+def dibujar_filas(ax, filas, inicio_numeracion=0):
+    ax.clear()
+    etiquetas = []
+
+    for j, r in enumerate(filas):
+        base = float(j)
+        ax.axhline(base, color="#dfe5ed", linewidth=0.5)
+
+        serie = r["serie"]
+        validos = np.isfinite(serie)
+
+        if validos.any():
+            pico = max(float(np.nanmax(serie)), 1e-30)
+            y = base - 0.70 * serie / pico
+
+            # NaN corta la curva y no dibuja un puente sobre huecos.
+            ax.plot(
+                SEGUNDOS + 0.5, y,
+                color="#146a91", linewidth=0.8,
+            )
+            ax.fill_between(
+                SEGUNDOS + 0.5,
+                base, y,
+                where=validos,
+                color="#3098bd", alpha=0.25,
+            )
+            etiqueta = (
+                f"{inicio_numeracion + j + 1:03d} "
+                f"{r['estacion_id']} "
+                f"{r['pico_cm_s2']:.2g} | "
+                f"{r['cobertura_pct']:.0f}%"
+            )
+        else:
+            ax.text(
+                30, base - 0.20,
+                "SIN DATOS VÁLIDOS",
+                fontsize=7, color="#8993a0",
+                ha="center", va="center",
+            )
+            etiqueta = (
+                f"{inicio_numeracion + j + 1:03d} "
+                f"{r['estacion_id']} —"
+            )
+
+        etiquetas.append(etiqueta)
+
+    ax.set_yticks(np.arange(len(filas)))
+    ax.set_yticklabels(etiquetas, fontsize=7.5)
+    ax.set_xlim(-PRE_SEG, POST_SEG)
+    ax.set_ylim(max(len(filas), 1) - 0.30, -1.0)
+    ax.axvline(0, color="#187fbd", linestyle="--", linewidth=0.8)
+    ax.grid(axis="x", alpha=0.20)
+    ax.set_xlabel("Segundos desde el origen", fontsize=9)
+
+    return ax.axvline(
+        -PRE_SEG, color="#cf4226", linewidth=1.2
+    )
+
+
+def guardar_grafico_completo(resultados, carpeta):
+    # Varias columnas si hay muchas estaciones.
+    filas_columna = 70
+    columnas = max(1, math.ceil(len(resultados) / filas_columna))
+    filas_max = min(filas_columna, len(resultados))
+
+    fig, axes = plt.subplots(
+        1, columnas,
+        figsize=(10 * columnas, max(7, filas_max * 0.24 + 2)),
+        squeeze=False,
+    )
+
+    for columna, ax in enumerate(axes[0]):
+        inicio = columna * filas_columna
+        filas = resultados[inicio:inicio + filas_columna]
+        dibujar_filas(ax, filas, inicio)
+        ax.set_title(
+            "Estación · pico filtrado [cm/s²] · cobertura",
+            fontsize=10,
+        )
+
+    fig.suptitle(
+        "Todas las estaciones · escala individual · "
+        "huecos sin rellenar",
+        fontsize=13,
+    )
+    fig.tight_layout(rect=(0, 0, 1, 0.97))
+    fig.savefig(carpeta / "grafico.png", dpi=120)
+    plt.close(fig)
+
+
 # =====================================================================
-# MAPA DE CALOR, GRÁFICO POR FILAS Y VIDEO
+# VIDEO
 # =====================================================================
 
 def generar_video(evento, resultados, carpeta):
-    validos = [r for r in resultados if r["valida"]]
-    invalidos = [r for r in resultados if not r["valida"]]
-
-    if not validos:
+    matriz = np.array([r["serie"] for r in resultados])
+    if not np.isfinite(matriz).any():
         raise SinDatos(
-            "Ninguna estación tiene registros completos y calibrables. "
-            "Consulta estaciones.csv."
+            "Sin muestras calibradas. Revisar estaciones.csv."
         )
 
-    matriz = np.array([r["serie"] for r in validos])
-    segundos = np.arange(-PRE_SEG, POST_SEG, dtype=float)
-    tiempos_centro = segundos + 0.5
+    guardar_grafico_completo(resultados, carpeta)
 
-    # Un instante real para las imágenes estáticas:
-    # segundo que contiene el mayor valor observado.
-    indice_resumen = int(np.argmax(matriz.max(axis=0)))
+    campo = CampoEspacial(resultados)
 
-    todas_lats = [evento["lat"]] + [r["lat"] for r in resultados]
-    todas_lons = [evento["lon"]] + [r["lon"] for r in resultados]
-
-    limites = (
-        min(todas_lons) - 0.35,
-        max(todas_lons) + 0.35,
-        min(todas_lats) - 0.30,
-        max(todas_lats) + 0.30,
+    maximos = np.max(
+        np.where(np.isfinite(matriz), matriz, -np.inf),
+        axis=0,
     )
+    indice_resumen = int(np.argmax(maximos))
+    maximo = max(float(np.max(maximos)), 1e-12)
 
-    campo = CampoEspacial(validos, evento, limites)
-
-    LOG.info(
-        "Mapa: %d válidas, %d sin datos. Interpolación: %s",
-        len(validos),
-        len(invalidos),
-        "activa" if campo.disponible else campo.motivo,
+    norma = PowerNorm(
+        gamma=HEATMAP_GAMMA, vmin=0, vmax=maximo
     )
+    cmap = plt.get_cmap("YlOrRd").copy()
+    cmap.set_bad((1, 1, 1, 0))
 
-    (carpeta / "procesamiento.json").write_text(
-        json.dumps({
-            "componente": "vertical",
-            "unidad": "cm/s²",
-            "resumen_temporal": "maximo absoluto por segundo",
-            "normalizacion_grafico": "individual por estación",
-            "radio_estaciones_km": RADIO_KM,
-            "estaciones_candidatas": len(resultados),
-            "estaciones_validas": len(validos),
-            "interpolacion": "IDW",
-            "interpolacion_disponible": campo.disponible,
-            "motivo_sin_interpolacion": campo.motivo,
-            "radio_interpolacion_km": HEATMAP_RADIO_KM,
-            "minimo_vecinos": HEATMAP_MIN_VECINOS,
-            "potencia_idw": HEATMAP_POTENCIA,
-            "mascara": "envolvente convexa y cobertura mínima",
-        }, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-
-    geometria = None
+    costa = []
     try:
         from cartopy.io import shapereader
-
         ruta = shapereader.natural_earth(
             resolution="110m",
             category="physical",
             name="coastline",
         )
         lector = shapereader.Reader(ruta)
-        geometria = list(lector.geometries())
+        for geom in lector.geometries():
+            partes = geom.geoms if hasattr(geom, "geoms") else [geom]
+            for parte in partes:
+                costa.append(parte.xy)
         lector.close()
     except Exception as exc:
-        LOG.warning("Sin costa: %s", type(exc).__name__)
+        LOG.warning("Costa no disponible: %s", type(exc).__name__)
 
     plt.rcParams.update({
-        "font.size": 10,
-        "axes.titlesize": 12,
         "figure.facecolor": "#f4f7fb",
         "axes.facecolor": "white",
+        "font.size": 9,
     })
 
-    cantidad = len(resultados)
-
-    # La altura aumenta con el número de estaciones.
-    # Las imágenes PNG conservan todas las filas.
-    alto = max(8.6, 2.8 + cantidad * 0.24)
-
-    fig = plt.figure(figsize=(16, alto), dpi=100)
-    ax_mapa = fig.add_axes([0.055, 0.17, 0.35, 0.64])
-    ax_grafico = fig.add_axes([0.61, 0.15, 0.36, 0.67])
+    fig = plt.figure(figsize=(19.2, 10.8), dpi=100)
+    ax_mapa = fig.add_axes([0.025, 0.16, 0.27, 0.67])
+    ax1 = fig.add_axes([0.465, 0.17, 0.19, 0.64])
+    ax2 = fig.add_axes([0.795, 0.17, 0.19, 0.64])
 
     fig.suptitle(
         f"Sismo M {evento['mag_texto']} · {evento['referencia']}",
-        fontsize=16, fontweight="bold", y=0.975,
+        fontsize=17, fontweight="bold", y=0.965,
     )
 
-    profundidad = (
+    prof = (
         f"{evento['prof']:g} km"
         if evento["prof"] is not None
         else "no informada"
     )
 
     fig.text(
-        0.5, 0.925,
-        f"{hora_local(evento):%d/%m/%Y %H:%M:%S}  |  "
-        f"Profundidad: {profundidad}  |  "
+        0.5, 0.92,
+        f"{hora_local(evento):%d/%m/%Y %H:%M:%S} · "
+        f"Profundidad: {prof} · "
         f"Epicentro: {evento['lat']:.4f}, {evento['lon']:.4f}",
-        ha="center", fontsize=10,
+        ha="center", fontsize=11,
+    )
+
+    paginas = max(
+        1, math.ceil(len(resultados) / ESTACIONES_POR_PAGINA)
+    )
+
+    # Garantizar al menos un cuadro por página, incluso con inventarios
+    # muy grandes. Las muestras temporales siguen siendo las mismas.
+    numero_frames = max(len(SEGUNDOS), paginas)
+    indices_tiempo = np.minimum(
+        (
+            np.arange(numero_frames)
+            * len(SEGUNDOS)
+            / numero_frames
+        ).astype(int),
+        len(SEGUNDOS) - 1,
+    )
+
+    pagina_texto = fig.text(
+        0.66, 0.865, "", ha="center", fontsize=11
+    )
+    estado_texto = fig.text(
+        0.5, 0.105, "", ha="center", fontsize=10
+    )
+    tiempo_texto = fig.text(
+        0.5, 0.072, "", ha="center", fontsize=11
     )
 
     fig.text(
-        0.5, 0.885,
-        f"{cantidad} estaciones candidatas · "
-        f"{len(validos)} con datos válidos · "
-        f"{len(invalidos)} sin datos utilizables · "
-        f"Radio {RADIO_KM:g} km",
+        0.5, 0.038,
+        "Mapa: estimación espacial de |aZ| [cm/s²], "
+        "escala de colores fija · Gráficos: normalización individual",
         ha="center", fontsize=10,
     )
-
-    lon_min, lon_max, lat_min, lat_max = limites
-    ax_mapa.set_xlim(lon_min, lon_max)
-    ax_mapa.set_ylim(lat_min, lat_max)
-    ax_mapa.set_aspect(
-        1 / max(0.2, math.cos(math.radians(evento["lat"])))
+    fig.text(
+        0.5, 0.017,
+        "Datos: CSN · Huecos no rellenados · "
+        "La interpolación no representa propagación de ondas",
+        ha="center", fontsize=9,
     )
+
+    ax_mapa.set_xlim(MIN_LON, MAX_LON)
+    ax_mapa.set_ylim(MIN_LAT, MAX_LAT)
+    ax_mapa.set_aspect(1 / math.cos(math.radians(-36.5)))
     ax_mapa.set_xlabel("Longitud")
     ax_mapa.set_ylabel("Latitud")
-    ax_mapa.grid(alpha=0.20, zorder=1)
-
-    maximo = max(float(matriz.max()), 1e-12)
-    norma = Normalize(vmin=0, vmax=maximo)
-
-    cmap = plt.get_cmap("YlOrRd").copy()
-    cmap.set_bad((1, 1, 1, 0))
+    ax_mapa.grid(alpha=0.2)
 
     imagen = ax_mapa.imshow(
         campo.calcular(matriz[:, indice_resumen]),
         origin="lower",
-        extent=limites,
-        cmap=cmap,
-        norm=norma,
-        interpolation="nearest",
-        alpha=0.80,
-        zorder=2,
-        aspect=ax_mapa.get_aspect(),
+        extent=(MIN_LON, MAX_LON, MIN_LAT, MAX_LAT),
+        cmap=cmap, norm=norma,
+        interpolation="nearest", alpha=0.85,
+        aspect=ax_mapa.get_aspect(), zorder=2,
     )
 
-    if geometria is not None:
-        for geom in geometria:
-            partes = geom.geoms if hasattr(geom, "geoms") else [geom]
-            for parte in partes:
-                x, y = parte.xy
-                ax_mapa.plot(
-                    x, y, color="#465569", linewidth=0.7, zorder=3
-                )
+    for x, y in costa:
+        ax_mapa.plot(
+            x, y, color="#617082", linewidth=0.6, zorder=3
+        )
+
+    lons = np.array([r["lon"] for r in resultados])
+    lats = np.array([r["lat"] for r in resultados])
+
+    # Todas las estaciones permanecen visibles en gris.
+    ax_mapa.scatter(
+        lons, lats,
+        marker="x", s=15, color="#8b95a1",
+        linewidths=0.6, zorder=4,
+    )
 
     puntos = ax_mapa.scatter(
-        [r["lon"] for r in validos],
-        [r["lat"] for r in validos],
-        c=matriz[:, indice_resumen],
-        cmap=cmap,
-        norm=norma,
-        s=42,
-        edgecolors="#202a35",
-        linewidths=0.6,
-        zorder=5,
-        label="Con datos",
+        lons, lats,
+        c=np.ma.masked_invalid(matriz[:, indice_resumen]),
+        cmap=cmap, norm=norma,
+        s=24, edgecolors="#27323d",
+        linewidths=0.3, zorder=5,
     )
-
-    if invalidos:
-        ax_mapa.scatter(
-            [r["lon"] for r in invalidos],
-            [r["lat"] for r in invalidos],
-            marker="x", s=34, color="#697586",
-            linewidths=1.1, zorder=5, label="Sin datos válidos",
-        )
 
     ax_mapa.scatter(
         [evento["lon"]], [evento["lat"]],
-        marker="*", s=230, color="#137bd0",
-        edgecolors="white", linewidths=0.7,
-        zorder=6, label="Epicentro",
+        marker="*", s=190, color="#1486d1",
+        edgecolors="white", linewidths=0.7, zorder=7,
     )
 
-    # Usar números en el mapa; se corresponden con las filas.
-    for i, r in enumerate(resultados, start=1):
-        ax_mapa.annotate(
-            str(i), (r["lon"], r["lat"]),
-            xytext=(3, 3), textcoords="offset points",
-            fontsize=6.5, zorder=7,
-        )
-
-    ax_mapa.legend(loc="best", fontsize=8)
+    # Resaltar en azul las estaciones de la página del gráfico.
+    destacados = ax_mapa.scatter(
+        [], [], facecolors="none",
+        edgecolors="#146aca", s=65,
+        linewidths=0.9, zorder=6,
+    )
 
     barra = fig.colorbar(
-        imagen, ax=ax_mapa, fraction=0.043, pad=0.035
+        imagen, ax=ax_mapa, fraction=0.045, pad=0.045
     )
-    barra.set_label(
-        "Máximo |aZ| por segundo [cm/s²]",
-        fontsize=9,
+    barra.set_label("Máximo |aZ| por segundo [cm/s²]", fontsize=9)
+
+    ax_mapa.set_title(
+        "Acelerómetros en extensión de Chile\n"
+        "Gris: sin muestra válida en este segundo",
+        fontsize=10,
     )
 
-    if campo.disponible:
-        titulo_mapa = "Campo espacial estimado · IDW"
-    else:
-        titulo_mapa = "Observaciones · sin cobertura para interpolar"
+    pagina_actual = -1
+    cursores = []
+    etiquetas_mapa = []
 
-    if geometria is None:
-        titulo_mapa += "\nCosta no disponible"
+    def dibujar_pagina(pagina):
+        nonlocal pagina_actual, cursores, etiquetas_mapa
 
-    ax_mapa.set_title(titulo_mapa, fontsize=11)
+        if pagina == pagina_actual:
+            return
 
-    if not campo.disponible:
-        ax_mapa.text(
-            0.5, 0.02,
-            campo.motivo,
-            transform=ax_mapa.transAxes,
-            ha="center", va="bottom", fontsize=8,
-            bbox={"facecolor": "white", "alpha": 0.85, "edgecolor": "none"},
-            zorder=8,
+        pagina_actual = pagina
+        inicio = pagina * ESTACIONES_POR_PAGINA
+
+        cursores = []
+
+        for panel, ax in enumerate((ax1, ax2)):
+            primero = inicio + panel * FILAS_POR_PANEL
+            filas = resultados[primero:primero + FILAS_POR_PANEL]
+            cursor = dibujar_filas(ax, filas, primero)
+            ax.set_title(
+                "Estación · pico [cm/s²] · cobertura",
+                fontsize=10,
+            )
+            cursores.append(cursor)
+
+        pagina_texto.set_text(
+            f"Estaciones {inicio + 1}–"
+            f"{min(inicio + ESTACIONES_POR_PAGINA, len(resultados))}"
+            f" de {len(resultados)} · Página {pagina + 1}/{paginas}"
         )
 
-    # Una fila por estación. No hay superposición entre estaciones.
-    etiquetas = []
+        for etiqueta in etiquetas_mapa:
+            etiqueta.remove()
+        etiquetas_mapa = []
 
-    for i, r in enumerate(resultados):
-        base = float(i)
+        seleccion = resultados[
+            inicio:inicio + ESTACIONES_POR_PAGINA
+        ]
 
-        ax_grafico.axhline(
-            base, color="#dfe5ed", linewidth=0.5, zorder=0
-        )
+        destacados.set_offsets(np.array([
+            [r["lon"], r["lat"]] for r in seleccion
+        ]).reshape(-1, 2))
 
-        if r["valida"]:
-            pico = max(float(np.max(r["serie"])), 1e-30)
-            curva = r["serie"] / pico
-
-            # Cada estación ocupa solo su propia fila.
-            y = base - 0.72 * curva
-
-            ax_grafico.fill_between(
-                tiempos_centro, base, y,
-                color="#2689b6", alpha=0.30,
-            )
-            ax_grafico.plot(
-                tiempos_centro, y,
-                color="#126186", linewidth=0.75,
+        for j, r in enumerate(seleccion, start=inicio + 1):
+            etiquetas_mapa.append(
+                ax_mapa.annotate(
+                    str(j), (r["lon"], r["lat"]),
+                    xytext=(3, 3), textcoords="offset points",
+                    fontsize=6, color="#13529a", zorder=8,
+                )
             )
 
-            etiquetas.append(
-                f"{i + 1:02d}  {r['estacion_id']}  "
-                f"[{r['canal']}]  "
-                f"{r['pico_cm_s2']:.3g}"
-            )
-        else:
-            ax_grafico.text(
-                (POST_SEG - PRE_SEG) / 2,
-                base - 0.18,
-                "SIN DATOS VÁLIDOS",
-                ha="center", va="center",
-                fontsize=7, color="#858e9c",
-            )
-            etiquetas.append(
-                f"{i + 1:02d}  {r['estacion_id']}  SIN DATOS"
-            )
+    def actualizar(indice, pagina):
+        dibujar_pagina(pagina)
 
-    ax_grafico.set_yticks(np.arange(cantidad))
-    ax_grafico.set_yticklabels(etiquetas, fontsize=8)
-    ax_grafico.set_ylim(cantidad - 0.35, -1.0)
-    ax_grafico.set_xlim(-PRE_SEG, POST_SEG)
-    ax_grafico.set_xlabel("Segundos respecto del origen")
-    ax_grafico.set_title(
-        "Todas las estaciones · amplitud normalizada por fila\n"
-        "Etiqueta: estación / canal / pico filtrado [cm/s²]",
-        fontsize=11,
-    )
-    ax_grafico.axvline(
-        0, color="#177dc2", linestyle="--", linewidth=1
-    )
-    ax_grafico.grid(axis="x", alpha=0.20)
-
-    for tick, r in zip(ax_grafico.get_yticklabels(), resultados):
-        if not r["valida"]:
-            tick.set_color("#858e9c")
-
-    cursor = ax_grafico.axvline(
-        tiempos_centro[indice_resumen],
-        color="#c23b22", linewidth=1.3,
-    )
-
-    fig.text(
-        0.5, 0.065,
-        "CSN · Aceleración vertical filtrada · "
-        "Mapa: escala física común · Gráfico: escala individual",
-        ha="center", fontsize=9,
-    )
-    fig.text(
-        0.5, 0.043,
-        "Interpolación espacial estimada; no representa propagación "
-        "de ondas. Zonas sin cobertura suficiente enmascaradas.",
-        ha="center", fontsize=8,
-    )
-
-    etiqueta_tiempo = fig.text(
-        0.5, 0.020, "", ha="center", fontsize=10
-    )
-
-    def actualizar_frame(indice):
         valores = matriz[:, indice]
-        imagen.set_data(campo.calcular(valores))
-        puntos.set_array(valores)
+        interpolado = campo.calcular(valores)
 
-        segundo = segundos[indice]
-        centro = segundo + 0.5
-        cursor.set_xdata([centro, centro])
+        imagen.set_data(interpolado)
+        puntos.set_array(np.ma.masked_invalid(valores))
 
-        etiqueta_tiempo.set_text(
-            f"Intervalo {segundo:+.0f} a {segundo + 1:+.0f} s · "
-            f"Reproducción {FPS:g}× · "
-            f"Máximo observado: {valores.max():.4g} cm/s²"
+        segundo = SEGUNDOS[indice]
+        for cursor in cursores:
+            cursor.set_xdata([segundo + 0.5, segundo + 0.5])
+
+        n = int(np.isfinite(valores).sum())
+        cobertura = int(interpolado.count())
+
+        estado_texto.set_text(
+            f"{n}/{len(resultados)} estaciones con dato en este segundo · "
+            + (
+                "Interpolación con cobertura suficiente"
+                if cobertura
+                else "Sin cobertura suficiente para interpolar: "
+                     "se muestran las estaciones"
+            )
         )
 
-    actualizar_frame(indice_resumen)
+        velocidad = len(SEGUNDOS) * FPS / numero_frames
+        tiempo_texto.set_text(
+            f"Intervalo {segundo:+.0f} a {segundo + 1:+.0f} s · "
+            f"Reproducción {velocidad:.2g}×"
+        )
 
-    # Imágenes completas y paneles.
+    actualizar(indice_resumen, 0)
     fig.canvas.draw()
-    fig.savefig(carpeta / "resumen.png", dpi=130)
+    fig.savefig(carpeta / "resumen.png", dpi=120)
+
+    # Exportar mapa del instante de mayor amplitud observada.
+    from matplotlib.transforms import Bbox
 
     renderer = fig.canvas.get_renderer()
-
-    caja_mapa = Bbox.union([
+    caja = Bbox.union([
         ax_mapa.get_tightbbox(renderer),
         barra.ax.get_tightbbox(renderer),
     ]).transformed(
         fig.dpi_scale_trans.inverted()
-    ).expanded(1.04, 1.04)
-
-    caja_grafico = ax_grafico.get_tightbbox(
-        renderer
-    ).transformed(
-        fig.dpi_scale_trans.inverted()
-    ).expanded(1.03, 1.03)
+    ).expanded(1.05, 1.05)
 
     fig.savefig(
-        carpeta / "mapa.png",
-        dpi=150, bbox_inches=caja_mapa,
-    )
-    fig.savefig(
-        carpeta / "grafico.png",
-        dpi=150, bbox_inches=caja_grafico,
+        carpeta / "mapa.png", dpi=160, bbox_inches=caja
     )
 
     ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
@@ -1308,41 +1616,40 @@ def generar_video(evento, resultados, carpeta):
     temporal = carpeta / "video_base.mp4"
     destino = carpeta / "video.mp4"
 
-    # Mantener dimensiones del video acotadas aunque haya muchas filas.
-    # Los PNG se guardaron arriba con su resolución completa.
-    dpi_video = min(100.0, 1900.0 / max(16.0, alto))
-
     writer = FFMpegWriter(
         fps=FPS,
         codec="libx264",
         extra_args=[
-            "-vf", "pad=ceil(iw/2)*2:ceil(ih/2)*2",
             "-pix_fmt", "yuv420p",
-            "-crf", "20",
+            "-crf", "21",
         ],
     )
 
     LOG.info(
-        "Generando video con %d filas y %d cuadros",
-        cantidad, len(segundos),
+        "Video: %d estaciones, %d páginas, %d cuadros",
+        len(resultados), paginas, numero_frames,
     )
 
     try:
-        with writer.saving(fig, str(temporal), dpi=dpi_video):
-            for indice in range(len(segundos)):
-                actualizar_frame(indice)
+        with writer.saving(fig, str(temporal), dpi=100):
+            for frame, indice in enumerate(indices_tiempo):
+                pagina = min(
+                    paginas - 1,
+                    frame * paginas // numero_frames,
+                )
+                actualizar(int(indice), pagina)
                 writer.grab_frame()
     finally:
         plt.close(fig)
 
-    proceso = subprocess.run(
+    p = subprocess.run(
         [
             ffmpeg, "-y",
             "-i", str(temporal),
             "-vf", "fps=30,pad=ceil(iw/2)*2:ceil(ih/2)*2",
             "-c:v", "libx264",
             "-preset", "fast",
-            "-crf", "20",
+            "-crf", "21",
             "-pix_fmt", "yuv420p",
             "-movflags", "+faststart",
             "-an",
@@ -1353,99 +1660,66 @@ def generar_video(evento, resultados, carpeta):
         timeout=600,
     )
 
-    if proceso.returncode != 0:
+    if p.returncode != 0:
         raise RuntimeError("FFmpeg no pudo preparar el MP4")
-
     if not destino.is_file() or destino.stat().st_size == 0:
-        raise RuntimeError("MP4 vacío")
+        raise RuntimeError("Video vacío")
 
     temporal.unlink(missing_ok=True)
     return destino
 
 
 def video_del_evento(evento, carpeta):
-    inventario, grupos = obtener_estaciones(evento)
-    resultados = []
-
-    with ThreadPoolExecutor(max_workers=TRABAJADORES) as executor:
-        futuros = {
-            executor.submit(
-                procesar_estacion, grupo, inventario, evento
-            ): grupo
-            for grupo in grupos
-        }
-
-        for numero_finalizado, futuro in enumerate(
-            as_completed(futuros), start=1
-        ):
-            resultado = futuro.result()
-            resultados.append(resultado)
-
-            LOG.info(
-                "Estación %d/%d: %s · %s",
-                numero_finalizado,
-                len(grupos),
-                resultado["estacion_id"],
-                "válida" if resultado["valida"] else resultado["motivo"],
-            )
-
-    resultados.sort(key=lambda r: r["distancia_km"])
-
-    # Guardar CSV incluso cuando ninguna estación resulte válida.
+    grupos = obtener_estaciones(evento)
+    resultados = descargar_estaciones(grupos, evento)
     guardar_resultados(evento, resultados, carpeta)
+
+    validas = sum(r["valida"] for r in resultados)
+    LOG.info(
+        "Resultado: %d/%d estaciones con al menos un segundo válido",
+        validas, len(resultados),
+    )
 
     return generar_video(evento, resultados, carpeta)
 
 
 # =====================================================================
-# X: AUTENTICACIÓN Y TEXTO
+# X
 # =====================================================================
 
 def crear_sesion_x():
-    credenciales = {
-        "X_API_KEY": X_API_KEY,
-        "X_API_SECRET": X_API_SECRET,
-        "X_ACCESS_TOKEN": X_ACCESS_TOKEN,
-        "X_ACCESS_TOKEN_SECRET": X_ACCESS_TOKEN_SECRET,
-    }
-
-    faltantes = [
-        nombre for nombre, valor in credenciales.items()
-        if (
-            not isinstance(valor, str)
-            or not valor.strip()
-            or valor.strip().startswith("PEGA_AQUI")
-        )
+    valores = [
+        X_API_KEY,
+        X_API_SECRET,
+        X_ACCESS_TOKEN,
+        X_ACCESS_TOKEN_SECRET,
     ]
-    if faltantes:
-        raise RuntimeError(
-            "Completa las credenciales: " + ", ".join(faltantes)
-        )
+    if any(
+        not isinstance(v, str)
+        or not v.strip()
+        or v.startswith("PEGA_AQUI")
+        for v in valores
+    ):
+        raise RuntimeError("Credenciales de X incompletas")
 
-    sesion = requests.Session()
-    sesion.auth = OAuth1(
-        X_API_KEY.strip(),
-        X_API_SECRET.strip(),
-        X_ACCESS_TOKEN.strip(),
-        X_ACCESS_TOKEN_SECRET.strip(),
-    )
-    return sesion
+    s = requests.Session()
+    s.auth = OAuth1(*(v.strip() for v in valores))
+    return s
 
 
-def respuesta_x(respuesta):
-    if not respuesta.ok:
-        raise ErrorX(respuesta.status_code)
-    if not respuesta.content:
+def respuesta_x(r):
+    if not r.ok:
+        raise ErrorX(r.status_code)
+    if not r.content:
         return {}
 
-    contenido = respuesta.json()
+    contenido = r.json()
     if not isinstance(contenido, dict) or contenido.get("errors"):
         raise RuntimeError("Respuesta de X no válida")
 
     datos = contenido.get("data", {})
     if not isinstance(datos, dict):
         raise RuntimeError("Datos de X no válidos")
-
     return datos
 
 
@@ -1455,7 +1729,6 @@ def peso_texto(texto):
 
 
 def texto_publicacion(evento):
-    local = hora_local(evento)
     profundidad = (
         f"{evento['prof']:g} km"
         if evento["prof"] is not None
@@ -1466,7 +1739,7 @@ def texto_publicacion(evento):
     def construir(lugar):
         return (
             f"Sismo M {evento['mag_texto']} | {lugar}\n"
-            f"{local:%d/%m/%Y %H:%M:%S}\n"
+            f"{hora_local(evento):%d/%m/%Y %H:%M:%S}\n"
             f"Profundidad: {profundidad}.\n"
             f"Epicentro: lat {evento['lat']:.4f}°, "
             f"lon {evento['lon']:.4f}°.\n"
@@ -1484,12 +1757,8 @@ def texto_publicacion(evento):
     return texto
 
 
-# =====================================================================
-# X: CARGA Y PUBLICACIÓN
-# =====================================================================
-
 def subir_video_x(sesion, ruta):
-    inicial = respuesta_x(
+    datos = respuesta_x(
         sesion.post(
             API_X + "/media/upload/initialize",
             json={
@@ -1500,12 +1769,12 @@ def subir_video_x(sesion, ruta):
             timeout=(15, 90),
         )
     )
-    media_id = str(inicial["id"])
+    media_id = str(datos["id"])
 
-    with ruta.open("rb") as archivo:
+    with ruta.open("rb") as f:
         segmento = 0
         while True:
-            bloque = archivo.read(4 * 1024 * 1024)
+            bloque = f.read(4 * 1024 * 1024)
             if not bloque:
                 break
 
@@ -1527,13 +1796,11 @@ def subir_video_x(sesion, ruta):
             timeout=(15, 90),
         )
     )
-
     info = datos.get("processing_info")
     limite = time.monotonic() + MAX_PROCESAMIENTO_X_SEG
 
     while info:
         estado = info.get("state")
-
         if estado == "succeeded":
             return media_id
         if estado == "failed":
@@ -1543,13 +1810,15 @@ def subir_video_x(sesion, ruta):
 
         restante = limite - time.monotonic()
         if restante <= 0:
-            raise RuntimeError("Tiempo de procesamiento en X agotado")
+            raise RuntimeError("Tiempo de procesamiento X agotado")
 
-        espera = max(1, int(info.get("check_after_secs", 5)))
-        time.sleep(min(espera, restante))
+        time.sleep(min(
+            max(1, int(info.get("check_after_secs", 5))),
+            restante,
+        ))
 
         if time.monotonic() >= limite:
-            raise RuntimeError("Tiempo de procesamiento en X agotado")
+            raise RuntimeError("Tiempo de procesamiento X agotado")
 
         datos = respuesta_x(
             sesion.get(
@@ -1560,7 +1829,7 @@ def subir_video_x(sesion, ruta):
         )
         info = datos.get("processing_info")
         if not info:
-            raise RuntimeError("X no devolvió estado de procesamiento")
+            raise RuntimeError("X no devolvió el estado del video")
 
     return media_id
 
@@ -1577,7 +1846,7 @@ def publicar_evento(estado, sesion, clave, evento, ruta):
 
     media_id = subir_video_x(sesion, ruta)
 
-    # Confirmar persistencia ANTES de enviar el tweet.
+    # Confirmar el guardado antes de enviar el tweet.
     estado.actualizar(
         clave,
         estado="enviando",
@@ -1586,7 +1855,7 @@ def publicar_evento(estado, sesion, clave, evento, ruta):
     )
 
     try:
-        respuesta = sesion.post(
+        r = sesion.post(
             API_X + "/tweets",
             json={
                 "text": texto,
@@ -1600,28 +1869,26 @@ def publicar_evento(estado, sesion, clave, evento, ruta):
             estado="resultado_incierto",
             ultimo_error="POST sin confirmación",
         )
-        raise RuntimeError(
-            "Publicación incierta. Revisar X antes de reintentar."
-        )
+        raise RuntimeError("Publicación incierta; revisar X")
 
-    if respuesta.status_code >= 500 or respuesta.status_code == 408:
+    if r.status_code >= 500 or r.status_code == 408:
         estado.actualizar(
             clave,
             estado="resultado_incierto",
-            ultimo_error=f"HTTP {respuesta.status_code} tras POST",
+            ultimo_error=f"HTTP {r.status_code} tras POST",
         )
         raise RuntimeError("Publicación incierta")
 
-    if not respuesta.ok:
+    if not r.ok:
         estado.actualizar(
             clave,
             estado="pendiente",
-            ultimo_error=f"X HTTP {respuesta.status_code}",
+            ultimo_error=f"X HTTP {r.status_code}",
         )
-        raise ErrorX(respuesta.status_code)
+        raise ErrorX(r.status_code)
 
     try:
-        tweet_id = str(respuesta_x(respuesta)["id"])
+        tweet_id = str(respuesta_x(r)["id"])
     except Exception:
         estado.actualizar(
             clave,
@@ -1651,8 +1918,8 @@ def ejecutar_una_vez():
     inicio = fin - HORAS_BUSQUEDA * 3600
 
     LOG.info(
-        "CSN -> HEATMAP -> VIDEO -> X | M >= %.1f | %d horas",
-        MAG_MIN, HORAS_BUSQUEDA,
+        "CSN -> HEATMAP NACIONAL -> VIDEO -> X | M >= %.1f",
+        MAG_MIN,
     )
     LOG.info("Ventana UTC: %s a %s", inicio, fin)
 
@@ -1666,9 +1933,9 @@ def ejecutar_una_vez():
             if problemas:
                 fallos += 1
         except Exception as exc:
-            LOG.error("Búsqueda CSN fallida: %s", exc)
             eventos = {}
             fallos += 1
+            LOG.error("Búsqueda CSN fallida: %s", exc)
 
         registros = estado.datos["eventos"]
         cambios = False
@@ -1687,6 +1954,13 @@ def ejecutar_una_vez():
                 if registros[clave]["evento"] != evento:
                     registros[clave]["evento"] = evento
                     cambios = True
+            else:
+                LOG.info(
+                    "Omitido %s: estado=%s tweet_id=%s",
+                    clave,
+                    registros[clave].get("estado"),
+                    registros[clave].get("tweet_id"),
+                )
 
         if cambios:
             estado.guardar()
@@ -1698,32 +1972,22 @@ def ejecutar_una_vez():
 
             evento = registro["evento"]
             t = UTCDateTime(evento["t"])
-
             if inicio <= t <= fin and evento["mag"] >= MAG_MIN:
-                cola.append((clave, registro))
+                disponible = (
+                    t + POST_SEG + MARGEN_SEG + LATENCIA_SEG
+                )
+                if disponible <= fin:
+                    cola.append((clave, registro))
+                else:
+                    LOG.info(
+                        "%s: ventana posterior aún no disponible",
+                        clave,
+                    )
 
         cola.sort(key=lambda item: item[1]["evento"]["t"])
 
         if not cola:
-            LOG.info("Sin eventos nuevos o pendientes. Fin.")
-            return 1 if fallos else 0
-
-        listos = []
-        for clave, registro in cola:
-            disponible = (
-                UTCDateTime(registro["evento"]["t"])
-                + POST_SEG + MARGEN_SEG + LATENCIA_SEG
-            )
-            if disponible <= fin:
-                listos.append((clave, registro))
-            else:
-                LOG.info(
-                    "%s: esperando ventana posterior; "
-                    "queda para la próxima ejecución.",
-                    clave,
-                )
-
-        if not listos:
+            LOG.info("Sin eventos nuevos o pendientes listos. Fin.")
             return 1 if fallos else 0
 
         if PUBLICAR_EN_X:
@@ -1743,9 +2007,8 @@ def ejecutar_una_vez():
             cuenta_id = "SIMULACION"
 
         anterior = estado.datos.get("cuenta_id")
-
         if anterior is not None and anterior != cuenta_id:
-            raise ErrorEstado("Estado perteneciente a otra cuenta")
+            raise ErrorEstado("El estado pertenece a otra cuenta")
 
         if anterior is None:
             estado.datos["cuenta_id"] = cuenta_id
@@ -1753,15 +2016,15 @@ def ejecutar_una_vez():
 
         SALIDA.mkdir(parents=True, exist_ok=True)
 
-        for posicion, (clave, registro) in enumerate(listos, 1):
-            if time.monotonic() - inicio_ejecucion > PRESUPUESTO_SEG:
-                LOG.info(
-                    "Presupuesto alcanzado. Restantes pendientes."
-                )
+        for posicion, (clave, registro) in enumerate(cola, 1):
+            if (
+                time.monotonic() - inicio_ejecucion
+                > PRESUPUESTO_LOTE_SEG
+            ):
+                LOG.info("Restantes pendientes para otra ejecución")
                 break
 
             evento = registro["evento"]
-
             estado.actualizar(
                 clave,
                 estado="procesando",
@@ -1770,15 +2033,13 @@ def ejecutar_una_vez():
 
             LOG.info(
                 "[%d/%d] %s · M %s · %s",
-                posicion, len(listos), clave,
+                posicion, len(cola), clave,
                 evento["mag_texto"], evento["referencia"],
             )
 
             try:
                 texto_publicacion(evento)
-                carpeta = SALIDA / clave
-                ruta = video_del_evento(evento, carpeta)
-
+                ruta = video_del_evento(evento, SALIDA / clave)
                 publicar_evento(
                     estado, sesion_x, clave, evento, ruta
                 )
@@ -1788,13 +2049,9 @@ def ejecutar_una_vez():
 
             except Exception as exc:
                 fallos += 1
-                LOG.error(
-                    "Evento %s incompleto: %s: %s",
-                    clave, type(exc).__name__, exc,
-                )
+                LOG.exception("No se completó el evento %s", clave)
 
                 actual = registros[clave]["estado"]
-
                 if actual == "procesando":
                     estado.actualizar(
                         clave,
@@ -1811,15 +2068,9 @@ def ejecutar_una_vez():
                 if isinstance(exc, ErrorX) and exc.status in {
                     401, 402, 403, 429
                 }:
-                    LOG.error("Lote detenido por acceso o límites de X")
                     break
 
-        for clave, _ in listos:
-            LOG.info("%s: %s", clave, registros[clave]["estado"])
-
-        LOG.info(
-            "Fin del ciclo. La próxima ejecución depende de Actions."
-        )
+        LOG.info("Ciclo finalizado")
         return 1 if fallos else 0
 
     finally:
@@ -1841,11 +2092,8 @@ def main():
     except KeyboardInterrupt:
         LOG.warning("Interrumpido")
         return 130
-    except Exception as exc:
-        LOG.error(
-            "Ejecución detenida: %s: %s",
-            type(exc).__name__, exc,
-        )
+    except Exception:
+        LOG.exception("Ejecución detenida")
         return 1
 
 
