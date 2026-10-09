@@ -38,7 +38,7 @@ jobs:
       PYTHONUNBUFFERED: '1'
 
       MAG_MIN: '4.0'
-      LOOKBACK_HOURS: '48'
+      LOOKBACK_HOURS: '60'
       PRE_SEG: '60'
       POST_SEG: '120'
       MARGEN_SEG: '30'
