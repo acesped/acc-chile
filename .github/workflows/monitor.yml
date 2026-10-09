@@ -38,6 +38,8 @@ jobs:
       PYTHONUNBUFFERED: '1'
 
       MAG_MIN: '4.0'
+      MAX_STATIONS: "15"
+      MAX_CANDIDATES: "30"
       LOOKBACK_HOURS: '60'
       PRE_SEG: '60'
       POST_SEG: '120'
