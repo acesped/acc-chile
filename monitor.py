@@ -318,6 +318,42 @@ def catalogue_links(html, url, daily, c):
     return links
 
 
+def homepage_covers(html, beginning):
+    """Respaldo acotado: lista válida y ordenada que alcanza el intervalo faltante.
+
+    La portada usa hora local. Rechazar horas ambiguas/inexistentes de DST
+    en lugar de adivinar su UTC. No filtrar por magnitud para medir cobertura.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    timestamps = []
+    zone = ZoneInfo("America/Santiago")
+    tables = [t for t in soup.find_all("table")
+              if any("magnitud" in key(h.get_text()) for h in t.find_all("th"))]
+    if len(tables) != 1:
+        return False
+    for row in tables[0].find_all("tr"):
+        cells = row.find_all("td", recursive=False)
+        if not cells:
+            continue
+        match = re.search(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}", cells[0].get_text(" ", strip=True))
+        if not match:
+            return False
+        try:
+            naive = datetime.strptime(match.group(), "%Y-%m-%d %H:%M:%S")
+            first = naive.replace(tzinfo=zone, fold=0)
+            second = naive.replace(tzinfo=zone, fold=1)
+            if first.utcoffset() != second.utcoffset():
+                return False
+            instant = first.astimezone(timezone.utc)
+            if instant.astimezone(zone).replace(tzinfo=None) != naive:
+                return False
+            timestamps.append(instant)
+        except ValueError:
+            return False
+    return bool(timestamps and timestamps[-1] <= beginning
+                and all(a >= b for a, b in zip(timestamps, timestamps[1:])))
+
+
 def discover(c, clock, start, end):
     urls = [CSN + "/"]
     day = start.date()
@@ -325,12 +361,27 @@ def discover(c, clock, start, end):
         urls.append(CSN + day.strftime("/sismicidad/catalogo/%Y/%m/%Y%m%d.html"))
         day += timedelta(days=1)
     links, events, errors, valid = set(), {}, [], 0
+    homepage, warnings = None, []
     for i, url in enumerate(urls):
         try:
-            links.update(catalogue_links(obtener(url, c, clock), url, i > 0, c))
+            html = obtener(url, c, clock)
+            links.update(catalogue_links(html, url, i > 0, c))
+            if i == 0:
+                homepage = html
             valid += 1
         except (SourceError, BudgetError) as exc:
-            errors.append({"url": url, "type": type(exc).__name__, "error": clean(exc)})
+            detail = {"url": url, "type": type(exc).__name__, "error": clean(exc)}
+            current_url = CSN + end.strftime("/sismicidad/catalogo/%Y/%m/%Y%m%d.html")
+            beginning = max(start, end.replace(hour=0, minute=0, second=0, microsecond=0))
+            if (url == current_url and homepage is not None
+                    and re.search(r"HTTP (403|404)\b", str(exc))
+                    and homepage_covers(homepage, beginning)):
+                detail["fallback"] = "Portada válida cubre desde el inicio del intervalo UTC faltante"
+                warnings.append(detail)
+                log(f"CSN: respaldo por portada para {url}; {clean(exc)}")
+            else:
+                errors.append(detail)
+                log(f"CSN: consulta incompleta {url}; {clean(exc)}")
     for url in sorted(links):
         try:
             e = leer_evento(obtener(url, c, clock), url)
@@ -340,7 +391,7 @@ def discover(c, clock, start, end):
             errors.append({"url": url, "type": type(exc).__name__, "error": clean(exc)})
     status = "valida" if not errors else "parcial" if valid else (
         "incompatible" if any(x["type"] == "StructureError" for x in errors) else "inaccesible")
-    return list(events.values()), {"status": status, "pages_ok": valid, "pages": len(urls), "errors": errors}
+    return list(events.values()), {"status": status, "pages_ok": valid, "pages": len(urls), "errors": errors, "warnings": warnings}
 
 
 def empty_state(mode):
