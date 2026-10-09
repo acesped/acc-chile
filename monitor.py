@@ -466,16 +466,54 @@ class Store:
         r = self.api("PUT", self.file, json=body)
         if r.status_code not in {200, 201}:
             raise PersistenceError(f"Guardar estado CAS: HTTP {r.status_code}; se detiene")
-        confirm = self.api("GET", self.file, params={"ref": self.c.branch})
+        # Verificar el commit inmutable devuelto por PUT, no volver a resolver
+        # el nombre mutable de la rama inmediatamente después de escribir.
         try:
-            b = confirm.json()
-            actual = json.loads(base64.b64decode(b["content"]))
-            if confirm.status_code != 200 or actual != s:
-                raise ValueError()
-            self.sha = b["sha"]
-        except Exception:
-            raise PersistenceError("No se confirmó persistencia remota") from None
-        log(f"Persistencia confirmada: {self.mode}, revisión {s['revision']}")
+            result = r.json()
+            commit_sha = result["commit"]["sha"]
+            blob_sha = result["content"]["sha"]
+            if not all(isinstance(value, str) and re.fullmatch(r"[0-9a-f]{40,64}", value)
+                       for value in (commit_sha, blob_sha)):
+                raise ValueError("SHA inválido")
+        except (ValueError, KeyError, TypeError):
+            raise PersistenceError(
+                f"GitHub PUT HTTP {r.status_code}: respuesta sin SHA de commit/blob válido; "
+                "guardado no confirmado, no se repite PUT") from None
+        last_error = ""
+        for attempt in range(3):
+            if attempt:
+                time.sleep(attempt)
+            try:
+                confirm = self.api("GET", self.file, params={"ref": commit_sha})
+            except PersistenceError as exc:
+                last_error = str(exc)
+                continue
+            if confirm.status_code != 200:
+                last_error = f"GET de verificación HTTP {confirm.status_code}"
+                if confirm.status_code == 404 or 500 <= confirm.status_code <= 599:
+                    continue
+                # Los límites y permisos se informan y detienen; no esperar
+                # indiscriminadamente ni repetir operaciones de escritura.
+                raise PersistenceError(last_error + "; publicación bloqueada")
+            try:
+                b = confirm.json()
+                actual = json.loads(base64.b64decode(b["content"]))
+                matches = b["sha"] == blob_sha and actual == s
+            except (ValueError, KeyError, TypeError):
+                last_error = "GET HTTP 200: contenido JSON/base64 ilegible"
+                continue
+            if not matches:
+                raise PersistenceError(
+                    "GET HTTP 200: SHA o contenido no coincide con el commit guardado; "
+                    "publicación bloqueada")
+            self.sha = blob_sha
+            log(f"Persistencia confirmada: {self.mode}, revisión {s['revision']}, "
+                f"commit {commit_sha[:12]}")
+            return
+        raise PersistenceError(
+            f"No se confirmó persistencia remota tras 3 lecturas: {last_error}; "
+            "no se repite PUT ni se autoriza publicación")
+
 
 
 def record(event, now):
