@@ -40,7 +40,7 @@ jobs:
       MAG_MIN: '4.0'
       MAX_STATIONS: "15"
       MAX_CANDIDATES: "30"
-      LOOKBACK_HOURS: '60'
+      LOOKBACK_HOURS: '72'
       PRE_SEG: '60'
       POST_SEG: '120'
       MARGEN_SEG: '30'
