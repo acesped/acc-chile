@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CSN -> picos de aceleración horizontal observada -> MP4 -> X. Un ciclo, estado CAS.
+"""CSN -> peaks de aceleración horizontal observada -> MP4 -> X. Un ciclo, estado CAS.
 Python 3.11+. Pruebas: pytest test_monitor.py. --init-state inicializa explícitamente.
 """
 from __future__ import annotations
@@ -923,7 +923,7 @@ def procesar_componente(station, e, c, clock):
 
 
 def procesar_estacion(station, e, c, clock):
-    """Conservar ambas señales SI para calcular picos sin remuestrear ni rellenar."""
+    """Conservar ambas señales SI para calcular peaks sin remuestrear ni rellenar."""
     components = [procesar_componente(part, e, c, clock) for part in station["components"]]
     return dict(station, components=components,
                 metric="max(abs(a_N), abs(a_E)) per time bin; percent standard gravity")
@@ -1086,7 +1086,7 @@ def generar_video(e, stations, c, clock, folder):
     for s in stations:
         ax.text(s["lon"]+.025, s["lat"]+.025, s["sta"], fontsize=7, zorder=7)
     bar = fig.colorbar(ScalarMappable(norm=norm, cmap="jet"), ax=ax, orientation="horizontal", pad=.07, fraction=.05)
-    bar.set_label(f"Pico horizontal por {c.step:g} s [% g] · escala logarítmica fija", fontsize=8)
+    bar.set_label(f"Peak horizontal por {c.step:g} s [% g] · escala logarítmica fija", fontsize=8)
     bar.ax.tick_params(labelsize=8)
     # Exactamente la misma magnitud física y los mismos intervalos que el mapa.
     # Cero real no se dibuja en log; nunca se sustituye por una señal inventada.
@@ -1104,7 +1104,7 @@ def generar_video(e, stations, c, clock, folder):
                           ha="center", va="top", fontsize=8, color="white",
                           bbox={"facecolor": "#263449", "edgecolor": "none", "pad": 2})
     p.set(xlim=(-c.pre, c.post), ylim=(vmin, vmax),
-          xlabel="Tiempo respecto al origen [s]", ylabel="Pico horizontal por intervalo [% g]")
+          xlabel="Tiempo respecto al origen [s]", ylabel="Peak horizontal por intervalo [% g]")
     p.set_title("ACELERACIÓN DE LAS ESTACIONES", fontsize=10, pad=28)
     p.tick_params(labelsize=8)
     p.grid(alpha=.25, which="major")
@@ -1115,10 +1115,8 @@ def generar_video(e, stations, c, clock, folder):
                  f"{date(e['origin']).astimezone(ZoneInfo('America/Santiago')):%d/%m/%Y %H:%M:%S}"
                  f" · Profundidad: {depth}", fontsize=12, y=.96)
     label = fig.text(.06, .855, "", fontsize=10)
-    coverage = "Heatmap JET de áreas con soporte" if has_area else "Cobertura insuficiente: sólo mediciones en estaciones"
-    fig.text(.04, .07, f"{coverage}. No es intensidad oficial ni pronóstico.\n"
-             "Pico = máx. de |N| y |E| por intervalo; banda 0.2–20 Hz. Áreas: interpolación IDW estimada.", fontsize=8)
-    fig.text(.04, .022, "Fuente: Centro Sismológico Nacional de la Universidad de Chile · Visualización propia", fontsize=8)
+    coverage = "Peak = máx. de |N| y |E| por intervalo; banda 0.2–20 Hz. Áreas: interpolación IDW estimada.", fontsize=8)
+    fig.text(.04, .022, "Fuente: Centro Sismológico Nacional de la Universidad de Chile", fontsize=8)
     video = folder / "video.mp4"
     writer = FFMpegWriter(fps=c.fps, codec="libx264", bitrate=5000,
                          extra_args=["-vf", "fps=30,format=yuv420p", "-profile:v", "high",
