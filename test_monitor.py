@@ -242,10 +242,10 @@ def test_github_cas_and_new_runner(tmp_path,monkeypatch):
         if method=='GET':
             return Mock(status_code=200,json=lambda:{'sha':remote['sha'],'content':base64.b64encode(json.dumps(remote['state']).encode()).decode()})
         assert kw['json']['sha']==remote['sha']
-        remote['state']=json.loads(base64.b64decode(kw['json']['content']));remote['sha']='two'
-        return Mock(status_code=200)
+        remote['state']=json.loads(base64.b64decode(kw['json']['content']));remote['sha']='b'*40
+        return Mock(status_code=200,json=lambda:{'commit':{'sha':'c'*40},'content':{'sha':'b'*40}})
     a=m.Store(c);a.api=api;s=a.load();s['events']['385789']=m.record(event(),NOW);a.save(s)
-    b=m.Store(c);b.api=api;assert b.load()==s and b.sha=='two'
+    b=m.Store(c);b.api=api;assert b.load()==s and b.sha=='b'*40
     b.api=Mock(return_value=Mock(status_code=409))
     with pytest.raises(m.PersistenceError):b.save(s)
 
@@ -315,3 +315,40 @@ def test_area_interpolation_support_and_constant_field():
 def test_decimal_lookback(monkeypatch):
     monkeypatch.setenv('LOOKBACK_HOURS', '0.1666667')
     assert m.Config.env().lookback == pytest.approx(.1666667)
+
+
+@pytest.mark.parametrize("scenario", ["ok", "transient", "mismatch", "forbidden", "bad_json", "unavailable"])
+def test_commit_confirmation(tmp_path, monkeypatch, scenario):
+    import base64
+    monkeypatch.setenv('GITHUB_REPOSITORY', 'owner/repo')
+    monkeypatch.setenv('GITHUB_TOKEN', 'fake')
+    monkeypatch.setattr(m.time, 'sleep', lambda _: None)
+    store = m.Store(m.Config(state_dir=str(tmp_path)))
+    state = m.empty_state('simulation')
+    calls = []
+    def api(method, path, **kw):
+        calls.append(method)
+        if method == 'PUT':
+            return Mock(status_code=200, json=lambda: {
+                'commit': {'sha': 'c'*40}, 'content': {'sha': 'b'*40}})
+        assert kw['params']['ref'] == 'c'*40
+        if scenario == 'transient' and calls.count('GET') == 1:
+            return Mock(status_code=404)
+        if scenario in ('forbidden', 'unavailable'):
+            return Mock(status_code=403 if scenario == 'forbidden' else 503)
+        if scenario == 'bad_json':
+            return Mock(status_code=200, json=Mock(side_effect=ValueError()))
+        actual = copy.deepcopy(state)
+        if scenario == 'mismatch':
+            actual['revision'] = 'another-revision'
+        return Mock(status_code=200, json=lambda: {
+            'sha': 'b'*40, 'content': base64.b64encode(json.dumps(actual).encode()).decode()})
+    store.api = api
+    if scenario in ('ok', 'transient'):
+        store.save(state)
+        assert store.sha == 'b'*40
+    else:
+        with pytest.raises(m.PersistenceError):
+            store.save(state)
+    assert calls.count('PUT') == 1
+    assert calls.count('GET') <= 3
