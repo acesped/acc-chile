@@ -611,26 +611,69 @@ def retry(r, c, exc, reset=None):
 
 
 def tweet_text(e):
-    """twitter-text oficial (Node). También valida URLs, Unicode NFC y emoji."""
-    ref = unicodedata.normalize("NFC", " ".join(e["reference"].split()))[:2000]
-    depth = "Profundidad: no informada." if e["depth"] is None else f"Profundidad: {e['depth']:g} km."
-    suffix = (f"\n{date(e['origin']).astimezone(ZoneInfo('America/Santiago')):%d/%m/%Y %H:%M:%S}\n"
-              f"{depth}\nEpicentro: lat {e['lat']:.4f}°, lon {e['lon']:.4f}°.\n{e['url']}")
-    candidates = [f"Sismo M {e['mag_display']} | {ref}" + suffix]
-    candidates += [f"Sismo M {e['mag_display']} | {ref[:n].rstrip()}…" + suffix
-                   for n in range(min(len(ref)-1, 280), -1, -1)]
-    js = ("const fs=require('fs'),t=require('twitter-text');"
-          "const a=JSON.parse(fs.readFileSync(0,'utf8'));"
-          "process.stdout.write(JSON.stringify(a.find(s=>t.parseTweet(s).valid)||null));")
-    p = subprocess.run(["node", "-e", js], input=json.dumps(candidates), text=True,
-                       capture_output=True, timeout=30)
+    """Construye el tweet y valida su longitud mediante twitter-text."""
+    ref = unicodedata.normalize(
+        "NFC", " ".join(e["reference"].split())
+    )[:2000]
+
+    heading = "Aceleración del Terreno\n"
+
+    depth = (
+        "Profundidad: no informada."
+        if e["depth"] is None
+        else f"Profundidad: {e['depth']:g} km."
+    )
+
+    local_time = date(e["origin"]).astimezone(
+        ZoneInfo("America/Santiago")
+    )
+
+    suffix = (
+        f"\n{local_time:%d/%m/%Y %H:%M:%S}\n"
+        f"{depth}\n"
+        f"Epicentro: lat {e['lat']:.4f}°, "
+        f"lon {e['lon']:.4f}°.\n"
+        f"{e['url']}"
+    )
+
+    candidates = [
+        heading + f"Sismo M {e['mag_display']} | {ref}" + suffix
+    ]
+
+    candidates += [
+        heading
+        + f"Sismo M {e['mag_display']} | {ref[:n].rstrip()}…"
+        + suffix
+        for n in range(min(len(ref) - 1, 280), -1, -1)
+    ]
+
+    js = (
+        "const fs=require('fs'),t=require('twitter-text');"
+        "const a=JSON.parse(fs.readFileSync(0,'utf8'));"
+        "process.stdout.write("
+        "JSON.stringify(a.find(s=>t.parseTweet(s).valid)||null)"
+        ");"
+    )
+
+    p = subprocess.run(
+        ["node", "-e", js],
+        input=json.dumps(candidates),
+        text=True,
+        capture_output=True,
+        timeout=30,
+    )
+
     if p.returncode:
-        raise Failure("Validación de texto falló; instalar npm twitter-text@3.1.0")
+        raise Failure(
+            "Validación de texto falló; instalar npm twitter-text@3.1.0"
+        )
+
     result = json.loads(p.stdout)
+
     if not result:
         raise Failure("Texto fijo supera el límite de X")
-    return result
 
+    return result
 
 class XClient:
     BASE = "https://api.x.com/2"
