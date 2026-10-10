@@ -1115,7 +1115,10 @@ def generar_video(e, stations, c, clock, folder):
                  f"{date(e['origin']).astimezone(ZoneInfo('America/Santiago')):%d/%m/%Y %H:%M:%S}"
                  f" · Profundidad: {depth}", fontsize=12, y=.96)
     label = fig.text(.06, .855, "", fontsize=10)
-    coverage = "Peak = máx. de |N| y |E| por intervalo; banda 0.2–20 Hz. Áreas: interpolación IDW estimada.", fontsize=8)
+    coverage = (
+    "Peak = máx. de |N| y |E| por intervalo; "
+    "banda 0.2–20 Hz. Áreas: interpolación IDW estimada."
+    )
     fig.text(.04, .022, "Fuente: Centro Sismológico Nacional de la Universidad de Chile", fontsize=8)
     video = folder / "video.mp4"
     writer = FFMpegWriter(fps=c.fps, codec="libx264", bitrate=5000,
