@@ -122,7 +122,12 @@ class Config:
                  "fdsn": "FDSN_BASE"}
         for field, env in names.items():
             default = getattr(c, field)
-            setattr(c, field, type(default)(os.getenv(env, default)))
+            # Las anotaciones son la fuente de verdad: algunos campos float
+            # tienen un valor predeterminado entero (p. ej. lookback=24).
+            # type(default) convertiría erróneamente "0.1666667" a int.
+            annotation = cls.__annotations__[field]
+            converter = float if annotation in (float, "float") else type(default)
+            setattr(c, field, converter(os.getenv(env, default)))
         c.publish = boolean("PUBLISH_TO_X")
         c.reconcile = boolean("RECONCILE_X")
         for field in names:
