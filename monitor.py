@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""CSN -> peaks de aceleración horizontal observada -> MP4 -> X. Un ciclo, estado CAS.
-Python 3.11+. Pruebas: pytest test_monitor.py. --init-state inicializa explícitamente.
+"""CSN -> aceleración horizontal observada -> MP4 -> X.
+Un ciclo, estado CAS, sin reenvío automático de resultados inciertos.
+Python 3.11+. --init-state inicializa expresamente el estado remoto.
 """
 from __future__ import annotations
+
 import argparse
 import base64
 import concurrent.futures as futures
@@ -33,7 +35,6 @@ UTC = timezone.utc
 CSN = "https://www.sismologia.cl"
 STATES = {"pendiente", "procesando", "enviando", "publicado", "simulado",
           "resultado_incierto", "expirado"}
-TERMINAL = {"publicado", "simulado", "resultado_incierto", "expirado"}
 SECRET_NAMES = ("X_API_KEY", "X_API_SECRET", "X_ACCESS_TOKEN",
                 "X_ACCESS_TOKEN_SECRET", "GITHUB_TOKEN")
 
@@ -120,7 +121,8 @@ class Config:
                  "state_dir": "STATE_DIR", "output": "OUTPUT_DIR", "branch": "STATE_BRANCH",
                  "fdsn": "FDSN_BASE"}
         for field, env in names.items():
-            setattr(c, field, (float if cls.__annotations__[field] in (float, "float") else type(getattr(c, field)))(os.getenv(env, getattr(c, field))))
+            default = getattr(c, field)
+            setattr(c, field, type(default)(os.getenv(env, default)))
         c.publish = boolean("PUBLISH_TO_X")
         c.reconcile = boolean("RECONCILE_X")
         for field in names:
@@ -188,7 +190,7 @@ def atomic(path, value):
 
 
 def obtener(url, c, clock, params=None):
-    """GET idempotente: 3 intentos como máximo, sin ocultar fallos."""
+    """GET idempotente: hasta 3 intentos, respuesta limitada a 100 MiB."""
     for attempt in range(3):
         clock.check(5)
         try:
@@ -256,7 +258,8 @@ def validate_event(e):
             raise ValueError(f"Evento fuera de rango: {name}")
     if "depth" not in e:
         raise ValueError("Campo profundidad ausente")
-    if e.get("depth") is not None and (not math.isfinite(e["depth"]) or not 0 <= e["depth"] <= 800):
+    if e.get("depth") is not None and (not isinstance(e["depth"], (int, float))
+                                       or not math.isfinite(e["depth"]) or not 0 <= e["depth"] <= 800):
         raise ValueError("Profundidad inválida")
     u = urlparse(e["url"])
     if u.scheme != "https" or u.hostname != "www.sismologia.cl" or not re.fullmatch(
@@ -319,11 +322,7 @@ def catalogue_links(html, url, daily, c):
 
 
 def homepage_covers(html, beginning):
-    """Respaldo acotado: lista válida y ordenada que alcanza el intervalo faltante.
-
-    La portada usa hora local. Rechazar horas ambiguas/inexistentes de DST
-    en lugar de adivinar su UTC. No filtrar por magnitud para medir cobertura.
-    """
+    """Respaldo solo si la portada ordenada cubre el inicio de la ventana UTC."""
     soup = BeautifulSoup(html, "html.parser")
     timestamps = []
     zone = ZoneInfo("America/Santiago")
@@ -340,11 +339,10 @@ def homepage_covers(html, beginning):
             return False
         try:
             naive = datetime.strptime(match.group(), "%Y-%m-%d %H:%M:%S")
-            first = naive.replace(tzinfo=zone, fold=0)
-            second = naive.replace(tzinfo=zone, fold=1)
+            first, second = naive.replace(tzinfo=zone, fold=0), naive.replace(tzinfo=zone, fold=1)
             if first.utcoffset() != second.utcoffset():
                 return False
-            instant = first.astimezone(timezone.utc)
+            instant = first.astimezone(UTC)
             if instant.astimezone(zone).replace(tzinfo=None) != naive:
                 return False
             timestamps.append(instant)
@@ -376,7 +374,7 @@ def discover(c, clock, start, end):
             if (url == current_url and homepage is not None
                     and re.search(r"HTTP (403|404)\b", str(exc))
                     and homepage_covers(homepage, beginning)):
-                detail["fallback"] = "Portada válida cubre desde el inicio del intervalo UTC faltante"
+                detail["fallback"] = "Portada válida cubre inicio del intervalo UTC faltante"
                 warnings.append(detail)
                 log(f"CSN: respaldo por portada para {url}; {clean(exc)}")
             else:
@@ -389,9 +387,11 @@ def discover(c, clock, start, end):
                 events[e["id"]] = e
         except (SourceError, BudgetError) as exc:
             errors.append({"url": url, "type": type(exc).__name__, "error": clean(exc)})
+            log(f"CSN: informe incompleto {url}; {clean(exc)}")
     status = "valida" if not errors else "parcial" if valid else (
         "incompatible" if any(x["type"] == "StructureError" for x in errors) else "inaccesible")
-    return list(events.values()), {"status": status, "pages_ok": valid, "pages": len(urls), "errors": errors, "warnings": warnings}
+    return list(events.values()), {"status": status, "pages_ok": valid,
+                                   "pages": len(urls), "errors": errors, "warnings": warnings}
 
 
 def empty_state(mode):
@@ -429,7 +429,7 @@ def validate_state(s, mode):
 
 
 class Store:
-    """Contents API: un archivo por modo, actualización CAS por SHA, sin cache autoritativa."""
+    """GitHub Contents API: estado CAS por SHA; sin sobrescritura de conflictos."""
     def __init__(self, c):
         self.c, self.mode = c, "live" if c.publish else "simulation"
         self.path = Path(c.state_dir) / (self.mode + ".json")
@@ -471,8 +471,8 @@ class Store:
                     ref = self.api("GET", "/git/ref/heads/" + repo.json()["default_branch"])
                     if ref.status_code != 200:
                         raise PersistenceError("No se pudo leer rama predeterminada")
-                    created = self.api("POST", "/git/refs", json={"ref": "refs/heads/" + self.c.branch,
-                                                                "sha": ref.json()["object"]["sha"]})
+                    created = self.api("POST", "/git/refs", json={
+                        "ref": "refs/heads/" + self.c.branch, "sha": ref.json()["object"]["sha"]})
                     if created.status_code != 201:
                         raise PersistenceError(f"Crear rama: HTTP {created.status_code}")
                 elif branch.status_code != 200:
@@ -508,28 +508,23 @@ class Store:
             return
         raw = json.dumps(s, ensure_ascii=False, allow_nan=False).encode()
         if len(raw) > 900000:
-            raise PersistenceError("Estado supera límite conservador; archivar tombstones sin perder IDs")
+            raise PersistenceError("Estado supera límite conservador; archivar sin perder IDs")
         body = {"message": "monitor state [skip ci]", "branch": self.c.branch,
                 "content": base64.b64encode(raw).decode()}
         if self.sha:
             body["sha"] = self.sha
-        # Nunca se repite un PUT ambiguo ni se sustituye el SHA tras un conflicto.
         r = self.api("PUT", self.file, json=body)
         if r.status_code not in {200, 201}:
             raise PersistenceError(f"Guardar estado CAS: HTTP {r.status_code}; se detiene")
-        # Verificar el commit inmutable devuelto por PUT, no volver a resolver
-        # el nombre mutable de la rama inmediatamente después de escribir.
         try:
             result = r.json()
             commit_sha = result["commit"]["sha"]
             blob_sha = result["content"]["sha"]
-            if not all(isinstance(value, str) and re.fullmatch(r"[0-9a-f]{40,64}", value)
-                       for value in (commit_sha, blob_sha)):
+            if not all(isinstance(v, str) and re.fullmatch(r"[0-9a-f]{40,64}", v)
+                       for v in (commit_sha, blob_sha)):
                 raise ValueError("SHA inválido")
         except (ValueError, KeyError, TypeError):
-            raise PersistenceError(
-                f"GitHub PUT HTTP {r.status_code}: respuesta sin SHA de commit/blob válido; "
-                "guardado no confirmado, no se repite PUT") from None
+            raise PersistenceError("PUT correcto pero SHA de commit/blob no confirmable; NO repetir PUT") from None
         last_error = ""
         for attempt in range(3):
             if attempt:
@@ -543,8 +538,6 @@ class Store:
                 last_error = f"GET de verificación HTTP {confirm.status_code}"
                 if confirm.status_code == 404 or 500 <= confirm.status_code <= 599:
                     continue
-                # Los límites y permisos se informan y detienen; no esperar
-                # indiscriminadamente ni repetir operaciones de escritura.
                 raise PersistenceError(last_error + "; publicación bloqueada")
             try:
                 b = confirm.json()
@@ -554,17 +547,11 @@ class Store:
                 last_error = "GET HTTP 200: contenido JSON/base64 ilegible"
                 continue
             if not matches:
-                raise PersistenceError(
-                    "GET HTTP 200: SHA o contenido no coincide con el commit guardado; "
-                    "publicación bloqueada")
+                raise PersistenceError("GET HTTP 200: SHA o contenido distinto; publicación bloqueada")
             self.sha = blob_sha
-            log(f"Persistencia confirmada: {self.mode}, revisión {s['revision']}, "
-                f"commit {commit_sha[:12]}")
+            log(f"Persistencia confirmada: {self.mode}, revisión {s['revision']}, commit {commit_sha[:12]}")
             return
-        raise PersistenceError(
-            f"No se confirmó persistencia remota tras 3 lecturas: {last_error}; "
-            "no se repite PUT ni se autoriza publicación")
-
+        raise PersistenceError(f"Persistencia no confirmada tras 3 lecturas: {last_error}; NO repetir PUT")
 
 
 def record(event, now):
@@ -576,15 +563,20 @@ def record(event, now):
 def recover(s, start, now):
     counts = {"recovered": 0, "expired": 0}
     for r in s["events"].values():
+        changed = False
         if r["status"] == "enviando":
             r.update(status="resultado_incierto", error="Interrupción durante envío; revisión requerida")
+            changed = True
         elif r["status"] == "procesando":
             r.update(status="pendiente", next_attempt=iso(now))
             counts["recovered"] += 1
+            changed = True
         if r["status"] == "pendiente" and date(r["event"]["origin"]) < start:
             r.update(status="expirado", error="Fuera de ventana temporal")
             counts["expired"] += 1
-        r["updated"] = iso(now)
+            changed = True
+        if changed:
+            r["updated"] = iso(now)
     return counts
 
 
@@ -611,69 +603,28 @@ def retry(r, c, exc, reset=None):
 
 
 def tweet_text(e):
-    """Construye el tweet y valida su longitud mediante twitter-text."""
-    ref = unicodedata.normalize(
-        "NFC", " ".join(e["reference"].split())
-    )[:2000]
-
+    """Validar la longitud ponderada con twitter-text instalado en Node."""
+    ref = unicodedata.normalize("NFC", " ".join(e["reference"].split()))[:2000]
     heading = "Aceleración del Terreno\n"
-
-    depth = (
-        "Profundidad: no informada."
-        if e["depth"] is None
-        else f"Profundidad: {e['depth']:g} km."
-    )
-
-    local_time = date(e["origin"]).astimezone(
-        ZoneInfo("America/Santiago")
-    )
-
-    suffix = (
-        f"\n{local_time:%d/%m/%Y %H:%M:%S}\n"
-        f"{depth}\n"
-        f"Epicentro: lat {e['lat']:.4f}°, "
-        f"lon {e['lon']:.4f}°.\n"
-        f"{e['url']}"
-    )
-
-    candidates = [
-        heading + f"Sismo M {e['mag_display']} | {ref}" + suffix
-    ]
-
-    candidates += [
-        heading
-        + f"Sismo M {e['mag_display']} | {ref[:n].rstrip()}…"
-        + suffix
-        for n in range(min(len(ref) - 1, 280), -1, -1)
-    ]
-
-    js = (
-        "const fs=require('fs'),t=require('twitter-text');"
-        "const a=JSON.parse(fs.readFileSync(0,'utf8'));"
-        "process.stdout.write("
-        "JSON.stringify(a.find(s=>t.parseTweet(s).valid)||null)"
-        ");"
-    )
-
-    p = subprocess.run(
-        ["node", "-e", js],
-        input=json.dumps(candidates),
-        text=True,
-        capture_output=True,
-        timeout=30,
-    )
-
+    depth = "Profundidad: no informada." if e["depth"] is None else f"Profundidad: {e['depth']:g} km."
+    local_time = date(e["origin"]).astimezone(ZoneInfo("America/Santiago"))
+    suffix = (f"\n{local_time:%d/%m/%Y %H:%M:%S}\n{depth}\n"
+              f"Epicentro: lat {e['lat']:.4f}°, lon {e['lon']:.4f}°.\n{e['url']}")
+    candidates = [heading + f"Sismo M {e['mag_display']} | {ref}" + suffix]
+    candidates += [heading + f"Sismo M {e['mag_display']} | {ref[:n].rstrip()}…" + suffix
+                   for n in range(min(len(ref)-1, 280), -1, -1)]
+    js = ("const fs=require('fs'),t=require('twitter-text');"
+          "const a=JSON.parse(fs.readFileSync(0,'utf8'));"
+          "process.stdout.write(JSON.stringify(a.find(s=>t.parseTweet(s).valid)||null));")
+    p = subprocess.run(["node", "-e", js], input=json.dumps(candidates), text=True,
+                       capture_output=True, timeout=30)
     if p.returncode:
-        raise Failure(
-            "Validación de texto falló; instalar npm twitter-text@3.1.0"
-        )
-
+        raise Failure("Validación de texto falló; instalar npm twitter-text@3.1.0")
     result = json.loads(p.stdout)
-
     if not result:
         raise Failure("Texto fijo supera el límite de X")
-
     return result
+
 
 class XClient:
     BASE = "https://api.x.com/2"
@@ -683,12 +634,11 @@ class XClient:
         values = [os.getenv(n) for n in SECRET_NAMES[:4]]
         if not all(values):
             raise XError("Faltan Secrets de X", 401)
-        self.auth = OAuth1(values[0], values[1], values[2], values[3])
+        self.auth = OAuth1(*values)
 
     def call(self, method, path, empty=False, **kwargs):
         self.clock.check(90)
         posting = method == "POST" and path == "/tweets"
-        # Sin reintentos automáticos: tampoco ante desconexión del POST.
         try:
             r = requests.request(method, self.BASE + path, auth=self.auth,
                                  timeout=min(self.c.timeout, self.clock.remaining()-60),
@@ -700,10 +650,11 @@ class XClient:
                 b = r.json()
                 fields = {k: b[k] for k in ("title", "detail", "code", "message", "errors") if k in b}
                 detail = clean(json.dumps(fields, ensure_ascii=False))
-            except ValueError:
+            except (ValueError, AttributeError, TypeError):
                 detail = "Cuerpo no JSON (omitido)"
             category = {401: "autenticación", 402: "acceso/saldo", 403: "permisos/acceso/media",
-                        429: "límite"}.get(r.status_code, "servidor" if r.status_code >= 500 else "solicitud/media")
+                        429: "límite"}.get(r.status_code, "servidor" if r.status_code >= 500
+                                         else "solicitud/media")
             reset = r.headers.get("x-rate-limit-reset")
             raise XError(f"X {path}: HTTP {r.status_code} {category}; {detail}", r.status_code,
                          uncertain=posting and (r.status_code >= 500 or r.status_code in {408, 409}),
@@ -712,7 +663,7 @@ class XClient:
             return {}
         try:
             b = r.json()
-            if b.get("errors") or not isinstance(b, dict):
+            if not isinstance(b, dict) or b.get("errors"):
                 raise ValueError()
             return b
         except (ValueError, AttributeError):
@@ -756,23 +707,31 @@ class XClient:
                 raise XError("Timeout de procesamiento del video; tweet no enviado")
             log(f"X video {mid}: {info['state']}; próxima consulta en {delay:g}s")
             time.sleep(delay)
-            data = self.call("GET", "/media/upload", params={"command": "STATUS", "media_id": mid}).get("data")
+            data = self.call("GET", "/media/upload", params={
+                "command": "STATUS", "media_id": mid}).get("data")
             if not isinstance(data, dict) or "processing_info" not in data:
                 raise XError("STATUS incompatible")
         return mid
 
     def create(self, text, mid):
-        data = self.call("POST", "/tweets", json={"text": text, "media": {"media_ids": [mid]}}).get("data", {})
+        data = self.call("POST", "/tweets", json={
+            "text": text, "media": {"media_ids": [mid]}}).get("data", {})
         tid = str(data.get("id", ""))
         if not re.fullmatch(r"\d+", tid):
             raise XError("POST sin identificador confirmable", uncertain=True)
         return tid
 
     def reconcile(self, s):
-        """Sólo confirma coincidencias positivas; ausencia nunca habilita reenvío."""
+        """Solo confirma coincidencia positiva única: texto exacto, hora y video.
+
+        La API v2 no garantiza correspondencia entre media_key y media_id de upload.
+        Nunca se deduce identidad por sufijos de media_key. Ausencia de coincidencia
+        jamás autoriza un reenvío. La confirmación positiva requiere inspección manual
+        del tweet/media salvo que existan pruebas de relación de medios fiables.
+        """
         uncertain = [r for r in s["events"].values() if r["status"] == "resultado_incierto"]
         if not uncertain:
-            return
+            return 0
         posts, token = [], None
         for _ in range(5):
             params = {"max_results": 100, "tweet.fields": "created_at,entities,attachments"}
@@ -784,25 +743,28 @@ class XClient:
             if not token:
                 break
         for r in uncertain:
-            matches = []
+            candidates = []
             for p in posts:
                 text = p.get("text", "")
                 for u in p.get("entities", {}).get("urls", []):
-                    text = text.replace(u["url"], u.get("expanded_url", u["url"]))
-                media = p.get("attachments", {}).get("media_keys", [])
-                if (text == r["text"] and r.get("media_id")
-                        and any(m.endswith("_"+r["media_id"]) for m in media)
-                        and date(p["created_at"]) >= date(r.get("sent_at", r["created"]))-timedelta(seconds=10)):
-                    matches.append(p)
-            if len(matches) == 1:
-                r.update(status="publicado", tweet_id=matches[0]["id"], error="Confirmado por reconciliación")
+                    text = text.replace(u.get("url", ""), u.get("expanded_url", u.get("url", "")))
+                if (text == r["text"] and p.get("attachments", {}).get("media_keys")
+                        and date(p["created_at"]) >= date(r.get("sent_at", r["created"])) - timedelta(seconds=10)):
+                    candidates.append(p)
+            if candidates:
+                ids = ", ".join(str(p["id"]) for p in candidates)
+                log(f"RECONCILIACIÓN: {r['event']['id']} candidato(s) {ids}; "
+                    "verificar media manualmente; estado permanece bloqueado")
             else:
-                log(f"Evento {r['event']['id']}: incierto bloqueado; revisar cuenta y estado manualmente")
+                log(f"RECONCILIACIÓN: {r['event']['id']} sin coincidencia; "
+                    "la ausencia NO autoriza reenvío")
+        return 0
 
 
 def send_transaction(store, s, r, x, text, mid):
-    r.update(status="enviando", text=text, media_id=mid, sent_at=iso(utcnow()), updated=iso(utcnow()))
-    store.save(s)  # Obligatorio antes de cualquier POST de creación.
+    r.update(status="enviando", text=text, media_id=mid,
+             sent_at=iso(utcnow()), updated=iso(utcnow()))
+    store.save(s)  # Persistir ANTES de POST /tweets.
     try:
         tid = x.create(text, mid)
     except Exception as exc:
@@ -817,8 +779,7 @@ def send_transaction(store, s, r, x, text, mid):
     try:
         store.save(s)
     except PersistenceError:
-        # El remoto conserva 'enviando'; siguiente runner lo bloqueará.
-        log(f"CRÍTICO: tweet {tid} confirmado; persistencia posterior falló. NO REENVIAR.")
+        log(f"CRÍTICO: tweet {tid} confirmado; persistencia falló. NO REENVIAR.")
         raise
     return tid
 
@@ -830,7 +791,7 @@ def distance(lat1, lon1, lat2, lon2):
 
 
 def obtener_estaciones(e, c, clock):
-    """Parejas horizontales cardinales; nunca sustituir una componente ausente."""
+    """Parejas horizontales cardinales N/E; nunca sustituir componente ausente."""
     from obspy import read_inventory, UTCDateTime
     t = UTCDateTime(e["origin"])
     start, end = t-c.pre-c.margin, t+c.post+c.margin
@@ -879,20 +840,19 @@ def obtener_estaciones(e, c, clock):
                         "loc": ch.location_code, "cha": ch.code, "lat": ch.latitude,
                         "lon": ch.longitude, "dip": ch.dip, "azimuth": ch.azimuth,
                         "distance": d}
-                key = (net.code, sta.code, ch.location_code, ch.code[:-1])
-                group = groups.setdefault(key, {})
-                # Determinismo frente a épocas duplicadas.
+                k = (net.code, sta.code, ch.location_code, ch.code[:-1])
+                group = groups.setdefault(k, {})
                 group.setdefault(axis, item)
     candidates = []
-    for key, pair in groups.items():
+    for k, pair in groups.items():
         if set(pair) != {"N", "E"}:
-            rejected.append({"station": ".".join(key), "reason": "Falta pareja horizontal N/E"})
+            rejected.append({"station": ".".join(k), "reason": "Falta pareja horizontal N/E"})
             continue
         n, east = pair["N"], pair["E"]
         if distance(n["lat"], n["lon"], east["lat"], east["lon"]) > .1:
-            rejected.append({"station": ".".join(key), "reason": "Componentes no colocadas"})
+            rejected.append({"station": ".".join(k), "reason": "Componentes no colocadas"})
             continue
-        candidates.append(dict(n, id=".".join(key)+"[N,E]", components=[n, east]))
+        candidates.append(dict(n, id=".".join(k)+"[N,E]", components=[n, east]))
     candidates.sort(key=lambda x: (x["distance"], x["id"]))
     return candidates[:c.candidates], rejected
 
@@ -914,7 +874,6 @@ def check_raw(st, start, end):
         raise Failure("Muestras ausentes/no finitas")
     if np.ptp(a.astype(float)) == 0:
         raise Failure("Señal constante")
-    # Heurística conservadora de clipping: meseta >=3 muestras en extremo global.
     extreme = (a == np.max(a)) | (a == np.min(a))
     if np.any(extreme[:-2] & extreme[1:-1] & extreme[2:]):
         raise Failure("Posible saturación: meseta en extremo")
@@ -966,7 +925,6 @@ def procesar_componente(station, e, c, clock):
 
 
 def procesar_estacion(station, e, c, clock):
-    """Conservar ambas señales SI para calcular peaks sin remuestrear ni rellenar."""
     components = [procesar_componente(part, e, c, clock) for part in station["components"]]
     return dict(station, components=components,
                 metric="max(abs(a_N), abs(a_E)) per time bin; percent standard gravity")
@@ -992,15 +950,13 @@ def station_peaks(station, centers, step):
 
 
 def spatial_weights(lons, lats, gx, gy, e, c):
-    """IDW local en km, dentro del casco y de triángulos con soporte.
-
-    Al menos tres estaciones a SUPPORT_KM; nunca extrapolar ni rellenar con cero.
-    """
     import numpy as np
     from scipy.spatial import Delaunay, QhullError
+
     def xy(lon, lat):
         return np.column_stack(((np.ravel(lon)-e["lon"])*111.19*math.cos(math.radians(e["lat"])),
                                 (np.ravel(lat)-e["lat"])*111.19))
+
     points, grid = xy(lons, lats), xy(gx, gy)
     weights = np.zeros((len(grid), len(points)))
     mask = np.zeros(len(grid), dtype=bool)
@@ -1020,7 +976,8 @@ def spatial_weights(lons, lats, gx, gy, e, c):
         weights[~mask] = 0
     except QhullError:
         return weights, mask, "Estaciones alineadas o geometría degenerada"
-    reason = "IDW local con al menos tres estaciones; sin extrapolación" if mask.any() else "Sin área con tres estaciones y límites de soporte válidos"
+    reason = ("IDW local con al menos tres estaciones; sin extrapolación" if mask.any()
+              else "Sin área con tres estaciones y límites de soporte válidos")
     return weights, mask, reason
 
 
@@ -1037,17 +994,16 @@ def collect(candidates, processor, workers):
     valid.sort(key=lambda s: (s["distance"], s["id"]))
     unique, seen = [], set()
     for station in valid:
-        key = (station.get("net", ""), station.get("sta", station["id"]))
-        if key not in seen:
+        k = (station.get("net", ""), station.get("sta", station["id"]))
+        if k not in seen:
             unique.append(station)
-            seen.add(key)
+            seen.add(k)
         else:
             rejected.append({"station": station["id"], "reason": "Otra pareja válida de la misma estación"})
     return unique, rejected
 
 
 def prepare_basemap(c, clock):
-    # Evita descargas implícitas de Cartopy sin nuestro timeout/reintentos.
     import cartopy
     root = Path(cartopy.config["data_dir"]) / "shapefiles" / "natural_earth"
     for category, name in (("physical", "land"), ("physical", "ocean"),
@@ -1077,6 +1033,7 @@ def generar_video(e, stations, c, clock, folder):
     from matplotlib.cm import ScalarMappable
     import cartopy.crs as ccrs
     import cartopy.feature as cfeature
+
     prepare_basemap(c, clock)
     n = round((c.pre+c.post)/c.step)
     times = -c.pre + (np.arange(n)+0.5)*c.step
@@ -1087,22 +1044,25 @@ def generar_video(e, stations, c, clock, folder):
     vmin = float(10 ** np.floor(np.log10(positive.min())))
     vmax = float(10 ** np.ceil(np.log10(positive.max())))
     if vmax <= vmin:
-        vmax = vmin * 10
-    lons = np.array([s["lon"] for s in stations]); lats = np.array([s["lat"] for s in stations])
+        vmax = vmin*10
+    lons = np.array([s["lon"] for s in stations])
+    lats = np.array([s["lat"] for s in stations])
     extent = [min(lons.min(), e["lon"])-0.5, max(lons.max(), e["lon"])+0.5,
               min(lats.min(), e["lat"])-0.5, max(lats.max(), e["lat"])+0.5]
     gx, gy = np.meshgrid(np.linspace(*extent[:2], 180), np.linspace(*extent[2:], 180))
     weights, mask, coverage_reason = spatial_weights(lons, lats, gx, gy, e, c)
     has_area = bool(mask.any())
     log(f"Mapa: {len(stations)} estaciones; áreas={has_area}; {coverage_reason}")
+
     def field(j):
         a = np.full(gx.size, np.nan)
         if has_area:
             a[mask] = weights[mask] @ amps[:, j]
         return a.reshape(gx.shape)
+
     fig = plt.figure(figsize=(12.8, 7.2), dpi=100, facecolor="white")
     gs = fig.add_gridspec(1, 2, left=.06, right=.97, bottom=.25, top=.80,
-                         width_ratios=[1, 1.15], hspace=.48, wspace=.30)
+                          width_ratios=[1, 1.15], hspace=.48, wspace=.30)
     ax = fig.add_subplot(gs[:, 0], projection=ccrs.PlateCarree())
     ax.set_extent(extent)
     ax.set_title("MAPA DE ACELERACIÓN HORIZONTAL", fontsize=10, pad=15)
@@ -1118,21 +1078,20 @@ def generar_video(e, stations, c, clock, folder):
                          alpha=.85, shading="auto", edgecolors="none", zorder=2)
     line_colors = [plt.get_cmap("tab20")(i % 20) for i in range(len(stations))]
     if has_area:
-        # El área representa amplitud; el borde identifica la estación y su curva.
         dots = ax.scatter(lons, lats, facecolors="white", edgecolors=line_colors,
                           marker="^", linewidths=1.6, s=55, zorder=5)
     else:
         dots = ax.scatter(lons, lats, c=amps[:, 0], cmap="jet", norm=norm,
                           edgecolors="black", s=55, zorder=5)
-    ax.scatter([e["lon"]], [e["lat"]], marker="*", c="magenta", edgecolors="black", s=180, zorder=6)
+    ax.scatter([e["lon"]], [e["lat"]], marker="*", c="magenta",
+               edgecolors="black", s=180, zorder=6)
     ax.text(e["lon"]+.03, e["lat"]-.05, "Epicentro", fontsize=8, color="purple", zorder=7)
     for s in stations:
         ax.text(s["lon"]+.025, s["lat"]+.025, s["sta"], fontsize=7, zorder=7)
-    bar = fig.colorbar(ScalarMappable(norm=norm, cmap="jet"), ax=ax, orientation="horizontal", pad=.07, fraction=.05)
+    bar = fig.colorbar(ScalarMappable(norm=norm, cmap="jet"), ax=ax,
+                       orientation="horizontal", pad=.07, fraction=.05)
     bar.set_label(f"Peak horizontal por {c.step:g} s [% g] · escala logarítmica fija", fontsize=8)
     bar.ax.tick_params(labelsize=8)
-    # Exactamente la misma magnitud física y los mismos intervalos que el mapa.
-    # Cero real no se dibuja en log; nunca se sustituye por una señal inventada.
     p = fig.add_subplot(gs[0, 1])
     for i, station in enumerate(stations):
         p.plot(times, np.ma.masked_less_equal(amps[i], 0), color=line_colors[i],
@@ -1151,22 +1110,17 @@ def generar_video(e, stations, c, clock, folder):
     p.set_title("ACELERACIÓN DE LAS ESTACIONES", fontsize=10, pad=28)
     p.tick_params(labelsize=8)
     p.grid(alpha=.25, which="major")
-    p.legend(loc="upper center", bbox_to_anchor=(.5, -.13), fontsize=6,
-             frameon=False, ncol=3)
+    p.legend(loc="upper center", bbox_to_anchor=(.5, -.13), fontsize=6, frameon=False, ncol=3)
     depth = "no informada" if e["depth"] is None else f"{e['depth']:g} km"
     fig.suptitle(f"Sismo M {e['mag_display']} | {e['reference'][:85]}\n"
                  f"{date(e['origin']).astimezone(ZoneInfo('America/Santiago')):%d/%m/%Y %H:%M:%S}"
                  f" · Profundidad: {depth}", fontsize=12, y=.96)
     label = fig.text(.06, .855, "", fontsize=10)
-    coverage = (
-    "Peak = máx. de |N| y |E| por intervalo; "
-    "banda 0.2–20 Hz. Áreas: interpolación IDW estimada."
-    )
     fig.text(.04, .022, "Fuente: Centro Sismológico Nacional de la Universidad de Chile", fontsize=8)
     video = folder / "video.mp4"
     writer = FFMpegWriter(fps=c.fps, codec="libx264", bitrate=5000,
-                         extra_args=["-vf", "fps=30,format=yuv420p", "-profile:v", "high",
-                                     "-g", "60", "-flags", "+cgop", "-movflags", "+faststart"])
+                          extra_args=["-vf", "fps=30,format=yuv420p", "-profile:v", "high",
+                                      "-g", "60", "-flags", "+cgop", "-movflags", "+faststart"])
     peak = int(np.argmax(amps.max(axis=0)))
     try:
         with writer.saving(fig, str(video), dpi=100):
@@ -1186,8 +1140,9 @@ def generar_video(e, stations, c, clock, folder):
                     log(f"Render {j+1}/{n} cuadros")
     finally:
         plt.close(fig)
-    probe = subprocess.run(["ffprobe", "-v", "error", "-show_streams", "-show_format", "-of", "json", str(video)],
-                           capture_output=True, text=True, timeout=30, check=True)
+    probe = subprocess.run(["ffprobe", "-v", "error", "-show_streams", "-show_format",
+                            "-of", "json", str(video)], capture_output=True,
+                           text=True, timeout=30, check=True)
     info = json.loads(probe.stdout)
     stream = next(s for s in info["streams"] if s["codec_type"] == "video")
     duration = float(info["format"]["duration"])
@@ -1200,10 +1155,11 @@ def generar_video(e, stations, c, clock, folder):
             "render_fps": c.fps, "encoded_fps": 30, "duration_seconds": duration,
             "speed_factor": c.step*c.fps, "bytes": video.stat().st_size,
             "metric": "horizontal_component_peak_percent_g", "standard_gravity_m_s2": 9.80665,
-            "color_min_percent_g": vmin, "color_max_percent_g": vmax, "color_scale": "log_fixed", "interpolation": has_area,
+            "color_min_percent_g": vmin, "color_max_percent_g": vmax,
+            "color_scale": "log_fixed", "interpolation": has_area,
             "interpolation_reason": coverage_reason, "stations_used": len(stations),
-            "grid_cells_with_support": int(mask.sum()), "signal_layout": "single_overlay", "band_hz": [0.2, 20],
-            "spatial_method": "local_IDW_power_2_hull_and_triangle_mask",
+            "grid_cells_with_support": int(mask.sum()), "signal_layout": "single_overlay",
+            "band_hz": [0.2, 20], "spatial_method": "local_IDW_power_2_hull_and_triangle_mask",
             "ffprobe": info}
 
 
@@ -1217,7 +1173,10 @@ def render_worker(event_path, c):
         candidates, excluded = obtener_estaciones(e, c, clock)
         valid, rejected = collect(candidates, lambda s: procesar_estacion(s, e, c, clock), c.workers)
         quality.update(attempted=len(candidates), valid=len(valid), rejected=excluded+rejected)
-        log(f"Estaciones intentadas={len(candidates)}, válidas={len(valid)}, rechazadas={len(rejected)}")
+        log(f"Estaciones intentadas={len(candidates)}, válidas={len(valid)}, "
+            f"rechazadas={len(excluded)+len(rejected)}")
+        for item in (excluded+rejected)[:30]:
+            log(f"ESTACIÓN RECHAZADA: {item.get('station', '?')}: {item['reason']}")
         if not valid:
             raise Failure("Ausencia total de aceleración válida; conservar pendiente")
         valid = valid[:c.stations]
@@ -1243,14 +1202,15 @@ def build_video(e, c, clock):
     atomic(event_path, e)
     video = folder / "video.mp4"
     for name in ("video.mp4", "preview.png", "quality.json"):
-        (folder/name).unlink(missing_ok=True)  # Nunca reutilizar archivos de otro intento.
+        (folder/name).unlink(missing_ok=True)
     env = dict(os.environ)
     for name in SECRET_NAMES:
         env.pop(name, None)
     limit = min(c.event_budget, clock.remaining()-120)
     env["EVENT_TIMEOUT_SEC"] = str(limit)
     try:
-        p = subprocess.run([sys.executable, str(Path(__file__).resolve()), "--render", str(event_path.resolve())],
+        p = subprocess.run([sys.executable, str(Path(__file__).resolve()),
+                            "--render", str(event_path.resolve())],
                            env=env, timeout=limit, check=False)
     except subprocess.TimeoutExpired:
         raise Failure("Timeout de descarga/render; evento pendiente") from None
@@ -1261,15 +1221,20 @@ def build_video(e, c, clock):
 
 
 def run(c, init=False):
-    end = utcnow(); start = end-timedelta(hours=c.lookback)
+    end = utcnow()
+    start = end-timedelta(hours=c.lookback)
     clock = Clock(c.budget)
-    report = {"start_utc": iso(start), "end_utc": iso(end), "mode": "live" if c.publish else "simulation",
-              "found": 0, "new": 0, "pending": 0, "skipped": 0, "expired": 0, "results": [], "errors": []}
+    report = {"start_utc": iso(start), "end_utc": iso(end),
+              "mode": "live" if c.publish else "simulation", "found": 0,
+              "new": 0, "pending": 0, "skipped": 0, "expired": 0,
+              "results": [], "errors": [], "warnings": []}
     code = 0
     Path(c.output).mkdir(parents=True, exist_ok=True)
+    s = None
     try:
         log(f"Ventana fija: {iso(start)} a {iso(end)}; M >= {c.mag}")
-        store = Store(c); s = store.load(init)
+        store = Store(c)
+        s = store.load(init)
         report.update(recover(s, start, end))
         store.save(s)
         x = XClient(c, clock) if c.publish else None
@@ -1278,9 +1243,11 @@ def run(c, init=False):
             if s["account_id"] not in {None, account}:
                 raise PersistenceError("Cuenta X distinta de la asociada al estado real")
             if s["account_id"] is None:
-                s["account_id"] = account; store.save(s)
+                s["account_id"] = account
+                store.save(s)
             if c.reconcile:
-                x.reconcile(s); store.save(s)
+                x.reconcile(s)
+                # No guardar si la reconciliación solo inspeccionó: sin cambio de estado.
         events, source = discover(c, clock, start, end)
         report["source"], report["found"] = source, len(events)
         log(f"Consulta CSN: {source['status']}; eventos elegibles={len(events)}")
@@ -1289,24 +1256,32 @@ def run(c, init=False):
             report["errors"].append("Consulta CSN incompleta; pendientes se recuperan igualmente")
         for e in events:
             if e["id"] not in s["events"]:
-                s["events"][e["id"]] = record(e, end); report["new"] += 1
+                s["events"][e["id"]] = record(e, end)
+                report["new"] += 1
         store.save(s)
-        report["pending"] = sum(r["status"] == "pendiente" for r in s["events"].values())
         queue = sorted(s["events"].values(), key=lambda r: r["event"]["origin"])
         processed = 0
         for r in queue:
+            eid = r["event"]["id"]
+            in_window = start <= date(r["event"]["origin"]) <= end
             if r["status"] == "resultado_incierto":
-                code = 1
-                report["errors"].append(f"{r['event']['id']}: resultado incierto bloqueado")
+                message = f"{eid}: resultado incierto, requiere revisión manual; NO reenviar"
+                report["warnings"].append(message)
+                log(f"ADVERTENCIA: {message}")
+                # Un bloqueo ya conocido NO es un error nuevo de esta ejecución.
+                # Si el POST falla AHORA, el bloque except de abajo sí devuelve 1.
             if r["status"] == "pendiente" and r["attempts"] >= c.max_attempts:
-                code = 1
-                report["errors"].append(f"{r['event']['id']}: límite de intentos; permanece bloqueado hasta expirar")
+                message = f"{eid}: límite de intentos; bloqueado hasta expiración"
+                report["warnings"].append(message)
+                log(f"ADVERTENCIA: {message}")
+                # Mantener como advertencia histórica, no bloquear el workflow.
             if not eligible(r, c, start, end):
                 report["skipped"] += 1
                 continue
             if defer_recent(r, c, end):
-                store.save(s); report["skipped"] += 1
-                log(f"{r['event']['id']}: aplazado hasta {r['next_attempt']}")
+                store.save(s)
+                report["skipped"] += 1
+                log(f"{eid}: aplazado hasta {r['next_attempt']}")
                 continue
             if processed >= c.max_events:
                 break
@@ -1324,15 +1299,18 @@ def run(c, init=False):
                 else:
                     r.update(status="simulado", error="", updated=iso(utcnow()))
                     store.save(s)
-                    log(f"Simulado {r['event']['id']}; sin llamadas a X")
-                report["results"].append({"id": r["event"]["id"], "status": r["status"], "tweet_id": r["tweet_id"]})
+                    log(f"Simulado {eid}; sin llamadas a X")
+                report["results"].append({"id": eid, "status": r["status"],
+                                          "tweet_id": r["tweet_id"]})
             except PersistenceError:
-                raise  # Nunca intentar arreglar un CAS fallido sobrescribiendo el estado.
+                raise
             except XError as exc:
                 code = 1
-                report["errors"].append(clean(exc))
+                report["errors"].append(f"{eid}: {clean(exc)}")
+                log(f"ERROR PUBLICACIÓN: {eid}: {clean(exc)}")
                 if r["status"] == "procesando":
-                    retry(r, c, exc, exc.reset); store.save(s)
+                    retry(r, c, exc, exc.reset)
+                    store.save(s)
                 if exc.global_stop:
                     break
             except Exception as exc:
@@ -1342,23 +1320,36 @@ def run(c, init=False):
                         r.update(status="resultado_incierto", error=clean(exc))
                         store.save(s)
                     raise
-                retry(r, c, exc); store.save(s)
-                report["errors"].append(f"{r['event']['id']}: {clean(exc)}")
-        if report["found"] == 0 and report["pending"] == 0 and source["status"] == "valida":
-            log("Consulta válida sin eventos nuevos ni pendientes")
+                retry(r, c, exc)
+                store.save(s)
+                report["errors"].append(f"{eid}: {type(exc).__name__}: {clean(exc)}")
+                log(f"ERROR PROCESAMIENTO: {eid}: {type(exc).__name__}: {clean(exc)}")
+        if report["found"] == 0 and source["status"] == "valida":
+            log("Consulta válida sin eventos nuevos")
     except Exception as exc:
         code = 1
         report["errors"].append(f"{type(exc).__name__}: {clean(exc)}")
-        log(report["errors"][-1])
+        log(f"ERROR GENERAL: {report['errors'][-1]}")
     finally:
+        if s is not None:
+            report["pending"] = sum(r["status"] == "pendiente" for r in s["events"].values())
+            report["uncertain"] = sum(r["status"] == "resultado_incierto" for r in s["events"].values())
+            report["blocked_attempts"] = sum(r["status"] == "pendiente" and
+                                             r["attempts"] >= c.max_attempts
+                                             for r in s["events"].values())
         report["exit_code"] = code
         atomic(Path(c.output)/"summary.json", report)
-        summary = "## CSN → aceleración → X\n\n```json\n"+json.dumps(report, ensure_ascii=False, indent=2)+"\n```\n"
+        summary = "## CSN → aceleración → X\n\n```json\n" + json.dumps(
+            report, ensure_ascii=False, indent=2) + "\n```\n"
         Path(c.output, "summary.md").write_text(summary, encoding="utf-8")
         if os.getenv("GITHUB_STEP_SUMMARY"):
             with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
                 f.write(summary)
-        log(f"Ciclo terminado: exit={code}; nuevos={report['new']}; pendientes={report['pending']}")
+        for err in report["errors"]:
+            log(f"ERROR DEL CICLO: {err}")
+        log(f"Ciclo terminado: exit={code}; nuevos={report['new']}; "
+            f"pendientes={report['pending']}; inciertos={report.get('uncertain', 0)}; "
+            f"errores={len(report['errors'])}; advertencias={len(report['warnings'])}")
     return code
 
 
