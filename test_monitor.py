@@ -272,16 +272,49 @@ def test_partial_catalogue(monkeypatch):
     assert not es and source['status']=='parcial'
 
 
+
 def test_reconciliation_only_positive(monkeypatch):
-    for name in m.SECRET_NAMES[:4]:monkeypatch.setenv(name,'fake-secret')
-    x=m.XClient(m.Config(),m.Clock(200));s=m.empty_state('live');s['account_id']='123'
-    r=m.record(event(),NOW);r.update(status='resultado_incierto',text='text',media_id='111',sent_at=m.iso(NOW))
-    s['events']['385789']=r
-    x.call=Mock(return_value={'data':[]})
-    x.reconcile(s);assert r['status']=='resultado_incierto'
-    x.call=Mock(return_value={'data':[{'id':'456','text':'text','created_at':m.iso(NOW),
-                                      'attachments':{'media_keys':['13_111']}}]})
-    x.reconcile(s);assert r['status']=='publicado' and r['tweet_id']=='456'
+    for name in m.SECRET_NAMES[:4]:
+        monkeypatch.setenv(name, "fake-secret")
+
+    x = m.XClient(m.Config(), m.Clock(200))
+    s = m.empty_state("live")
+    s["account_id"] = "123"
+
+    r = m.record(event(), NOW)
+    r.update(
+        status="resultado_incierto",
+        text="text",
+        media_id="111",
+        sent_at=m.iso(NOW),
+    )
+    s["events"]["385789"] = r
+
+    # Sin coincidencia: mantener bloqueado.
+    x.call = Mock(return_value={"data": []})
+    x.reconcile(s)
+    assert r["status"] == "resultado_incierto"
+    assert r["tweet_id"] is None
+
+    # Coincidencia aparente: no confirmar solamente
+    # por el sufijo de media_key.
+    x.call = Mock(return_value={
+        "data": [{
+            "id": "456",
+            "text": "text",
+            "created_at": m.iso(NOW),
+            "attachments": {
+                "media_keys": ["13_111"]
+            }
+        }]
+    })
+
+    x.reconcile(s)
+
+    assert r["status"] == "resultado_incierto"
+    assert r["tweet_id"] is None
+    assert r["media_id"] == "111"
+
 
 
 def test_horizontal_peak_uses_both_components_and_percent_g():
