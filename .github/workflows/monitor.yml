@@ -131,8 +131,19 @@ jobs:
 
       - name: Ejecutar pruebas sin red
         shell: bash
+        env:
+          MAG_MIN: '4.0'
+          LOOKBACK_HOURS: '24'
         run: |
           set -euo pipefail
+          python - <<'PYTEST'
+          import monitor
+          cfg = monitor.Config()
+          assert cfg.mag == 4.0 and cfg.lookback == 24.0, (cfg.mag, cfg.lookback)
+          env_cfg = monitor.Config.env()
+          assert env_cfg.mag == 4.0 and env_cfg.lookback == 24.0, (env_cfg.mag, env_cfg.lookback)
+          print('Configuracion de pruebas validada: M >= 4.0, 24 horas')
+          PYTEST
           python -m pytest -q test_monitor.py
 
       - name: Validar credenciales y repositorio
@@ -173,6 +184,17 @@ jobs:
           print('Repositorio publico confirmado')
           PY
           fi
+
+      - name: Confirmar parametros de produccion
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PYPROD'
+          import monitor
+          c = monitor.Config.env()
+          assert c.mag == 2.0 and c.lookback == 1.0, (c.mag, c.lookback)
+          print('Monitor de produccion: magnitud >= 2.0, ultima hora')
+          PYPROD
 
       - name: Ejecutar un ciclo
         shell: bash
