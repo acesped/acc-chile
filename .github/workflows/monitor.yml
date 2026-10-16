@@ -192,8 +192,8 @@ jobs:
           python - <<'PYPROD'
           import monitor
           c = monitor.Config.env()
-          assert c.mag == 2.0 and c.lookback == 1.0, (c.mag, c.lookback)
-          print('Monitor de produccion: magnitud >= 2.0, ultima hora')
+          assert c.mag == 4.0 and c.lookback == 24.0, (c.mag, c.lookback)
+          print('Monitor de produccion: magnitud >= 4.0, ultimas 24 horas')
           PYPROD
 
       - name: Ejecutar un ciclo
