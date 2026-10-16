@@ -356,6 +356,9 @@ class Store:
                     b=r.json();self.sha=b['sha'];s=json.loads(base64.b64decode(b['content']))
                 except Exception:raise PersistenceError('Estado remoto ilegible') from None
             else:raise PersistenceError(f'Leer estado HTTP {r.status_code}; use --init-state si es nuevo')
+        # Validar estructura base ANTES de migrar: un estado corrupto nunca se repara silenciosamente.
+        if not isinstance(s, dict) or not isinstance(s.get('events'), dict):
+            raise PersistenceError('Estado corrupto: events ausente o inválido')
         # Migración compatible con estado live anterior que solo tenía X.
         s.setdefault('ig_account_id',None)
         for r in s['events'].values():
@@ -825,7 +828,7 @@ def station_peaks(s,centers,step):
         m=[]
         for p in s['components']:
             values=p['values'][(p['times']>=t-step/2)&(p['times']<t+step/2)]
-            if not len(values) or not np.isfinite(values).all():raise Failure('Bin sin datos')
+            if not len(values) or not np.isfinite(values).all():raise Failure('Intervalo horizontal incompleto; no se rellena')
             m.append(float(np.max(np.abs(values))))
         a[j]=max(m)*100/9.80665
     return a
@@ -1081,7 +1084,7 @@ def run(c,init=False):
         report['source']=source;report['found']=len(events)
         if source['status']!='valida':code=1;report['warnings'].append('Catálogo CSN parcial')
         for e in events:
-            if e['id'] not in s['events']:s['events'][e['id']]=record(e);report['new']+=1
+            if e['id'] not in s['events']:s['events'][e['id']]=record(e,end);report['new']+=1
         store.save(s)
         processed=0
         # Si solo IG está habilitado, X queda pendiente: Instagram se procesa aparte.
