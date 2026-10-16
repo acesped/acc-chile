@@ -1,24 +1,31 @@
-name: CSN acceleration video to X
 
-# Activación manual o mediante la API de GitHub.
-# La frecuencia se configura en el servicio de cron externo.
+name: CSN - aceleracion a X e Instagram
+
+# Ejecucion manual o mediante la API de GitHub.
+# La frecuencia se configura en el cron externo.
 on:
   workflow_dispatch:
     inputs:
       publish:
-        description: 'Publicar en X (false = simulación sin X)'
+        description: 'Publicar en X'
+        type: boolean
+        required: false
+        default: false
+
+      publish_instagram:
+        description: 'Publicar Reel y foto independiente en Instagram'
         type: boolean
         required: false
         default: false
 
       initialize_state:
-        description: 'Sólo primer uso: crear estado del modo elegido si no existe'
+        description: 'Solo primer uso: inicializar estado remoto'
         type: boolean
         required: false
         default: false
 
       reconcile:
-        description: 'Intentar confirmar envíos inciertos mediante timeline (requiere lectura)'
+        description: 'Inspeccionar envios inciertos de X sin reenviar'
         type: boolean
         required: false
         default: false
@@ -32,7 +39,7 @@ concurrency:
 
 jobs:
   monitor:
-    name: Consultar CSN, generar video y publicar
+    name: Consultar CSN, generar videos y publicar
     runs-on: ubuntu-24.04
     timeout-minutes: 45
 
@@ -41,8 +48,6 @@ jobs:
       PYTHONUNBUFFERED: '1'
 
       MAG_MIN: '4.0'
-      MAX_STATIONS: '15'
-      MAX_CANDIDATES: '30'
       LOOKBACK_HOURS: '12'
 
       PRE_SEG: '60'
@@ -61,12 +66,26 @@ jobs:
       EVENT_TIMEOUT_SEC: '800'
       X_PROCESS_TIMEOUT_SEC: '900'
 
+      MAX_DISTANCE_KM: '250'
+      MAX_STATIONS: '15'
+      MAX_CANDIDATES: '30'
+      SUPPORT_KM: '100'
+      MAX_TRIANGLE_KM: '150'
+
+      MAX_ATTEMPTS: '12'
+      RETRY_BASE_SEC: '600'
+
       STATE_DIR: .state
       STATE_BRANCH: monitor-state
       OUTPUT_DIR: output
 
+      FDSN_BASE: https://eew.csn.uchile.cl
+
+      IG_GRAPH_VERSION: v25.0
+      IG_EXPECTED_USERNAME: groundshake_cl
+
     steps:
-      - name: Descargar código
+      - name: Descargar codigo
         uses: actions/checkout@v4
         with:
           persist-credentials: false
@@ -84,47 +103,132 @@ jobs:
           node-version: '22'
 
       - name: Instalar dependencias
+        shell: bash
         run: |
+          set -euo pipefail
+
           sudo apt-get update -qq
           sudo apt-get install -y ffmpeg
+
           python -m pip install -r requirements.txt
+
           npm install --no-save --package-lock=false twitter-text@3.1.0
 
-      - name: Pruebas sin red ni publicaciones
-        run: python -m pytest -q test_monitor.py
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
 
-      - name: Ejecutar un ciclo
+      - name: Verificar sintaxis y ejecutar pruebas
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python -m py_compile monitor.py
+          python -m pytest -q test_monitor.py
+
+      - name: Validar configuracion de publicacion
+        shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
 
           PUBLISH_TO_X: ${{ inputs.publish && 'true' || 'false' }}
-          INIT_STATE: ${{ inputs.initialize_state && 'true' || 'false' }}
-          RECONCILE_X: ${{ inputs.reconcile && 'true' || 'false' }}
+          PUBLISH_TO_INSTAGRAM: ${{ inputs.publish_instagram && 'true' || 'false' }}
 
           X_API_KEY: ${{ secrets.X_API_KEY }}
           X_API_SECRET: ${{ secrets.X_API_SECRET }}
           X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
           X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
 
-          PUBLISH_TO_INSTAGRAM: "true"
           INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
-          INSTAGRAM_USER_ID: "26939871689044023"
+          INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
 
-        shell: bash
         run: |
           set -euo pipefail
 
-          echo "Publicar en X: ${PUBLISH_TO_X}"
-          echo "Inicializar estado: ${INIT_STATE}"
-          echo "Reconciliar envíos inciertos: ${RECONCILE_X}"
+          echo "X habilitado: $PUBLISH_TO_X"
+          echo "Instagram habilitado: $PUBLISH_TO_INSTAGRAM"
 
-          if [ "$INIT_STATE" = "true" ]; then
+          if [[ "$PUBLISH_TO_X" == true ]]; then
+            for secret_name in X_API_KEY X_API_SECRET X_ACCESS_TOKEN X_ACCESS_TOKEN_SECRET; do
+              [[ -n "${!secret_name}" ]] || {
+                echo "Falta el secreto $secret_name"
+                exit 1
+              }
+            done
+          fi
+
+          if [[ "$PUBLISH_TO_INSTAGRAM" == true ]]; then
+            [[ -n "$INSTAGRAM_TOKEN" ]] || {
+              echo 'Falta INSTAGRAM_TOKEN'
+              exit 1
+            }
+
+            [[ "$INSTAGRAM_USER_ID" =~ ^[0-9]+$ ]] || {
+              echo 'INSTAGRAM_USER_ID ausente o no numerico'
+              exit 1
+            }
+
+            [[ -n "$IG_EXPECTED_USERNAME" ]] || {
+              echo 'Falta IG_EXPECTED_USERNAME'
+              exit 1
+            }
+
+            repo_json="$(curl -fsS --retry 3 \
+              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+              -H 'Accept: application/vnd.github+json' \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}")"
+
+            REPO_JSON="$repo_json" python - <<'PY'
+          import json
+          import os
+          import sys
+
+          data = json.loads(os.environ["REPO_JSON"])
+
+          if data.get("private") is not False:
+              sys.exit(
+                  "ERROR: Instagram necesita repositorio publico "
+                  "para alojar el MP4 y JPEG en HTTPS"
+              )
+
+          print("Repositorio publico verificado")
+          PY
+          fi
+
+      - name: Ejecutar ciclo del monitor
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+          PUBLISH_TO_X: ${{ inputs.publish && 'true' || 'false' }}
+          PUBLISH_TO_INSTAGRAM: ${{ inputs.publish_instagram && 'true' || 'false' }}
+
+          RECONCILE_X: ${{ inputs.reconcile && 'true' || 'false' }}
+          INIT_STATE: ${{ inputs.initialize_state && 'true' || 'false' }}
+
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+
+          INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
+          INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
+
+        run: |
+          set -euo pipefail
+
+          echo "Publicar en X: $PUBLISH_TO_X"
+          echo "Publicar en Instagram: $PUBLISH_TO_INSTAGRAM"
+          echo "Inicializar estado: $INIT_STATE"
+          echo "Inspeccionar X incierto: $RECONCILE_X"
+
+          if [[ "$INIT_STATE" == true ]]; then
             python monitor.py --init-state
           else
             python monitor.py
           fi
 
-      - name: Guardar diagnósticos
+      - name: Guardar diagnosticos
         if: always()
         uses: actions/upload-artifact@v4
         with:
