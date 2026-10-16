@@ -38,16 +38,16 @@ from requests_oauthlib import OAuth1
 
 UTC = timezone.utc
 CSN = 'https://www.sismologia.cl'
-SECRETS = ('X_API_KEY','X_API_SECRET','X_ACCESS_TOKEN','X_ACCESS_TOKEN_SECRET',
+SECRET_NAMES = SECRETS = ('X_API_KEY','X_API_SECRET','X_ACCESS_TOKEN','X_ACCESS_TOKEN_SECRET',
            'GITHUB_TOKEN','IG_ACCESS_TOKEN','INSTAGRAM_TOKEN')
 STATES = {'pendiente','procesando','enviando','publicado','simulado',
           'resultado_incierto','expirado'}
 IG_STATES = {'pendiente','procesando','publicando','publicado','resultado_incierto'}
 
 
-def now(): return datetime.now(UTC)
+def utcnow(): return datetime.now(UTC)
 def iso(d): return d.astimezone(UTC).isoformat().replace('+00:00','Z')
-def dt(s):
+def date(s):
     d=datetime.fromisoformat(s.replace('Z','+00:00'))
     if d.tzinfo is None: raise ValueError('Fecha sin zona horaria')
     return d.astimezone(UTC)
@@ -57,7 +57,7 @@ def safe(x):
         v=os.getenv(name,'')
         if v: s=s.replace(v,'[REDACTADO]')
     return s.replace('\n',' ').replace('\r',' ')[:400]
-def log(s): print(iso(now()),safe(s),flush=True)
+def log(s): print(iso(utcnow()),safe(s),flush=True)
 def flag(name,default=False):
     s=os.getenv(name,str(default)).lower().strip()
     if s not in ('true','false','1','0','yes','no'): raise ValueError('Booleano inválido: '+name)
@@ -93,6 +93,13 @@ class Config:
     max_attempts:int=12
     backoff:float=600.0
     publish_x:bool=False
+    @property
+    def publish(self):
+        return self.publish_x
+    @publish.setter
+    def publish(self, value):
+        self.publish_x = bool(value)
+
     publish_ig:bool=False
     reconcile:bool=False
     state_dir:str='.state'
@@ -147,7 +154,7 @@ class Clock:
     def check(self,reserve=0):
         if self.left()<=reserve:raise BudgetError('Presupuesto agotado')
 
-def get(url,c,clock,params=None):
+def obtener(url,c,clock,params=None):
     for attempt in range(3):
         clock.check(5)
         try:
@@ -158,7 +165,7 @@ def get(url,c,clock,params=None):
                     raw=r.headers.get('Retry-After','2')
                     try: delay=float(raw)
                     except ValueError:
-                        try:delay=(parsedate_to_datetime(raw)-now()).total_seconds()
+                        try:delay=(parsedate_to_datetime(raw)-utcnow()).total_seconds()
                         except Exception:delay=2
                     delay=max(2**attempt,delay)
                     if delay>30 or delay+5>=clock.left():raise SourceError('HTTP diferido '+str(r.status_code))
@@ -187,7 +194,7 @@ def number(s):
 
 def validate_event(e):
     if not isinstance(e.get('id'),str) or not re.fullmatch(r'\d+',e['id']):raise ValueError('ID CSN inválido')
-    dt(e['origin'])
+    date(e['origin'])
     for k in ('mag_display','reference','url'):
         if not isinstance(e.get(k),str) or not e[k]:raise ValueError('Falta '+k)
     for k,a,b in (('lat',-90,90),('lon',-180,180),('mag',-2,10)):
@@ -203,7 +210,7 @@ def validate_event(e):
         raise ValueError('URL de informe inválida')
     return e
 
-def parse_event(html,url):
+def leer_evento(html,url):
     soup=BeautifulSoup(html,'html.parser');fields={}
     for row in soup.select('tr'):
         cells=row.find_all(['td','th'])
@@ -217,7 +224,7 @@ def parse_event(html,url):
            depth=number(depth) if re.search(r'\d',depth) else None,url=url))
     except (KeyError,ValueError,TypeError) as exc:raise StructureError('Informe incompatible '+type(exc).__name__) from None
 
-def catalogue(html,url,daily,c):
+def catalogue_links(html,url,daily,c):
     soup=BeautifulSoup(html,'html.parser')
     tables=[t for t in soup.find_all('table') if any('magnitud' in norm(h.get_text()) for h in t.find_all('th'))]
     if not tables or (daily and 'utc' not in norm(soup.get_text(' '))):
@@ -265,7 +272,7 @@ def discover(c,clock,start,end):
     links=set();errors=[];warnings=[];valid=0;homepage=None;events={}
     for i,url in enumerate(urls):
         try:
-            b=get(url,c,clock);links.update(catalogue(b,url,i>0,c));valid+=1
+            b=obtener(url,c,clock);links.update(catalogue_links(b,url,i>0,c));valid+=1
             if i==0:homepage=b
         except (SourceError,BudgetError) as exc:
             detail=dict(url=url,type=type(exc).__name__,error=safe(exc))
@@ -275,24 +282,24 @@ def discover(c,clock,start,end):
             else:errors.append(detail)
     for url in sorted(links):
         try:
-            e=parse_event(get(url,c,clock),url)
-            if start<=dt(e['origin'])<=end and e['mag']>=c.mag:events[e['id']]=e
+            e=leer_evento(obtener(url,c,clock),url)
+            if start<=date(e['origin'])<=end and e['mag']>=c.mag:events[e['id']]=e
         except (SourceError,BudgetError) as exc:errors.append(dict(url=url,type=type(exc).__name__,error=safe(exc)))
-    status='valida' if not errors else 'parcial' if valid else 'inaccesible'
+    status='valida' if not errors else 'parcial' if valid else ('incompatible' if any(x['type']=='StructureError' for x in errors) else 'inaccesible')
     return list(events.values()),dict(status=status,pages_ok=valid,pages=len(urls),errors=errors,warnings=warnings)
 
 def ig_default():return dict(status='pendiente',container_id=None,media_id=None,caption='',error='',attempts=0,updated=None)
-def record(e):
-    n=iso(now());return dict(event=e,status='pendiente',attempts=0,next_attempt=n,
+def record(e, when=None):
+    n=iso(when if when is not None else utcnow());return dict(event=e,status='pendiente',attempts=0,next_attempt=n,
        created=n,updated=n,error='',media_id=None,tweet_id=None,text='',
        instagram=ig_default(),instagram_feed=ig_default())
 def empty_state(mode):
     return dict(schema=1,mode=mode,account_id=None,ig_account_id=None,
-                revision=str(uuid.uuid4()),updated=iso(now()),events={})
+                revision=str(uuid.uuid4()),updated=iso(utcnow()),events={})
 def validate_state(s,mode):
     try:
         if s['schema']!=1 or s['mode']!=mode or not isinstance(s['events'],dict):raise ValueError('Esquema')
-        dt(s['updated'])
+        date(s['updated'])
         for k in ('account_id','ig_account_id'):
             v=s.get(k)
             if v is not None and not re.fullmatch(r'\d+',str(v)):raise ValueError(k)
@@ -300,7 +307,7 @@ def validate_state(s,mode):
             validate_event(r['event'])
             if r['event']['id']!=eid or r['status'] not in STATES:raise ValueError('Estado evento')
             if not isinstance(r['attempts'],int) or r['attempts']<0:raise ValueError('Intentos')
-            for k in ('next_attempt','updated','created'):dt(r[k])
+            for k in ('next_attempt','updated','created'):date(r[k])
             for k in ('media_id','tweet_id','text','error'):
                 if k not in r:raise ValueError(k)
             if r['status']=='publicado' and not re.fullmatch(r'\d+',str(r['tweet_id'])):raise ValueError('X sin ID')
@@ -363,7 +370,7 @@ class Store:
                     value['error']='Posible publicación previa; comprobar manualmente, NO reenviar'
         validate_state(s,self.mode);atomic(self.path,s);return s
     def save(self,s):
-        s['updated']=iso(now());s['revision']=str(uuid.uuid4())
+        s['updated']=iso(utcnow());s['revision']=str(uuid.uuid4())
         validate_state(s,self.mode);atomic(self.path,s)
         if not self.remote:return
         raw=json.dumps(s,ensure_ascii=False,allow_nan=False).encode()
@@ -378,34 +385,54 @@ class Store:
         except Exception:raise PersistenceError('PUT potencialmente confirmado sin SHA; no repetir') from None
         for attempt in range(3):
             if attempt:time.sleep(attempt)
-            confirm=self.api('GET',self.file,params={'ref':commit})
+            try:confirm=self.api('GET',self.file,params={'ref':commit})
+            except PersistenceError:continue
             if confirm.status_code==200:
                 try:
                     b=confirm.json();verified=b['sha']==blob and json.loads(base64.b64decode(b['content']))==s
-                except Exception:verified=False
+                except Exception:verified=None
                 if verified:self.sha=blob;return
-                raise PersistenceError('Estado confirmado difiere; detener')
+                if verified is False:raise PersistenceError('Estado confirmado difiere; detener')
+                continue
+            if confirm.status_code not in (404,500,502,503,504):
+                raise PersistenceError(f'Confirmación HTTP {confirm.status_code}; no repetir PUT')
         raise PersistenceError('Persistencia sin confirmación; no repetir PUT')
 
-def recover(s,start):
+def recover(s,start,now=None):
+    now = now if now is not None else utcnow()
+    counts = {"recovered": 0, "expired": 0}
     for r in s['events'].values():
         if r['status']=='enviando':r.update(status='resultado_incierto',error='Interrupción POST X')
-        elif r['status']=='procesando':r.update(status='pendiente',next_attempt=iso(now()))
-        if r['status']=='pendiente' and dt(r['event']['origin'])<start:r.update(status='expirado')
+        elif r['status']=='procesando':r.update(status='pendiente',next_attempt=iso(now));counts['recovered']+=1
+        if r['status']=='pendiente' and date(r['event']['origin'])<start:r.update(status='expirado');counts['expired']+=1
         for field in ('instagram','instagram_feed'):
             ig=r.setdefault(field,ig_default())
             if ig['status']=='publicando':ig.update(status='resultado_incierto',error='Interrupción media_publish Meta')
             elif ig['status']=='procesando':ig.update(status='pendiente',error='Trabajo recuperado')
+    return counts
+
+def eligible(r, c, start, end):
+    return (r['status'] == 'pendiente' and r['attempts'] < c.max_attempts
+            and start <= date(r['event']['origin']) <= end
+            and date(r['next_attempt']) <= end)
+
+
+def defer_recent(r, c, now):
+    ready = date(r['event']['origin']) + timedelta(seconds=c.post+c.margin+c.latency)
+    if now < ready:
+        r.update(next_attempt=iso(ready), error='Esperando ventana POST, margen y latencia')
+        return True
+    return False
 
 def retry(r,c,exc):
     delay=min(3600,c.backoff*2**min(max(r['attempts']-1,0),6))
-    r.update(status='pendiente',next_attempt=iso(now()+timedelta(seconds=delay)),error=safe(exc),updated=iso(now()))
+    r.update(status='pendiente',next_attempt=iso(utcnow()+timedelta(seconds=delay)),error=safe(exc),updated=iso(utcnow()))
 
 def tweet_text(e):
     ref=unicodedata.normalize('NFC',' '.join(e['reference'].split()))[:2000]
-    local=dt(e['origin']).astimezone(ZoneInfo('America/Santiago'))
-    depth='No informada' if e['depth'] is None else f"{e['depth']:g} km"
-    suffix=(f"\n{local:%d/%m/%Y %H:%M:%S}\nProfundidad: {depth}.\n"
+    local=date(e['origin']).astimezone(ZoneInfo('America/Santiago'))
+    depth='no informada' if e['depth'] is None else f"{e['depth']:g} km"
+    suffix=(f"\n{local:%d/%m/%Y %H:%M:%S}\nProfundidad: {depth if e['depth'] is None else depth}.\n"
             f"Epicentro: lat {e['lat']:.4f}°, lon {e['lon']:.4f}°.\n{e['url']}")
     prefix=f"Aceleración del Terreno\nSismo M {e['mag_display']} | "
     texts=[prefix+ref+suffix]+[prefix+ref[:i].rstrip()+'…'+suffix for i in range(min(len(ref)-1,280),-1,-1)]
@@ -428,9 +455,16 @@ class XClient:
            timeout=max(2,min(self.c.timeout,self.clock.left()-60)),allow_redirects=False,**kwargs)
         except requests.RequestException as exc:raise XError('X '+type(exc).__name__,uncertain=posting) from None
         if not 200<=r.status_code<300:
-            raise XError(f'X {path} HTTP {r.status_code}',r.status_code,
-                               uncertain=posting and (r.status_code>=500 or r.status_code in (408,409)))
-        if empty and not r.content:return {}
+            try:
+                body=r.json()
+                detail=safe(json.dumps({k:body[k] for k in ('title','detail','code','message','errors') if k in body},ensure_ascii=False))
+            except (ValueError, TypeError, AttributeError):
+                detail='Respuesta no JSON'
+            reset=r.headers.get('x-rate-limit-reset','')
+            raise XError(f'X {path} HTTP {r.status_code}: {detail}',r.status_code,
+                         uncertain=posting and (r.status_code>=500 or r.status_code in (408,409)),
+                         reset=float(reset) if str(reset).isdigit() else None)
+        if empty and (r.status_code==204 or not r.content):return {}
         try:
             b=r.json()
             if not isinstance(b,dict) or b.get('errors'):raise ValueError()
@@ -489,15 +523,15 @@ class XClient:
                     msg=msg.replace(u.get('url',''),u.get('expanded_url',u.get('url','')))
                 try:
                     fits=(msg==r['text'] and item.get('attachments',{}).get('media_keys')
-                      and dt(item['created_at'])>=dt(r.get('sent_at',r['created']))-timedelta(seconds=10))
+                      and date(item['created_at'])>=date(r.get('sent_at',r['created']))-timedelta(seconds=10))
                 except (ValueError,KeyError):fits=False
                 if fits:found.append(str(item['id']))
             log('X reconciliación '+r['event']['id']+': candidatos '+','.join(found)+
                 '; verificar manualmente video y autoría; estado continúa bloqueado')
 
 def instagram_caption(e):
-    local=dt(e['origin']).astimezone(ZoneInfo('America/Santiago'))
-    depth='No informada' if e['depth'] is None else f"{e['depth']:g} km"
+    local=date(e['origin']).astimezone(ZoneInfo('America/Santiago'))
+    depth='no informada' if e['depth'] is None else f"{e['depth']:g} km"
     text=(f"Aceleración horizontal observada | Sismo M {e['mag_display']}\n\n"
       f"Referencia: {' '.join(e['reference'].split())}\n"
       f"Fecha (Chile): {local:%d/%m/%Y %H:%M:%S}\nProfundidad: {depth}\n"
@@ -674,7 +708,7 @@ def distance(lat1,lon1,lat2,lon2):
 def stations_for(e,c,clock):
     from obspy import read_inventory,UTCDateTime
     t=UTCDateTime(e['origin']);start=t-c.pre-c.margin;end=t+c.post+c.margin
-    data=get(c.fdsn.rstrip('/')+'/fdsnws/station/1/query',c,clock,{
+    data=obtener(c.fdsn.rstrip('/')+'/fdsnws/station/1/query',c,clock,{
       'latitude':e['lat'],'longitude':e['lon'],'maxradius':c.radius/111.19,'channel':'*N?',
       'level':'channel','format':'xml','starttime':str(start),'endtime':str(end)})
     if not data:return [],[]
@@ -729,14 +763,14 @@ def process_component(s,e,c,clock):
     t=UTCDateTime(e['origin']);start=t-c.pre-c.margin;end=t+c.post+c.margin
     params=dict(net=s['net'],sta=s['sta'],loc=s['loc'] or '--',cha=s['cha'],starttime=str(start),endtime=str(end))
     base=c.fdsn.rstrip('/')+'/fdsnws/'
-    metadata=get(base+'station/1/query',c,clock,dict(params,level='response',format='xml'))
+    metadata=obtener(base+'station/1/query',c,clock,dict(params,level='response',format='xml'))
     if not metadata:raise Failure('Sin metadatos instrumentales')
     inv=read_inventory(io.BytesIO(metadata));response=inv.get_response(s['id'],t)
     sens=response.instrument_sensitivity
     units=sens.input_units.upper().replace(' ','') if sens else ''
     if units not in ('M/S**2','M/S^2','M/S/S') or not sens or sens.value<=0 or not response.response_stages:
         raise Failure('Sin calibración de acelerómetro')
-    raw=get(base+'dataselect/1/query',c,clock,params)
+    raw=obtener(base+'dataselect/1/query',c,clock,params)
     if not raw:raise Failure('Sin miniseed')
     tr=check_raw(read(io.BytesIO(raw),format='MSEED').select(id=s['id']),start,end)
     if tr.stats.sampling_rate<50:raise Failure('Muestreo insuficiente')
@@ -750,7 +784,7 @@ def process_component(s,e,c,clock):
 
 def process_station(s,e,c,clock):
     return dict(s,components=[process_component(p,e,c,clock) for p in s['components']])
-def collect(candidates,e,c,clock):
+def collect_stations(candidates,e,c,clock):
     valid=[];rejected=[]
     with cf.ThreadPoolExecutor(max_workers=c.workers) as pool:
         tasks={pool.submit(process_station,s,e,c,clock):s for s in candidates}
@@ -763,7 +797,27 @@ def collect(candidates,e,c,clock):
         if k not in seen:unique.append(s);seen.add(k)
     return unique[:c.stations],rejected
 
-def peaks(s,centers,step):
+def collect(candidates, processor, workers):
+    """Procesa candidatos en paralelo; evita estaciones físicas repetidas."""
+    valid, rejected = [], []
+    with cf.ThreadPoolExecutor(max_workers=workers) as pool:
+        tasks = {pool.submit(processor, station): station for station in candidates}
+        for task in cf.as_completed(tasks):
+            try:
+                valid.append(task.result())
+            except Exception as exc:
+                rejected.append({'station': tasks[task]['id'], 'reason': safe(exc)})
+    unique, seen = [], set()
+    for station in sorted(valid, key=lambda st: (st['distance'], st['id'])):
+        k = (station.get('net', ''), station.get('sta', station['id']))
+        if k in seen:
+            rejected.append({'station': station['id'], 'reason': 'Estación duplicada'})
+        else:
+            unique.append(station)
+            seen.add(k)
+    return unique, rejected
+
+def station_peaks(s,centers,step):
     import numpy as np
     if len(s['components'])!=2:raise Failure('Faltan ejes N/E')
     a=np.empty(len(centers))
@@ -776,7 +830,7 @@ def peaks(s,centers,step):
         a[j]=max(m)*100/9.80665
     return a
 
-def weights(lons,lats,gx,gy,e,c):
+def spatial_weights(lons,lats,gx,gy,e,c):
     import numpy as np
     from scipy.spatial import Delaunay,QhullError
     def xy(lon,lat):return np.column_stack(((np.ravel(lon)-e['lon'])*111.19*math.cos(math.radians(e['lat'])),(np.ravel(lat)-e['lat'])*111.19))
@@ -798,7 +852,7 @@ def prepare_map(c,clock):
                           ('cultural','admin_0_boundary_lines_land')):
         stem='ne_110m_'+name;dest=root/category
         if all((dest/(stem+x)).is_file() for x in ('.shp','.shx','.dbf')):continue
-        data=get(f'https://naturalearth.s3.amazonaws.com/110m_{category}/{stem}.zip',c,clock)
+        data=obtener(f'https://naturalearth.s3.amazonaws.com/110m_{category}/{stem}.zip',c,clock)
         dest.mkdir(parents=True,exist_ok=True)
         with zipfile.ZipFile(io.BytesIO(data)) as z:
             for ext in ('.shp','.shx','.dbf','.prj','.cpg'):
@@ -817,7 +871,7 @@ def render_video(e,stations,c,clock,folder):
     import cartopy.feature as feat
     prepare_map(c,clock)
     n=round((c.pre+c.post)/c.step);times=-c.pre+(np.arange(n)+.5)*c.step
-    amps=np.stack([peaks(s,times,c.step) for s in stations]);positive=amps[amps>0]
+    amps=np.stack([station_peaks(s,times,c.step) for s in stations]);positive=amps[amps>0]
     if not len(positive) or not np.isfinite(amps).all():raise Failure('Aceleración inutilizable')
     vmin=float(10**np.floor(np.log10(positive.min())));vmax=float(10**np.ceil(np.log10(positive.max())))
     if vmax<=vmin:vmax=vmin*10
@@ -825,7 +879,7 @@ def render_video(e,stations,c,clock,folder):
     extent=[min(lons.min(),e['lon'])-.5,max(lons.max(),e['lon'])+.5,
             min(lats.min(),e['lat'])-.5,max(lats.max(),e['lat'])+.5]
     gx,gy=np.meshgrid(np.linspace(*extent[:2],180),np.linspace(*extent[2:],180))
-    w,mask,reason=weights(lons,lats,gx,gy,e,c);area=bool(mask.any())
+    w,mask,reason=spatial_weights(lons,lats,gx,gy,e,c);area=bool(mask.any())
     def field(j):
         a=np.full(gx.size,np.nan)
         if area:a[mask]=w[mask]@amps[:,j]
@@ -863,7 +917,7 @@ def render_video(e,stations,c,clock,folder):
     p.set_title('ACELERACIÓN DE LAS ESTACIONES',fontsize=10,pad=28);p.grid(alpha=.25)
     p.legend(loc='upper center',bbox_to_anchor=(.5,-.13),fontsize=6,frameon=False,ncol=3)
     depth='no informada' if e['depth'] is None else f"{e['depth']:g} km"
-    local=dt(e['origin']).astimezone(ZoneInfo('America/Santiago'))
+    local=date(e['origin']).astimezone(ZoneInfo('America/Santiago'))
     fig.suptitle(f"Sismo M {e['mag_display']} | {e['reference'][:85]}\n{local:%d/%m/%Y %H:%M:%S} · Profundidad: {depth}",fontsize=12,y=.96)
     label=fig.text(.06,.855,'',fontsize=10)
     fig.text(.04,.022,'Fuente: Centro Sismológico Nacional de la Universidad de Chile',fontsize=8)
@@ -902,7 +956,7 @@ def render_worker(event_path,c):
              'clipping_test':'heuristic; no prueba ausencia de saturación'}
     try:
         candidates,excluded=stations_for(e,c,clock)
-        valid,rejected=collect(candidates,e,c,clock)
+        valid,rejected=collect_stations(candidates,e,c,clock)
         quality.update(attempted=len(candidates),valid=len(valid),rejected=excluded+rejected)
         if not valid:raise Failure('Sin estaciones válidas')
         quality['used']=[{k:v for k,v in s.items() if k!='components'} for s in valid]
@@ -926,20 +980,30 @@ def build_video(e,c,clock):
     if r.returncode or not video.is_file():raise Failure('No se generó video; revisar quality.json')
     return video
 
-def publish_x_record(store,s,r,x,c,clock):
-    text=tweet_text(r['event']);video=build_video(r['event'],c,clock);mid=x.upload(video)
-    r.update(status='enviando',text=text,media_id=mid,sent_at=iso(now()),updated=iso(now()))
-    store.save(s) # Frontera de seguridad antes de POST /tweets.
-    try:tid=x.create(text,mid)
-    except PublishError as exc:
-        if exc.uncertain:r.update(status='resultado_incierto',error=safe(exc))
-        else:retry(r,c,exc)
-        store.save(s);raise
-    except Exception as exc:
-        r.update(status='resultado_incierto',error=safe(exc));store.save(s);raise
-    r.update(status='publicado',tweet_id=tid,error='',updated=iso(now()))
-    log('X publicado: https://x.com/i/web/status/'+tid)
+def send_transaction(store, s, r, x, text, mid):
+    """Persistencia de intención antes de POST. Nunca repetir resultado incierto."""
+    r.update(status='enviando', text=text, media_id=mid,
+             sent_at=iso(utcnow()), updated=iso(utcnow()))
     store.save(s)
+    try:
+        tid=x.create(text,mid)
+    except Exception as exc:
+        if isinstance(exc,XError) and not exc.uncertain:
+            retry(r,store.c,exc)
+        else:
+            r.update(status='resultado_incierto',error=safe(exc),updated=iso(utcnow()))
+        store.save(s)
+        raise
+    r.update(status='publicado',tweet_id=tid,error='',updated=iso(utcnow()))
+    log('X confirmado: https://x.com/i/web/status/'+str(tid))
+    store.save(s)
+    return tid
+
+def publish_x_record(store,s,r,x,c,clock):
+    text=tweet_text(r['event'])
+    video=build_video(r['event'],c,clock)
+    mid=x.upload(video)
+    return send_transaction(store,s,r,x,text,mid)
 
 def process_instagram(store,s,c,clock,report):
     if not c.publish_ig:return
@@ -951,9 +1015,9 @@ def process_instagram(store,s,c,clock,report):
     for r in sorted(s['events'].values(),key=lambda a:a['event']['origin']):
         eid=r['event']['id']
         if c.publish_x and r['status']!='publicado':continue
-        if dt(r['event']['origin'])<now()-timedelta(hours=c.lookback):continue
-        ready=dt(r['event']['origin'])+timedelta(seconds=c.post+c.margin+c.latency)
-        if now()<ready:continue
+        if date(r['event']['origin'])<utcnow()-timedelta(hours=c.lookback):continue
+        ready=date(r['event']['origin'])+timedelta(seconds=c.post+c.margin+c.latency)
+        if utcnow()<ready:continue
         caption=instagram_caption(r['event'])
         for field in ('instagram','instagram_feed'):
             item=r.setdefault(field,ig_default())
@@ -961,7 +1025,7 @@ def process_instagram(store,s,c,clock,report):
             if item['status']=='publicado' or item['attempts']>=c.max_attempts:continue
             if processed>=c.max_events*2 or clock.left()<180:return
             processed+=1
-            item.update(status='procesando',attempts=item['attempts']+1,updated=iso(now()))
+            item.update(status='procesando',attempts=item['attempts']+1,updated=iso(utcnow()))
             store.save(s)
             try:
                 folder=Path(c.output)/eid
@@ -971,21 +1035,21 @@ def process_instagram(store,s,c,clock,report):
                     reel=reel_video(original,clock)
                     video_url=public_github_media(store,eid,reel,clock,'reel')
                     cid=ig.container(caption,video_url)
-                    item.update(container_id=cid,caption=caption,updated=iso(now()));store.save(s)
+                    item.update(container_id=cid,caption=caption,updated=iso(utcnow()));store.save(s)
                 else:
                     if not (folder/'preview.png').is_file():
                         build_video(r['event'],c,clock)
                     image_url=public_feed_photo(store,eid,folder,clock)
                     cid=ig.image_container(caption,image_url)
-                    item.update(container_id=cid,caption=caption,updated=iso(now()));store.save(s)
+                    item.update(container_id=cid,caption=caption,updated=iso(utcnow()));store.save(s)
                 ig.wait(cid)
-                item.update(status='publicando',updated=iso(now()));store.save(s)
+                item.update(status='publicando',updated=iso(utcnow()));store.save(s)
                 # Solo esta etapa es incierta; nunca reenviar automáticamente.
                 try:mid=ig.publish(cid)
                 except Exception as exc:
-                    item.update(status='resultado_incierto',error=safe(exc),updated=iso(now()))
+                    item.update(status='resultado_incierto',error=safe(exc),updated=iso(utcnow()))
                     store.save(s);raise
-                item.update(status='publicado',media_id=mid,error='',updated=iso(now()))
+                item.update(status='publicado',media_id=mid,error='',updated=iso(utcnow()))
                 store.save(s)
                 k='reels_published' if field=='instagram' else 'feed_published'
                 section[k]+=1
@@ -993,14 +1057,14 @@ def process_instagram(store,s,c,clock,report):
             except PersistenceError:raise
             except Exception as exc:
                 if item['status']=='procesando':
-                    item.update(status='pendiente',error=safe(exc),updated=iso(now()));store.save(s)
+                    item.update(status='pendiente',error=safe(exc),updated=iso(utcnow()));store.save(s)
                 if item['status']=='resultado_incierto':section['uncertain']+=1
                 section['errors'].append(f'{eid} {field}: {type(exc).__name__}: {safe(exc)}')
                 log(f'ERROR Instagram {field} {eid}: {safe(exc)}')
                 if isinstance(exc,PublishError) and exc.global_stop:return
 
 def run(c,init=False):
-    end=now();start=end-timedelta(hours=c.lookback);clock=Clock(c.budget)
+    end=utcnow();start=end-timedelta(hours=c.lookback);clock=Clock(c.budget)
     report=dict(start_utc=iso(start),end_utc=iso(end),mode='live' if c.publish_x or c.publish_ig else 'simulation',
                 found=0,new=0,pending=0,results=[],errors=[],warnings=[])
     code=0;s=None;Path(c.output).mkdir(parents=True,exist_ok=True)
@@ -1024,18 +1088,15 @@ def run(c,init=False):
         if c.publish_x or not c.publish_ig:
             for r in sorted(s['events'].values(),key=lambda a:a['event']['origin']):
                 if r['status']=='resultado_incierto':report['warnings'].append(r['event']['id']+' X incierto; NO reenviar');continue
-                if r['status']!='pendiente' or r['attempts']>=c.max_attempts:continue
-                if not start<=dt(r['event']['origin'])<=end or dt(r['next_attempt'])>now():continue
-                ready=dt(r['event']['origin'])+timedelta(seconds=c.post+c.margin+c.latency)
-                if now()<ready:
-                    r['next_attempt']=iso(ready);store.save(s);continue
+                if not eligible(r,c,start,end):continue
+                if defer_recent(r,c,utcnow()):store.save(s);continue
                 if processed>=c.max_events or clock.left()<180:break
-                processed+=1;r.update(status='procesando',attempts=r['attempts']+1,updated=iso(now()));store.save(s)
+                processed+=1;r.update(status='procesando',attempts=r['attempts']+1,updated=iso(utcnow()));store.save(s)
                 try:
                     if x:publish_x_record(store,s,r,x,c,clock)
                     else:
                         tweet_text(r['event']);build_video(r['event'],c,clock)
-                        r.update(status='simulado',updated=iso(now()));store.save(s)
+                        r.update(status='simulado',updated=iso(utcnow()));store.save(s)
                     report['results'].append(dict(id=r['event']['id'],status=r['status'],tweet_id=r['tweet_id']))
                 except PersistenceError:raise
                 except Exception as exc:
