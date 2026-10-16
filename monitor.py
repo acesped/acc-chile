@@ -133,9 +133,13 @@ class BudgetError(Failure): pass
 class SourceError(Failure): pass
 class StructureError(SourceError): pass
 class PublishError(Failure):
-    def __init__(self,msg,status=0,uncertain=False):
-        super().__init__(msg);self.status=status;self.uncertain=uncertain
+    def __init__(self,msg,status=0,uncertain=False,reset=None):
+        super().__init__(msg);self.status=status;self.uncertain=uncertain;self.reset=reset
         self.global_stop=status in (401,402,403,429) or status>=500 or uncertain
+
+class XError(PublishError):
+    """Error específico de X; interfaz pública compatible con test_monitor.py."""
+
 
 class Clock:
     def __init__(self,seconds):self.end=time.monotonic()+seconds
@@ -416,31 +420,31 @@ class XClient:
     def __init__(self,c,clock):
         self.c=c;self.clock=clock
         credentials=[os.getenv(k,'') for k in SECRETS[:4]]
-        if not all(credentials):raise PublishError('Faltan credenciales X',401)
+        if not all(credentials):raise XError('Faltan credenciales X',401)
         self.auth=OAuth1(*credentials)
     def call(self,method,path,empty=False,**kwargs):
         self.clock.check(90);posting=method=='POST' and path=='/tweets'
         try:r=requests.request(method,'https://api.x.com/2'+path,auth=self.auth,
            timeout=max(2,min(self.c.timeout,self.clock.left()-60)),allow_redirects=False,**kwargs)
-        except requests.RequestException as exc:raise PublishError('X '+type(exc).__name__,uncertain=posting) from None
+        except requests.RequestException as exc:raise XError('X '+type(exc).__name__,uncertain=posting) from None
         if not 200<=r.status_code<300:
-            raise PublishError(f'X {path} HTTP {r.status_code}',r.status_code,
+            raise XError(f'X {path} HTTP {r.status_code}',r.status_code,
                                uncertain=posting and (r.status_code>=500 or r.status_code in (408,409)))
         if empty and not r.content:return {}
         try:
             b=r.json()
             if not isinstance(b,dict) or b.get('errors'):raise ValueError()
             return b
-        except ValueError:raise PublishError('Respuesta X incompatible',uncertain=posting) from None
+        except ValueError:raise XError('Respuesta X incompatible',uncertain=posting) from None
     def identity(self):
         b=self.call('GET','/users/me').get('data',{})
-        if not re.fullmatch(r'\d+',str(b.get('id',''))):raise PublishError('Identidad X inválida',401)
+        if not re.fullmatch(r'\d+',str(b.get('id',''))):raise XError('Identidad X inválida',401)
         return str(b['id'])
     def upload(self,video):
         data=self.call('POST','/media/upload/initialize',json=dict(media_type='video/mp4',
           media_category='tweet_video',total_bytes=Path(video).stat().st_size)).get('data',{})
         mid=str(data.get('id',''))
-        if not re.fullmatch(r'\d+',mid):raise PublishError('X media ID inválido')
+        if not re.fullmatch(r'\d+',mid):raise XError('X media ID inválido')
         with open(video,'rb') as f:
             idx=0
             while True:
@@ -449,22 +453,22 @@ class XClient:
                 self.call('POST',f'/media/upload/{mid}/append',empty=True,data={'segment_index':str(idx)},
                           files={'media':('segment.mp4',chunk,'application/octet-stream')});idx+=1
         data=self.call('POST',f'/media/upload/{mid}/finalize').get('data',{})
-        if str(data.get('id',''))!=mid:raise PublishError('X finalize inválido')
+        if str(data.get('id',''))!=mid:raise XError('X finalize inválido')
         until=min(time.monotonic()+self.c.x_wait,self.clock.end-100)
         while data.get('processing_info'):
             info=data['processing_info'];status=info.get('state')
             if status=='succeeded':break
-            if status=='failed':raise PublishError('X video rechazado')
-            if status not in ('pending','in_progress'):raise PublishError('X estado video inválido')
+            if status=='failed':raise XError('X video rechazado')
+            if status not in ('pending','in_progress'):raise XError('X estado video inválido')
             delay=max(1,float(info.get('check_after_secs',5)))
-            if time.monotonic()+delay>=until:raise PublishError('Timeout procesamiento X')
+            if time.monotonic()+delay>=until:raise XError('Timeout procesamiento X')
             time.sleep(delay)
             data=self.call('GET','/media/upload',params={'command':'STATUS','media_id':mid}).get('data',{})
         return mid
     def create(self,text,mid):
         b=self.call('POST','/tweets',json={'text':text,'media':{'media_ids':[mid]}}).get('data',{})
         tid=str(b.get('id',''))
-        if not re.fullmatch(r'\d+',tid):raise PublishError('Tweet ID no confirmado',uncertain=True)
+        if not re.fullmatch(r'\d+',tid):raise XError('Tweet ID no confirmado',uncertain=True)
         return tid
     def reconcile(self,state):
         """Inspección de candidatos; nunca autoriza reenvíos automáticos."""
