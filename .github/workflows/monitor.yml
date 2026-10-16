@@ -1,31 +1,26 @@
-
 name: CSN - aceleracion a X e Instagram
 
-# Ejecucion manual o mediante la API de GitHub.
-# La frecuencia se configura en el cron externo.
+# Ejecucion manual o mediante workflow_dispatch desde un cron externo.
 on:
   workflow_dispatch:
     inputs:
       publish:
-        description: 'Publicar en X'
+        description: 'Publicar video en X (false = no publicar en X)'
         type: boolean
         required: false
         default: false
-
       publish_instagram:
         description: 'Publicar Reel y foto independiente en Instagram'
         type: boolean
         required: false
         default: false
-
       initialize_state:
-        description: 'Solo primer uso: inicializar estado remoto'
+        description: 'Solo primera ejecucion: crear estado remoto si no existe'
         type: boolean
         required: false
         default: false
-
       reconcile:
-        description: 'Inspeccionar envios inciertos de X sin reenviar'
+        description: 'Inspeccionar resultados inciertos de X sin reenviar'
         type: boolean
         required: false
         default: false
@@ -39,53 +34,42 @@ concurrency:
 
 jobs:
   monitor:
-    name: Consultar CSN, generar videos y publicar
+    name: Consultar CSN, generar video y publicar
     runs-on: ubuntu-24.04
     timeout-minutes: 45
-
     env:
       MPLBACKEND: Agg
       PYTHONUNBUFFERED: '1'
-
       MAG_MIN: '4.0'
       LOOKBACK_HOURS: '12'
-
       PRE_SEG: '60'
       POST_SEG: '120'
       MARGEN_SEG: '30'
       DATA_LATENCY_SEC: '180'
-
       FPS: '4'
       FRAME_STEP_SEC: '1'
-
       DOWNLOAD_WORKERS: '4'
       HTTP_TIMEOUT: '30'
-
       MAX_EVENTS_PER_RUN: '2'
       MAX_RUNTIME_SEC: '2100'
       EVENT_TIMEOUT_SEC: '800'
       X_PROCESS_TIMEOUT_SEC: '900'
-
       MAX_DISTANCE_KM: '250'
       MAX_STATIONS: '15'
       MAX_CANDIDATES: '30'
       SUPPORT_KM: '100'
       MAX_TRIANGLE_KM: '150'
-
       MAX_ATTEMPTS: '12'
       RETRY_BASE_SEC: '600'
-
       STATE_DIR: .state
       STATE_BRANCH: monitor-state
       OUTPUT_DIR: output
-
       FDSN_BASE: https://eew.csn.uchile.cl
-
       IG_GRAPH_VERSION: v25.0
       IG_EXPECTED_USERNAME: groundshake_cl
 
     steps:
-      - name: Descargar codigo
+      - name: Descargar codigo del commit disparado
         uses: actions/checkout@v4
         with:
           persist-credentials: false
@@ -106,122 +90,110 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
           sudo apt-get update -qq
           sudo apt-get install -y ffmpeg
-
           python -m pip install -r requirements.txt
-
+          python -m pip install pytest
           npm install --no-save --package-lock=false twitter-text@3.1.0
-
           ffmpeg -version | head -n 1
           ffprobe -version | head -n 1
 
-      - name: Verificar sintaxis y ejecutar pruebas
+      - name: Verificar archivo monitor importado e interfaces
         shell: bash
         run: |
           set -euo pipefail
-
+          pwd
+          git rev-parse HEAD
+          sha256sum monitor.py
           python -m py_compile monitor.py
+          python - <<'PY'
+          import monitor
+          from pathlib import Path
+
+          actual = Path(monitor.__file__).resolve()
+          expected = Path('monitor.py').resolve()
+          print('Modulo importado:', actual)
+          if actual != expected:
+              raise RuntimeError(f'Se importa {actual}, pero se esperaba {expected}')
+          required = (
+              'SECRET_NAMES', 'XError', 'Config', 'Store',
+              'send_transaction', 'record', 'recover', 'eligible',
+              'defer_recent', 'obtener', 'catalogue_links',
+              'leer_evento', 'station_peaks', 'spatial_weights',
+          )
+          for name in required:
+              if not hasattr(monitor, name):
+                  raise RuntimeError(f'Falta en monitor.py: {name}')
+              print('OK:', name)
+          assert isinstance(monitor.SECRET_NAMES, tuple)
+          print('Interfaces basicas presentes')
+          PY
+
+      - name: Ejecutar pruebas sin red
+        shell: bash
+        run: |
+          set -euo pipefail
           python -m pytest -q test_monitor.py
 
-      - name: Validar configuracion de publicacion
+      - name: Validar credenciales y repositorio
         shell: bash
         env:
           GITHUB_TOKEN: ${{ github.token }}
-
           PUBLISH_TO_X: ${{ inputs.publish && 'true' || 'false' }}
           PUBLISH_TO_INSTAGRAM: ${{ inputs.publish_instagram && 'true' || 'false' }}
-
           X_API_KEY: ${{ secrets.X_API_KEY }}
           X_API_SECRET: ${{ secrets.X_API_SECRET }}
           X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
           X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
-
           INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
           INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
-
         run: |
           set -euo pipefail
-
-          echo "X habilitado: $PUBLISH_TO_X"
-          echo "Instagram habilitado: $PUBLISH_TO_INSTAGRAM"
-
+          echo "Publicacion X: $PUBLISH_TO_X"
+          echo "Publicacion Instagram: $PUBLISH_TO_INSTAGRAM"
           if [[ "$PUBLISH_TO_X" == true ]]; then
-            for secret_name in X_API_KEY X_API_SECRET X_ACCESS_TOKEN X_ACCESS_TOKEN_SECRET; do
-              [[ -n "${!secret_name}" ]] || {
-                echo "Falta el secreto $secret_name"
-                exit 1
-              }
+            for name in X_API_KEY X_API_SECRET X_ACCESS_TOKEN X_ACCESS_TOKEN_SECRET; do
+              [[ -n "${!name:-}" ]] || { echo "Falta secreto: $name"; exit 1; }
             done
           fi
-
           if [[ "$PUBLISH_TO_INSTAGRAM" == true ]]; then
-            [[ -n "$INSTAGRAM_TOKEN" ]] || {
-              echo 'Falta INSTAGRAM_TOKEN'
-              exit 1
-            }
-
-            [[ "$INSTAGRAM_USER_ID" =~ ^[0-9]+$ ]] || {
-              echo 'INSTAGRAM_USER_ID ausente o no numerico'
-              exit 1
-            }
-
-            [[ -n "$IG_EXPECTED_USERNAME" ]] || {
-              echo 'Falta IG_EXPECTED_USERNAME'
-              exit 1
-            }
-
+            [[ -n "$INSTAGRAM_TOKEN" ]] || { echo 'Falta secreto: INSTAGRAM_TOKEN'; exit 1; }
+            [[ "$INSTAGRAM_USER_ID" =~ ^[0-9]+$ ]] || { echo 'INSTAGRAM_USER_ID debe ser numerico'; exit 1; }
+            [[ -n "$IG_EXPECTED_USERNAME" ]] || { echo 'Falta IG_EXPECTED_USERNAME'; exit 1; }
             repo_json="$(curl -fsS --retry 3 \
-              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
               -H 'Accept: application/vnd.github+json' \
               -H 'X-GitHub-Api-Version: 2022-11-28' \
-              "https://api.github.com/repos/${GITHUB_REPOSITORY}")"
-
+              "https://api.github.com/repos/$GITHUB_REPOSITORY")"
             REPO_JSON="$repo_json" python - <<'PY'
-          import json
-          import os
-          import sys
-
-          data = json.loads(os.environ["REPO_JSON"])
-
-          if data.get("private") is not False:
-              sys.exit(
-                  "ERROR: Instagram necesita repositorio publico "
-                  "para alojar el MP4 y JPEG en HTTPS"
-              )
-
-          print("Repositorio publico verificado")
+          import json, os, sys
+          repo = json.loads(os.environ['REPO_JSON'])
+          if repo.get('private') is not False:
+              sys.exit('Instagram requiere repo publico para servir video y foto por HTTPS')
+          print('Repositorio publico confirmado')
           PY
           fi
 
-      - name: Ejecutar ciclo del monitor
+      - name: Ejecutar un ciclo
         shell: bash
         env:
           GITHUB_TOKEN: ${{ github.token }}
-
           PUBLISH_TO_X: ${{ inputs.publish && 'true' || 'false' }}
           PUBLISH_TO_INSTAGRAM: ${{ inputs.publish_instagram && 'true' || 'false' }}
-
           RECONCILE_X: ${{ inputs.reconcile && 'true' || 'false' }}
           INIT_STATE: ${{ inputs.initialize_state && 'true' || 'false' }}
-
           X_API_KEY: ${{ secrets.X_API_KEY }}
           X_API_SECRET: ${{ secrets.X_API_SECRET }}
           X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
           X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
-
           INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
           INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
-
         run: |
           set -euo pipefail
-
-          echo "Publicar en X: $PUBLISH_TO_X"
-          echo "Publicar en Instagram: $PUBLISH_TO_INSTAGRAM"
+          echo "Publicar X: $PUBLISH_TO_X"
+          echo "Publicar Instagram: $PUBLISH_TO_INSTAGRAM"
           echo "Inicializar estado: $INIT_STATE"
-          echo "Inspeccionar X incierto: $RECONCILE_X"
-
+          echo "Reconciliar X: $RECONCILE_X"
           if [[ "$INIT_STATE" == true ]]; then
             python monitor.py --init-state
           else
