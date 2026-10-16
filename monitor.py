@@ -36,7 +36,7 @@ CSN = "https://www.sismologia.cl"
 STATES = {"pendiente", "procesando", "enviando", "publicado", "simulado",
           "resultado_incierto", "expirado"}
 SECRET_NAMES = ("X_API_KEY", "X_API_SECRET", "X_ACCESS_TOKEN",
-                "X_ACCESS_TOKEN_SECRET", "GITHUB_TOKEN")
+                "X_ACCESS_TOKEN_SECRET", "GITHUB_TOKEN", "INSTAGRAM_TOKEN")
 
 
 def utcnow():
@@ -122,9 +122,6 @@ class Config:
                  "fdsn": "FDSN_BASE"}
         for field, env in names.items():
             default = getattr(c, field)
-            # Las anotaciones son la fuente de verdad: algunos campos float
-            # tienen un valor predeterminado entero (p. ej. lookback=24).
-            # type(default) convertiría erróneamente "0.1666667" a int.
             annotation = cls.__annotations__[field]
             converter = float if annotation in (float, "float") else type(default)
             setattr(c, field, converter(os.getenv(env, default)))
@@ -147,22 +144,17 @@ class Config:
 class Failure(RuntimeError):
     pass
 
-
 class SourceError(Failure):
     pass
-
 
 class StructureError(SourceError):
     pass
 
-
 class PersistenceError(Failure):
     pass
 
-
 class BudgetError(Failure):
     pass
-
 
 class XError(Failure):
     def __init__(self, message, status=0, uncertain=False, reset=None):
@@ -1371,6 +1363,294 @@ def main():
     except Exception as exc:
         log(f"Configuración: {type(exc).__name__}: {clean(exc)}")
         return 1
+
+
+
+# ===== INICIO EXTENSION INSTAGRAM CSN =====
+# Requiere INSTAGRAM_TOKEN y PUBLISH_TO_INSTAGRAM=true; sin credenciales en el código.
+# Mantiene los estados de X e incorpora un estado IG separado en cada evento.
+import contextlib as _ig_contextlib
+import http.server as _ig_http
+import secrets as _ig_secrets
+import threading as _ig_threading
+import shutil as _ig_shutil
+
+_IG_API = os.getenv('INSTAGRAM_API_BASE', 'https://graph.instagram.com/v25.0').rstrip('/')
+_IG_ACCOUNT = os.getenv('INSTAGRAM_USER_ID', '26939871689044023')
+_IG_USERNAME = 'sismos_algoritmos'
+
+
+def _ig_call(method, path, **kwargs):
+    token = os.getenv('INSTAGRAM_TOKEN', '').strip()
+    if not token:
+        raise Failure('Falta INSTAGRAM_TOKEN')
+    try:
+        response = requests.request(method, f'{_IG_API}/{path.lstrip("/")}',
+                                    headers={'Authorization': 'Bearer ' + token},
+                                    timeout=60, **kwargs)
+    except requests.RequestException as exc:
+        raise Failure(f'Instagram error de red: {type(exc).__name__}') from None
+    try:
+        obj = response.json()
+    except ValueError:
+        raise Failure(f'Instagram HTTP {response.status_code}: respuesta no JSON') from None
+    if not response.ok:
+        msg = str(obj.get('error', {}).get('message', 'Error'))[:160]
+        raise Failure(f'Instagram HTTP {response.status_code}: {msg}')
+    return obj
+
+
+def _ig_identity():
+    data = _ig_call('GET', 'me', params={'fields': 'id,username'})
+    if str(data.get('id')) != _IG_ACCOUNT or str(data.get('username','')).lower() != _IG_USERNAME:
+        raise Failure('Cuenta Instagram incorrecta; se bloquea publicación')
+    log(f'Cuenta Instagram autorizada: @{_IG_USERNAME}')
+
+
+def _ig_caption(e):
+    t = date(e['origin']).astimezone(ZoneInfo('America/Santiago'))
+    depth = 'no informada' if e['depth'] is None else f"{e['depth']:g} km"
+    return (f"Aceleración horizontal observada | Sismo M {e['mag_display']}\n"
+            f"{e['reference']}\n{t:%d/%m/%Y %H:%M:%S} (Chile)\n"
+            f"Profundidad: {depth}\nLatitud: {e['lat']:.4f}°; longitud: {e['lon']:.4f}°\n"
+            f"Máximo horizontal N/E por intervalo, expresado en %g. "
+            f"Interpolación solo con soporte instrumental suficiente; "
+            f"no constituye una predicción sísmica.\n"
+            f"Fuente: CSN, Universidad de Chile.\n{e['url']}\n"
+            '#Sismos #Chile #Sismologia #AceleracionSismica #SismosAlgoritmos')[:2100]
+
+
+def _ig_reel_video(original):
+    source = Path(original)
+    output = source.with_name('reel_instagram.mp4')
+    temp = source.with_name('reel_instagram.tmp.mp4')
+    cmd = ['ffmpeg', '-hide_banner', '-loglevel', 'error', '-nostdin', '-y',
+           '-i', str(source), '-vf',
+           'scale=1080:1920:force_original_aspect_ratio=decrease,'
+           'pad=1080:1920:(ow-iw)/2:(oh-ih)/2:color=0x101820,'
+           'setsar=1,fps=30,format=yuv420p',
+           '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '25',
+           '-maxrate', '8M', '-bufsize', '16M', '-g', '60',
+           '-movflags', '+faststart', '-an', str(temp)]
+    try:
+        subprocess.run(cmd, check=True, timeout=450, capture_output=True)
+        raw = subprocess.run(['ffprobe', '-v', 'error', '-show_streams', '-show_format',
+                              '-of', 'json', str(temp)], check=True, timeout=30,
+                             capture_output=True, text=True)
+        info = json.loads(raw.stdout)
+        stream = next(x for x in info['streams'] if x['codec_type'] == 'video')
+        dur = float(info['format']['duration'])
+        size = temp.stat().st_size
+        if (stream['codec_name'] != 'h264' or stream['pix_fmt'] != 'yuv420p'
+            or (stream['width'], stream['height']) != (1080, 1920)
+            or not 3 <= dur <= 900 or size > 300 * 1024 * 1024):
+            raise Failure('El Reel no cumple la validación H264/1080x1920/duración')
+        os.replace(temp, output)
+    finally:
+        temp.unlink(missing_ok=True)
+    return output
+
+
+@_ig_contextlib.contextmanager
+def _ig_temporary_https(video):
+    """Entrega temporal por HTTPS mediante Cloudflare Quick Tunnel; no almacena en Cloudinary.
+    Requiere cloudflared en PATH del runner, red saliente y disponibilidad del servicio.
+    No se garantiza SLA ni permanencia: el túnel solo sirve durante esta publicación.
+    """
+    binary = _ig_shutil.which('cloudflared')
+    if not binary:
+        raise Failure('Falta cloudflared en PATH: instálelo en GitHub Actions')
+    video = Path(video).resolve()
+    name = _ig_secrets.token_urlsafe(20) + '.mp4'
+    class Handler(_ig_http.BaseHTTPRequestHandler):
+        def do_HEAD(self):
+            self._serve(False)
+        def do_GET(self):
+            self._serve(True)
+        def _serve(self, data):
+            if self.path.split('?')[0] != '/' + name:
+                self.send_error(404); return
+            size = video.stat().st_size
+            # Meta puede solicitar rangos de bytes del archivo.
+            offset, stop, partial = 0, size-1, False
+            part = self.headers.get('Range', '')
+            if part:
+                m = re.fullmatch(r'bytes=(\d+)-(\d*)', part.strip())
+                if not m:
+                    self.send_error(416); return
+                offset = int(m.group(1))
+                stop = min(size-1, int(m.group(2))) if m.group(2) else size-1
+                if offset >= size or stop < offset:
+                    self.send_error(416); return
+                partial = True
+            self.send_response(206 if partial else 200)
+            self.send_header('Content-Type', 'video/mp4')
+            self.send_header('Accept-Ranges', 'bytes')
+            self.send_header('Content-Length', str(stop-offset+1))
+            if partial:
+                self.send_header('Content-Range', f'bytes {offset}-{stop}/{size}')
+            self.end_headers()
+            if data:
+                try:
+                    with open(video, 'rb') as fp:
+                        fp.seek(offset)
+                        left = stop - offset + 1
+                        while left:
+                            chunk = fp.read(min(left, 1024 * 1024))
+                            if not chunk: break
+                            self.wfile.write(chunk)
+                            left -= len(chunk)
+                except (BrokenPipeError, ConnectionResetError):
+                    pass
+        def log_message(self, *args):
+            pass
+    server = _ig_http.ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+    _ig_threading.Thread(target=server.serve_forever, daemon=True).start()
+    proc = None
+    with tempfile.TemporaryFile(mode='w+t', encoding='utf-8') as logs:
+        try:
+            cmd = [binary, 'tunnel', '--no-autoupdate', '--url',
+                   f'http://127.0.0.1:{server.server_port}']
+            proc = subprocess.Popen(cmd, stdout=logs, stderr=subprocess.STDOUT)
+            public = None
+            for _ in range(45):
+                if proc.poll() is not None:
+                    raise Failure('Cloudflare Tunnel terminó antes de ofrecer URL')
+                time.sleep(1)
+                logs.flush(); logs.seek(0)
+                m = re.search(r'https://[a-z0-9-]+\.trycloudflare\.com', logs.read())
+                if m:
+                    public = m.group(0); break
+            if not public:
+                raise Failure('Cloudflare Tunnel no entregó HTTPS en 45 s')
+            url = public + '/' + name
+            for _ in range(15):
+                try:
+                    r = requests.head(url, timeout=10, allow_redirects=False)
+                    if r.status_code == 200: break
+                except requests.RequestException:
+                    pass
+                time.sleep(2)
+            else:
+                raise Failure('URL del video no accesible por HTTPS')
+            yield url
+        finally:
+            server.shutdown(); server.server_close()
+            if proc and proc.poll() is None:
+                proc.terminate()
+                try: proc.wait(timeout=8)
+                except subprocess.TimeoutExpired: proc.kill()
+
+
+def _ig_media_info(media_id):
+    return _ig_call('GET', str(media_id),
+                    params={'fields': 'id,media_type,media_product_type,permalink'})
+
+
+def _ig_publish_one(store, state, record, video):
+    event = record['event']
+    eid = event['id']
+    ig = record.setdefault('instagram', {'status': 'pendiente', 'media_id': None,
+                                          'container_id': None, 'error': ''})
+    if ig['status'] == 'publicado':
+        log(f'Instagram {eid}: previamente publicado'); return
+    if ig['status'] in {'enviando', 'resultado_incierto'}:
+        if ig['status'] == 'enviando':
+            ig.update(status='resultado_incierto', error='Interrupción durante media_publish')
+            store.save(state)
+        log(f'Instagram {eid}: RESULTADO INCIERTO; NO reenviar'); return
+    # Se conserva el nombre de campo "status" original, solo se añade "instagram".
+    with _ig_temporary_https(_ig_reel_video(video)) as url:
+        # Fase reversible: aún no se ha ejecutado el POST de publicación.
+        container = _ig_call('POST', f'{_IG_ACCOUNT}/media', data={
+            'media_type': 'REELS', 'video_url': url,
+            'share_to_feed': 'true', 'caption': _ig_caption(event)})
+        cid = str(container['id'])
+        if not cid.isdigit(): raise Failure('Container ID Instagram inválido')
+        ig.update(status='procesando', container_id=cid, error='')
+        store.save(state)
+        ready = False
+        for _ in range(55):
+            res = _ig_call('GET', cid, params={'fields': 'status_code,status'})
+            status = res.get('status_code')
+            if status == 'FINISHED':
+                ready = True; break
+            if status in {'ERROR', 'EXPIRED'}:
+                raise Failure(f'Contenedor de Reel rechazado: {status}')
+            time.sleep(10)
+        if not ready: raise Failure('Tiempo agotado al preparar el Reel')
+        # Barrera CAS persistente antes de enviar.
+        ig.update(status='enviando', error='')
+        store.save(state)
+        try:
+            result = _ig_call('POST', f'{_IG_ACCOUNT}/media_publish',
+                              data={'creation_id': cid})
+            mid = str(result['id'])
+            if not mid.isdigit(): raise Failure('Publicación sin Media ID válido')
+        except Exception as exc:
+            ig.update(status='resultado_incierto', error=clean(exc))
+            store.save(state)
+            raise
+        # El POST ha confirmado ID: NO reenviar aunque fallen consultas o guardado.
+        ig.update(status='publicado', media_id=mid, error='')
+        try:
+            store.save(state)
+        except Exception:
+            log(f'CRÍTICO: Instagram confirmó media {mid}, pero CAS falló. NO REENVIAR')
+            raise
+        try:
+            info = _ig_media_info(mid)
+            log(f"Instagram {eid}: publicado; media_product_type={info.get('media_product_type', '?')}; "
+                f"URL={info.get('permalink', 'sin enlace')}")
+            if info.get('media_product_type') not in (None, 'REELS'):
+                log('ADVERTENCIA: Instagram no clasificó esta publicación como REELS')
+        except Exception as exc:
+            log(f'Instagram publicado, no verificable: {clean(exc)}')
+
+
+def _ig_after_x(c, result):
+    if not boolean('PUBLISH_TO_INSTAGRAM', False):
+        return result
+    if not c.publish:
+        log('Instagram: PUBLISH_TO_X=false; no publicar en modo simulación')
+        return result
+    _ig_identity()
+    store = Store(c)
+    state = store.load(init=False)
+    if not state.get('account_id'):
+        raise PersistenceError('Instagram bloqueado: falta cuenta X confirmada')
+    # Solo videos del ciclo actual existentes en disco, con X confirmado.
+    folder = Path(c.output)
+    for eid, rec in sorted(state['events'].items()):
+        if rec['status'] != 'publicado': continue
+        video = folder / eid / 'video.mp4'
+        if not video.is_file(): continue
+        try:
+            _ig_publish_one(store, state, rec, video)
+        except PersistenceError:
+            raise
+        except Exception as exc:
+            ig = rec.get('instagram', {})
+            if ig.get('status') == 'procesando':
+                # Aún no se llamó a media_publish, reintento de preparación es seguro.
+                ig.update(status='pendiente', error=clean(exc))
+                store.save(state)
+            elif ig.get('status') == 'enviando':
+                ig.update(status='resultado_incierto', error=clean(exc))
+                store.save(state)
+            log(f'Instagram {eid}: {type(exc).__name__}: {clean(exc)}')
+            result = 1
+    return result
+
+
+# Wrapping preserva íntegro run(c, init) y sus controles existentes.
+_csn_run_original = run
+
+def run(c, init=False):
+    result = _csn_run_original(c, init)
+    return _ig_after_x(c, result)
+
+# ===== FIN EXTENSION INSTAGRAM CSN =====
 
 
 if __name__ == "__main__":
