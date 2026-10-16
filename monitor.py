@@ -1377,7 +1377,7 @@ import shutil as _ig_shutil
 
 _IG_API = os.getenv('INSTAGRAM_API_BASE', 'https://graph.instagram.com/v25.0').rstrip('/')
 _IG_ACCOUNT = os.getenv('INSTAGRAM_USER_ID', '26939871689044023')
-_IG_USERNAME = 'sismos_algoritmos'
+_IG_USERNAME = 'groundshake_cl'
 
 
 def _ig_call(method, path, **kwargs):
@@ -1417,7 +1417,7 @@ def _ig_caption(e):
             f"Interpolación solo con soporte instrumental suficiente; "
             f"no constituye una predicción sísmica.\n"
             f"Fuente: CSN, Universidad de Chile.\n{e['url']}\n"
-            '#Sismos #Chile #Sismologia #AceleracionSismica #SismosAlgoritmos')[:2100]
+            '#Sismos #Chile #Sismologia #AceleracionSismica #GroundShake')[:2100]
 
 
 def _ig_reel_video(original):
