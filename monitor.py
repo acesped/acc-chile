@@ -71,8 +71,8 @@ def atomic(p,value):
 
 @dataclass
 class Config:
-    mag:float=2.0
-    lookback:float=1.0
+    mag:float=4.0
+    lookback:float=24.0
     pre:float=60.0
     post:float=120.0
     margin:float=30.0
