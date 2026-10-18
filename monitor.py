@@ -18,7 +18,15 @@ from requests_oauthlib import OAuth1
 
 UTC=timezone.utc
 CSN='https://www.sismologia.cl'
-SECRETS=('X_API_KEY','X_API_SECRET','X_ACCESS_TOKEN','X_ACCESS_TOKEN_SECRET','GITHUB_TOKEN','IG_ACCESS_TOKEN','INSTAGRAM_TOKEN')
+SECRET_NAMES = SECRETS = (
+    'X_API_KEY',
+    'X_API_SECRET',
+    'X_ACCESS_TOKEN',
+    'X_ACCESS_TOKEN_SECRET',
+    'GITHUB_TOKEN',
+    'IG_ACCESS_TOKEN',
+    'INSTAGRAM_TOKEN',
+)
 STATES={'pendiente','procesando','enviando','publicado','simulado','resultado_incierto','expirado'}
 IG_STATES={'pendiente','procesando','publicando','publicado','resultado_incierto'}
 
