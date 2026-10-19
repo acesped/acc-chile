@@ -1,11 +1,11 @@
 name: CSN - aceleracion a X e Instagram
 
-# Ejecucion manual o mediante workflow_dispatch desde un cron externo.
+# Ejecutar manualmente o mediante workflow_dispatch desde un cron externo.
 on:
   workflow_dispatch:
     inputs:
       publish:
-        description: 'Publicar video en X (false = no publicar en X)'
+        description: 'Publicar video en X'
         type: boolean
         required: false
         default: false
@@ -13,7 +13,7 @@ on:
         description: 'Publicar Reel y foto independiente en Instagram'
         type: boolean
         required: false
-        default: false
+        default: true
       initialize_state:
         description: 'Solo primera ejecucion: crear estado remoto si no existe'
         type: boolean
@@ -66,7 +66,10 @@ jobs:
       OUTPUT_DIR: output
       FDSN_BASE: https://eew.csn.uchile.cl
       IG_GRAPH_VERSION: v25.0
+      IG_LOGIN_TYPE: instagram # Cambiar a facebook si el token proviene de Facebook Login.
       IG_EXPECTED_USERNAME: groundshake_cl
+      IG_PENDING_MAX_AGE_HOURS: '72'
+      IG_RESERVED_SEC: '600'
 
     steps:
       - name: Descargar codigo del commit disparado
@@ -109,7 +112,6 @@ jobs:
           python - <<'PY'
           import monitor
           from pathlib import Path
-
           actual = Path(monitor.__file__).resolve()
           expected = Path('monitor.py').resolve()
           print('Modulo importado:', actual)
@@ -120,6 +122,7 @@ jobs:
               'send_transaction', 'record', 'recover', 'eligible',
               'defer_recent', 'obtener', 'catalogue_links',
               'leer_evento', 'station_peaks', 'spatial_weights',
+              'config_diagnostics', 'check_public_media',
           )
           for name in required:
               if not hasattr(monitor, name):
@@ -139,14 +142,14 @@ jobs:
           python - <<'PYTEST'
           import monitor
           cfg = monitor.Config()
-          assert cfg.mag == 4.0 and cfg.lookback == 24.0, (cfg.mag, cfg.lookback)
+          assert cfg.mag == 4.0 and cfg.lookback == 24.0
           env_cfg = monitor.Config.env()
-          assert env_cfg.mag == 4.0 and env_cfg.lookback == 24.0, (env_cfg.mag, env_cfg.lookback)
+          assert env_cfg.mag == 4.0 and env_cfg.lookback == 24.0
           print('Configuracion de pruebas validada: M >= 4.0, 24 horas')
           PYTEST
           python -m pytest -q test_monitor.py
 
-      - name: Validar credenciales y repositorio
+      - name: Validar credenciales, activacion y repositorio
         shell: bash
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -162,6 +165,7 @@ jobs:
           set -euo pipefail
           echo "Publicacion X: $PUBLISH_TO_X"
           echo "Publicacion Instagram: $PUBLISH_TO_INSTAGRAM"
+          echo "Login de Instagram: $IG_LOGIN_TYPE"
           if [[ "$PUBLISH_TO_X" == true ]]; then
             for name in X_API_KEY X_API_SECRET X_ACCESS_TOKEN X_ACCESS_TOKEN_SECRET; do
               [[ -n "${!name:-}" ]] || { echo "Falta secreto: $name"; exit 1; }
@@ -184,17 +188,30 @@ jobs:
           print('Repositorio publico confirmado')
           PY
           fi
+          if [[ "$PUBLISH_TO_X" != true && "$PUBLISH_TO_INSTAGRAM" != true ]]; then
+            echo 'AVISO: Ambos canales desactivados; el ciclo sera una simulacion.'
+          fi
 
-      - name: Confirmar parametros de produccion
+      - name: Diagnosticar configuracion sin publicar
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PUBLISH_TO_X: ${{ inputs.publish && 'true' || 'false' }}
+          PUBLISH_TO_INSTAGRAM: ${{ inputs.publish_instagram && 'true' || 'false' }}
+          INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
+          INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
         run: |
           set -euo pipefail
-          python - <<'PYPROD'
+          python monitor.py --check-config
+          python - <<'PY'
+          import os
           import monitor
           c = monitor.Config.env()
-          assert c.mag == 4.0 and c.lookback == 24.0, (c.mag, c.lookback)
-          print('Monitor de produccion: magnitud >= 4.0, ultimas 24 horas')
-          PYPROD
+          assert c.mag == 4.0 and c.lookback == 24.0
+          assert c.publish_ig == (os.environ['PUBLISH_TO_INSTAGRAM'] == 'true')
+          assert c.publish_x == (os.environ['PUBLISH_TO_X'] == 'true')
+          print('Activacion de ambos canales verificada')
+          PY
 
       - name: Ejecutar un ciclo
         shell: bash
@@ -220,6 +237,25 @@ jobs:
             python monitor.py --init-state
           else
             python monitor.py
+          fi
+
+      - name: Mostrar diagnostico final
+        if: always()
+        shell: bash
+        run: |
+          if [[ -f output/summary.json ]]; then
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('output/summary.json').read_text(encoding='utf-8'))
+          print('Estado general:', d.get('exit_code'))
+          print('Canales:', d.get('config'))
+          print('Instagram:', json.dumps(d.get('instagram', {}), ensure_ascii=False))
+          print('Instagram incierto:', d.get('uncertain_instagram'))
+          print('Errores:', json.dumps(d.get('errors', []), ensure_ascii=False))
+          PY
+          else
+            echo 'Sin output/summary.json: revisar el paso que fallo antes del ciclo.'
           fi
 
       - name: Guardar diagnosticos
