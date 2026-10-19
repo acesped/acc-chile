@@ -586,15 +586,27 @@ def reel_video(video,clock,c=None):
     return target
 
 def check_public_media(url,kind,clock):
-    """Añade inspección MIME, además de la verificación SHA-256 de public_github_media."""
+    """Valida accesibilidad y MIME; GitHub Raw puede servir MP4 como octet-stream.
+
+    public_github_media ya comprueba SHA-256, tamaño y extensión del archivo remoto.
+    No rechazar un MP4 íntegro exclusivamente por MIME genérico.
+    """
     expected='video/mp4' if kind=='reel' else 'image/jpeg'
     clock.check(15)
     try:
         with requests.get(url,stream=True,timeout=min(20,max(2,clock.left()-5)),allow_redirects=True) as r:
-            r.raise_for_status();mime=r.headers.get('Content-Type','').split(';')[0].strip().lower()
-            if mime!=expected:raise Failure(f'MIME público IG incorrecto: {mime}; esperado {expected}')
-            log(f'IG {kind}: MIME válido {mime}')
-    except requests.RequestException as exc:raise Failure('URL multimedia IG inaccesible: '+type(exc).__name__) from None
+            r.raise_for_status()
+            mime=r.headers.get('Content-Type','').split(';')[0].strip().lower()
+            if mime==expected:
+                log(f'IG {kind}: MIME válido {mime}')
+            elif kind=='reel' and mime=='application/octet-stream':
+                # El contenido ya fue descargado y cotejado íntegramente mediante SHA-256.
+                # Meta hará su propia comprobación del formato al ingerir el video.
+                log('IG reel: GitHub Raw devuelve application/octet-stream; MP4 verificado por SHA-256, intentando Meta')
+            else:
+                raise Failure(f'MIME público IG incorrecto: {mime}; esperado {expected}')
+    except requests.RequestException as exc:
+        raise Failure('URL multimedia IG inaccesible: '+type(exc).__name__) from None
 
 def public_github_media(store,event_id,local_path,clock,kind):
     """Archivo público inmutable por SHA y commit. No alojar datos sensibles."""
