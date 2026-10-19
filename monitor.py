@@ -254,7 +254,7 @@ def discover(c,clock,start,end):
 def ig_default():return dict(status='pendiente',container_id=None,media_id=None,caption='',error='',attempts=0,updated=None,post_started=False)
 def record(e,when=None):
     now=iso(when or utcnow())
-    return dict(event=e,status='pendiente',attempts=0,next_attempt=now,created=now,updated=now,error='',media_id=None,tweet_id=None,text='',instagram=ig_default(),instagram_feed=ig_default())
+    return dict(event=e,status='pendiente',attempts=0,next_attempt=now,created=now,updated=now,error='',media_id=None,tweet_id=None,text='',instagram=ig_default(),instagram_feed=ig_default(),instagram_story=ig_default())
 def empty_state(mode):return dict(schema=1,mode=mode,account_id=None,ig_account_id=None,revision=str(uuid.uuid4()),updated=iso(utcnow()),events={})
 def validate_state(s,mode):
     try:
@@ -270,7 +270,7 @@ def validate_state(s,mode):
             for key in ('media_id','tweet_id','text','error'):
                 if key not in r:raise ValueError(key)
             if r['status']=='publicado' and not re.fullmatch(r'\d+',str(r['tweet_id'])):raise ValueError('X sin ID')
-            for field in ('instagram','instagram_feed'):
+            for field in ('instagram','instagram_story'):
                 ig=r[field]
                 if ig['status'] not in IG_STATES or not isinstance(ig['attempts'],int) or ig['attempts']<0:raise ValueError(field)
                 if ig['status']=='publicado' and not re.fullmatch(r'\d+',str(ig['media_id'])):raise ValueError(field+' sin ID')
@@ -313,8 +313,9 @@ class Store:
             else:raise PersistenceError(f'Leer estado HTTP {r.status_code}; use --init-state en repositorio nuevo')
         if not isinstance(s,dict) or not isinstance(s.get('events'),dict):raise PersistenceError('Estado corrupto')
         s.setdefault('ig_account_id',None)
+        # instagram_feed es histórico (fotografías); ya no se generan nuevas fotos.
         for r in s['events'].values():
-            for field in ('instagram','instagram_feed'):
+            for field in ('instagram','instagram_story'):
                 item=r.setdefault(field,ig_default())
                 if not isinstance(item,dict):raise PersistenceError('Estado Instagram inválido')
                 for key,value in ig_default().items():item.setdefault(key,value)
@@ -354,7 +355,7 @@ def recover(s,start,now=None):
         if r['status']=='enviando':r.update(status='resultado_incierto',error='Interrupción POST X')
         elif r['status']=='procesando':r.update(status='pendiente',next_attempt=iso(now));counts['recovered']+=1
         if r['status']=='pendiente' and date(r['event']['origin'])<start:r.update(status='expirado');counts['expired']+=1
-        for field in ('instagram','instagram_feed'):
+        for field in ('instagram','instagram_story'):
             item=r.setdefault(field,ig_default())
             if item['status']=='publicando' or (item['status']=='procesando' and item.get('post_started')):
                 item.update(status='resultado_incierto',error='Interrupción posible media_publish; no reenviar')
@@ -502,9 +503,16 @@ class InstagramClient:
     def container(self,caption,video_url):
         p=urlparse(video_url)
         if p.scheme!='https' or not p.hostname:raise PublishError('URL Reel no HTTPS')
-        b=self.call('POST','/'+self.uid+'/media',data={'media_type':'REELS','video_url':video_url,'caption':caption,'share_to_feed':'false'})
+        b=self.call('POST','/'+self.uid+'/media',data={'media_type':'REELS','video_url':video_url,'caption':caption,'share_to_feed':'true'})
         cid=str(b.get('id',''))
         if not re.fullmatch(r'\d+',cid):raise PublishError('Contenedor Reel sin ID')
+        return cid
+    def story_container(self,video_url):
+        p=urlparse(video_url)
+        if p.scheme!='https' or not p.hostname:raise PublishError('URL Story no HTTPS')
+        b=self.call('POST','/'+self.uid+'/media',data={'media_type':'STORIES','video_url':video_url})
+        cid=str(b.get('id',''))
+        if not re.fullmatch(r'\d+',cid):raise PublishError('Contenedor Story sin ID')
         return cid
     def image_container(self,caption,image_url):
         p=urlparse(image_url)
@@ -651,6 +659,7 @@ def public_github_media(store,event_id,local_path,clock,kind):
     raise Failure('Archivo aún inaccesible públicamente; revisar GitHub/CDN')
 
 def public_feed_photo(store,event_id,folder,clock):
+    '''Función heredada sin uso; nunca se invoca en el flujo de publicación actual.'''
     preview=folder/'preview.png'
     if not preview.is_file():raise Failure('Falta preview.png')
     photo=folder/'instagram_feed.jpg';clock.check(65)
@@ -933,7 +942,7 @@ def instagram_diagnostics(s,c):
     for eid,r in sorted(s['events'].items()):
         age=(now-date(r['event']['origin'])).total_seconds()/3600
         ready=date(r['event']['origin'])+timedelta(seconds=c.post+c.margin+c.latency)
-        for field in ('instagram','instagram_feed'):
+        for field in ('instagram','instagram_story'):
             item=r.get(field,{})
             if item.get('status')=='publicado':reason='ya_publicado'
             elif item.get('status')=='resultado_incierto':reason='resultado_incierto_no_reenviar'
@@ -948,7 +957,7 @@ def instagram_diagnostics(s,c):
 def process_instagram(store,s,c,clock,report):
     if not c.publish_ig:
         log('INSTAGRAM: desactivado (PUBLISH_TO_INSTAGRAM != true)');return
-    section=report.setdefault('instagram',dict(reels_published=0,feed_published=0,uncertain=0,errors=[],skipped=[]))
+    section=report.setdefault('instagram',dict(reels_published=0,feed_video_shared=0,stories_published=0,uncertain=0,errors=[],skipped=[]))
     log(f'INSTAGRAM: iniciando; eventos_estado={len(s["events"])}; tiempo={clock.left():.0f}s')
     ig=InstagramClient(c,clock);uid=ig.identity()
     log('INSTAGRAM: identidad confirmada @'+ig.expected_username)
@@ -963,7 +972,7 @@ def process_instagram(store,s,c,clock,report):
         if utcnow()<ready:
             log(f'IG OMITIDO {eid}: esperando datos hasta {iso(ready)}');section['skipped'].append(f'{eid}: esperando datos');continue
         caption=instagram_caption(r['event'])
-        for field in ('instagram','instagram_feed'):
+        for field in ('instagram','instagram_story'):
             item=r.setdefault(field,ig_default())
             if item['status']=='resultado_incierto':
                 section['uncertain']+=1;log(f'IG BLOQUEADO {eid} {field}: resultado incierto, NO reenviar');continue
@@ -995,17 +1004,16 @@ def process_instagram(store,s,c,clock,report):
                         item.update(status='resultado_incierto',error='Contenedor ya publicado, falta media_id: verificar manualmente')
                         store.save(s);section['uncertain']+=1;continue
                 if not cid:
-                    if field=='instagram':
-                        original=build_video(r['event'],c,clock)
+                    # El mismo MP4 se usa para Reel+Feed y Story. Sin fotos.
+                    reel=folder/'instagram_reel.mp4'
+                    if not reel.is_file() or not reel.stat().st_size:
+                        original=folder/'video.mp4'
+                        if not original.is_file() or not original.stat().st_size:
+                            original=build_video(r['event'],c,clock)
                         reel=reel_video(original,clock,c)
-                        url=public_github_media(store,eid,reel,clock,'reel')
-                        log(f'IG REEL {eid}: URL pública validada')
-                        cid=ig.container(caption,url)
-                    else:
-                        if not (folder/'preview.png').is_file():build_video(r['event'],c,clock)
-                        url=public_feed_photo(store,eid,folder,clock)
-                        log(f'IG FEED {eid}: URL pública validada')
-                        cid=ig.image_container(caption,url)
+                    url=public_github_media(store,eid,reel,clock,'reel')
+                    log(f'IG VIDEO {eid} {field}: URL pública validada')
+                    cid=(ig.container(caption,url) if field=='instagram' else ig.story_container(url))
                     item.update(container_id=cid,caption=caption,updated=iso(utcnow()));store.save(s)
                     log(f'IG CONTENEDOR CREADO {eid} {field}: {cid}')
                 ig.wait(cid)
@@ -1017,7 +1025,10 @@ def process_instagram(store,s,c,clock,report):
                     item.update(status='resultado_incierto',error=safe(exc),updated=iso(utcnow()))
                     store.save(s);raise
                 item.update(status='publicado',media_id=mid,error='',updated=iso(utcnow()));store.save(s)
-                section['reels_published' if field=='instagram' else 'feed_published']+=1
+                if field=='instagram':
+                    section['reels_published']+=1
+                    section['feed_video_shared']+=1
+                else:section['stories_published']+=1
                 log(f'IG PUBLICADO {eid} {field}: media_id={mid}')
             except PersistenceError:raise
             except Exception as exc:
@@ -1097,7 +1108,7 @@ def run(c,init=False):
         if s is not None:
             report['pending']=sum(r['status']=='pendiente' for r in s['events'].values())
             report['uncertain_x']=sum(r['status']=='resultado_incierto' for r in s['events'].values())
-            report['uncertain_instagram']=sum(r[k]['status']=='resultado_incierto' for r in s['events'].values() for k in ('instagram','instagram_feed'))
+            report['uncertain_instagram']=sum(r[k]['status']=='resultado_incierto' for r in s['events'].values() for k in ('instagram','instagram_story'))
             report['instagram_diagnostics']=instagram_diagnostics(s,c)
         report['exit_code']=code;atomic(Path(c.output)/'summary.json',report)
         summary='## CSN → aceleración → X e Instagram\n\n```json\n'+json.dumps(report,ensure_ascii=False,indent=2)+'\n```\n'
