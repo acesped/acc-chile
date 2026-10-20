@@ -1,14 +1,13 @@
-name: Renovar token de Instagram
+name: Groundshake - verificar y renovar token Instagram
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: '17 9 1 * *' # día 1 de cada mes, 09:17 UTC
+    - cron: '17 9 * * *' # Diario, 09:17 UTC
 
 permissions:
   contents: read
 
-# Evita que el monitor lea un token que está siendo actualizado.
 concurrency:
   group: csn-acceleration-publisher
   cancel-in-progress: false
@@ -20,16 +19,15 @@ jobs:
     steps:
       - name: Descargar código
         uses: actions/checkout@v4
-
+        with:
+          persist-credentials: false
       - name: Preparar Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
       - name: Instalar dependencias
         run: python -m pip install 'requests>=2.32,<3' 'PyNaCl>=1.5,<2'
-
-      - name: Renovar token y actualizar GitHub Secrets
+      - name: Verificar y renovar si corresponde
         env:
           IG_LOGIN_TYPE: instagram
           IG_EXPECTED_USERNAME: groundshake_cl
