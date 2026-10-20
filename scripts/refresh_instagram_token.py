@@ -1,95 +1,117 @@
 #!/usr/bin/env python3
-"""Renueva token Instagram Login y actualiza INSTAGRAM_TOKEN en GitHub Actions Secrets.
+"""Comprueba a diario Instagram Login y renueva tras >= 48 h.
 
-No escribe tokens en archivos ni en logs. Requiere requests y PyNaCl.
+Actualiza exclusivamente INSTAGRAM_TOKEN como Repository Secret en GitHub.
+Nunca imprime credenciales. No recupera tokens revocados por Meta.
 """
 import base64
 import os
 import re
 import sys
+from datetime import datetime, timezone
 
 import requests
 from nacl import encoding, public
 
 TIMEOUT = 25
+GRAPH = 'https://graph.instagram.com'
+API_VERSION = 'v25.0'
+MIN_HOURS = 48
 
 
-def require(name):
-    value = os.environ.get(name, '').strip()
+def required(name):
+    value = os.getenv(name, '').strip()
     if not value:
-        raise RuntimeError(f'Falta variable/secret: {name}')
+        raise RuntimeError(f'Falta secreto o variable: {name}')
     return value
 
 
-def api_json(method, url, *, headers=None, params=None, json=None):
+def call(method, url, **kwargs):
     try:
-        response = requests.request(method, url, headers=headers, params=params, json=json,
-                                    timeout=TIMEOUT, allow_redirects=False)
+        response = requests.request(method, url, timeout=TIMEOUT,
+                                    allow_redirects=False, **kwargs)
     except requests.RequestException as exc:
-        raise RuntimeError(f'Fallo de red en {method} {url.split("?")[0]}: {type(exc).__name__}') from None
-    # No exponer la respuesta: algunas APIs pueden incluir información sensible.
+        raise RuntimeError(f'Error de conexión: {type(exc).__name__}') from None
     if not 200 <= response.status_code < 300:
-        raise RuntimeError(f'{method} {url.split("?")[0]} rechazado: HTTP {response.status_code}')
+        # No imprimir body ni URL con query (podrían contener secretos).
+        if response.status_code in (400, 401, 403) and url.startswith(GRAPH):
+            try:
+                err = response.json().get('error', {})
+                if err.get('code') == 190:
+                    raise RuntimeError('Meta OAuth 190: token revocado o inválido; requiere nueva autorización manual')
+            except ValueError:
+                pass
+        raise RuntimeError(f'{method} rechazado: HTTP {response.status_code}')
     if response.status_code == 204 or not response.content:
         return {}
     try:
-        result = response.json()
+        data = response.json()
     except ValueError:
-        raise RuntimeError('Respuesta JSON inválida') from None
-    if not isinstance(result, dict):
-        raise RuntimeError('Respuesta JSON inesperada')
-    return result
+        raise RuntimeError('Respuesta no JSON') from None
+    if not isinstance(data, dict):
+        raise RuntimeError('Respuesta de API inesperada')
+    return data
+
+
+def verify_identity(token, uid, username):
+    data = call('GET', f'{GRAPH}/{API_VERSION}/{uid}',
+                headers={'Authorization': f'Bearer {token}'},
+                params={'fields': 'id,username'})
+    if str(data.get('id')) != uid or str(data.get('username', '')).lower() != username:
+        raise RuntimeError('La identidad de Instagram no coincide; no se modifica el secreto')
 
 
 def main():
-    if os.getenv('IG_LOGIN_TYPE', 'instagram').strip().lower() != 'instagram':
-        raise RuntimeError('Este renovador solo sirve para IG_LOGIN_TYPE=instagram')
-    token = require('INSTAGRAM_TOKEN')
-    uid = require('INSTAGRAM_USER_ID')
-    username = require('IG_EXPECTED_USERNAME').lstrip('@').lower()
-    repo = require('GITHUB_REPOSITORY')
-    github_token = require('GH_SECRETS_TOKEN')
-    if not re.fullmatch(r'\d+', uid):
-        raise RuntimeError('INSTAGRAM_USER_ID no es numérico')
-    if not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', repo):
-        raise RuntimeError('GITHUB_REPOSITORY inválido')
+    if os.getenv('IG_LOGIN_TYPE', 'instagram').lower() != 'instagram':
+        raise RuntimeError('Se requiere IG_LOGIN_TYPE=instagram')
+    token = required('INSTAGRAM_TOKEN')
+    uid = required('INSTAGRAM_USER_ID')
+    username = required('IG_EXPECTED_USERNAME').lstrip('@').lower()
+    gh_token = required('GH_SECRETS_TOKEN')
+    repo = required('GITHUB_REPOSITORY')
+    if not re.fullmatch(r'\d+', uid) or not re.fullmatch(r'[\w.-]+/[\w.-]+', repo):
+        raise RuntimeError('ID o repositorio inválido')
+    if repo.lower() != 'acesped/acc-chile':
+        raise RuntimeError('Repositorio inesperado: operación bloqueada')
 
-    # Renovación disponible para tokens LONG-LIVED válidos; no repara revocaciones.
-    renewed = api_json('GET', 'https://graph.instagram.com/refresh_access_token',
-                       params={'grant_type': 'ig_refresh_token', 'access_token': token})
-    new_token = renewed.get('access_token')
-    expires = renewed.get('expires_in')
-    if not isinstance(new_token, str) or len(new_token) < 30:
-        raise RuntimeError('Meta no entregó un token nuevo válido')
-    if not isinstance(expires, (int, float)) or expires <= 0:
-        raise RuntimeError('Meta no confirmó vigencia del token nuevo')
-    # A partir de aquí enmascaramos el valor si GitHub llegase a registrarlo accidentalmente.
-    print('::add-mask::' + new_token, flush=True)
+    # Verificar antes de intentar renovar; si ya está revocado, fallar y alertar.
+    verify_identity(token, uid, username)
+    print(f'Identidad actual confirmada: @{username}')
 
-    identity = api_json('GET', f'https://graph.instagram.com/v25.0/{uid}',
-                        headers={'Authorization': 'Bearer ' + new_token},
-                        params={'fields': 'id,username'})
-    if str(identity.get('id')) != uid or str(identity.get('username', '')).lower() != username:
-        raise RuntimeError('La cuenta del token nuevo no coincide con la cuenta esperada; secreto no modificado')
-
-    headers = {'Authorization': 'Bearer ' + github_token,
+    headers = {'Authorization': f'Bearer {gh_token}',
                'Accept': 'application/vnd.github+json',
                'X-GitHub-Api-Version': '2022-11-28'}
     base = f'https://api.github.com/repos/{repo}/actions/secrets'
-    key_data = api_json('GET', base + '/public-key', headers=headers)
-    key = public.PublicKey(key_data['key'].encode(), encoding.Base64Encoder())
-    sealed = public.SealedBox(key).encrypt(new_token.encode('utf-8'))
-    ciphertext = base64.b64encode(sealed).decode('ascii')
-    api_json('PUT', base + '/INSTAGRAM_TOKEN', headers=headers,
-             json={'encrypted_value': ciphertext, 'key_id': key_data['key_id']})
-    print(f'Token renovado y secreto INSTAGRAM_TOKEN actualizado. Vigencia reportada: {int(expires // 86400)} días.')
-    print('Identidad confirmada: @' + username)
+    # El momento de la última modificación es un límite conservador: puede
+    # incluir actualizaciones manuales y por eso a veces pospone la renovación.
+    metadata = call('GET', base + '/INSTAGRAM_TOKEN', headers=headers)
+    updated = datetime.fromisoformat(metadata['updated_at'].replace('Z', '+00:00'))
+    age_hours = (datetime.now(timezone.utc) - updated).total_seconds() / 3600
+    if age_hours < MIN_HOURS:
+        print(f'OMITIDA: secreto actualizado hace {age_hours:.1f} h; mínimo {MIN_HOURS} h.')
+        return
+
+    renewed = call('GET', GRAPH + '/refresh_access_token',
+                   params={'grant_type': 'ig_refresh_token', 'access_token': token})
+    new_token = renewed.get('access_token')
+    expires = renewed.get('expires_in')
+    if not isinstance(new_token, str) or len(new_token) < 30:
+        raise RuntimeError('Meta no devolvió un token válido')
+    if not isinstance(expires, (float, int)) or expires <= 0:
+        raise RuntimeError('Meta no devolvió vigencia válida')
+    print('::add-mask::' + new_token, flush=True)
+    verify_identity(new_token, uid, username)
+    key = call('GET', base + '/public-key', headers=headers)
+    public_key = public.PublicKey(key['key'].encode('ascii'), encoding.Base64Encoder())
+    encrypted = base64.b64encode(public.SealedBox(public_key).encrypt(new_token.encode())).decode('ascii')
+    call('PUT', base + '/INSTAGRAM_TOKEN', headers=headers,
+         json={'encrypted_value': encrypted, 'key_id': key['key_id']})
+    print(f'Renovación exitosa para @{username}. INSTAGRAM_TOKEN actualizado. Vigencia reportada: {int(expires // 86400)} días.')
 
 
 if __name__ == '__main__':
     try:
         main()
     except Exception as exc:
-        # Los mensajes de excepción de esta aplicación no contienen tokens.
-        print(f'ERROR renovación Instagram: {exc}', file=sys.stderr)
+        print(f'ERROR en renovación Instagram: {exc}', file=sys.stderr)
         sys.exit(1)
