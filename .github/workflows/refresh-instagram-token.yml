@@ -2,8 +2,14 @@ name: Groundshake - verificar y renovar token Instagram
 
 on:
   workflow_dispatch:
+    inputs:
+      solo_verificar:
+        description: 'Validar sin renovar'
+        type: boolean
+        required: false
+        default: false
   schedule:
-    - cron: '17 9 * * *' # Diario, 09:17 UTC
+    - cron: '17 9 * * *' # Cada día 09:17 UTC; Meta puede retrasar scheduled workflows
 
 permissions:
   contents: read
@@ -30,6 +36,8 @@ jobs:
       - name: Verificar y renovar si corresponde
         env:
           IG_LOGIN_TYPE: instagram
+          IG_GRAPH_VERSION: v25.0
+          IG_REFRESH_ENABLED: ${{ github.event_name != 'workflow_dispatch' || inputs.solo_verificar != true }}
           IG_EXPECTED_USERNAME: groundshake_cl
           INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
           INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
