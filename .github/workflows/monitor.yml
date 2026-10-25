@@ -1,218 +1,129 @@
-
-name: GROUNDSHAKE CL - Monitor Sismico - Instagram
+name: GROUNDSHAKE CL - Reels sismicos Instagram
 
 on:
   workflow_dispatch:
+    inputs:
+      topic:
+        description: 'ID de tema opcional; vacio = seleccion automatica'
+        required: false
+        default: ''
+        type: string
+      publish:
+        description: 'Publicar el Reel automaticamente'
+        required: true
+        default: true
+        type: boolean
+      story:
+        description: 'Publicar tambien Story'
+        required: true
+        default: true
+        type: boolean
 
 permissions:
   contents: write
 
 concurrency:
-  group: groundshake-monitor
+  group: groundshake-cl-instagram
   cancel-in-progress: false
 
 jobs:
-  generar:
-    name: Ejecutar monitor sismico
+  generar-y-publicar:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
-
     env:
       PYTHONUNBUFFERED: '1'
-
-      # Proveedores de inteligencia artificial
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-
-      # Instagram
       INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
       INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
       IG_GRAPH_VERSION: 'v25.0'
       IG_EXPECTED_USERNAME: 'groundshake_cl'
-
-      # GitHub
       GH_TOKEN: ${{ github.token }}
-      GITHUB_REPOSITORY: ${{ github.repository }}
       GITHUB_REF_NAME: ${{ github.event.repository.default_branch }}
-
-      # Audio
       DV_VOICE: 'es-CL-CatalinaNeural'
-
     steps:
-
-      # 1. DESCARGAR CODIGO
-
       - name: Descargar repositorio
         uses: actions/checkout@v4
 
-      # 2. CONFIGURAR PYTHON
-
-      - name: Preparar Python 3.11
+      - name: Configurar Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      # 3. INSTALAR DEPENDENCIAS SIN APT
-
-      - name: Instalar dependencias Python y FFmpeg
+      - name: Instalar dependencias y FFmpeg sin APT
         shell: bash
         timeout-minutes: 10
         run: |
           set -euo pipefail
-
-          python -m pip install \
-            --disable-pip-version-check \
-            --retries 3 \
-            --timeout 45 \
-            'Pillow>=10,<13' \
-            'requests>=2.31,<3' \
-            'edge-tts>=6,<8' \
-            'mutagen>=1.47,<2' \
-            'imageio-ffmpeg>=0.6,<1'
-
-          # Instalar dependencias adicionales
-          # declaradas por el repositorio.
-
-          if [[ -f requirements.txt ]]; then
-            python -m pip install \
-              --disable-pip-version-check \
-              --retries 3 \
-              --timeout 45 \
-              -r requirements.txt
-          fi
-
-          # Preparar FFmpeg sin usar APT.
-
+          python -m pip install --disable-pip-version-check --retries 3 --timeout 45 \
+            'Pillow>=10,<13' 'requests>=2.31,<3' 'edge-tts>=6,<8' \
+            'mutagen>=1.47,<2' 'imageio-ffmpeg>=0.6,<1'
           mkdir -p "$RUNNER_TEMP/groundshake-bin"
-
           FFMPEG_BIN="$(python - <<'PY'
           import imageio_ffmpeg
           print(imageio_ffmpeg.get_ffmpeg_exe())
           PY
           )"
-
-          ln -sf "$FFMPEG_BIN" \
-            "$RUNNER_TEMP/groundshake-bin/ffmpeg"
-
-          chmod +x "$FFMPEG_BIN"
-
+          ln -sf "$FFMPEG_BIN" "$RUNNER_TEMP/groundshake-bin/ffmpeg"
           echo "$RUNNER_TEMP/groundshake-bin" >> "$GITHUB_PATH"
+          "$FFMPEG_BIN" -hide_banner -version | head -n 1
 
-          "$FFMPEG_BIN" -hide_banner -version \
-            | head -n 1
-
-      # 4. VERIFICAR MONITOR.PY
-
-      - name: Verificar monitor.py
+      - name: Verificar programa y FFmpeg
         shell: bash
         run: |
           set -euo pipefail
-
-          echo "Repositorio: $GITHUB_REPOSITORY"
-          echo "Directorio: $(pwd)"
-
-          test -f monitor.py || {
-            echo '::error::No existe monitor.py en la raiz'
-            exit 1
-          }
-
+          test -f monitor.py || { echo '::error::Falta monitor.py en la raiz'; exit 1; }
           python -m py_compile monitor.py
+          command -v ffmpeg >/dev/null || { echo '::error::Falta FFmpeg'; exit 1; }
+          ffmpeg -hide_banner -encoders > "$RUNNER_TEMP/encoders.txt" 2>&1
+          grep -q 'libx264' "$RUNNER_TEMP/encoders.txt" || { echo '::error::Falta libx264'; exit 1; }
+          echo 'monitor.py y FFmpeg listos.'
 
-          echo 'monitor.py: sintaxis correcta.'
-
-      # 5. VERIFICAR FFMPEG
-
-      - name: Verificar FFmpeg y audio
+      - name: Comprobar secretos necesarios
+        if: ${{ inputs.publish }}
         shell: bash
         run: |
           set -euo pipefail
-
-          command -v ffmpeg >/dev/null || {
-            echo '::error::FFmpeg no disponible'
-            exit 1
+          [[ -n "${INSTAGRAM_TOKEN:-}" && -n "${INSTAGRAM_USER_ID:-}" ]] || {
+            echo '::error::Faltan secretos INSTAGRAM_TOKEN o INSTAGRAM_USER_ID'; exit 1;
           }
-
-          ffmpeg -hide_banner -encoders \
-            > "$RUNNER_TEMP/ffmpeg-encoders.txt" 2>&1
-
-          grep -q 'libx264' \
-            "$RUNNER_TEMP/ffmpeg-encoders.txt" || {
-              echo '::error::FFmpeg sin libx264'
-              exit 1
-            }
-
-          python - <<'PY'
-          import requests
-          import edge_tts
-          import imageio_ffmpeg
-          import mutagen
-          from PIL import Image
-
-          print("Dependencias multimedia disponibles.")
-          PY
-
-      # 6. VERIFICAR CONFIGURACION DE INSTAGRAM
-
-      - name: Verificar credenciales Instagram
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          [[ -n "${INSTAGRAM_TOKEN:-}" ]] || {
-            echo '::error::Falta INSTAGRAM_TOKEN'
-            exit 1
-          }
-
-          [[ -n "${INSTAGRAM_USER_ID:-}" ]] || {
-            echo '::error::Falta INSTAGRAM_USER_ID'
-            exit 1
-          }
-
           [[ "$INSTAGRAM_USER_ID" =~ ^[0-9]+$ ]] || {
-            echo '::error::INSTAGRAM_USER_ID debe ser numerico'
-            exit 1
+            echo '::error::INSTAGRAM_USER_ID debe ser numerico'; exit 1;
           }
+          echo 'Secretos presentes. monitor.py verificara el token y el usuario ante Meta.'
 
-          [[ "$IG_EXPECTED_USERNAME" == 'groundshake_cl' ]] || {
-            echo '::error::Cuenta incorrecta'
-            exit 1
-          }
-
-          echo 'Configuracion de @groundshake_cl presente.'
-
-      # 7. EJECUTAR MONITOR
-
-      - name: Ejecutar monitor.py
+      - name: Crear Reel y publicar automaticamente
         shell: bash
-        timeout-minutes: 30
+        timeout-minutes: 32
+        env:
+          PUBLISH: ${{ inputs.publish && 'true' || 'false' }}
+          STORY: ${{ inputs.story && 'true' || 'false' }}
+          TOPIC: ${{ inputs.topic }}
         run: |
           set -euo pipefail
+          args=(--out output_sismos)
+          if [[ -n "$TOPIC" ]]; then args+=(--topic "$TOPIC"); fi
+          if [[ "$PUBLISH" == 'true' ]]; then
+            args+=(--publish --auto-publish)
+            if [[ "$STORY" == 'true' ]]; then args+=(--story); fi
+          fi
+          echo "Cuenta de destino: @groundshake_cl | publicacion=$PUBLISH | story=$STORY"
+          python monitor.py "${args[@]}"
 
-          echo 'Iniciando monitor sismico...'
-          echo 'Cuenta configurada: @groundshake_cl'
-
-          python monitor.py
-
-      # 8. GUARDAR RESULTADOS
-
-      - name: Guardar videos e informes
+      - name: Guardar videos guiones e imagenes
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: groundshake-${{ github.run_id }}-${{ github.run_attempt }}
-
           path: |
-            output/**/*.mp4
-            output/**/*.json
-            output/**/*.jpg
-            output/**/*.png
-            output_sismos/**/*.mp4
             output_sismos/**/*.json
+            output_sismos/**/*.mp4
             output_sismos/**/*.jpg
             output_sismos/**/*.png
-            *.mp4
-            *.json
-
-          if-no-files-found: ignore
+            output_sismos/*.json
+            output_sismos/*.mp4
+            output_sismos/*.jpg
+            output_sismos/*.png
+          if-no-files-found: warn
           retention-days: 14
