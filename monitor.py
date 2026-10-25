@@ -11,9 +11,9 @@ API de Instagram: publicación automática opcional con controles de fuente, ide
 
 INSTALAR: pip install pillow requests edge-tts mutagen imageio-ffmpeg
          y un ejecutable ffmpeg en PATH (ver workflow GitHub Actions).
-PRUEBA:  python dataviral.py --out output
-CON IA:  GEMINI_API_KEY=... python dataviral.py --out output
-PUBLICAR AUTOMATICAMENTE: python dataviral.py --publish --auto-publish --story
+PRUEBA:  python monitor.py --out output
+CON IA:  GEMINI_API_KEY=... python monitor.py --out output
+PUBLICAR AUTOMATICAMENTE: python monitor.py --publish --auto-publish --story
 Variables: INSTAGRAM_TOKEN, INSTAGRAM_USER_ID, IG_EXPECTED_USERNAME=groundshake_cl,
            GH_TOKEN, GITHUB_REPOSITORY=propietario/repo; repositorio público.
 Opcional: --photo-dir /ruta/a/fotos para aportar fotografías autorizadas.
@@ -512,6 +512,17 @@ def ig_publish(user,token,url,caption,media_type='REELS'):
  else:raise RuntimeError('Timeout; publicación incierta, no reintentar automáticamente')
  return ig('POST',f'{user}/media_publish',token,{'creation_id':cid})['id']
 
+def verify_instagram_account():
+ """Fail early on revoked token / wrong destination account."""
+ expected=os.getenv('IG_EXPECTED_USERNAME',ACCOUNT).strip().lstrip('@').lower()
+ if expected!=ACCOUNT:raise RuntimeError('Cuenta esperada incorrecta: @'+expected)
+ token=os.getenv('INSTAGRAM_TOKEN','');user=os.getenv('INSTAGRAM_USER_ID','')
+ if not token or not user:raise RuntimeError('Faltan INSTAGRAM_TOKEN / INSTAGRAM_USER_ID')
+ me=ig('GET','me',token,{'fields':'id,username'})
+ if str(me.get('id'))!=user or str(me.get('username','')).lower()!=ACCOUNT:
+  raise RuntimeError('Token de Meta asociado a otra cuenta de Instagram; se requiere @'+ACCOUNT)
+ print('TOKEN Instagram válido; cuenta verificada: @'+ACCOUNT,flush=True)
+
 def publish(ep,movie,approval,story=False,auto=False):
  if not auto and approval!=ep['episode_id']:raise RuntimeError('Necesita --approved-id que coincida con el episodio')
  if auto and not ep.get('base_verified'):
@@ -541,7 +552,7 @@ def publish(ep,movie,approval,story=False,auto=False):
   row=items.setdefault(ep['episode_id'],{});row[which]=status;row['updated_at']=utcnow()
   receipt=gh.write(STATE_PATH,json.dumps(state,ensure_ascii=False,indent=2).encode(),sha)
   sha=receipt['content']['sha']
- caption=f'{ep["title"]}\n\n{ep["lesson"]}\n\nFuente de consulta: {ep["source"]}\n\n#DatoWow #Sismos #Ciencia #Terremotos'
+ caption=f'{ep["title"]}\n\n{ep["lesson"]}\n\nFuente de consulta: {ep["source"]}\n\n#GroundshakeCL #Sismos #Ciencia #Terremotos'
  save('enviando')
  try:pid=ig_publish(user,token,url,caption)
  except BaseException:save('incierto');raise
@@ -589,6 +600,8 @@ def main():
   except Exception as exc:print('Historial remoto no disponible:',str(exc)[:140],flush=True)
  if args.auto_publish and not args.publish:
   raise RuntimeError('--auto-publish requiere --publish')
+ if args.publish:
+  verify_instagram_account()
  if args.auto_publish and args.episode_json:
   raise RuntimeError('No usar --episode-json con --auto-publish: solo se admiten temas base')
  if args.episode_json:
