@@ -248,11 +248,27 @@ PHOTO_TERMS={
 }
 
 def photo_relevant(item,ep):
+ """Comprobar temática en título, descripción y etiquetas (no solo título)."""
  title=norm(item.get('title',''))
+ metadata=norm(' '.join(str(item.get(k,'') or '') for k in ('title','description','tags')))
  forbidden=('logo','flag','poster','screenshot','infographic','cartoon','svg','clipart','stock photo','generic')
  if any(x in title for x in forbidden):return False
  terms=PHOTO_TERMS.get(ep.get('id'),('earthquake','seism','sismo','terremot','tectonic'))
- return bool(title and any(norm(x) in title for x in terms))
+ # No se acepta una imagen simplemente por coincidir con el texto de búsqueda.
+ return bool(metadata.strip() and any(norm(x) in metadata for x in terms))
+
+
+def license_accepted(code):
+ """Solo dominio público o Creative Commons que permite uso comercial y adaptación."""
+ code=norm(str(code)).strip().lower().replace('_','-')
+ compact=re.sub(r'[^a-z0-9]+','',code)
+ if compact.startswith(('cc0','publicdomain','publicdomainmark','pdm','pdold','pdus','pdself')):
+  return True
+ if compact.startswith(('ccby','ccbysa')) and not any(x in compact for x in ('nc','nd')):
+  return True
+ if compact.startswith(('bysa','by')) and not any(x in compact for x in ('nc','nd')):
+  return True
+ return False
 
 
 def ai_json(prompt):
@@ -321,24 +337,37 @@ def choose_topic(history, requested=''):
 
 
 def commons(query):
- p=dict(action='query',format='json',generator='search',gsrsearch=query+' filetype:bitmap',gsrnamespace=6,gsrlimit=22,
-        prop='imageinfo',iiprop='url|extmetadata|size',iiurlwidth=1400)
+ p=dict(action='query',format='json',generator='search',gsrsearch=query,
+        gsrnamespace=6,gsrlimit=40,prop='imageinfo',
+        iiprop='url|extmetadata|size',iiurlwidth=1400)
  r=HTTP.get('https://commons.wikimedia.org/w/api.php',params=p,timeout=24);r.raise_for_status()
  pages=(r.json().get('query') or {}).get('pages',{})
  for page in pages.values():
   a=(page.get('imageinfo') or [{}])[0];meta=a.get('extmetadata') or {}
-  license_=re.sub('<[^>]+>','',(meta.get('LicenseShortName') or {}).get('value','')).lower().replace(' ','')
-  if not ('cc0' in license_ or 'publicdomain' in license_ or license_=='pdm' or license_.startswith('pd-')): continue
+  def val(k):return re.sub('<[^>]+>',' ',str((meta.get(k) or {}).get('value','')))
+  license_=val('LicenseShortName').strip()
+  if not license_accepted(license_):continue
   url=a.get('thumburl') or a.get('url')
-  if url: yield {'url':url,'source':a.get('descriptionurl',''),'license':license_,'title':page.get('title',''),'provider':'Wikimedia'}
+  title=page.get('title','')
+  if not url or not re.search(r'\.(jpg|jpeg|png|webp)(?:\?|$)',url,re.I):continue
+  if url: yield {'url':url,'source':a.get('descriptionurl',''),
+    'license':license_,'title':title,'description':val('ImageDescription'),
+    'creator':val('Artist') or 'Autor no identificado',
+    'tags':'','provider':'Wikimedia'}
 
 def openverse(query):
- r=HTTP.get('https://api.openverse.org/v1/images/',params={'q':query,'license':'cc0,pdm','page_size':20},timeout=25)
+ r=HTTP.get('https://api.openverse.org/v1/images/',
+   params={'q':query,'license':'cc0,pdm,by,by-sa','category':'photograph','page_size':20},timeout=25)
  r.raise_for_status()
  for a in r.json().get('results',[]):
-  if a.get('license','').lower() not in ('cc0','pdm'):continue
+  license_=str(a.get('license','')).lower()
+  if not license_accepted(license_):continue
   url=a.get('url') or a.get('thumbnail')
-  if url: yield {'url':url,'source':a.get('foreign_landing_url',''),'license':a['license'],'title':a.get('title',''),'provider':'Openverse'}
+  if url: yield {'url':url,'source':a.get('foreign_landing_url',''),
+      'license':license_,'title':a.get('title',''),
+      'description':'','tags':' '.join(str(t.get('name','')) for t in (a.get('tags') or []) if isinstance(t,dict)),
+      'creator':a.get('creator') or 'Autor no identificado','provider':'Openverse'}
+
 
 def photo_download(item,dest):
  """Aceptar solo JPG/PNG/WebP de HTTPS y tamaño limitado; no seguir hosts arbitrarios internos."""
@@ -386,25 +415,30 @@ def get_photos(ep,folder,local_dir=None):
     except Exception: pass
   if not found:raise RuntimeError('No se encontraron fotos válidas en --photo-dir')
   return found,credits
- for q in ep['queries']:
+ queries=list(dict.fromkeys([*ep['queries'],
+    'earthquake seismometer','seismograph earthquake','seismic monitoring station',
+    'earthquake early warning seismometer', 'earthquake monitoring equipment']))
+ for q in queries:
   for provider in (commons,openverse):
    try:
     results=list(provider(q))
    except Exception as exc:
-    print(f'Fotos {provider.__name__} / {q}: {str(exc)[:90]}',flush=True);continue
-   # Más diversidad; no reutilizar la misma URL.
+    print(f'Fotos {provider.__name__} / {q}: {str(exc)[:110]}',flush=True);continue
+   accepted=0
    for item in results:
     if item['url'] in seen:continue
     seen.add(item['url'])
-    title=norm(item.get('title',''))
     if not photo_relevant(item,ep):continue
     path=folder/f'foto_{len(found)+1}.jpg'
     if photo_download(item,path):
-     found.append(path);credits.append({k:item[k] for k in ('source','license','title','provider')})
-     break
+     found.append(path)
+     credits.append({k:item.get(k,'') for k in ('source','license','title','creator','provider','description')})
+     accepted+=1
+     print('Foto válida:',item['title'][:85],'licencia:',item['license'],flush=True)
+     if accepted>=2 or len(found)>=6:break
    if len(found)>=6:break
   if len(found)>=6:break
- if not found: raise RuntimeError('No se encontraron fotografías sísmicas pertinentes con licencia CC0/PD; se cancela el Reel.')
+ if not found: raise RuntimeError('No se encontraron fotografías sísmicas pertinentes con licencia reutilizable (CC0, PD, CC BY o CC BY-SA); se cancela el Reel.')
  return found,credits
 
 
@@ -581,7 +615,7 @@ def local_photo_audit(photos,credits,ep,photo_dir):
  if photo_dir:
   print('AVISO: fotografías aportadas manualmente; revisar pertinencia y licencias antes de publicar',flush=True)
   return True
- return all(photo_relevant(c,ep) for c in credits)
+ return all(photo_relevant(c,ep) and license_accepted(c.get('license','')) for c in credits)
 
 class Github:
  def __init__(self):
@@ -660,7 +694,16 @@ def publish(ep,movie,approval,story=False,auto=False):
   row=items.setdefault(ep['episode_id'],{});row[which]=status;row['updated_at']=utcnow()
   receipt=gh.write(STATE_PATH,json.dumps(state,ensure_ascii=False,indent=2).encode(),sha)
   sha=receipt['content']['sha']
- caption=f'{ep["title"]}\n\n{ep["lesson"]}\n\nFuente de consulta: {ep["source"]}\n\n#GroundshakeCL #Sismos #Ciencia #Terremotos'
+ caption=f'{ep["title"]}\n\n{ep["lesson"]}\n\nFuente de consulta: {ep["source"]}'
+ # Las fotos CC BY y CC BY-SA requieren reconocer autores, obras y licencias.
+ credits=ep.get('image_credits',[])
+ if credits:
+  lines=[]
+  for c in credits:
+   lines.append(f'{c.get("title", "Fotografía")} — {c.get("creator", "Autor no identificado")} — {c.get("license", "")} — {c.get("source", "")}')
+  caption+='\n\nCréditos fotografías:\n'+'\n'.join(lines)
+ caption+='\n\n#GroundshakeCL #Sismos #Ciencia #Terremotos'
+ if len(caption)>2200:raise RuntimeError('Los créditos exceden el límite de Instagram; no se publica')
  save('enviando')
  try:pid=ig_publish(user,token,url,caption)
  except BaseException:save('incierto');raise
@@ -730,6 +773,7 @@ def main():
  if args.auto_publish and (not ep.get('base_verified') or not str(ep.get('source','')).startswith('https://')):
   raise RuntimeError('No se puede autopublicar: falta fuente o afirmación editorial validada')
  movie,cover,credits=render(ep,out,args.photo_dir or None,voice=not args.no_voice)
+ ep['image_credits']=credits
  write_json_atomic(out/(episode+'_guion.json'),ep)  # incluye storyboard realmente narrado
  if not any(x.get('episode_id')==episode for x in history['items']):
   history['items'].append({'episode_id':episode,'topic':t['id'],'style':ep['style'],'angle':ep['angle'],
