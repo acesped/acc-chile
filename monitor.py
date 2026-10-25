@@ -173,21 +173,22 @@ def generate_angle(topic, history, use_ai=True):
              created_at=utcnow(),verified=False,review_note='Revisar guion frente a la fuente antes de publicar')
 
 
-# Rótulos editoriales cerrados: nunca se recortan con puntos suspensivos.
-# Cada afirmación de pantalla debe estar respaldada por el hecho narrado.
+# Estructuras originales por tema: pregunta, intriga y remate.
+# Nunca se añade un dato científico que no esté en TOPICS.
+# Cada rótulo es una oración breve, completa y ligada a la locución.
 EDITORIAL_BEATS = {
- 'ondas': ('NO TODAS LAS ONDAS VIAJAN IGUAL', 'LAS ONDAS S NO CRUZAN LÍQUIDOS', 'LAS ONDAS REVELAN EL INTERIOR'),
- 'magnitud': ('MAGNITUD NO ES INTENSIDAD', 'MAGNITUD: TAMAÑO DEL SISMO', 'EL IMPACTO CAMBIA SEGÚN EL LUGAR'),
- 'replicas': ('EL SISMO NO SIEMPRE ES EL FINAL', 'DESPUÉS LLEGAN LAS RÉPLICAS', 'LA ACTIVIDAD PUEDE CONTINUAR'),
- 'valdivia': ('EL MAYOR SISMO REGISTRADO', 'VALDIVIA 1960: MAGNITUD 9,5', 'LA HISTORIA DEJA REGISTROS'),
- 'profundidad': ('NO TODOS LOS SISMOS NACEN IGUAL', 'LA PROFUNDIDAD IMPORTA', 'NO MIRES SOLO LA MAGNITUD'),
- 'placas': ('EL SUELO SE MUEVE LENTAMENTE', 'LAS PLACAS ACUMULAN ESFUERZOS', 'LAS PLACAS EXPLICAN MUCHOS SISMOS'),
- 'tsunamis': ('¿UN SISMO SUBMARINO CREA UN TSUNAMI?', 'NO TODOS GENERAN TSUNAMIS', 'IMPORTA EL DESPLAZAMIENTO DEL FONDO'),
- 'alerta': ('UNA ALERTA NO PREDICE EL FUTURO', 'EL SISMO YA COMENZÓ', 'ALERTA NO SIGNIFICA PREDICCIÓN'),
- 'falla': ('¿QUÉ ES UNA FALLA?', 'LAS ROCAS SE DESPLAZAN', 'LAS FALLAS DEJAN HUELLAS'),
- 'prediccion': ('¿SE PUEDE PREDECIR UN GRAN SISMO?', 'NO EXISTE PREDICCIÓN EXACTA', 'PROBABILIDAD NO ES CERTEZA'),
- 'sismografo': ('¿CÓMO SE REGISTRA UN SISMO?', 'EL SISMÓMETRO DETECTA EL MOVIMIENTO', 'LAS ONDAS DEJAN REGISTROS'),
- 'terremoto': ('¿POR QUÉ SENTIMOS SISMOS LEJANOS?', 'LAS ONDAS VIAJAN GRANDES DISTANCIAS', 'LA DISTANCIA NO LO EXPLICA TODO'),
+ 'ondas': ('¿TODAS LAS ONDAS SÍSMICAS VIAJAN IGUAL?', 'UNA DIFERENCIA LO CAMBIA TODO', 'LAS ONDAS S NO CRUZAN LÍQUIDOS', 'EL INTERIOR DE LA TIERRA DEJA PISTAS'),
+ 'magnitud': ('¿DOS LUGARES SIENTEN IGUAL UN SISMO?', 'EL NÚMERO NO LO CUENTA TODO', 'MAGNITUD NO ES INTENSIDAD', 'UN SISMO, DIFERENTES EFECTOS'),
+ 'replicas': ('¿UN TERREMOTO TERMINA CUANDO DEJA DE TEMBLAR?', 'LA CORTEZA SIGUE REAJUSTÁNDOSE', 'DESPUÉS PUEDEN LLEGAR RÉPLICAS', 'EL SILENCIO NO ES EL FINAL'),
+ 'valdivia': ('¿SABES DÓNDE OCURRIÓ EL MAYOR SISMO REGISTRADO?', 'FUE EN CHILE', 'VALDIVIA 1960: MAGNITUD 9,5', 'LA TIERRA TIENE MEMORIA'),
+ 'profundidad': ('¿IMPORTA A QUÉ PROFUNDIDAD OCURRE UN SISMO?', 'NO TODO ESTÁ EN LA MAGNITUD', 'LA PROFUNDIDAD CAMBIA CÓMO SE SIENTE', 'MIRA MÁS ALLÁ DEL EPICENTRO'),
+ 'placas': ('¿CÓMO PUEDE MOVERSE EL SUELO BAJO TUS PIES?', 'EL MOVIMIENTO NO SIEMPRE SE NOTA', 'LAS PLACAS ACUMULAN ESFUERZOS', 'LA TIERRA NUNCA ESTÁ QUIETA'),
+ 'tsunamis': ('¿TODO SISMO BAJO EL MAR PROVOCA UN TSUNAMI?', 'EL OCÉANO NO RESPONDE SIEMPRE IGUAL', 'NO TODOS GENERAN TSUNAMIS', 'EL DESPLAZAMIENTO DEL FONDO IMPORTA'),
+ 'alerta': ('¿UNA ALERTA SÍSMICA VE EL FUTURO?', 'LA RESPUESTA TE SORPRENDERÁ', 'EL TERREMOTO YA COMENZÓ', 'UNA ALERTA NO ES UNA PREDICCIÓN'),
+ 'falla': ('¿QUÉ OCURRE REALMENTE EN UNA FALLA?', 'NO ES SOLO UNA GRIETA', 'LAS ROCAS SE DESPLAZAN', 'EL MOVIMIENTO DEJA HUELLAS'),
+ 'prediccion': ('¿ALGUIEN PUEDE DECIR CUÁNDO TEMBLARÁ?', 'EXISTE UNA DIFERENCIA CLAVE', 'NO HAY PREDICCIÓN EXACTA VALIDADA', 'PROBABILIDAD NO ES CERTEZA'),
+ 'sismografo': ('¿CÓMO ESCUCHAMOS UN SISMO INVISIBLE?', 'LA CLAVE ESTÁ EN EL MOVIMIENTO', 'EL SISMÓMETRO REGISTRA EL SUELO', 'LAS ONDAS DEJAN SU FIRMA'),
+ 'terremoto': ('¿POR QUÉ SE SIENTE UN SISMO TAN LEJOS?', 'LA ENERGÍA NO SE QUEDA QUIETA', 'LAS ONDAS RECORREN GRANDES DISTANCIAS', 'LA DISTANCIA NO CUENTA TODO'),
 }
 
 def short_reveal(sentence):
@@ -205,26 +206,32 @@ def short_reveal(sentence):
  return t
 
 def build_storyboard(ep):
- """Gancho -> prueba -> significado -> cierre; voz, foto y rótulo por beat."""
+ """Pregunta humana → curiosidad → respuesta factual → remate memorable.
+
+ La voz de cada escena se obtiene del mismo mensaje que aparece en pantalla,
+ o de una frase factual más desarrollada en la revelación. Sin mensajes ajenos.
+ """
  key=str(ep.get('id',''))
- title=str(ep['title']).strip()
  fact=str(ep['fact']).strip()
  lesson=str(ep['lesson']).strip()
  labels=EDITORIAL_BEATS.get(key)
- if labels:
-  hook, reveal, closing=labels
- else:
-  hook=short_reveal(title)
-  reveal=short_reveal(fact)
-  closing=short_reveal(lesson)
- # El gancho se locuta tal como aparece, para una apertura corta y reconocible.
- # En la segunda escena se narra el dato concreto, no una frase vacía.
- parts=[(hook,hook,'gancho'),(fact,reveal,'revelacion'),(lesson,closing,'cierre')]
+ if not labels:
+  title=str(ep['title']).strip().rstrip('.')
+  hook=title if title.startswith('¿') else '¿Qué revela este fenómeno sísmico?'
+  labels=(hook,'HAY UNA EXPLICACIÓN CIENTÍFICA',short_reveal(fact),short_reveal(lesson))
+ hook,tease,reveal,close=labels
+ # Primera escena: pregunta audible y visible. La revelación lleva la evidencia.
+ # La intriga no presenta una afirmación científica nueva.
+ parts=[(hook,hook,'pregunta'),(tease,tease,'intriga'),
+        (fact,reveal,'revelacion'),(lesson,close,'cierre')]
  storyboard=[]
  queries=list(ep.get('queries') or ['earthquake seismograph'])
  for i,(narration,overlay,stage) in enumerate(parts):
-  overlay=re.sub(r'(?:\.{3}|…)+','',overlay).strip()
+  narration=str(narration).strip()
+  overlay=re.sub(r'(?:\.{3}|…)+','',str(overlay)).strip()
   if not overlay or not narration:raise ValueError('Escena sin contenido')
+  if len(overlay.split())>12:
+   raise ValueError('Rótulo editorial demasiado largo: '+overlay)
   storyboard.append({'narration':narration,'overlay':overlay,
                      'query':queries[min(i,len(queries)-1)],'stage':stage})
  return storyboard
@@ -572,10 +579,10 @@ def render(ep,out,photo_dir=None,voice=True):
   else:sec=0
   # El texto permanece mientras se pronuncia su oración + pausa para lectura.
   words=len(beat['overlay'].split())
-  durations.append(round(max(sec+1.35, 3.4 if i==0 else 5.2, words/2.2+1.3),2))
+  durations.append(round(max(sec+0.5, 3.3 if i==0 else (2.6 if i==1 else 4.5), words/(2.8 if i<2 else 2.2)+0.6),2))
  total=round(sum(durations),2)
  print('SINCRONÍA escenas:',durations,'duración total:',total,flush=True)
- print('ESTRUCTURA: GANCHO → REVELACIÓN → CIERRE',flush=True)
+ print('ESTRUCTURA: PREGUNTA → INTRIGA → REVELACIÓN → CIERRE',flush=True)
  frame_paths=[]
  for i,beat in enumerate(storyboard):
   frame=folder/f'escena_{i:02d}.jpg'
