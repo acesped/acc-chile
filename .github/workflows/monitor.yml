@@ -1,77 +1,63 @@
 
-name: GROUNDSHAKE CL - Sismos - Instagram
+name: GROUNDSHAKE CL - Monitor Sismico - Instagram
 
 on:
   workflow_dispatch:
-    inputs:
-      topic:
-        description: 'ID sismico opcional; vacio = seleccion automatica'
-        required: false
-        default: ''
-        type: string
-
-      publish:
-        description: 'Generar y publicar Reel automaticamente'
-        required: true
-        default: true
-        type: boolean
-
-      story:
-        description: 'Publicar tambien Story'
-        required: true
-        default: true
-        type: boolean
 
 permissions:
   contents: write
 
 concurrency:
-  group: dataviral-instagram
+  group: groundshake-monitor
   cancel-in-progress: false
 
 jobs:
   generar:
+    name: Ejecutar monitor sismico
     runs-on: ubuntu-24.04
     timeout-minutes: 45
 
     env:
       PYTHONUNBUFFERED: '1'
 
+      # Proveedores de inteligencia artificial
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
+      # Instagram
       INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
       INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
-
       IG_GRAPH_VERSION: 'v25.0'
       IG_EXPECTED_USERNAME: 'groundshake_cl'
 
+      # GitHub
       GH_TOKEN: ${{ github.token }}
       GITHUB_REPOSITORY: ${{ github.repository }}
       GITHUB_REF_NAME: ${{ github.event.repository.default_branch }}
 
+      # Audio
       DV_VOICE: 'es-CL-CatalinaNeural'
 
     steps:
 
-      # 1. DESCARGAR REPOSITORIO
+      # 1. DESCARGAR CODIGO
 
       - name: Descargar repositorio
         uses: actions/checkout@v4
 
-      # 2. PREPARAR PYTHON
+      # 2. CONFIGURAR PYTHON
 
-      - name: Preparar Python
+      - name: Preparar Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       # 3. INSTALAR DEPENDENCIAS SIN APT
 
-      - name: Instalar dependencias Python y FFmpeg sin APT
+      - name: Instalar dependencias Python y FFmpeg
         shell: bash
-        timeout-minutes: 8
+        timeout-minutes: 10
         run: |
           set -euo pipefail
 
@@ -85,7 +71,18 @@ jobs:
             'mutagen>=1.47,<2' \
             'imageio-ffmpeg>=0.6,<1'
 
-          # FFmpeg sin instalar paquetes de Ubuntu.
+          # Instalar dependencias adicionales
+          # declaradas por el repositorio.
+
+          if [[ -f requirements.txt ]]; then
+            python -m pip install \
+              --disable-pip-version-check \
+              --retries 3 \
+              --timeout 45 \
+              -r requirements.txt
+          fi
+
+          # Preparar FFmpeg sin usar APT.
 
           mkdir -p "$RUNNER_TEMP/groundshake-bin"
 
@@ -102,30 +99,46 @@ jobs:
 
           echo "$RUNNER_TEMP/groundshake-bin" >> "$GITHUB_PATH"
 
-          "$FFMPEG_BIN" -hide_banner -version | head -n 1
+          "$FFMPEG_BIN" -hide_banner -version \
+            | head -n 1
 
-      # 4. VERIFICAR SCRIPT Y FFMPEG
+      # 4. VERIFICAR MONITOR.PY
 
-      - name: Verificar Python y codificadores de video
+      - name: Verificar monitor.py
         shell: bash
         run: |
           set -euo pipefail
 
-          test -f dataviral.py || {
-            echo '::error::Falta dataviral.py'
+          echo "Repositorio: $GITHUB_REPOSITORY"
+          echo "Directorio: $(pwd)"
+
+          test -f monitor.py || {
+            echo '::error::No existe monitor.py en la raiz'
             exit 1
           }
 
-          python -m py_compile dataviral.py
+          python -m py_compile monitor.py
+
+          echo 'monitor.py: sintaxis correcta.'
+
+      # 5. VERIFICAR FFMPEG
+
+      - name: Verificar FFmpeg y audio
+        shell: bash
+        run: |
+          set -euo pipefail
 
           command -v ffmpeg >/dev/null || {
             echo '::error::FFmpeg no disponible'
             exit 1
           }
 
-          ffmpeg -hide_banner -encoders 2>/dev/null \
-            | grep -q 'libx264' || {
-              echo '::error::FFmpeg no incluye libx264'
+          ffmpeg -hide_banner -encoders \
+            > "$RUNNER_TEMP/ffmpeg-encoders.txt" 2>&1
+
+          grep -q 'libx264' \
+            "$RUNNER_TEMP/ffmpeg-encoders.txt" || {
+              echo '::error::FFmpeg sin libx264'
               exit 1
             }
 
@@ -136,92 +149,70 @@ jobs:
           import mutagen
           from PIL import Image
 
-          print('Dependencias Python y FFmpeg disponibles.')
+          print("Dependencias multimedia disponibles.")
           PY
 
-      # 5. VALIDAR INSTAGRAM
+      # 6. VERIFICAR CONFIGURACION DE INSTAGRAM
 
-      - name: Validar credenciales de Instagram
+      - name: Verificar credenciales Instagram
         shell: bash
-        env:
-          PUBLISH: ${{ inputs.publish && 'true' || 'false' }}
         run: |
           set -euo pipefail
 
-          if [[ "$PUBLISH" == 'true' ]]; then
+          [[ -n "${INSTAGRAM_TOKEN:-}" ]] || {
+            echo '::error::Falta INSTAGRAM_TOKEN'
+            exit 1
+          }
 
-            [[ -n "${INSTAGRAM_TOKEN:-}" && \
-               -n "${INSTAGRAM_USER_ID:-}" ]] || {
-              echo '::error::Faltan secretos de Instagram'
-              exit 1
-            }
+          [[ -n "${INSTAGRAM_USER_ID:-}" ]] || {
+            echo '::error::Falta INSTAGRAM_USER_ID'
+            exit 1
+          }
 
-            [[ "$INSTAGRAM_USER_ID" =~ ^[0-9]+$ ]] || {
-              echo '::error::INSTAGRAM_USER_ID debe ser numerico'
-              exit 1
-            }
+          [[ "$INSTAGRAM_USER_ID" =~ ^[0-9]+$ ]] || {
+            echo '::error::INSTAGRAM_USER_ID debe ser numerico'
+            exit 1
+          }
 
-            [[ "$IG_EXPECTED_USERNAME" == 'groundshake_cl' ]] || {
-              echo '::error::Cuenta de destino incorrecta'
-              exit 1
-            }
+          [[ "$IG_EXPECTED_USERNAME" == 'groundshake_cl' ]] || {
+            echo '::error::Cuenta incorrecta'
+            exit 1
+          }
 
-            echo 'Publicacion automatica para @groundshake_cl.'
+          echo 'Configuracion de @groundshake_cl presente.'
 
-          else
-            echo 'Modo vista previa: sin publicacion.'
-          fi
+      # 7. EJECUTAR MONITOR
 
-      # 6. GENERAR Y PUBLICAR REEL
-
-      - name: Generar y publicar Reel sismico
+      - name: Ejecutar monitor.py
         shell: bash
         timeout-minutes: 30
-
-        env:
-          PUBLISH: ${{ inputs.publish && 'true' || 'false' }}
-          STORY: ${{ inputs.story && 'true' || 'false' }}
-          TOPIC: ${{ inputs.topic }}
-
         run: |
           set -euo pipefail
 
-          args=(--out output_sismos)
+          echo 'Iniciando monitor sismico...'
+          echo 'Cuenta configurada: @groundshake_cl'
 
-          if [[ -n "$TOPIC" ]]; then
-            args+=(--topic "$TOPIC")
-          fi
+          python monitor.py
 
-          if [[ "$PUBLISH" == 'true' ]]; then
-            args+=(--publish --auto-publish)
+      # 8. GUARDAR RESULTADOS
 
-            if [[ "$STORY" == 'true' ]]; then
-              args+=(--story)
-            fi
-          fi
-
-          echo 'Generando contenido para @groundshake_cl...'
-
-          python dataviral.py "${args[@]}"
-
-      # 7. GUARDAR RESULTADOS
-
-      - name: Guardar video, portada, guion y evidencias
+      - name: Guardar videos e informes
         if: always()
         uses: actions/upload-artifact@v4
-
         with:
-          name: groundshake-sismos-${{ github.run_id }}-${{ github.run_attempt }}
+          name: groundshake-${{ github.run_id }}-${{ github.run_attempt }}
 
           path: |
-            output_sismos/**/*.json
+            output/**/*.mp4
+            output/**/*.json
+            output/**/*.jpg
+            output/**/*.png
             output_sismos/**/*.mp4
+            output_sismos/**/*.json
             output_sismos/**/*.jpg
             output_sismos/**/*.png
-            output_sismos/*.json
-            output_sismos/*.mp4
-            output_sismos/*.jpg
-            output_sismos/*.png
+            *.mp4
+            *.json
 
-          if-no-files-found: warn
+          if-no-files-found: ignore
           retention-days: 14
