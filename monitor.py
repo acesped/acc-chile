@@ -259,6 +259,8 @@ def photo_relevant(item,ep):
  title=norm(item.get('title',''))
  metadata=norm(' '.join(str(item.get(k,'') or '') for k in ('title','description','tags')))
  forbidden=('logo','flag','poster','screenshot','infographic','cartoon','svg','clipart','stock photo','generic')
+ # Evitar material documental escaneado presentado como fotografías de sismos.
+ if re.search(r'\.(pdf|djvu|tiff?|svg)(?:$|[?# ])',title) or any(x in title for x in ('report of','guide for','measurements of','probabilistic','technical report','journal','handbook','proceedings','paper ')):return False
  if any(x in title for x in forbidden):return False
  terms=PHOTO_TERMS.get(ep.get('id'),('earthquake','seism','sismo','terremot','tectonic'))
  # No se acepta una imagen simplemente por coincidir con el texto de búsqueda.
@@ -356,6 +358,7 @@ def commons(query):
   if not license_accepted(license_):continue
   url=a.get('thumburl') or a.get('url')
   title=page.get('title','')
+  if not re.search(r'\.(?:jpg|jpeg|png|webp)$',title,re.I):continue
   if not url or not re.search(r'\.(jpg|jpeg|png|webp)(?:\?|$)',url,re.I):continue
   if url: yield {'url':url,'source':a.get('descriptionurl',''),
     'license':license_,'title':title,'description':val('ImageDescription'),
@@ -370,6 +373,8 @@ def openverse(query):
   license_=str(a.get('license','')).lower()
   if not license_accepted(license_):continue
   url=a.get('url') or a.get('thumbnail')
+  # Openverse también puede indexar documentos rasterizados; exigir soporte fotográfico.
+  if str(a.get('mature','')).lower()=='true':continue
   if url: yield {'url':url,'source':a.get('foreign_landing_url',''),
       'license':license_,'title':a.get('title',''),
       'description':'','tags':' '.join(str(t.get('name','')) for t in (a.get('tags') or []) if isinstance(t,dict)),
@@ -442,9 +447,9 @@ def get_photos(ep,folder,local_dir=None):
      credits.append({k:item.get(k,'') for k in ('source','license','title','creator','provider','description')})
      accepted+=1
      print('Foto válida:',item['title'][:85],'licencia:',item['license'],flush=True)
-     if accepted>=2 or len(found)>=6:break
-   if len(found)>=6:break
-  if len(found)>=6:break
+     if accepted>=2 or len(found)>=3:break
+   if len(found)>=3:break
+  if len(found)>=3:break
  if not found: raise RuntimeError('No se encontraron fotografías sísmicas pertinentes con licencia reutilizable (CC0, PD, CC BY o CC BY-SA); se cancela el Reel.')
  return found,credits
 
@@ -701,16 +706,39 @@ def publish(ep,movie,approval,story=False,auto=False):
   row=items.setdefault(ep['episode_id'],{});row[which]=status;row['updated_at']=utcnow()
   receipt=gh.write(STATE_PATH,json.dumps(state,ensure_ascii=False,indent=2).encode(),sha)
   sha=receipt['content']['sha']
- caption=f'{ep["title"]}\n\n{ep["lesson"]}\n\nFuente de consulta: {ep["source"]}'
- # Las fotos CC BY y CC BY-SA requieren reconocer autores, obras y licencias.
+ # Instagram admite como máximo 2.200 caracteres en la descripción.
+ # Mantener atribuciones completas y concisas; nunca recortar licencias a ciegas.
+ def clean_credit(v,limit=100):
+  value=re.sub(r'\s+',' ',re.sub(r'<[^>]*>',' ',str(v or ''))).strip()
+  return value if len(value)<=limit else value[:limit].rsplit(' ',1)[0].rstrip(' ,;')
  credits=ep.get('image_credits',[])
- if credits:
-  lines=[]
-  for c in credits:
-   lines.append(f'{c.get("title", "Fotografía")} — {c.get("creator", "Autor no identificado")} — {c.get("license", "")} — {c.get("source", "")}')
-  caption+='\n\nCréditos fotografías:\n'+'\n'.join(lines)
- caption+='\n\n#GroundshakeCL #Sismos #Ciencia #Terremotos'
- if len(caption)>2200:raise RuntimeError('Los créditos exceden el límite de Instagram; no se publica')
+ # El vídeo usa como máximo tres fotos; se listan TODAS las utilizadas.
+ credit_lines=[]
+ for ix,c in enumerate(credits,1):
+  title=clean_credit(c.get('title') or 'Imagen',65)
+  author=clean_credit(c.get('creator') or 'Autor no identificado',60)
+  lic=clean_credit(c.get('license') or 'Licencia no identificada',36)
+  source=str(c.get('source') or '').strip()
+  if not source.startswith('https://'):
+   raise RuntimeError('Falta URL verificable de atribución de imagen; no se publica')
+  credit_lines.append(f'{ix}. {title} — {author} — {lic} — {source}')
+ credit_text=('\n\nImágenes / créditos:\n'+'\n'.join(credit_lines)) if credit_lines else ''
+ hashtags='\n\n#GroundshakeCL #Sismos #Ciencia #Terremotos'
+ base=f'{ep["title"]}\n\n{ep["lesson"]}\n\nFuente científica: {ep["source"]}'
+ caption=base+credit_text+hashtags
+ if len(caption)>2200:
+  # Simplificar identificadores descriptivos, sin suprimir autor, licencia o enlaces.
+  credit_lines=[]
+  for ix,c in enumerate(credits,1):
+   author=clean_credit(c.get('creator') or 'Autor no identificado',35)
+   lic=clean_credit(c.get('license') or 'Licencia no identificada',24)
+   source=str(c.get('source') or '').strip()
+   credit_lines.append(f'{ix}. {author} — {lic} — {source}')
+  credit_text=('\n\nCréditos:\n'+'\n'.join(credit_lines)) if credit_lines else ''
+  caption=base+credit_text+hashtags
+ if len(caption)>2200:
+  raise RuntimeError('Atribuciones completas superan 2200 caracteres; reducir número de fotos o usar imágenes de dominio público verificadas')
+ print(f'DESCRIPCIÓN Instagram: {len(caption)}/2200 caracteres; fotos acreditadas: {len(credits)}',flush=True)
  save('enviando')
  try:pid=ig_publish(user,token,url,caption)
  except BaseException:save('incierto');raise
