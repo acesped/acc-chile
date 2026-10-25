@@ -173,40 +173,62 @@ def generate_angle(topic, history, use_ai=True):
              created_at=utcnow(),verified=False,review_note='Revisar guion frente a la fuente antes de publicar')
 
 
+# Rótulos editoriales cerrados: nunca se recortan con puntos suspensivos.
+# Cada afirmación de pantalla debe estar respaldada por el hecho narrado.
+EDITORIAL_BEATS = {
+ 'ondas': ('NO TODAS LAS ONDAS VIAJAN IGUAL', 'LAS ONDAS S NO CRUZAN LÍQUIDOS', 'LAS ONDAS REVELAN EL INTERIOR'),
+ 'magnitud': ('MAGNITUD NO ES INTENSIDAD', 'MAGNITUD: TAMAÑO DEL SISMO', 'EL IMPACTO CAMBIA SEGÚN EL LUGAR'),
+ 'replicas': ('EL SISMO NO SIEMPRE ES EL FINAL', 'DESPUÉS LLEGAN LAS RÉPLICAS', 'LA ACTIVIDAD PUEDE CONTINUAR'),
+ 'valdivia': ('EL MAYOR SISMO REGISTRADO', 'VALDIVIA 1960: MAGNITUD 9,5', 'LA HISTORIA DEJA REGISTROS'),
+ 'profundidad': ('NO TODOS LOS SISMOS NACEN IGUAL', 'LA PROFUNDIDAD IMPORTA', 'NO MIRES SOLO LA MAGNITUD'),
+ 'placas': ('EL SUELO SE MUEVE LENTAMENTE', 'LAS PLACAS ACUMULAN ESFUERZOS', 'LAS PLACAS EXPLICAN MUCHOS SISMOS'),
+ 'tsunamis': ('¿UN SISMO SUBMARINO CREA UN TSUNAMI?', 'NO TODOS GENERAN TSUNAMIS', 'IMPORTA EL DESPLAZAMIENTO DEL FONDO'),
+ 'alerta': ('UNA ALERTA NO PREDICE EL FUTURO', 'EL SISMO YA COMENZÓ', 'ALERTA NO SIGNIFICA PREDICCIÓN'),
+ 'falla': ('¿QUÉ ES UNA FALLA?', 'LAS ROCAS SE DESPLAZAN', 'LAS FALLAS DEJAN HUELLAS'),
+ 'prediccion': ('¿SE PUEDE PREDECIR UN GRAN SISMO?', 'NO EXISTE PREDICCIÓN EXACTA', 'PROBABILIDAD NO ES CERTEZA'),
+ 'sismografo': ('¿CÓMO SE REGISTRA UN SISMO?', 'EL SISMÓMETRO DETECTA EL MOVIMIENTO', 'LAS ONDAS DEJAN REGISTROS'),
+ 'terremoto': ('¿POR QUÉ SENTIMOS SISMOS LEJANOS?', 'LAS ONDAS VIAJAN GRANDES DISTANCIAS', 'LA DISTANCIA NO LO EXPLICA TODO'),
+}
+
+def short_reveal(sentence):
+ """Selecciona una unidad semántica completa; jamás añade '...' o '…'."""
+ t=re.sub(r'\s+',' ',str(sentence)).strip().rstrip('.,;:')
+ if len(t.split())<=9:
+  return t
+ # Se busca primero una proposición completa, no un prefijo cortado.
+ for part in re.split(r'[;:]\s*|,\s*',t):
+  part=part.strip().rstrip('.,;:')
+  if 3<=len(part.split())<=9:
+   return part
+ # El texto íntegro es preferible a un rótulo incompleto: clean_scene
+ # ajustará automáticamente tipografía y salto de línea.
+ return t
+
 def build_storyboard(ep):
- """Fuente única para narración, pantalla e imagen: no generar rótulos ajenos."""
+ """Gancho -> prueba -> significado -> cierre; voz, foto y rótulo por beat."""
+ key=str(ep.get('id',''))
  title=str(ep['title']).strip()
  fact=str(ep['fact']).strip()
  lesson=str(ep['lesson']).strip()
- # Divisiones solo en fronteras lingüísticas; nunca crear información adicional.
- beats=[title]
- for statement in (fact,lesson):
-  parts=re.split(r'(?<=[;:])\s+|(?<=,)\s+(?=(?:pero|aunque|porque|mientras|y|sin embargo)\b)',statement,flags=re.I)
-  beats.extend(x.strip() for x in parts if x.strip())
- # En una frase muy larga, dividir por pausas naturales sin partir conceptos.
- balanced=[]
- for phrase in beats:
-  words=phrase.split()
-  if len(words)>17 and ',' in phrase:
-   xs=[x.strip() for x in phrase.split(',',1)]
-   if all(len(x.split())>=4 for x in xs):balanced.extend(xs);continue
-  balanced.append(phrase)
- return [{'narration':b,'overlay':short_reveal(b),'query':ep['queries'][min(i,len(ep['queries'])-1)]}
-         for i,b in enumerate(balanced)]
+ labels=EDITORIAL_BEATS.get(key)
+ if labels:
+  hook, reveal, closing=labels
+ else:
+  hook=short_reveal(title)
+  reveal=short_reveal(fact)
+  closing=short_reveal(lesson)
+ # El gancho se locuta tal como aparece, para una apertura corta y reconocible.
+ # En la segunda escena se narra el dato concreto, no una frase vacía.
+ parts=[(hook,hook,'gancho'),(fact,reveal,'revelacion'),(lesson,closing,'cierre')]
+ storyboard=[]
+ queries=list(ep.get('queries') or ['earthquake seismograph'])
+ for i,(narration,overlay,stage) in enumerate(parts):
+  overlay=re.sub(r'(?:\.{3}|…)+','',overlay).strip()
+  if not overlay or not narration:raise ValueError('Escena sin contenido')
+  storyboard.append({'narration':narration,'overlay':overlay,
+                     'query':queries[min(i,len(queries)-1)],'stage':stage})
+ return storyboard
 
-
-def short_reveal(sentence):
- """Texto legible extraído de la misma oración narrada, sin inventar mensajes."""
- t=re.sub(r'\s+',' ',sentence).strip().rstrip('.')
- if 'Valdivia' in t and '9,5' in t:return 'VALDIVIA 1960: MAGNITUD 9,5'
- words=t.split()
- if len(words)<=10:return t
- # Conservar una proposición completa corta; evitar frases genéricas desconectadas.
- for sep in ('; ',': ', ', '):
-  pieces=t.split(sep)
-  options=[x.strip() for x in pieces if 4<=len(x.split())<=10]
-  if options:return options[-1]
- return ' '.join(words[:10]).rstrip(',:;')+'…'
 
 # Títulos o palabras clave compatibles con fotografías del fenómeno;
 # se rechazan paisajes genéricos aunque la búsqueda los haya devuelto.
@@ -411,7 +433,7 @@ def clean_scene(photo,message,dest):
  im=ImageEnhance.Contrast(im).enhance(1.11)
  im=Image.blend(im,Image.new('RGB',(W,H),(0,0,0)),0.36)
  draw=ImageDraw.Draw(im)
- message=re.sub(r'\s+',' ',str(message or '')).strip()
+ message=re.sub(r'\s+',' ',str(message or '')).replace('…','').replace('...','').strip()
  if not message:raise ValueError('Escena sin texto')
  # Más espacio vertical, tipografía realmente adaptable. No cortar mensajes.
  max_width=W-104
@@ -516,9 +538,10 @@ def render(ep,out,photo_dir=None,voice=True):
   else:sec=0
   # El texto permanece mientras se pronuncia su oración + pausa para lectura.
   words=len(beat['overlay'].split())
-  durations.append(round(max(sec+1.05,3.6,words/2.5+1.2),2))
+  durations.append(round(max(sec+1.35, 3.4 if i==0 else 5.2, words/2.2+1.3),2))
  total=round(sum(durations),2)
  print('SINCRONÍA escenas:',durations,'duración total:',total,flush=True)
+ print('ESTRUCTURA: GANCHO → REVELACIÓN → CIERRE',flush=True)
  frame_paths=[]
  for i,beat in enumerate(storyboard):
   frame=folder/f'escena_{i:02d}.jpg'
