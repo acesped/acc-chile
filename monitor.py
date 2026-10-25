@@ -172,6 +172,67 @@ def generate_angle(topic, history, use_ai=True):
              episode_id='sismos-'+hashlib.sha1((topic['id']+style+angle).encode()).hexdigest()[:12],
              created_at=utcnow(),verified=False,review_note='Revisar guion frente a la fuente antes de publicar')
 
+
+def build_storyboard(ep):
+ """Fuente única para narración, pantalla e imagen: no generar rótulos ajenos."""
+ title=str(ep['title']).strip()
+ fact=str(ep['fact']).strip()
+ lesson=str(ep['lesson']).strip()
+ # Divisiones solo en fronteras lingüísticas; nunca crear información adicional.
+ beats=[title]
+ for statement in (fact,lesson):
+  parts=re.split(r'(?<=[;:])\s+|(?<=,)\s+(?=(?:pero|aunque|porque|mientras|y|sin embargo)\b)',statement,flags=re.I)
+  beats.extend(x.strip() for x in parts if x.strip())
+ # En una frase muy larga, dividir por pausas naturales sin partir conceptos.
+ balanced=[]
+ for phrase in beats:
+  words=phrase.split()
+  if len(words)>17 and ',' in phrase:
+   xs=[x.strip() for x in phrase.split(',',1)]
+   if all(len(x.split())>=4 for x in xs):balanced.extend(xs);continue
+  balanced.append(phrase)
+ return [{'narration':b,'overlay':short_reveal(b),'query':ep['queries'][min(i,len(ep['queries'])-1)]}
+         for i,b in enumerate(balanced)]
+
+
+def short_reveal(sentence):
+ """Texto legible extraído de la misma oración narrada, sin inventar mensajes."""
+ t=re.sub(r'\s+',' ',sentence).strip().rstrip('.')
+ if 'Valdivia' in t and '9,5' in t:return 'VALDIVIA 1960: MAGNITUD 9,5'
+ words=t.split()
+ if len(words)<=10:return t
+ # Conservar una proposición completa corta; evitar frases genéricas desconectadas.
+ for sep in ('; ',': ', ', '):
+  pieces=t.split(sep)
+  options=[x.strip() for x in pieces if 4<=len(x.split())<=10]
+  if options:return options[-1]
+ return ' '.join(words[:10]).rstrip(',:;')+'…'
+
+# Títulos o palabras clave compatibles con fotografías del fenómeno;
+# se rechazan paisajes genéricos aunque la búsqueda los haya devuelto.
+PHOTO_TERMS={
+ 'ondas':('seism','earthquake','seismo','sismo','terremot'),
+ 'magnitud':('earthquake','seism','terremot','sismo','damage'),
+ 'replicas':('earthquake','seism','terremot','sismo','fault'),
+ 'valdivia':('valdivia','1960 chile earthquake','1960 chile tsunami'),
+ 'profundidad':('seism','earthquake','subduction','sismo','terremot'),
+ 'placas':('tectonic','fault','subduction','seism','earthquake'),
+ 'tsunamis':('tsunami','earthquake','terremot','maremoto'),
+ 'alerta':('seism','earthquake','early warning','sism','terremot'),
+ 'falla':('fault','tectonic','earthquake','falla geol'),
+ 'prediccion':('seism','earthquake','sism','terremot'),
+ 'sismografo':('seismograph','seismometer','seismogram','sismograf','sismometr'),
+ 'terremoto':('earthquake','seism','terremot','sismo'),
+}
+
+def photo_relevant(item,ep):
+ title=norm(item.get('title',''))
+ forbidden=('logo','flag','poster','screenshot','infographic','cartoon','svg','clipart','stock photo','generic')
+ if any(x in title for x in forbidden):return False
+ terms=PHOTO_TERMS.get(ep.get('id'),('earthquake','seism','sismo','terremot','tectonic'))
+ return bool(title and any(norm(x) in title for x in terms))
+
+
 def ai_json(prompt):
  """Gemini con descubrimiento de modelos y respaldo gratuito OpenRouter.
  Un error 404 del modelo no bloquea la generación del episodio.
@@ -314,14 +375,14 @@ def get_photos(ep,folder,local_dir=None):
     if item['url'] in seen:continue
     seen.add(item['url'])
     title=norm(item.get('title',''))
-    if any(v in title for v in ('logo','flag','poster','screenshot','infographic','map','diagram','graph','cartoon','svg')):continue
+    if not photo_relevant(item,ep):continue
     path=folder/f'foto_{len(found)+1}.jpg'
     if photo_download(item,path):
      found.append(path);credits.append({k:item[k] for k in ('source','license','title','provider')})
      break
    if len(found)>=6:break
   if len(found)>=6:break
- if not found: raise RuntimeError('No se encontraron fotos CC0/PD descargables. No se crea un Reel sin fotografía.')
+ if not found: raise RuntimeError('No se encontraron fotografías sísmicas pertinentes con licencia CC0/PD; se cancela el Reel.')
  return found,credits
 
 
@@ -425,55 +486,79 @@ def ffmpeg(cmd):
  if p.returncode:raise RuntimeError('FFmpeg: '+p.stderr[-1400:])
 
 def render(ep,out,photo_dir=None,voice=True):
+ """Audio individual por escena: imagen, voz y rótulo cambian juntos."""
  if not shutil.which('ffmpeg'):raise RuntimeError('ffmpeg no instalado')
  folder=out/ep['episode_id'];folder.mkdir(parents=True,exist_ok=True)
+ storyboard=build_storyboard(ep)
+ if len(storyboard)<3:raise RuntimeError('Historia sin suficientes ideas comprobables')
+ ep['storyboard']=storyboard
+ # El relato publicado coincide exactamente con las frases asignadas a escenas.
+ ep['script']=' '.join(z['narration'] for z in storyboard)
+ ep['visuals']=[z['overlay'] for z in storyboard]
+ write_json_atomic(folder/'storyboard.json',storyboard)
  photos,credits=get_photos(ep,folder,photo_dir)
- scenes=ep['visuals']
- voice_path=folder/'voz.mp3';has_voice=False;voice_duration=0.0
- if voice:
-  try:
-   asyncio.run(speak(ep['script'],voice_path))
-   from mutagen.mp3 import MP3
-   voice_duration=float(MP3(str(voice_path)).info.length)
-   has_voice=True
-  except Exception as exc:
-   print('Narración no disponible:',exc,flush=True)
- lengths=scene_durations(scenes, voice_duration)
- total=round(sum(lengths),2)
- print('LECTURA: duración por escena (s):',lengths,'total:',total,
-       'narración:',round(voice_duration,1),'s',flush=True)
- paths=[]
- for i,msg in enumerate(scenes):
-  path=folder/f'escena_{i}.jpg';clean_scene(photos[i%len(photos)],msg,path);paths.append(path)
- cover=out/(ep['episode_id']+'_portada.jpg');shutil.copy2(paths[0],cover)
+ if not local_photo_audit(photos,credits,ep,photo_dir):
+  raise RuntimeError('Fotografías sin pertinencia sísmica suficiente')
+ if ep.get('base_verified') and len(photos)<2:
+  raise RuntimeError('Publicación autónoma detenida: se necesitan al menos dos fotografías sísmicas pertinentes')
+ durations=[];voices=[];has_voice=False
+ for i,beat in enumerate(storyboard):
+  if voice:
+   clip=folder/f'voz_escena_{i:02d}.mp3'
+   try:
+    asyncio.run(speak(beat['narration'],clip))
+    from mutagen.mp3 import MP3
+    sec=float(MP3(str(clip)).info.length)
+    voices.append(clip)
+    has_voice=True
+   except Exception as exc:
+    raise RuntimeError(f'La voz de la escena {i+1} falló; no publicar un video desincronizado: {exc}')
+  else:sec=0
+  # El texto permanece mientras se pronuncia su oración + pausa para lectura.
+  words=len(beat['overlay'].split())
+  durations.append(round(max(sec+1.05,3.6,words/2.5+1.2),2))
+ total=round(sum(durations),2)
+ print('SINCRONÍA escenas:',durations,'duración total:',total,flush=True)
+ frame_paths=[]
+ for i,beat in enumerate(storyboard):
+  frame=folder/f'escena_{i:02d}.jpg'
+  clean_scene(photos[i%len(photos)],beat['overlay'],frame)
+  frame_paths.append(frame)
+ cover=out/(ep['episode_id']+'_portada.jpg');shutil.copy2(frame_paths[0],cover)
  music=folder/'musica.wav';soundtrack(music,secs=total+1)
- if not music.exists() or music.stat().st_size<10000:
-  raise RuntimeError('No se generó la música de fondo')
- cmd=[]
- for p,d in zip(paths,lengths):cmd+=['-loop','1','-framerate',str(FPS),'-t',str(d),'-i',p]
- cmd+=['-i',music]
- if has_voice:cmd+=['-i',voice_path]
- vf=''
- for i in range(len(paths)):
-  vf+=f'[{i}:v]scale={W}:{H},setsar=1,zoompan=z=\'min(zoom+0.00016,1.035)\':x=\'iw/2-iw/zoom/2\':y=\'ih/2-ih/zoom/2\':d=1:s={W}x{H}:fps={FPS},format=yuv420p[v{i}];'
- vf+=''.join(f'[v{i}]' for i in range(len(paths)))+f'concat=n={len(paths)}:v=1:a=0[v];'
- music_i=len(paths)
+ inputs=[]
+ for frame,d in zip(frame_paths,durations):
+  inputs+=['-loop','1','-framerate',str(FPS),'-t',str(d),'-i',frame]
+ mi=len(frame_paths);inputs+=['-i',music]
+ voice_start=mi+1
+ for v in voices:inputs+=['-i',v]
+ filt=[]
+ for i in range(len(frame_paths)):
+  filt.append(f'[{i}:v]scale={W}:{H},setsar=1,format=yuv420p[v{i}]')
+ filt.append(''.join(f'[v{i}]' for i in range(len(frame_paths)))+f'concat=n={len(frame_paths)}:v=1:a=0[v]')
  if has_voice:
-  # Música a -15 dB aprox. con narración; mucho más perceptible que el original.
-  # La pista instrumental continúa incluso después de terminar la locución.
-  vf+=f'[{music_i}:a]volume=0.82[mus];[{music_i+1}:a]volume=1.10[nar];[mus][nar]amix=inputs=2:duration=first:dropout_transition=0:normalize=0,alimiter=limit=0.94[a]'
+  for i,d in enumerate(durations):
+   filt.append(f'[{voice_start+i}:a]aresample=44100,apad,atrim=duration={d},asetpts=PTS-STARTPTS[a{i}]')
+  filt.append(''.join(f'[a{i}]' for i in range(len(voices)))+f'concat=n={len(voices)}:v=0:a=1[narr]')
+  filt.append(f'[{mi}:a]volume=0.30[mus];[narr]volume=1.0[nar];[mus][nar]amix=inputs=2:duration=first:dropout_transition=0:normalize=0,alimiter=limit=0.94[a]')
  else:
-  vf+=f'[{music_i}:a]volume=0.90,alimiter=limit=0.94[a]'
+  filt.append(f'[{mi}:a]volume=0.65,alimiter=limit=0.94[a]')
  movie=out/(ep['episode_id']+'.mp4')
- ffmpeg([*cmd,'-filter_complex',vf,'-map','[v]','-map','[a]','-t',str(total),'-r',str(FPS),
-         '-c:v','libx264','-preset','veryfast','-crf','23','-pix_fmt','yuv420p',
+ ffmpeg([*inputs,'-filter_complex',';'.join(filt),'-map','[v]','-map','[a]','-t',str(total),
+         '-r',str(FPS),'-c:v','libx264','-preset','veryfast','-crf','23','-pix_fmt','yuv420p',
          '-c:a','aac','-b:a','160k','-movflags','+faststart',movie])
  write_json_atomic(folder/'creditos.json',credits)
- write_json_atomic(folder/'duraciones_escenas.json',{'segundos':lengths,'total':total,
-                                                    'voz_segundos':round(voice_duration,2),
-                                                    'musica':'instrumental_original'})
- print('VIDEO:',movie,'PORTADA:',cover,'MÚSICA: incluida',flush=True)
+ write_json_atomic(folder/'duraciones_escenas.json',{'segundos':durations,'total':total,
+  'sincronizacion':'voz separada por escena; rótulo basado en la misma oración','musica':'instrumental_original'})
+ print('VIDEO:',movie,'PORTADA:',cover,'VOZ sincronizada:',has_voice,flush=True)
  return movie,cover,credits
+
+
+def local_photo_audit(photos,credits,ep,photo_dir):
+ if photo_dir:
+  print('AVISO: fotografías aportadas manualmente; revisar pertinencia y licencias antes de publicar',flush=True)
+  return True
+ return all(photo_relevant(c,ep) for c in credits)
 
 class Github:
  def __init__(self):
@@ -622,6 +707,7 @@ def main():
  if args.auto_publish and (not ep.get('base_verified') or not str(ep.get('source','')).startswith('https://')):
   raise RuntimeError('No se puede autopublicar: falta fuente o afirmación editorial validada')
  movie,cover,credits=render(ep,out,args.photo_dir or None,voice=not args.no_voice)
+ write_json_atomic(out/(episode+'_guion.json'),ep)  # incluye storyboard realmente narrado
  if not any(x.get('episode_id')==episode for x in history['items']):
   history['items'].append({'episode_id':episode,'topic':t['id'],'style':ep['style'],'angle':ep['angle'],
                            'time':utcnow(),'status':'preparado' if args.publish else 'vista_previa'})
