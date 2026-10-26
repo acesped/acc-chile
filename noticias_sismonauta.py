@@ -263,7 +263,9 @@ def main():
  articles=feed_items();articles=[a for a in articles if a['lang']=='es'];articles.sort(key=priority,reverse=True)
  print('Noticias EN ESPAÑOL candidatas últimas 24 h:',len(articles),flush=True)
  if not articles:
-  print('SIN NOTICIAS verificables del período. No se publica.',flush=True);return 0
+  print('SIN NOTICIAS verificables del período. No se publica.',flush=True)
+  (out/'estado_publicacion.json').write_text(json.dumps({'status':'no_eligible_news','published':False},ensure_ascii=False),encoding='utf8')
+  return 2 if args.publish else 0
  chosen=None;img=None;credit=None
  for a in articles[:25]:
   if a['id'] in state['stories']:continue
@@ -271,14 +273,18 @@ def main():
   photo,meta=commons_photo(a)
   if photo is not None:chosen,img,credit=a,photo,meta;break
  if not chosen:
-  print('No existe noticia inédita con fotografía reutilizable y pertinente. No se publica.',flush=True);return 0
+  print('No existe noticia inédita con fotografía reutilizable y pertinente. No se publica.',flush=True)
+  (out/'estado_publicacion.json').write_text(json.dumps({'status':'no_licensed_relevant_photo','published':False,'articles_reviewed':min(len(articles),25)},ensure_ascii=False),encoding='utf8')
+  return 3 if args.publish else 0
  file=out/(chosen['id']+'.jpg');make_card(img,chosen,file)
  description=caption(chosen,credit)
  (out/'noticia.json').write_text(json.dumps({'article':chosen,'image':credit,'caption':description},ensure_ascii=False,indent=2),encoding='utf8')
  print('SELECCIONADA:',chosen['title'],'|',chosen['source'],'|',chosen['date'],flush=True)
  print('FOTO:',credit['title'],'|',credit['license'],flush=True)
  if not args.publish:
-  print('MODO PRUEBA: imagen creada, sin publicación',file,flush=True);return 0
+  print('MODO PRUEBA: imagen creada, sin publicación',file,flush=True)
+  (out/'estado_publicacion.json').write_text(json.dumps({'status':'preview_only','published':False,'image':str(file)},ensure_ascii=False),encoding='utf8')
+  return 0
  uid,igt=ig_check();page,ft=fb_check()
  remote=f'sismonauta_noticias/images/{chosen["id"]}.jpg'
  gh.write(remote,file.read_bytes());url=gh.image_url(remote)
@@ -299,7 +305,10 @@ def main():
    print('PUBLICADO',target,'ID:',identifier,flush=True)
   except Exception as exc:
    failures.append(target+': '+str(exc));print('ERROR',target,str(exc)[:250],flush=True)
+ receipt={'status':'published' if not failures else 'partial_or_uncertain','article_id':chosen['id'],'article_title':chosen['title'],'targets':state['stories'][chosen['id']]['targets']}
+ (out/'estado_publicacion.json').write_text(json.dumps(receipt,ensure_ascii=False,indent=2),encoding='utf8')
  if failures:raise RuntimeError('Publicación parcial o incierta. Revisar antes de reintentar: '+' / '.join(failures))
+ print('PUBLICACIÓN VERIFICADA: Instagram y Facebook',flush=True)
  return 0
 
 if __name__=='__main__':
