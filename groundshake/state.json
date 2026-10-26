@@ -125,14 +125,15 @@
     "sismos-4c50631c8b17": {
       "topic": "grietas",
       "reel": "publicado",
-      "updated_at": "2026-10-26T19:28:50.315057+00:00",
+      "updated_at": "2026-10-26T19:28:51.324288+00:00",
       "reel_id": "18131721442816509",
       "story": "publicado",
       "story_id": "18161202805507391",
       "facebook_reel": "publicado",
       "facebook_reel_id": "1118935047453245",
       "facebook_story": "publicado",
-      "facebook_story_id": "1776823006898920"
+      "facebook_story_id": "1776823006898920",
+      "facebook_feed": "enviando"
     }
   }
 }
