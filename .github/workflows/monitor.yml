@@ -1,357 +1,160 @@
-
 name: SISMONAUTA - Reels sismicos sincronizados
 
 on:
-  # Activacion manual desde GitHub Actions
   workflow_dispatch:
     inputs:
       topic:
-        description: 'ID opcional; vacio = seleccion automatica'
+        description: 'ID de tema opcional; vacio = seleccion automatica'
         required: false
         default: ''
         type: string
-
       publish:
-        description: 'Publicar Reel automaticamente'
+        description: 'Publicar el Reel automaticamente'
         required: true
         default: true
         type: boolean
-
       story:
-        description: 'Publicar tambien una Story'
+        description: 'Publicar tambien Story'
         required: true
         default: true
         type: boolean
 
-  # Activacion externa desde cron-job.org
   repository_dispatch:
-    types:
-      - sismonauta_publicar
+    types: [sismonauta_publicar]
 
 permissions:
   contents: write
 
 concurrency:
-  group: sismonauta-instagram
+  group: sismonauta-instagram-facebook
   cancel-in-progress: false
 
 jobs:
   generar-y-publicar:
-    name: Generar y publicar SISMONAUTA
     runs-on: ubuntu-24.04
     timeout-minutes: 45
-
     env:
       PYTHONUNBUFFERED: '1'
-
-      # Proveedores de inteligencia artificial
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-
-      # Meta / Instagram
       INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
       INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
+      FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+      FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
+      FACEBOOK_EXPECTED_USERNAME: 'sismonauta'
+      GITHUB_REPOSITORY: ${{ github.repository }}
       IG_GRAPH_VERSION: 'v25.0'
       IG_EXPECTED_USERNAME: 'sismonauta'
-
-      # GitHub
       GH_TOKEN: ${{ github.token }}
-      GITHUB_REPOSITORY: ${{ github.repository }}
       GITHUB_REF_NAME: ${{ github.event.repository.default_branch }}
-
-      # Voz en español de Chile
       DV_VOICE: 'es-CL-CatalinaNeural'
-
-      # Cron-job.org publica automaticamente.
-      # Ejecuciones manuales respetan sus casillas.
-      PUBLISH: >-
-        ${{ github.event_name == 'repository_dispatch'
-            && 'true'
-            || (inputs.publish && 'true' || 'false') }}
-
-      STORY: >-
-        ${{ github.event_name == 'repository_dispatch'
-            && 'true'
-            || (inputs.story && 'true' || 'false') }}
-
-      TOPIC: >-
-        ${{ github.event_name == 'repository_dispatch'
-            && github.event.client_payload.topic
-            || inputs.topic
-            || '' }}
-
     steps:
-      # ==========================================
-      # 1. DESCARGAR REPOSITORIO
-      # ==========================================
-
       - name: Descargar repositorio
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.repository.default_branch }}
-
-      # ==========================================
-      # 2. CONFIGURAR PYTHON
-      # ==========================================
 
       - name: Configurar Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      # ==========================================
-      # 3. INSTALAR DEPENDENCIAS SIN APT
-      # ==========================================
-
-      - name: Instalar Python y FFmpeg
+      - name: Instalar dependencias y FFmpeg sin APT
         shell: bash
         timeout-minutes: 10
         run: |
           set -euo pipefail
-
-          python -m pip install \
-            --disable-pip-version-check \
-            --retries 3 \
-            --timeout 45 \
-            'Pillow>=10,<13' \
-            'requests>=2.31,<3' \
-            'edge-tts>=6,<8' \
-            'mutagen>=1.47,<2' \
-            'imageio-ffmpeg>=0.6,<1'
-
-          # FFmpeg incluido en el paquete Python.
-          # No se utiliza apt-get.
-
+          python -m pip install --disable-pip-version-check --retries 3 --timeout 45 \
+            'Pillow>=10,<13' 'requests>=2.31,<3' 'edge-tts>=6,<8' \
+            'mutagen>=1.47,<2' 'imageio-ffmpeg>=0.6,<1'
           mkdir -p "$RUNNER_TEMP/sismonauta-bin"
-
           FFMPEG_BIN="$(python - <<'PY'
           import imageio_ffmpeg
           print(imageio_ffmpeg.get_ffmpeg_exe())
           PY
           )"
-
-          ln -sf "$FFMPEG_BIN" \
-            "$RUNNER_TEMP/sismonauta-bin/ffmpeg"
-
-          chmod +x "$FFMPEG_BIN"
-
+          ln -sf "$FFMPEG_BIN" "$RUNNER_TEMP/sismonauta-bin/ffmpeg"
           echo "$RUNNER_TEMP/sismonauta-bin" >> "$GITHUB_PATH"
-
           "$FFMPEG_BIN" -hide_banner -version | head -n 1
 
-      # ==========================================
-      # 4. VERIFICAR SCRIPT
-      # ==========================================
-
-      - name: Verificar monitor.py y FFmpeg
+      - name: Verificar programa y FFmpeg
         shell: bash
         run: |
           set -euo pipefail
-
-          test -f monitor.py || {
-            echo '::error::Falta monitor.py en la raiz'
-            exit 1
-          }
-
+          test -f monitor.py || { echo '::error::Falta monitor.py en la raiz'; exit 1; }
           python -m py_compile monitor.py
+          command -v ffmpeg >/dev/null || { echo '::error::Falta FFmpeg'; exit 1; }
+          ffmpeg -hide_banner -encoders > "$RUNNER_TEMP/encoders.txt" 2>&1
+          grep -q 'libx264' "$RUNNER_TEMP/encoders.txt" || { echo '::error::Falta libx264'; exit 1; }
+          echo 'monitor.py y FFmpeg listos.'
 
-          command -v ffmpeg >/dev/null || {
-            echo '::error::FFmpeg no disponible'
-            exit 1
-          }
-
-          ffmpeg -hide_banner -encoders \
-            > "$RUNNER_TEMP/encoders.txt" 2>&1
-
-          grep -q 'libx264' \
-            "$RUNNER_TEMP/encoders.txt" || {
-              echo '::error::FFmpeg sin libx264'
-              exit 1
-            }
-
-          python - <<'PY'
-          import requests
-          import edge_tts
-          import imageio_ffmpeg
-          import mutagen
-          from PIL import Image
-
-          print("Dependencias verificadas.")
-          PY
-
-      # ==========================================
-      # 5. INFORMAR ACTIVACION
-      # ==========================================
-
-      - name: Informar origen de ejecucion
+      - name: Comprobar secretos necesarios
+        if: ${{ github.event_name == 'repository_dispatch' || inputs.publish }}
         shell: bash
         run: |
           set -euo pipefail
-
-          echo "Evento: $GITHUB_EVENT_NAME"
-          echo "Repositorio: $GITHUB_REPOSITORY"
-          echo "Cuenta destino: @sismonauta"
-          echo "Publicacion: $PUBLISH"
-          echo "Story: $STORY"
-
-          if [[ "$GITHUB_EVENT_NAME" == "repository_dispatch" ]]; then
-            echo "Activacion remota recibida desde API GitHub."
-          else
-            echo "Activacion manual desde GitHub Actions."
-          fi
-
-      # ==========================================
-      # 6. VALIDAR CREDENCIALES
-      # ==========================================
-
-      - name: Validar secretos de Instagram
-        if: ${{ env.PUBLISH == 'true' }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          [[ -n "${INSTAGRAM_TOKEN:-}" ]] || {
-            echo '::error::Falta INSTAGRAM_TOKEN'
-            exit 1
+          [[ -n "${INSTAGRAM_TOKEN:-}" && -n "${INSTAGRAM_USER_ID:-}" ]] || {
+            echo '::error::Faltan secretos INSTAGRAM_TOKEN o INSTAGRAM_USER_ID'; exit 1;
           }
-
-          [[ -n "${INSTAGRAM_USER_ID:-}" ]] || {
-            echo '::error::Falta INSTAGRAM_USER_ID'
-            exit 1
-          }
-
           [[ "$INSTAGRAM_USER_ID" =~ ^[0-9]+$ ]] || {
-            echo '::error::INSTAGRAM_USER_ID debe ser numerico'
-            exit 1
+            echo '::error::INSTAGRAM_USER_ID debe ser numerico'; exit 1;
           }
-
-          [[ "$IG_EXPECTED_USERNAME" == 'sismonauta' ]] || {
-            echo '::error::Cuenta de destino incorrecta'
-            exit 1
+          [[ -n "${FACEBOOK_PAGE_ID:-}" && -n "${FACEBOOK_PAGE_TOKEN:-}" ]] || {
+            echo '::error::Faltan FACEBOOK_PAGE_ID o FACEBOOK_PAGE_TOKEN'; exit 1;
           }
-
-          echo 'Credenciales presentes.'
-          echo 'monitor.py verificara el token con Meta.'
-
-      # ==========================================
-      # 7. GENERAR Y PUBLICAR REEL
-      # ==========================================
+          [[ "$FACEBOOK_PAGE_ID" =~ ^[0-9]+$ ]] || { echo '::error::FACEBOOK_PAGE_ID debe ser numerico'; exit 1; }
+          echo 'Secretos Instagram y Facebook presentes. monitor.py verificara ambas identidades.'
 
       - name: Crear Reel y publicar automaticamente
         shell: bash
         timeout-minutes: 32
+        env:
+          PUBLISH: ${{ github.event_name == 'repository_dispatch' && 'true' || (inputs.publish && 'true' || 'false') }}
+          STORY: ${{ github.event_name == 'repository_dispatch' && 'true' || (inputs.story && 'true' || 'false') }}
+          TOPIC: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.topic || inputs.topic || '' }}
         run: |
           set -euo pipefail
-
           args=(--out output_sismos)
-
-          # Seleccion automatica si TOPIC esta vacio.
-          if [[ -n "$TOPIC" ]]; then
-            args+=(--topic "$TOPIC")
-          fi
-
-          # Publicacion autonoma.
+          if [[ -n "$TOPIC" ]]; then args+=(--topic "$TOPIC"); fi
           if [[ "$PUBLISH" == 'true' ]]; then
             args+=(--publish --auto-publish)
-
-            if [[ "$STORY" == 'true' ]]; then
-              args+=(--story)
-            fi
+            if [[ "$STORY" == 'true' ]]; then args+=(--story); fi
           fi
-
-          echo "Cuenta: @sismonauta"
-          echo "Publicar: $PUBLISH"
-          echo "Story: $STORY"
-
+          echo "Destinos: Instagram @sismonauta + fanpage SISMONAUTA | publicacion=$PUBLISH | story=$STORY"
+          echo "Video con voz individual, rotulo y foto por escena"
           python monitor.py "${args[@]}"
 
-      # ==========================================
-      # 8. VERIFICAR PUBLICACION EN META
-      # ==========================================
-
-      - name: Confirmar Reel y Story con identificadores Meta
-        if: ${{ env.PUBLISH == 'true' }}
+      - name: Confirmar publicacion efectiva con identificador Meta
+        if: ${{ github.event_name == 'repository_dispatch' || inputs.publish }}
         shell: bash
         env:
-          REQUIRE_STORY: ${{ env.STORY }}
+          REQUIRE_STORY: ${{ github.event_name == 'repository_dispatch' && 'true' || (inputs.story && 'true' || 'false') }}
         run: |
           set -euo pipefail
-
-          python - <<'PY'
+          python - <<'PYCODE'
           import json
-          import os
           from pathlib import Path
-
-          receipt = Path(
-              "output_sismos/publicacion_confirmada.json"
-          )
-
+          receipt = Path('output_sismos/publicacion_confirmada.json')
           if not receipt.exists():
-              raise SystemExit(
-                  "::error::No existe recibo de Meta. "
-                  "No se puede confirmar la publicacion."
-              )
-
-          data = json.loads(
-              receipt.read_text(encoding="utf-8")
-          )
-
-          if data.get("account") != "sismonauta":
-              raise SystemExit(
-                  "::error::El recibo corresponde "
-                  "a otra cuenta de Instagram."
-              )
-
-          if not data.get("reel_published"):
-              raise SystemExit(
-                  "::error::El Reel no esta confirmado."
-              )
-
-          reel_id = str(data.get("reel_id") or "")
-
-          if not reel_id.isdigit():
-              raise SystemExit(
-                  "::error::Identificador de Reel invalido."
-              )
-
-          if os.environ.get("REQUIRE_STORY") == "true":
-              story_id = str(
-                  data.get("story_id") or ""
-              )
-
-              if (
-                  not data.get("story_published")
-                  or not story_id.isdigit()
-              ):
-                  raise SystemExit(
-                      "::error::Reel confirmado, "
-                      "pero Story no confirmada. "
-                      "Revisar Instagram antes de reintentar."
-                  )
-
-          print(
-              "PUBLICACION CONFIRMADA @sismonauta",
-              "Reel ID:", reel_id
-          )
-
-          if data.get("story_published"):
-              print(
-                  "STORY CONFIRMADA",
-                  "ID:", data["story_id"]
-              )
-          PY
-
-      # ==========================================
-      # 9. GUARDAR ARCHIVOS GENERADOS
-      # ==========================================
+              raise SystemExit('::error::No existe recibo de Meta; el workflow no puede declararse publicado')
+          data = json.loads(receipt.read_text(encoding='utf-8'))
+          if data.get('account') != 'sismonauta' or not data.get('reel_published') or not str(data.get('reel_id') or '').isdigit():
+              raise SystemExit('::error::Recibo Reel invalido; no se confirma publicacion')
+          import os
+          if not data.get('facebook_reel_published') or not str(data.get('facebook_reel_id') or '').isdigit():
+              raise SystemExit('::error::Facebook Reel no confirmado; Instagram puede estar publicado, evitar reintento automatico')
+          print('FACEBOOK REEL CONFIRMADO:', data['facebook_reel_id'])
+          if os.environ.get('REQUIRE_STORY') == 'true' and (not data.get('story_published') or not str(data.get('story_id') or '').isdigit()):
+              raise SystemExit('::error::Reel confirmado, pero Story no confirmada; revisar en Instagram antes de reintentar')
+          print('PUBLICACION CONFIRMADA @sismonauta: Reel ID', data['reel_id'])
+          if data.get('story_published'):
+              print('STORY CONFIRMADA: ID', data['story_id'])
+          PYCODE
 
       - name: Guardar videos guiones e imagenes
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: sismonauta-${{ github.run_id }}-${{ github.run_attempt }}
-
           path: |
             output_sismos/**/*.json
             output_sismos/**/*.mp4
@@ -361,6 +164,5 @@ jobs:
             output_sismos/*.mp4
             output_sismos/*.jpg
             output_sismos/*.png
-
           if-no-files-found: warn
           retention-days: 14
