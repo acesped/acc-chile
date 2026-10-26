@@ -2,16 +2,16 @@
 name: SISMONAUTA - Noticias sismicas 07 Chile
 
 on:
-  # Ejecucion manual desde GitHub Actions
+  # Prueba manual desde GitHub Actions
   workflow_dispatch:
     inputs:
       publish:
-        description: 'Publicar la noticia en Instagram y Facebook (false = solo vista previa)'
+        description: 'Publicar en Instagram y Facebook'
         required: true
         type: boolean
         default: false
 
-  # Ejecucion diaria a las 07:00 AM, hora de Chile
+  # Ejecucion diaria a las 07:00 de Chile
   schedule:
     - cron: '0 7 * * *'
       timezone: 'America/Santiago'
@@ -20,27 +20,28 @@ permissions:
   contents: write
 
 concurrency:
-  group: sismonauta-noticias-publicaciones
+  group: sismonauta-noticias
   cancel-in-progress: false
 
 jobs:
-  noticia-del-dia:
-    name: Buscar noticia y publicar
+  noticias:
+    name: Buscar y publicar noticia sismica
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 35
 
     env:
       PYTHONUNBUFFERED: '1'
 
+      # GitHub
+      GH_TOKEN: ${{ github.token }}
       GITHUB_REPOSITORY: ${{ github.repository }}
       GITHUB_REF_NAME: ${{ github.event.repository.default_branch }}
-      GH_TOKEN: ${{ github.token }}
 
-      # Credenciales de Instagram
+      # Instagram
       INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
       INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
 
-      # Credenciales de Facebook
+      # Facebook
       FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
       FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
 
@@ -48,17 +49,19 @@ jobs:
 
     steps:
       # ==========================================
-      # 1. DESCARGAR REPOSITORIO
+      # 1. DESCARGAR CODIGO
       # ==========================================
 
-      - name: Obtener codigo
+      - name: Obtener repositorio
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
 
       # ==========================================
       # 2. CONFIGURAR PYTHON
       # ==========================================
 
-      - name: Python 3.11
+      - name: Configurar Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -67,50 +70,207 @@ jobs:
       # 3. INSTALAR DEPENDENCIAS
       # ==========================================
 
-      - name: Instalar dependencias
-        run: |
-          python -m pip install \
-            --disable-pip-version-check \
-            'requests>=2.31,<3' \
-            'Pillow>=10,<13'
-
-      # ==========================================
-      # 4. VERIFICAR SCRIPT
-      # ==========================================
-
-      - name: Comprobar sintaxis
-        run: |
-          python -m py_compile noticias_sismonauta.py
-
-      # ==========================================
-      # 5. BUSCAR NOTICIA Y GENERAR IMAGEN
-      # ==========================================
-
-      - name: Buscar noticia y publicar o crear vista previa
-        env:
-          PUBLISH: ${{ github.event_name == 'schedule' || inputs.publish == true }}
+      - name: Instalar librerias
         shell: bash
         run: |
           set -euo pipefail
 
+          python -m pip install \
+            --disable-pip-version-check \
+            --retries 3 \
+            --timeout 45 \
+            'requests>=2.31,<3' \
+            'Pillow>=10,<13'
+
+      # ==========================================
+      # 4. VALIDAR ARCHIVO PYTHON
+      # ==========================================
+
+      - name: Verificar noticias_sismonauta.py
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test -f noticias_sismonauta.py || {
+            echo "::error::Falta noticias_sismonauta.py"
+            exit 1
+          }
+
+          python -m py_compile noticias_sismonauta.py
+
+          echo "Python verificado correctamente"
+
+      # ==========================================
+      # 5. DETERMINAR MODO DE EJECUCION
+      # ==========================================
+
+      - name: Determinar publicacion
+        id: modo
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          MANUAL_PUBLISH: ${{ inputs.publish }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$EVENT_NAME" == "schedule" ]]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "Ejecucion programada: publicacion activada"
+          elif [[ "$MANUAL_PUBLISH" == "true" ]]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "Ejecucion manual: publicacion activada"
+          else
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "Ejecucion de prueba: vista previa"
+          fi
+
+      # ==========================================
+      # 6. BUSCAR NOTICIA Y CREAR IMAGEN
+      # ==========================================
+
+      - name: Buscar noticia y procesar publicacion
+        id: ejecutar
+        shell: bash
+        env:
+          PUBLISH: ${{ steps.modo.outputs.publish }}
+        run: |
+          set -uo pipefail
+
           args=(--out output_noticias)
 
-          if [[ "$PUBLISH" == 'true' ]]; then
+          if [[ "$PUBLISH" == "true" ]]; then
             args+=(--publish)
           fi
 
+          echo "Modo publicacion: $PUBLISH"
+          echo "Buscando noticias cientificas de las ultimas 24 horas"
+
           python noticias_sismonauta.py "${args[@]}"
+          code=$?
+
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+
+          if [[ "$code" -eq 0 ]]; then
+            echo "Programa finalizado correctamente"
+            exit 0
+          fi
+
+          # Sin noticias elegibles no es un fallo tecnico
+          if [[ "$code" -eq 2 || "$code" -eq 3 ]]; then
+            echo "::notice::Sin noticia publicable hoy"
+            echo "No se realiza publicacion"
+            exit 0
+          fi
+
+          echo "::error::Error tecnico o publicacion fallida"
+          exit "$code"
 
       # ==========================================
-      # 6. GUARDAR RESULTADOS
+      # 7. VERIFICAR RESULTADOS
       # ==========================================
 
-      - name: Guardar noticia y arte
+      - name: Verificar estado de publicaciones
+        if: ${{ success() }}
+        shell: bash
+        env:
+          PUBLISH: ${{ steps.modo.outputs.publish }}
+          SCRIPT_EXIT: ${{ steps.ejecutar.outputs.exit_code }}
+        run: |
+          set -euo pipefail
+
+          python - <<'PYVERIFY'
+          import json
+          import os
+          from pathlib import Path
+
+          receipt = Path(
+              "output_noticias/estado_publicacion.json"
+          )
+
+          if not receipt.exists():
+              raise SystemExit(
+                  "::error::No existe registro de resultados"
+              )
+
+          data = json.loads(
+              receipt.read_text(encoding="utf-8")
+          )
+
+          status = data.get("status")
+          publish = os.environ.get("PUBLISH") == "true"
+          exit_code = os.environ.get("SCRIPT_EXIT", "")
+
+          print("Estado:", status)
+          print("Modo publicacion:", publish)
+
+          # Vista previa manual
+          if not publish:
+              if status not in (
+                  "preview_only",
+                  "no_eligible_news",
+                  "no_licensed_relevant_photo",
+              ):
+                  raise SystemExit(
+                      "::error::Resultado de vista previa inesperado"
+                  )
+
+              print("Vista previa finalizada")
+              raise SystemExit(0)
+
+          # Dia sin noticia elegible
+          if exit_code in ("2", "3"):
+              if status not in (
+                  "no_eligible_news",
+                  "no_licensed_relevant_photo",
+              ):
+                  raise SystemExit(
+                      "::error::Estado inconsistente con salida"
+                  )
+
+              print("SIN PUBLICACION HOY:", status)
+              raise SystemExit(0)
+
+          # Publicacion real requerida
+          if status != "published":
+              raise SystemExit(
+                  "::error::No se confirmaron ambas publicaciones"
+              )
+
+          targets = data.get("targets", {})
+
+          for site in ("instagram", "facebook"):
+              item = targets.get(site, {})
+
+              if (
+                  item.get("status") != "published"
+                  or not str(item.get("id") or "").strip()
+              ):
+                  raise SystemExit(
+                      "::error::Publicacion sin confirmar: "
+                      + site
+                  )
+
+              print(
+                  "PUBLICACION CONFIRMADA:",
+                  site,
+                  "ID:",
+                  item["id"]
+              )
+
+          print(
+              "SISMONAUTA: Instagram y Facebook confirmados"
+          )
+          PYVERIFY
+
+      # ==========================================
+      # 8. GUARDAR RESULTADOS
+      # ==========================================
+
+      - name: Guardar noticias e imagenes
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: sismonauta-noticias-${{ github.run_id }}-${{ github.run_attempt }}
-
+          name: noticias-sismonauta-${{ github.run_id }}-${{ github.run_attempt }}
           path: output_noticias/
           if-no-files-found: warn
           retention-days: 14
