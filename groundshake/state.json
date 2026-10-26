@@ -111,7 +111,7 @@
     },
     "sismos-aa5f82e9ae97": {
       "reel": "publicado",
-      "updated_at": "2026-10-26T19:01:59.204365+00:00",
+      "updated_at": "2026-10-26T19:02:03.836142+00:00",
       "reel_id": "18071291135756913",
       "story": "publicado",
       "story_id": "18413904109082698",
@@ -119,7 +119,8 @@
       "facebook_reel_id": "1146658061246418",
       "facebook_story": "publicado",
       "facebook_story_id": "1814334253210007",
-      "facebook_feed": "enviando"
+      "facebook_feed": "publicado",
+      "facebook_feed_id": "1143472338117734"
     }
   }
 }
