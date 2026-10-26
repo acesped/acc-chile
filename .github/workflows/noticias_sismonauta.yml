@@ -1,0 +1,116 @@
+
+name: SISMONAUTA - Noticias sismicas 07 Chile
+
+on:
+  # Ejecucion manual desde GitHub Actions
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publicar la noticia en Instagram y Facebook (false = solo vista previa)'
+        required: true
+        type: boolean
+        default: false
+
+  # Ejecucion diaria a las 07:00 AM, hora de Chile
+  schedule:
+    - cron: '0 7 * * *'
+      timezone: 'America/Santiago'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sismonauta-noticias-publicaciones
+  cancel-in-progress: false
+
+jobs:
+  noticia-del-dia:
+    name: Buscar noticia y publicar
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+
+    env:
+      PYTHONUNBUFFERED: '1'
+
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      GITHUB_REF_NAME: ${{ github.event.repository.default_branch }}
+      GH_TOKEN: ${{ github.token }}
+
+      # Credenciales de Instagram
+      INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
+      INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
+
+      # Credenciales de Facebook
+      FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+      FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
+
+      IG_GRAPH_VERSION: 'v25.0'
+
+    steps:
+      # ==========================================
+      # 1. DESCARGAR REPOSITORIO
+      # ==========================================
+
+      - name: Obtener codigo
+        uses: actions/checkout@v4
+
+      # ==========================================
+      # 2. CONFIGURAR PYTHON
+      # ==========================================
+
+      - name: Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # ==========================================
+      # 3. INSTALAR DEPENDENCIAS
+      # ==========================================
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install \
+            --disable-pip-version-check \
+            'requests>=2.31,<3' \
+            'Pillow>=10,<13'
+
+      # ==========================================
+      # 4. VERIFICAR SCRIPT
+      # ==========================================
+
+      - name: Comprobar sintaxis
+        run: |
+          python -m py_compile noticias_sismonauta.py
+
+      # ==========================================
+      # 5. BUSCAR NOTICIA Y GENERAR IMAGEN
+      # ==========================================
+
+      - name: Buscar noticia y publicar o crear vista previa
+        env:
+          PUBLISH: ${{ github.event_name == 'schedule' || inputs.publish == true }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          args=(--out output_noticias)
+
+          if [[ "$PUBLISH" == 'true' ]]; then
+            args+=(--publish)
+          fi
+
+          python noticias_sismonauta.py "${args[@]}"
+
+      # ==========================================
+      # 6. GUARDAR RESULTADOS
+      # ==========================================
+
+      - name: Guardar noticia y arte
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sismonauta-noticias-${{ github.run_id }}-${{ github.run_attempt }}
+
+          path: output_noticias/
+          if-no-files-found: warn
+          retention-days: 14
