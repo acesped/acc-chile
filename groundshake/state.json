@@ -102,9 +102,10 @@
     },
     "sismos-ee88217e31d2": {
       "reel": "publicado",
-      "updated_at": "2026-10-26T18:44:30.404768+00:00",
+      "updated_at": "2026-10-26T18:45:07.561225+00:00",
       "reel_id": "18040670954646666",
-      "story": "enviando"
+      "story": "publicado",
+      "story_id": "18076055330479271"
     }
   }
 }
