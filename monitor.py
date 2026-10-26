@@ -434,7 +434,7 @@ PHOTO_SEARCH_QUERIES={
  'rift':['East African Rift valley', 'rift valley landscape'],
  'subduccion':['subduction zone coast', 'tectonic coastal mountains'],
  'colision':['Himalaya tectonic mountains', 'folded geological mountain rocks'],
- 'falla_inversa':['thrust fault scarp', 'reverse fault rock outcrop'],
+ 'falla_inversa':['thrust fault scarp', 'reverse fault rock outcrop', 'thrust fault geology landscape', 'thrust fault mountain outcrop', 'compressional fault scarp'],
  'falla_normal':['normal fault scarp', 'rift valley fault scarp'],
  'tsunami_oleadas':['tsunami inundation coast', 'tsunami shoreline'],
  'tsunami_retroceso':['tsunami receding shoreline', 'tsunami exposed seafloor coast'],
@@ -471,7 +471,9 @@ FORBIDDEN_VISUAL_TERMS=(
  'edificio','edificios','casa ','ciudad','calle','puente','vehiculo',
  'seismometer','seismograph','sensor','instrument','equipment','station',
  'sismometro','sismografo','instrumento','laboratory','laboratorio',
- 'museum','exhibit','memorial','monument','sign','warning','poster'
+ 'museum','exhibit','memorial','monument','sign','warning','poster',
+ 'lroc','lunar','moon','moon surface','moon crater','mars','martian',
+ 'apollo mission','planetary','orbiter','spacecraft','satellite image of moon'
 )
 LANDSCAPE_EVIDENCE=(
  'fault','rupture','fissure','rift','scarp','landslide','slip','subsidence',
@@ -1391,24 +1393,53 @@ def main():
   if not args.no_facebook:verify_facebook_page()
  if args.auto_publish and args.episode_json:
   raise RuntimeError('No usar --episode-json con --auto-publish: solo se admiten temas base')
- if args.episode_json:
-  ep=read_json(args.episode_json,None)
-  if not isinstance(ep,dict) or not all(ep.get(x) for x in ('episode_id','title','script','visuals','source','queries')):
-   raise RuntimeError('El JSON del episodio no es válido o está incompleto')
-  if not str(ep['episode_id']).startswith('sismos-'):
-   raise RuntimeError('Este archivo solo admite episodios sísmicos de SISMONAUTA')
-  t={'id':ep.get('id','revisado')}
- else:
-  t=choose_topic(history,args.topic,published_topics);ep=generate_angle(t,history,use_ai=(not args.no_ai and not args.auto_publish))
-  ep['base_verified']=bool(args.auto_publish and t.get('source') and t.get('fact') and t.get('lesson'))
-  ep['editorial_check']='Afirmaciones restringidas a la base editorial; no es verificación automática de la página de origen' if args.auto_publish else 'Requiere revisión de datos'
- episode=ep['episode_id'];write_json_atomic(out/(episode+'_guion.json'),ep)
- print('EPISODIO:',episode,'TEMA:',ep['title'],'FUENTE:',ep['source'],flush=True)
- if args.publish and not args.auto_publish and args.approved_id!=episode:
-  raise RuntimeError('No se publica sin --approved-id '+episode+'; revise primero guion, fuente e imágenes')
- if args.auto_publish and (not ep.get('base_verified') or not str(ep.get('source','')).startswith('https://')):
-  raise RuntimeError('No se puede autopublicar: falta fuente o afirmación editorial validada')
- movie,cover,credits=render(ep,out,args.photo_dir or None,voice=not args.no_voice)
+ # Si un tema no consigue dos paisajes adecuados, intentar OTRO tema inédito.
+ # Jamás se fuerza una foto irrelevante ni se reintenta un envío ya realizado.
+ tried_visual=set()
+ while True:
+  if args.episode_json:
+   ep=read_json(args.episode_json,None)
+   if not isinstance(ep,dict) or not all(ep.get(x) for x in ('episode_id','title','script','visuals','source','queries')):
+    raise RuntimeError('El JSON del episodio no es válido o está incompleto')
+   if not str(ep['episode_id']).startswith('sismos-'):
+    raise RuntimeError('Este archivo solo admite episodios sísmicos de SISMONAUTA')
+   t={'id':ep.get('id','revisado')}
+  else:
+   # En modo automático la selección excluye también los temas sin fotos
+   # encontrados durante ESTA ejecución. No se marca ninguno como publicado.
+   try:
+    t=choose_topic(history,args.topic,published_topics | tried_visual)
+   except RuntimeError as error:
+    if tried_visual and not args.topic:
+     raise RuntimeError('No fue posible encontrar 2 fotografías válidas para ningún tema inédito probado. '
+                        'Temas descartados por imágenes: '+', '.join(sorted(tried_visual))) from error
+    raise
+   ep=generate_angle(t,history,use_ai=(not args.no_ai and not args.auto_publish))
+   ep['base_verified']=bool(args.auto_publish and t.get('source') and t.get('fact') and t.get('lesson'))
+   ep['editorial_check']='Afirmaciones restringidas a la base editorial; no es verificación automática de la página de origen' if args.auto_publish else 'Requiere revisión de datos'
+  episode=ep['episode_id']
+  write_json_atomic(out/(episode+'_guion.json'),ep)
+  print('EPISODIO:',episode,'TEMA:',ep['title'],'FUENTE:',ep['source'],flush=True)
+  if args.publish and not args.auto_publish and args.approved_id!=episode:
+   raise RuntimeError('No se publica sin --approved-id '+episode+'; revise primero guion, fuente e imágenes')
+  if args.auto_publish and (not ep.get('base_verified') or not str(ep.get('source','')).startswith('https://')):
+   raise RuntimeError('No se puede autopublicar: falta fuente o afirmación editorial validada')
+  try:
+   movie,cover,credits=render(ep,out,args.photo_dir or None,voice=not args.no_voice)
+   break
+  except RuntimeError as error:
+   msg=str(error)
+   photo_issue=(
+    'No se encontraron fotografías auténticas' in msg
+    or 'se necesitan al menos dos fotografías' in msg
+    or 'Fotografías sin pertinencia sísmica suficiente' in msg
+   )
+   # No hacer fallback para temas pedidos expresamente o fotografías aportadas.
+   if not (photo_issue and not args.topic and not args.episode_json and not args.photo_dir):
+    raise
+   tried_visual.add(t['id'])
+   print('REINTENTO VISUAL: descartado',t['id'],'por falta de 2 fotografías pertinentes; '
+         'probando otro tema inédito. Detalle:',msg,flush=True)
  ep['image_credits']=credits
  write_json_atomic(out/(episode+'_guion.json'),ep)  # incluye storyboard realmente narrado
  if not any(x.get('episode_id')==episode for x in history['items']):
