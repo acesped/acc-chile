@@ -15,6 +15,7 @@ PRUEBA:  python monitor.py --out output
 CON IA:  GEMINI_API_KEY=... python monitor.py --out output
 PUBLICAR AUTOMATICAMENTE: python monitor.py --publish --auto-publish --story
 Variables: INSTAGRAM_TOKEN, INSTAGRAM_USER_ID, IG_EXPECTED_USERNAME=sismonauta,
+           FACEBOOK_PAGE_ID, FACEBOOK_PAGE_TOKEN, FACEBOOK_EXPECTED_USERNAME=sismonauta,
            GH_TOKEN, GITHUB_REPOSITORY=propietario/repo; repositorio público.
 Opcional: --photo-dir /ruta/a/fotos para aportar fotografías autorizadas.
 
@@ -1032,7 +1033,59 @@ def verify_instagram_account():
   raise RuntimeError('Token de Meta asociado a otra cuenta de Instagram; se requiere @'+ACCOUNT)
  print('TOKEN Instagram válido; cuenta verificada: @'+ACCOUNT,flush=True)
 
-def publish(ep,movie,approval,story=False,auto=False,out_dir=None):
+def fb_api(method, endpoint, token, params=None):
+ """Graph API de páginas; nunca imprimir el token."""
+ url=f'https://graph.facebook.com/{GRAPH_VERSION}/{endpoint}'
+ kw={'params':{'access_token':token,**(params or {})},'timeout':90}
+ r=requests.request(method,url,**kw)
+ try: data=r.json()
+ except ValueError: raise RuntimeError(f'Facebook HTTP {r.status_code}: respuesta no JSON')
+ if not r.ok or data.get('error'):
+  err=data.get('error',{})
+  raise RuntimeError(f'Facebook HTTP {r.status_code}: {err.get("message",str(data)[:180])}; código {err.get("code","?")}')
+ return data
+
+def verify_facebook_page():
+ """Confirma que el token pertenece a la página declarada antes de generar/publicar."""
+ page=os.getenv('FACEBOOK_PAGE_ID','').strip()
+ token=os.getenv('FACEBOOK_PAGE_TOKEN','').strip()
+ if not page or not token:raise RuntimeError('Faltan FACEBOOK_PAGE_ID y/o FACEBOOK_PAGE_TOKEN')
+ if not page.isdigit():raise RuntimeError('FACEBOOK_PAGE_ID debe ser numérico')
+ info=fb_api('GET',page,token,{'fields':'id,name,username'})
+ if str(info.get('id'))!=page:raise RuntimeError('Token de Facebook no corresponde a FACEBOOK_PAGE_ID')
+ expected=os.getenv('FACEBOOK_EXPECTED_USERNAME','sismonauta').strip().lstrip('@').lower()
+ username=str(info.get('username') or '').lower()
+ # Algunas páginas no exponen username por la API: no confundir con id o nombre.
+ if username and expected and username!=expected:
+  raise RuntimeError(f'Página Facebook incorrecta: @{username}; se esperaba @{expected}')
+ print(f'PÁGINA Facebook validada: {info.get("name","")} (ID {page})',flush=True)
+ return page,token
+
+def fb_publish_reel(page,token,movie,caption,episode_id):
+ """Publica un Reel nativo de página; nunca lo confunde con una Story."""
+ session=fb_api('POST',f'{page}/video_reels',token,{'upload_phase':'start'})
+ video_id=str(session.get('video_id') or '')
+ upload_url=str(session.get('upload_url') or '')
+ if not video_id.isdigit() or not upload_url.startswith('https://rupload.facebook.com/'):
+  raise RuntimeError('Facebook: sesión de carga incompleta, no se publica')
+ print(f'FACEBOOK CARGA INICIADA: video_id={video_id}',flush=True)
+ headers={'Authorization':'OAuth '+token,'offset':'0','file_size':str(movie.stat().st_size),'Content-Type':'application/octet-stream'}
+ with movie.open('rb') as fh:
+  resp=requests.post(upload_url,headers=headers,data=fh,timeout=300)
+ try: uploaded=resp.json()
+ except ValueError:raise RuntimeError(f'Facebook: carga respondió HTTP {resp.status_code} sin JSON; estado incierto, no reintentar a ciegas')
+ if not resp.ok or uploaded.get('success') is not True:
+  raise RuntimeError(f'Facebook: error subiendo video (HTTP {resp.status_code}, sin confirmar publicación)')
+ print(f'FACEBOOK VIDEO SUBIDO: {video_id}',flush=True)
+ result=fb_api('POST',f'{page}/video_reels',token,{
+  'upload_phase':'finish','video_id':video_id,'video_state':'PUBLISHED',
+  'description':caption[:5000], 'title':str(episode_id)[:200]})
+ if result.get('success') is not True:
+  raise RuntimeError(f'Facebook: resultado de finalización no confirmado para {video_id}: {str(result)[:180]}')
+ # Meta ha aceptado publicación; procesamiento/disponibilidad puede ser posterior.
+ return video_id
+
+def publish(ep,movie,approval,story=False,auto=False,out_dir=None,facebook=True):
  if not auto and approval!=ep['episode_id']:raise RuntimeError('Necesita --approved-id que coincida con el episodio')
  if auto and not ep.get('base_verified'):
   raise RuntimeError('Publicación autónoma bloqueada: episodio no basado en hechos editoriales verificados')
@@ -1044,7 +1097,7 @@ def publish(ep,movie,approval,story=False,auto=False,out_dir=None):
  gh=Github();gh.assert_public()
  raw,sha=gh.read(STATE_PATH);state=json.loads(raw) if raw else {'schema':1,'episodes':{}}
  items=state.setdefault('episodes',{});old=items.get(ep['episode_id'],{})
- if any(old.get(x) in ('enviando','publicado','incierto') for x in ('reel','story')):raise RuntimeError('Ya publicado o envío incierto')
+ if any(old.get(x) in ('enviando','publicado','incierto') for x in ('reel','story','facebook_reel')):raise RuntimeError('Ya publicado o envío incierto')
  contents=movie.read_bytes();digest=hashlib.sha256(contents).hexdigest()[:16]
  remote=f'groundshake_sismos_media/{ep["episode_id"]}-{digest}.mp4'
  old_file,_=gh.read(remote)
@@ -1083,7 +1136,8 @@ def publish(ep,movie,approval,story=False,auto=False,out_dir=None):
  receipt_path=Path(out_dir or movie.parent)/'publicacion_confirmada.json'
  confirmation={'account':ACCOUNT,'episode_id':ep['episode_id'],'reel_id':str(pid),
                'reel_published':True,'story_requested':bool(story),'story_published':False,
-               'story_id':None,'confirmed_at':utcnow()}
+               'story_id':None,'facebook_reel_requested':bool(facebook),
+               'facebook_reel_published':False,'facebook_reel_id':None,'confirmed_at':utcnow()}
  write_json_atomic(receipt_path,confirmation)
  print('REEL PUBLICADO EN META:',pid,flush=True)
  if story:
@@ -1097,6 +1151,25 @@ def publish(ep,movie,approval,story=False,auto=False,out_dir=None):
   confirmation['confirmed_at']=utcnow()
   write_json_atomic(receipt_path,confirmation)
   print('STORY PUBLICADA EN META:',sid,flush=True)
+ if facebook:
+  page,fb_token=verify_facebook_page()
+  save('enviando','facebook_reel')
+  try:
+   fb_id=fb_publish_reel(page,fb_token,movie,caption,ep['episode_id'])
+  except BaseException:
+   save('incierto','facebook_reel')
+   confirmation['facebook_page_id']=page
+   confirmation['facebook_reel_published']=False
+   confirmation['facebook_publication_uncertain']=True
+   write_json_atomic(receipt_path,confirmation)
+   raise
+  items[ep['episode_id']]['facebook_reel_id']=fb_id
+  save('publicado','facebook_reel')
+  confirmation.update(facebook_page_id=page,facebook_reel_id=fb_id,
+                      facebook_reel_published=True,facebook_publication_uncertain=False,
+                      confirmed_at=utcnow())
+  write_json_atomic(receipt_path,confirmation)
+  print('FACEBOOK REEL ACEPTADO PARA PUBLICACIÓN:',fb_id,flush=True)
  # Registrar IDs completos a remoto.
  receipt=gh.write(STATE_PATH,json.dumps(state,ensure_ascii=False,indent=2).encode(),sha)
  print('PUBLICADO Instagram:',pid,flush=True)
@@ -1118,6 +1191,7 @@ def main():
  ap.add_argument('--photo-dir',default='',help='Carpeta con fotografías propias/autorizadas, sin descarga')
  ap.add_argument('--no-ai',action='store_true');ap.add_argument('--no-voice',action='store_true')
  ap.add_argument('--publish',action='store_true');ap.add_argument('--auto-publish',action='store_true',help='Publicar automáticamente solo temas documentados de la base editorial');ap.add_argument('--approved-id',default='');ap.add_argument('--story',action='store_true')
+ ap.add_argument('--no-facebook',action='store_true',help='Publicar solo en Instagram')
  ap.add_argument('--metrics-csv',default='');ap.add_argument('--list',action='store_true')
  ap.add_argument('--episode-json',default='',help='Reutilizar exactamente un guion previamente revisado')
  args=ap.parse_args()
@@ -1138,6 +1212,7 @@ def main():
   raise RuntimeError('--auto-publish requiere --publish')
  if args.publish:
   verify_instagram_account()
+  if not args.no_facebook:verify_facebook_page()
  if args.auto_publish and args.episode_json:
   raise RuntimeError('No usar --episode-json con --auto-publish: solo se admiten temas base')
  if args.episode_json:
@@ -1165,7 +1240,7 @@ def main():
                            'time':utcnow(),'status':'preparado' if args.publish else 'vista_previa'})
  write_json_atomic(history_path,history)
  if args.publish:
-  publish(ep,movie,args.approved_id,story=args.story,auto=args.auto_publish,out_dir=out)
+  publish(ep,movie,args.approved_id,story=args.story,auto=args.auto_publish,out_dir=out,facebook=not args.no_facebook)
   for entry in history['items']:
    if entry.get('episode_id')==episode:entry['status']='publicado'
   write_json_atomic(history_path,history)
