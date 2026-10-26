@@ -268,40 +268,99 @@ def short_reveal(sentence):
  # ajustará automáticamente tipografía y salto de línea.
  return t
 
-def build_storyboard(ep):
- """Pregunta humana → curiosidad → respuesta factual → cierre → CTA final.
+# Guiones por fenómeno: cada escena entrega información distinta y verificable.
+# Cada par contiene (locución, rótulo de máximo 12 palabras).
+RETENTION_STORIES = {
+ 'alerta': [
+  ('¿Cómo puede una alerta avisarte antes de que sientas el terremoto?', '¿TE PUEDE AVISAR ANTES?'),
+  ('No es que conozca el futuro. La explicación ocurre bajo nuestros pies.', 'NO ES ADIVINACIÓN'),
+  ('El terremoto ya comenzó cuando los sensores detectan sus primeras ondas.', 'EL SISMO YA COMENZÓ'),
+  ('La alerta puede llegar antes que las sacudidas fuertes, pero no siempre hay tiempo suficiente.', 'SEGUNDOS QUE PUEDEN IMPORTAR'),
+  ('La alerta no predice el sismo. Detecta lo que ya empezó.', 'DETECTAR NO ES PREDECIR')],
+ 'ondas': [
+  ('¿Cómo sabemos qué ocurre dentro de la Tierra sin poder mirar allí?', '¿CÓMO MIRAMOS BAJO TIERRA?'),
+  ('La pista viene de algo que viaja después de un terremoto.', 'LAS ONDAS GUARDAN PISTAS'),
+  ('Las ondas P y S se propagan de forma distinta.', 'NO TODAS VIAJAN IGUAL'),
+  ('Las ondas S no atraviesan materiales líquidos. Esa diferencia revela propiedades del interior terrestre.', 'LAS ONDAS S NO CRUZAN LÍQUIDOS'),
+  ('Lo que una onda no puede atravesar también nos enseña algo.', 'EL SILENCIO TAMBIÉN INFORMA')],
+ 'magnitud': [
+  ('¿Por qué el mismo terremoto puede sentirse muy distinto en dos ciudades?', '¿UN SISMO, DOS EXPERIENCIAS?'),
+  ('El número que escuchamos en las noticias no explica todo.', 'EL NÚMERO NO BASTA'),
+  ('La magnitud describe el tamaño del terremoto.', 'LA MAGNITUD MIDE EL TAMAÑO'),
+  ('La intensidad describe las sacudidas y los efectos en cada lugar.', 'LA INTENSIDAD CAMBIA SEGÚN EL LUGAR'),
+  ('El terremoto es uno. Sus efectos no tienen por qué ser iguales.', 'UN SISMO. MUCHAS EXPERIENCIAS')],
+ 'replicas': [
+  ('¿El peligro termina exactamente cuando deja de temblar?', '¿YA TERMINÓ TODO?'),
+  ('Después de un terremoto, la región puede seguir reajustándose.', 'LA TIERRA SIGUE REAJUSTÁNDOSE'),
+  ('Esos movimientos posteriores se conocen como réplicas.', 'PUEDEN LLEGAR RÉPLICAS'),
+  ('Pueden ocurrir después del evento principal en la misma región.', 'EL MOVIMIENTO PUEDE CONTINUAR'),
+  ('Que el suelo esté quieto ahora no significa que no haya más réplicas.', 'EL SILENCIO NO SIEMPRE ES EL FINAL')],
+ 'valdivia': [
+  ('¿Sabías que el mayor terremoto registrado ocurrió en Chile?', '¿EL MAYOR TERREMOTO REGISTRADO?'),
+  ('Sucedió en un lugar que quedó grabado en la historia sísmica.', 'CHILE QUEDÓ EN LA HISTORIA'),
+  ('El 22 de mayo de 1960, Valdivia vivió un terremoto de magnitud nueve coma cinco.', 'VALDIVIA 1960: MAGNITUD 9,5'),
+  ('Es el mayor registrado instrumentalmente. Sus datos siguen siendo relevantes para la ciencia.', 'UN REGISTRO EXTRAORDINARIO'),
+  ('Valdivia nos recuerda cuánta energía puede liberar la Tierra.', 'VALDIVIA: UNA FECHA IMPOSIBLE DE OLVIDAR')],
+ 'profundidad': [
+  ('¿Por qué dos terremotos de magnitud parecida pueden sentirse diferentes?', '¿MISMA MAGNITUD, DISTINTA SACUDIDA?'),
+  ('Hay un dato que suele quedar fuera del titular.', 'MIRA BAJO LA SUPERFICIE'),
+  ('No todos los sismos comienzan a la misma profundidad.', 'LA PROFUNDIDAD CAMBIA'),
+  ('La profundidad del origen influye en cómo se percibe el movimiento del suelo.', 'NO TODO ES LA MAGNITUD'),
+  ('Para entender un sismo, también hay que mirar dónde comienza.', 'IMPORTA LO QUE NO VEMOS')],
+ 'placas': [
+  ('¿Cómo puede moverse el suelo que parece tan firme bajo tus pies?', '¿LA TIERRA ESTÁ QUIETA?'),
+  ('El movimiento es lento. Pero sus efectos pueden ser enormes.', 'UN MOVIMIENTO CASI INVISIBLE'),
+  ('La parte externa rígida de la Tierra está dividida en placas.', 'VIVIMOS SOBRE PLACAS'),
+  ('Esas placas se desplazan lentamente y pueden acumular esfuerzos en sus bordes.', 'LOS ESFUERZOS SE ACUMULAN'),
+  ('El suelo parece inmóvil. La Tierra sigue en movimiento.', 'LA QUIETUD ES SOLO APARIENCIA')],
+ 'tsunamis': [
+  ('¿Cada terremoto bajo el mar termina creando un tsunami?', '¿SISMO SUBMARINO = TSUNAMI?'),
+  ('La respuesta depende de más que la ubicación del epicentro.', 'NO BASTA CON ESTAR BAJO EL MAR'),
+  ('No todos los terremotos submarinos producen tsunamis.', 'NO TODOS GENERAN TSUNAMIS'),
+  ('El desplazamiento del fondo marino y otros factores influyen en su generación.', 'IMPORTA CÓMO SE MUEVE EL FONDO'),
+  ('Bajo el océano, no todo temblor levanta una gran ola.', 'UN SISMO NO SIEMPRE ES UN TSUNAMI')],
+ 'falla': [
+  ('¿Una falla geológica es simplemente una grieta en el terreno?', '¿SOLO UNA GRIETA?'),
+  ('Hay una diferencia que cambia su significado.', 'LA CLAVE ES EL MOVIMIENTO'),
+  ('Una falla es una fractura donde las rocas se han desplazado.', 'LAS ROCAS SE DESPLAZARON'),
+  ('Estudiar esas fracturas ayuda a comprender la deformación de la corteza.', 'LA ROCA CONSERVA EVIDENCIAS'),
+  ('Una falla no solo se ve. También cuenta cómo se movió la Tierra.', 'LA ROCA CUENTA SU HISTORIA')],
+ 'prediccion': [
+  ('¿Alguien puede decirte el día exacto del próximo gran terremoto?', '¿SE PUEDE SABER EL DÍA EXACTO?'),
+  ('Hay mucha diferencia entre una estimación y una predicción.', 'NO CONFUNDAS PROBABILIDAD Y CERTEZA'),
+  ('Hoy no existe un método validado que anticipe con certeza fecha, lugar y magnitud.', 'NO EXISTE PREDICCIÓN EXACTA VALIDADA'),
+  ('La ciencia puede estudiar probabilidades, pero eso no equivale a conocer el futuro.', 'RIESGO NO ES UNA FECHA'),
+  ('Quien promete una fecha exacta necesita pruebas que la ciencia aún no tiene.', 'DESCONFÍA DE LA CERTEZA SIN PRUEBAS')],
+ 'sismografo': [
+  ('¿Cómo puede una máquina registrar un movimiento que casi no vemos?', '¿CÓMO SE VE UN MOVIMIENTO INVISIBLE?'),
+  ('La respuesta comienza con un instrumento sensible al suelo.', 'UN SENSOR ESCUCHA AL SUELO'),
+  ('Los sismómetros detectan y registran sus movimientos.', 'EL SISMÓMETRO REGISTRA MOVIMIENTO'),
+  ('Esos registros ayudan a estudiar terremotos y el paso de ondas sísmicas.', 'EL MOVIMIENTO SE CONVIERTE EN DATOS'),
+  ('Lo que no podemos ver a simple vista puede dejar un registro.', 'LO INVISIBLE DEJA HUELLAS')],
+ 'terremoto': [
+  ('¿Cómo puede sentirse un terremoto que ocurrió tan lejos?', '¿POR QUÉ SE SIENTE TAN LEJOS?'),
+  ('La energía liberada no se queda junto al epicentro.', 'LA ENERGÍA VIAJA'),
+  ('Las ondas sísmicas se propagan a través de la Tierra.', 'LAS ONDAS CRUZAN DISTANCIAS'),
+  ('Algunas pueden recorrer grandes distancias y producir movimientos perceptibles.', 'EL MOVIMIENTO PUEDE LLEGAR LEJOS'),
+  ('Un terremoto comienza en un lugar. Sus ondas pueden llegar mucho más allá.', 'EL EPICENTRO NO ES EL LÍMITE')],
+}
 
- La voz de cada escena se obtiene del mismo mensaje que aparece en pantalla,
- o de una frase factual más desarrollada en la revelación. La escena final
- agrega una llamada a la acción memorable y explícita.
- """
+def build_storyboard(ep):
+ """Cinco beats documentados y CTA: texto y narración corresponden por escena."""
  key=str(ep.get('id',''))
- fact=str(ep['fact']).strip()
- lesson=str(ep['lesson']).strip()
- labels=EDITORIAL_BEATS.get(key)
- if not labels:
-  title=str(ep['title']).strip().rstrip('.')
-  hook=title if title.startswith('¿') else '¿Qué revela este fenómeno sísmico?'
-  labels=(hook,'HAY UNA EXPLICACIÓN CIENTÍFICA',short_reveal(fact),short_reveal(lesson))
- hook,tease,reveal,close=labels
- close=MEMORABLE_CLOSINGS.get(key,close)
- cta_overlay='DALE LIKE'
- cta_narration='Dale me gusta y comparte, para seguir recibiendo más información sobre este fascinante tema. Muchas gracias!'
- # Primera escena: pregunta audible y visible. La revelación lleva la evidencia.
- # La intriga no presenta una afirmación científica nueva.
- parts=[(hook,hook,'pregunta'),(tease,tease,'intriga'),
-        (fact,reveal,'revelacion'),(close,close,'cierre'),
-        (cta_narration,cta_overlay,'cta')]
+ beats=RETENTION_STORIES.get(key)
+ if not beats:
+  raise RuntimeError('No existe un guion narrativo verificado para el tema '+key)
  storyboard=[]
- queries=list(ep.get('queries') or ['earthquake seismograph'])
- for i,(narration,overlay,stage) in enumerate(parts):
-  narration=str(narration).strip()
-  overlay=re.sub(r'(?:\.{3}|…)+','',str(overlay)).strip()
-  if not overlay or not narration:raise ValueError('Escena sin contenido')
-  if len(overlay.split())>12:
-   raise ValueError('Rótulo editorial demasiado largo: '+overlay)
-  storyboard.append({'narration':narration,'overlay':overlay,
-                     'query':queries[min(i,len(queries)-1)],'stage':stage})
+ stages=('pregunta','intriga','revelacion','explicacion','cierre')
+ queries=list(ep.get('queries') or ['earthquake seismometer'])
+ for i,((narration,overlay),stage) in enumerate(zip(beats,stages)):
+  overlay=overlay.strip()
+  if not narration.strip() or not overlay or len(overlay.split())>12 or '...' in overlay or '…' in overlay:
+   raise ValueError('Beat editorial incompleto o demasiado largo: '+key)
+  storyboard.append({'narration':narration,'overlay':overlay,'query':queries[min(i,len(queries)-1)],'stage':stage})
+ storyboard.append({'narration':'Dale me gusta y comparte, para seguir recibiendo más información sobre este fascinante tema. Muchas gracias!',
+                    'overlay':'DALE LIKE','query':queries[-1],'stage':'cta'})
  return storyboard
 
 
