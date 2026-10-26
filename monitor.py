@@ -1103,95 +1103,149 @@ def fb_publish_reel(page,token,movie,caption,episode_id):
  # Meta ha aceptado publicación; procesamiento/disponibilidad puede ser posterior.
  return video_id
 
+def fb_publish_story(page,token,movie):
+ """Publica una Story de video nativa y separada del Reel de Facebook."""
+ session=fb_api('POST',f'{page}/video_stories',token,{'upload_phase':'start'})
+ video_id=str(session.get('video_id') or '')
+ upload_url=str(session.get('upload_url') or '')
+ if not video_id.isdigit() or not upload_url.startswith('https://rupload.facebook.com/'):
+  raise RuntimeError('Facebook Story: sesión de carga incompleta')
+ headers={'Authorization':'OAuth '+token,'offset':'0',
+          'file_size':str(movie.stat().st_size),'Content-Type':'application/octet-stream'}
+ with movie.open('rb') as fh:
+  response=requests.post(upload_url,headers=headers,data=fh,timeout=300)
+ try: uploaded=response.json()
+ except ValueError:raise RuntimeError(f'Facebook Story: respuesta no JSON HTTP {response.status_code}; resultado incierto')
+ if not response.ok or uploaded.get('success') is not True:
+  raise RuntimeError(f'Facebook Story: carga no confirmada HTTP {response.status_code}')
+ done=fb_api('POST',f'{page}/video_stories',token,
+             {'upload_phase':'finish','video_id':video_id,'video_state':'PUBLISHED'})
+ if done.get('success') is not True:
+  raise RuntimeError(f'Facebook Story: finalización no confirmada para {video_id}: {str(done)[:180]}')
+ return video_id
+
+
+def fb_publish_feed_video(page,token,movie,caption,episode_id):
+ """Carga el MP4 como vídeo nativo del feed de la fanpage, sin post de enlace."""
+ endpoint=f'https://graph.facebook.com/{GRAPH_VERSION}/{page}/videos'
+ with movie.open('rb') as fh:
+  response=requests.post(endpoint,data={'access_token':token,
+                         'description':caption[:5000],
+                         'title':str(episode_id)[:200],
+                         'published':'true'},
+                         files={'source':(movie.name,fh,'video/mp4')},timeout=360)
+ try: result=response.json()
+ except ValueError:raise RuntimeError(f'Facebook Feed: respuesta no JSON HTTP {response.status_code}; envío incierto')
+ if not response.ok or result.get('error'):
+  err=result.get('error',{})
+  raise RuntimeError(f'Facebook Feed HTTP {response.status_code}: {err.get("message",str(result)[:180])}; código {err.get("code","?")}')
+ video_id=str(result.get('id') or '')
+ if not video_id.isdigit():
+  raise RuntimeError(f'Facebook Feed: Meta no devolvió ID de video: {str(result)[:180]}')
+ # El procesamiento de Meta es asíncrono: ID significa aceptación, no visibilidad final.
+ return video_id
+
+
 def publish(ep,movie,approval,story=False,auto=False,out_dir=None,facebook=True):
- if not auto and approval!=ep['episode_id']:raise RuntimeError('Necesita --approved-id que coincida con el episodio')
+ """Reanuda exclusivamente destinos pendientes; jamás reenvía publicados o inciertos."""
+ if not auto and approval!=ep['episode_id']:
+  raise RuntimeError('Necesita --approved-id que coincida con el episodio')
  if auto and not ep.get('base_verified'):
-  raise RuntimeError('Publicación autónoma bloqueada: episodio no basado en hechos editoriales verificados')
+  raise RuntimeError('Publicación autónoma bloqueada: falta verificación editorial')
  expected=os.getenv('IG_EXPECTED_USERNAME',ACCOUNT).strip().lstrip('@').lower()
  if expected!=ACCOUNT:raise RuntimeError('Cuenta de destino debe ser @'+ACCOUNT)
  token=os.environ['INSTAGRAM_TOKEN'];user=os.environ['INSTAGRAM_USER_ID']
  me=ig('GET','me',token,{'fields':'id,username'})
- if str(me.get('id'))!=user or me.get('username','').lower()!=ACCOUNT:raise RuntimeError('Token Instagram apunta a otra cuenta')
+ if str(me.get('id'))!=user or str(me.get('username','')).lower()!=ACCOUNT:
+  raise RuntimeError('Token Instagram apunta a otra cuenta')
  gh=Github();gh.assert_public()
- raw,sha=gh.read(STATE_PATH);state=json.loads(raw) if raw else {'schema':1,'episodes':{}}
- items=state.setdefault('episodes',{});old=items.get(ep['episode_id'],{})
- if any(old.get(x) in ('enviando','publicado','incierto') for x in ('reel','story','facebook_reel')):raise RuntimeError('Ya publicado o envío incierto')
- contents=movie.read_bytes();digest=hashlib.sha256(contents).hexdigest()[:16]
- remote=f'groundshake_sismos_media/{ep["episode_id"]}-{digest}.mp4'
- old_file,_=gh.read(remote)
- if old_file is None:receipt=gh.write(remote,contents);commit=receipt['commit']['sha']
- else:
-  if old_file!=contents:raise RuntimeError('Colisión de medios')
-  commit=gh.api('GET',f'/commits/{gh.branch}')['sha']
- url=f'https://raw.githubusercontent.com/{gh.repo}/{commit}/{remote}'
- with requests.get(url,timeout=90) as r:
-  r.raise_for_status()
-  if len(r.content)!=movie.stat().st_size:raise RuntimeError('URL del MP4 incompleta')
- def save(status,which='reel'):
+ raw,sha=gh.read(STATE_PATH)
+ state=json.loads(raw) if raw else {'schema':1,'episodes':{}}
+ items=state.setdefault('episodes',{});row=items.setdefault(ep['episode_id'],{})
+ destinations=['reel']+(['story'] if story else [])+(['facebook_reel']+(['facebook_story'] if story else [])+['facebook_feed'] if facebook else [])
+ for dest in destinations:
+  status=row.get(dest)
+  if status in ('enviando','incierto'):
+   raise RuntimeError(f'{dest}: envío anterior incierto. Revisar en Meta y conciliar el historial antes de reintentar; no duplicar')
+  if status=='publicado' and not str(row.get(dest+'_id') or '').isdigit():
+   raise RuntimeError(f'{dest}: figura publicado sin ID verificable en historial; revisar manualmente')
+  if status not in (None,'publicado'):
+   raise RuntimeError(f'{dest}: estado de historial no reconocido: {status!r}')
+ print('REANUDACIÓN SEGURA:',{k:row.get(k,'pendiente') for k in destinations},flush=True)
+ def save(status,which):
   nonlocal sha
-  row=items.setdefault(ep['episode_id'],{});row[which]=status;row['updated_at']=utcnow()
-  receipt=gh.write(STATE_PATH,json.dumps(state,ensure_ascii=False,indent=2).encode(),sha)
-  sha=receipt['content']['sha']
- # El texto público contiene SOLO contenido editorial y hashtags del episodio.
- # Las fuentes científicas y metadatos de imágenes permanecen en el JSON
- # local/artefactos como documentación interna, no en el pie de Instagram.
- credits=ep.get('image_credits',[])
- if not credits or any(not license_accepted(c.get('license','')) for c in credits):
-  raise RuntimeError('Sin créditos públicos: solo se permite CC0/dominio público verificado')
- hashtags='\n\n'+episode_hashtags(ep)
- caption=episode_caption_base(ep)+hashtags
- if len(caption)>2200:
-  raise RuntimeError('La descripción editorial y sus hashtags superan 2200 caracteres')
- if len(re.findall(r'(?<!\w)#[A-Za-z0-9_]+',caption))<10:
-  raise RuntimeError('La publicación requiere al menos 10 hashtags relacionados con el tema')
- print(f'DESCRIPCIÓN Instagram: {len(caption)}/2200; hashtags: {len(episode_hashtags(ep).split())}; fuentes y créditos SOLO en JSON interno',flush=True)
- save('enviando')
- try:pid=ig_publish(user,token,url,caption)
- except BaseException:save('incierto');raise
- items[ep['episode_id']]['reel_id']=pid
- save('publicado')
- # Recibo verificable: se emite solo después de la respuesta media_publish de Meta.
+  row[which]=status;row['updated_at']=utcnow()
+  result=gh.write(STATE_PATH,json.dumps(state,ensure_ascii=False,indent=2).encode(),sha)
+  sha=result['content']['sha']
  receipt_path=Path(out_dir or movie.parent)/'publicacion_confirmada.json'
- confirmation={'account':ACCOUNT,'episode_id':ep['episode_id'],'reel_id':str(pid),
-               'reel_published':True,'story_requested':bool(story),'story_published':False,
-               'story_id':None,'facebook_reel_requested':bool(facebook),
-               'facebook_reel_published':False,'facebook_reel_id':None,'confirmed_at':utcnow()}
- write_json_atomic(receipt_path,confirmation)
- print('REEL PUBLICADO EN META:',pid,flush=True)
- if story:
-  save('enviando','story')
-  try:sid=ig_publish(user,token,url,'',media_type='STORIES')
-  except BaseException:save('incierto','story');raise
-  items[ep['episode_id']]['story_id']=sid
-  save('publicado','story')
-  confirmation['story_id']=str(sid)
-  confirmation['story_published']=True
+ confirmation={'account':ACCOUNT,'episode_id':ep['episode_id'],'reel_id':str(row.get('reel_id') or '') or None,
+  'reel_published':row.get('reel')=='publicado','story_requested':bool(story),'story_published':row.get('story')=='publicado',
+  'story_id':str(row.get('story_id') or '') or None,
+  'facebook_reel_requested':bool(facebook),'facebook_reel_published':row.get('facebook_reel')=='publicado',
+  'facebook_reel_id':str(row.get('facebook_reel_id') or '') or None,
+  'facebook_story_requested':bool(facebook and story),'facebook_story_published':row.get('facebook_story')=='publicado',
+  'facebook_story_id':str(row.get('facebook_story_id') or '') or None,
+  'facebook_feed_requested':bool(facebook),'facebook_feed_published':row.get('facebook_feed')=='publicado',
+  'facebook_feed_id':str(row.get('facebook_feed_id') or '') or None,'confirmed_at':utcnow()}
+ def confirm(which,media_id):
+  row[which+'_id']=str(media_id)
+  save('publicado',which)
+  key='reel' if which=='reel' else which
+  confirmation[key+'_id']=str(media_id)
+  confirmation[key+'_published']=True
   confirmation['confirmed_at']=utcnow()
   write_json_atomic(receipt_path,confirmation)
-  print('STORY PUBLICADA EN META:',sid,flush=True)
+  print(f'{which.upper()} ACEPTADO POR META: {media_id}',flush=True)
+ write_json_atomic(receipt_path,confirmation)
+ credits=ep.get('image_credits',[])
+ if not credits or any(not license_accepted(c.get('license','')) for c in credits):
+  raise RuntimeError('Sin imágenes CC0/dominio público verificadas')
+ caption=episode_caption_base(ep)+'\n\n'+episode_hashtags(ep)
+ if len(caption)>2200 or len(re.findall(r'(?<!\w)#[A-Za-z0-9_]+',caption))<10:
+  raise RuntimeError('Descripción o hashtags no cumplen requisitos editoriales')
+ # Una URL pública es necesaria solo si falta publicar Instagram, no al reanudar Facebook.
+ pending_ig=[x for x in ('reel','story') if x in destinations and row.get(x)!='publicado']
+ url=None
+ if pending_ig:
+  contents=movie.read_bytes();digest=hashlib.sha256(contents).hexdigest()[:16]
+  remote=f'groundshake_sismos_media/{ep["episode_id"]}-{digest}.mp4'
+  old_file,_=gh.read(remote)
+  if old_file is None:result=gh.write(remote,contents);commit=result['commit']['sha']
+  else:
+   if old_file!=contents:raise RuntimeError('Colisión de medios')
+   commit=gh.api('GET',f'/commits/{gh.branch}')['sha']
+  url=f'https://raw.githubusercontent.com/{gh.repo}/{commit}/{remote}'
+  with requests.get(url,timeout=90) as r:
+   r.raise_for_status()
+   if len(r.content)!=movie.stat().st_size:raise RuntimeError('URL MP4 incompleta')
+ for which in ('reel','story'):
+  if which not in destinations:continue
+  if row.get(which)=='publicado':
+   print(f'{which.upper()} OMITIDO: ya publicado con ID {row[which+"_id"]}',flush=True);continue
+  save('enviando',which)
+  try:pid=ig_publish(user,token,url,caption if which=='reel' else '',media_type='REELS' if which=='reel' else 'STORIES')
+  except BaseException:save('incierto',which);raise
+  confirm(which,pid)
  if facebook:
   page,fb_token=verify_facebook_page()
-  save('enviando','facebook_reel')
-  try:
-   fb_id=fb_publish_reel(page,fb_token,movie,caption,ep['episode_id'])
-  except BaseException:
-   save('incierto','facebook_reel')
-   confirmation['facebook_page_id']=page
-   confirmation['facebook_reel_published']=False
-   confirmation['facebook_publication_uncertain']=True
-   write_json_atomic(receipt_path,confirmation)
-   raise
-  items[ep['episode_id']]['facebook_reel_id']=fb_id
-  save('publicado','facebook_reel')
-  confirmation.update(facebook_page_id=page,facebook_reel_id=fb_id,
-                      facebook_reel_published=True,facebook_publication_uncertain=False,
-                      confirmed_at=utcnow())
+  confirmation['facebook_page_id']=page
   write_json_atomic(receipt_path,confirmation)
-  print('FACEBOOK REEL ACEPTADO PARA PUBLICACIÓN:',fb_id,flush=True)
- # Registrar IDs completos a remoto.
- receipt=gh.write(STATE_PATH,json.dumps(state,ensure_ascii=False,indent=2).encode(),sha)
- print('PUBLICADO Instagram:',pid,flush=True)
-
+  for which in ('facebook_reel','facebook_story','facebook_feed'):
+   if which not in destinations:continue
+   if row.get(which)=='publicado':
+    print(f'{which.upper()} OMITIDO: ya publicado con ID {row[which+"_id"]}',flush=True);continue
+   save('enviando',which)
+   try:
+    if which=='facebook_reel':pid=fb_publish_reel(page,fb_token,movie,caption,ep['episode_id'])
+    elif which=='facebook_story':pid=fb_publish_story(page,fb_token,movie)
+    else:pid=fb_publish_feed_video(page,fb_token,movie,caption,ep['episode_id'])
+   except BaseException:
+    save('incierto',which)
+    confirmation[which+'_uncertain']=True
+    write_json_atomic(receipt_path,confirmation)
+    raise
+   confirm(which,pid)
+ print('PUBLICACIONES SOLICITADAS A META; recibo:',receipt_path,flush=True)
 
 def metrics(csv_path):
  import csv
