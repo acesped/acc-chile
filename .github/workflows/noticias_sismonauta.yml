@@ -2,7 +2,6 @@
 name: SISMONAUTA - Noticias sismicas 07 Chile
 
 on:
-  # Prueba manual desde GitHub Actions
   workflow_dispatch:
     inputs:
       publish:
@@ -11,7 +10,6 @@ on:
         type: boolean
         default: false
 
-  # Ejecucion diaria a las 07:00 de Chile
   schedule:
     - cron: '0 7 * * *'
       timezone: 'America/Santiago'
@@ -31,80 +29,47 @@ jobs:
 
     env:
       PYTHONUNBUFFERED: '1'
-
-      # GitHub
       GH_TOKEN: ${{ github.token }}
       GITHUB_REPOSITORY: ${{ github.repository }}
       GITHUB_REF_NAME: ${{ github.event.repository.default_branch }}
 
-      # Instagram
       INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
       INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
 
-      # Facebook
       FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
       FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
 
       IG_GRAPH_VERSION: 'v25.0'
 
     steps:
-      # ==========================================
-      # 1. DESCARGAR CODIGO
-      # ==========================================
-
       - name: Obtener repositorio
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.repository.default_branch }}
-
-      # ==========================================
-      # 2. CONFIGURAR PYTHON
-      # ==========================================
 
       - name: Configurar Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      # ==========================================
-      # 3. INSTALAR DEPENDENCIAS
-      # ==========================================
-
-      - name: Instalar librerias
+      - name: Instalar dependencias
         shell: bash
         run: |
           set -euo pipefail
-
           python -m pip install \
             --disable-pip-version-check \
             --retries 3 \
-            --timeout 45 \
             'requests>=2.31,<3' \
             'Pillow>=10,<13'
 
-      # ==========================================
-      # 4. VALIDAR ARCHIVO PYTHON
-      # ==========================================
-
-      - name: Verificar noticias_sismonauta.py
+      - name: Validar Python
         shell: bash
         run: |
           set -euo pipefail
-
-          test -f noticias_sismonauta.py || {
-            echo "::error::Falta noticias_sismonauta.py"
-            exit 1
-          }
-
+          test -f noticias_sismonauta.py
           python -m py_compile noticias_sismonauta.py
 
-          echo "Python verificado correctamente"
-
-      # ==========================================
-      # 5. DETERMINAR MODO DE EJECUCION
-      # ==========================================
-
-      - name: Determinar publicacion
+      - name: Determinar modo de publicacion
         id: modo
         shell: bash
         env:
@@ -114,19 +79,15 @@ jobs:
           set -euo pipefail
 
           if [[ "$EVENT_NAME" == "schedule" ]]; then
-            echo "publish=true" >> "$GITHUB_OUTPUT"
-            echo "Ejecucion programada: publicacion activada"
+            PUBLISH=true
           elif [[ "$MANUAL_PUBLISH" == "true" ]]; then
-            echo "publish=true" >> "$GITHUB_OUTPUT"
-            echo "Ejecucion manual: publicacion activada"
+            PUBLISH=true
           else
-            echo "publish=false" >> "$GITHUB_OUTPUT"
-            echo "Ejecucion de prueba: vista previa"
+            PUBLISH=false
           fi
 
-      # ==========================================
-      # 6. BUSCAR NOTICIA Y CREAR IMAGEN
-      # ==========================================
+          echo "publish=$PUBLISH" >> "$GITHUB_OUTPUT"
+          echo "Publicacion activada: $PUBLISH"
 
       - name: Buscar noticia y procesar publicacion
         id: ejecutar
@@ -143,34 +104,19 @@ jobs:
           fi
 
           echo "Modo publicacion: $PUBLISH"
-          echo "Buscando noticias cientificas de las ultimas 24 horas"
 
           python noticias_sismonauta.py "${args[@]}"
           code=$?
 
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          echo "Codigo de salida Python: $code"
 
-          if [[ "$code" -eq 0 ]]; then
-            echo "Programa finalizado correctamente"
-            exit 0
-          fi
+          # Los resultados se revisan en el siguiente paso.
+          # Si hubo un error, el verificador lo identificara.
+          exit 0
 
-          # Sin noticias elegibles no es un fallo tecnico
-          if [[ "$code" -eq 2 || "$code" -eq 3 ]]; then
-            echo "::notice::Sin noticia publicable hoy"
-            echo "No se realiza publicacion"
-            exit 0
-          fi
-
-          echo "::error::Error tecnico o publicacion fallida"
-          exit "$code"
-
-      # ==========================================
-      # 7. VERIFICAR RESULTADOS
-      # ==========================================
-
-      - name: Verificar estado de publicaciones
-        if: ${{ success() }}
+      - name: Verificar resultado real
+        if: always() && steps.ejecutar.conclusion == 'success'
         shell: bash
         env:
           PUBLISH: ${{ steps.modo.outputs.publish }}
@@ -187,9 +133,17 @@ jobs:
               "output_noticias/estado_publicacion.json"
           )
 
+          exit_code = int(
+              os.environ.get("SCRIPT_EXIT") or "1"
+          )
+
+          publish = (
+              os.environ.get("PUBLISH") == "true"
+          )
+
           if not receipt.exists():
               raise SystemExit(
-                  "::error::No existe registro de resultados"
+                  "::error::No existe recibo de resultados"
               )
 
           data = json.loads(
@@ -197,43 +151,62 @@ jobs:
           )
 
           status = data.get("status")
-          publish = os.environ.get("PUBLISH") == "true"
-          exit_code = os.environ.get("SCRIPT_EXIT", "")
 
-          print("Estado:", status)
-          print("Modo publicacion:", publish)
+          print("Publicacion solicitada:", publish)
+          print("Codigo Python:", exit_code)
+          print("Estado del recibo:", status)
 
-          # Vista previa manual
+          no_news = {
+              "no_eligible_news",
+              "no_licensed_relevant_photo",
+          }
+
+          # Error tecnico o parcial: nunca ocultarlo.
+          if status == "partial_or_uncertain":
+              raise SystemExit(
+                  "::error::Publicacion parcial o incierta. "
+                  "Revisar Meta antes de reintentar."
+              )
+
+          # Si no habia noticia o fotografia valida,
+          # no debe exigirse un ID de publicacion.
+          if status in no_news:
+              if exit_code not in (0, 2, 3):
+                  raise SystemExit(
+                      "::error::Error tecnico durante "
+                      "la busqueda de noticias"
+                  )
+
+              print(
+                  "::notice::SIN PUBLICACION HOY: "
+                  + status
+              )
+              raise SystemExit(0)
+
+          # Cualquier otro error del programa
+          # debe hacer fallar el workflow.
+          if exit_code != 0:
+              raise SystemExit(
+                  "::error::Python termino con error: "
+                  + str(exit_code)
+              )
+
+          # Ejecucion manual de vista previa.
           if not publish:
-              if status not in (
-                  "preview_only",
-                  "no_eligible_news",
-                  "no_licensed_relevant_photo",
-              ):
+              if status != "preview_only":
                   raise SystemExit(
-                      "::error::Resultado de vista previa inesperado"
+                      "::error::Estado inesperado "
+                      "para vista previa: " + str(status)
                   )
 
-              print("Vista previa finalizada")
+              print("Vista previa generada correctamente")
               raise SystemExit(0)
 
-          # Dia sin noticia elegible
-          if exit_code in ("2", "3"):
-              if status not in (
-                  "no_eligible_news",
-                  "no_licensed_relevant_photo",
-              ):
-                  raise SystemExit(
-                      "::error::Estado inconsistente con salida"
-                  )
-
-              print("SIN PUBLICACION HOY:", status)
-              raise SystemExit(0)
-
-          # Publicacion real requerida
+          # Publicacion real solicitada.
           if status != "published":
               raise SystemExit(
-                  "::error::No se confirmaron ambas publicaciones"
+                  "::error::Publicacion no confirmada. "
+                  "Estado: " + str(status)
               )
 
           targets = data.get("targets", {})
@@ -246,7 +219,7 @@ jobs:
                   or not str(item.get("id") or "").strip()
               ):
                   raise SystemExit(
-                      "::error::Publicacion sin confirmar: "
+                      "::error::Publicacion no confirmada: "
                       + site
                   )
 
@@ -258,15 +231,12 @@ jobs:
               )
 
           print(
-              "SISMONAUTA: Instagram y Facebook confirmados"
+              "SISMONAUTA: publicaciones "
+              "confirmadas en ambas plataformas"
           )
           PYVERIFY
 
-      # ==========================================
-      # 8. GUARDAR RESULTADOS
-      # ==========================================
-
-      - name: Guardar noticias e imagenes
+      - name: Guardar resultados
         if: always()
         uses: actions/upload-artifact@v4
         with:
