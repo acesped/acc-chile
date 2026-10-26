@@ -244,8 +244,7 @@ def episode_caption_base(ep):
   raise RuntimeError('Falta información temática para la descripción de Instagram')
  # El pie usa exactamente el hecho, enseñanza y conclusión del episodio.
  return (f'{title}\n\n{fact}\n\n{lesson}\n\n'
-         f'{close}\n\n¿Conocías esta diferencia? Te leemos en los comentarios.\n\n'
-         f'Fuente científica: {ep["source"]}')
+         f'{close}\n\n¿Qué opinas? Te leemos en los comentarios.')
 
 def short_reveal(sentence):
  """Selecciona una unidad semántica completa; jamás añade '...' o '…'."""
@@ -262,10 +261,11 @@ def short_reveal(sentence):
  return t
 
 def build_storyboard(ep):
- """Pregunta humana → curiosidad → respuesta factual → remate memorable.
+ """Pregunta humana → curiosidad → respuesta factual → cierre → CTA final.
 
  La voz de cada escena se obtiene del mismo mensaje que aparece en pantalla,
- o de una frase factual más desarrollada en la revelación. Sin mensajes ajenos.
+ o de una frase factual más desarrollada en la revelación. La escena final
+ agrega una llamada a la acción memorable y explícita.
  """
  key=str(ep.get('id',''))
  fact=str(ep['fact']).strip()
@@ -277,10 +277,13 @@ def build_storyboard(ep):
   labels=(hook,'HAY UNA EXPLICACIÓN CIENTÍFICA',short_reveal(fact),short_reveal(lesson))
  hook,tease,reveal,close=labels
  close=MEMORABLE_CLOSINGS.get(key,close)
+ cta_overlay='DALE LIKE'
+ cta_narration='Dale me gusta y comparte, para seguir recibiendo más información sobre este fascinante tema. Muchas gracias!'
  # Primera escena: pregunta audible y visible. La revelación lleva la evidencia.
  # La intriga no presenta una afirmación científica nueva.
  parts=[(hook,hook,'pregunta'),(tease,tease,'intriga'),
-        (fact,reveal,'revelacion'),(close,close,'cierre')]
+        (fact,reveal,'revelacion'),(close,close,'cierre'),
+        (cta_narration,cta_overlay,'cta')]
  storyboard=[]
  queries=list(ep.get('queries') or ['earthquake seismograph'])
  for i,(narration,overlay,stage) in enumerate(parts):
@@ -389,16 +392,14 @@ def visual_photo_audit(path):
 
 
 def license_accepted(code):
- """Solo dominio público o Creative Commons que permite uso comercial y adaptación."""
+ """Solo CC0 y dominio público verificable: pie sin créditos de imagen.
+
+ CC BY y CC BY-SA requieren atribuciones; no se aceptan para esta
+ modalidad sin referencias visibles en el texto de Instagram.
+ """
  code=norm(str(code)).strip().lower().replace('_','-')
  compact=re.sub(r'[^a-z0-9]+','',code)
- if compact.startswith(('cc0','publicdomain','publicdomainmark','pdm','pdold','pdus','pdself')):
-  return True
- if compact.startswith(('ccby','ccbysa')) and not any(x in compact for x in ('nc','nd')):
-  return True
- if compact.startswith(('bysa','by')) and not any(x in compact for x in ('nc','nd')):
-  return True
- return False
+ return compact.startswith(('cc0','publicdomain','publicdomainmark','pdm','pdold','pdus','pdself'))
 
 
 def ai_json(prompt):
@@ -488,7 +489,7 @@ def commons(query):
 
 def openverse(query):
  r=HTTP.get('https://api.openverse.org/v1/images/',
-   params={'q':query,'license':'cc0,pdm,by,by-sa','category':'photograph','page_size':20},timeout=25)
+   params={'q':query,'license':'cc0,pdm','category':'photograph','page_size':20},timeout=25)
  r.raise_for_status()
  for a in r.json().get('results',[]):
   license_=str(a.get('license','')).lower()
@@ -576,7 +577,7 @@ def get_photos(ep,folder,local_dir=None):
      if accepted>=2 or len(found)>=3:break
    if len(found)>=3:break
   if len(found)>=3:break
- if not found: raise RuntimeError('No se encontraron FOTOGRAFÍAS limpias y pertinentes (sin documentos, gráficos o texto) con licencia reutilizable con licencia reutilizable (CC0, PD, CC BY o CC BY-SA); se cancela el Reel.')
+ if not found: raise RuntimeError('No se encontraron FOTOGRAFÍAS limpias y pertinentes (sin documentos, gráficos o texto) con licencia CC0 o dominio público; se cancela el Reel.')
  return found,credits
 
 
@@ -597,6 +598,58 @@ def wrap(draw,text,ft,width):
    line=word
  if line:out.append(line)
  return out
+
+def draw_like_icon(draw,cx,cy,scale=1.0,fill=(255,255,255,255)):
+ """Dibuja un ícono simple de pulgar arriba."""
+ s=float(scale)
+ # Muñeca
+ draw.rounded_rectangle([cx-34*s,cy+62*s,cx+26*s,cy+150*s],radius=18*s,fill=fill)
+ # Palma
+ draw.rounded_rectangle([cx-78*s,cy-2*s,cx+48*s,cy+88*s],radius=28*s,fill=fill)
+ # Dedos
+ finger_w=26*s
+ gap=4*s
+ start_x=cx-70*s
+ top_y=cy-72*s
+ for idx,height in enumerate((74,82,80,68)):
+  x0=start_x+idx*(finger_w+gap)
+  draw.rounded_rectangle([x0,top_y,x0+finger_w,top_y+height*s],radius=12*s,fill=fill)
+ # Pulgar saliente
+ thumb=[(cx+38*s,cy+24*s),(cx+118*s,cy-4*s),(cx+142*s,cy+20*s),(cx+126*s,cy+58*s),(cx+64*s,cy+68*s)]
+ draw.polygon(thumb,fill=fill)
+ draw.rounded_rectangle([cx+48*s,cy+10*s,cx+106*s,cy+48*s],radius=16*s,fill=fill)
+
+def cta_scene_video(dest_video,duration):
+ """Escena final: fondo negro, pulgar arriba con parpadeo y texto al pie."""
+ tmpdir=Path(tempfile.mkdtemp(prefix='cta_like_'))
+ try:
+  total_frames=max(int(duration*FPS),1)
+  blink_period=max(int(FPS*0.45),6)
+  bottom_text='DALE LIKE'
+  for n in range(total_frames):
+   img=Image.new('RGBA',(W,H),(0,0,0,255))
+   draw=ImageDraw.Draw(img)
+   visible=((n//blink_period)%2)==0
+   pulse=1.0 if visible else 0.88
+   alpha=255 if visible else 82
+   # Halo leve para que el parpadeo se perciba mejor.
+   halo=Image.new('RGBA',(W,H),(0,0,0,0))
+   hdraw=ImageDraw.Draw(halo)
+   for extra,a in ((54,40),(26,68)):
+    hdraw.ellipse((W/2-140-extra,H/2-130-extra,W/2+140+extra,H/2+150+extra),fill=(255,255,255,a if visible else 0))
+   img=Image.alpha_composite(img,halo)
+   draw=ImageDraw.Draw(img)
+   draw_like_icon(draw,W/2,H//2-40,scale=1.65*pulse,fill=(255,255,255,alpha))
+   ft=font(54)
+   bbox=draw.textbbox((0,0),bottom_text,font=ft,stroke_width=3)
+   tw=bbox[2]-bbox[0]
+   tx=(W-tw)/2
+   ty=H-160
+   draw.text((tx,ty),bottom_text,font=ft,fill=(255,255,255,255),stroke_width=3,stroke_fill=(9,19,28,255))
+   img.convert('RGB').save(tmpdir/f'frame_{n:04d}.png',quality=95)
+  ffmpeg(['-framerate',str(FPS),'-i',tmpdir/'frame_%04d.png','-t',str(duration),'-r',str(FPS),'-c:v','libx264','-preset','veryfast','-crf','23','-pix_fmt','yuv420p','-movflags','+faststart',dest_video])
+ finally:
+  shutil.rmtree(tmpdir,ignore_errors=True)
 
 def clean_scene(photo,message,dest):
  """Fondo fotográfico limpio; adapta textos largos sin truncarlos."""
@@ -694,7 +747,7 @@ def render(ep,out,photo_dir=None,voice=True):
  if not shutil.which('ffmpeg'):raise RuntimeError('ffmpeg no instalado')
  folder=out/ep['episode_id'];folder.mkdir(parents=True,exist_ok=True)
  storyboard=build_storyboard(ep)
- if len(storyboard)<3:raise RuntimeError('Historia sin suficientes ideas comprobables')
+ if len(storyboard)<4:raise RuntimeError('Historia sin suficientes ideas comprobables')
  ep['storyboard']=storyboard
  # El relato publicado coincide exactamente con las frases asignadas a escenas.
  ep['script']=' '.join(z['narration'] for z in storyboard)
@@ -718,36 +771,65 @@ def render(ep,out,photo_dir=None,voice=True):
    except Exception as exc:
     raise RuntimeError(f'La voz de la escena {i+1} falló; no publicar un video desincronizado: {exc}')
   else:sec=0
-  # El texto permanece mientras se pronuncia su oración + pausa para lectura.
   words=len(beat['overlay'].split())
-  durations.append(round(max(sec+0.5, 3.3 if i==0 else (2.6 if i==1 else 4.5), words/(2.8 if i<2 else 2.2)+0.6),2))
+  stage=beat.get('stage','')
+  if stage=='pregunta':
+   min_dur=3.6
+   read_rate=2.7
+  elif stage=='intriga':
+   min_dur=3.0
+   read_rate=2.6
+  elif stage=='cta':
+   min_dur=5.4
+   read_rate=2.3
+  else:
+   min_dur=4.7
+   read_rate=2.15
+  durations.append(round(max(sec+0.55,min_dur,words/read_rate+0.7),2))
  total=round(sum(durations),2)
  print('SINCRONÍA escenas:',durations,'duración total:',total,flush=True)
- print('ESTRUCTURA: PREGUNTA → INTRIGA → REVELACIÓN → CIERRE',flush=True)
- frame_paths=[]
+ print('ESTRUCTURA: PREGUNTA → INTRIGA → REVELACIÓN → CIERRE → CTA',flush=True)
+ media_items=[]
+ cover=None
+ photo_idx=0
  for i,beat in enumerate(storyboard):
-  frame=folder/f'escena_{i:02d}.jpg'
-  clean_scene(photos[i%len(photos)],beat['overlay'],frame)
-  frame_paths.append(frame)
- cover=out/(ep['episode_id']+'_portada.jpg');shutil.copy2(frame_paths[0],cover)
+  stage=beat.get('stage','')
+  if stage=='cta':
+   clip_path=folder/f'escena_{i:02d}.mp4'
+   cta_scene_video(clip_path,durations[i])
+   media_items.append({'kind':'video','path':clip_path,'duration':durations[i]})
+  else:
+   frame=folder/f'escena_{i:02d}.jpg'
+   clean_scene(photos[photo_idx%len(photos)],beat['overlay'],frame)
+   media_items.append({'kind':'image','path':frame,'duration':durations[i]})
+   if cover is None:
+    cover=out/(ep['episode_id']+'_portada.jpg')
+    shutil.copy2(frame,cover)
+   photo_idx+=1
+ if cover is None:
+  raise RuntimeError('No se pudo generar portada')
  music=folder/'musica.wav';soundtrack(music,secs=total+1)
  inputs=[]
- for frame,d in zip(frame_paths,durations):
-  inputs+=['-loop','1','-framerate',str(FPS),'-t',str(d),'-i',frame]
- mi=len(frame_paths);inputs+=['-i',music]
- voice_start=mi+1
+ for item in media_items:
+  if item['kind']=='image':
+   inputs+=['-loop','1','-framerate',str(FPS),'-t',str(item['duration']),'-i',item['path']]
+  else:
+   inputs+=['-i',item['path']]
+ media_count=len(media_items)
+ inputs+=['-i',music]
+ voice_start=media_count+1
  for v in voices:inputs+=['-i',v]
  filt=[]
- for i in range(len(frame_paths)):
-  filt.append(f'[{i}:v]scale={W}:{H},setsar=1,format=yuv420p[v{i}]')
- filt.append(''.join(f'[v{i}]' for i in range(len(frame_paths)))+f'concat=n={len(frame_paths)}:v=1:a=0[v]')
+ for i,item in enumerate(media_items):
+  filt.append(f'[{i}:v]scale={W}:{H},setsar=1,trim=duration={item["duration"]},setpts=PTS-STARTPTS,format=yuv420p[v{i}]')
+ filt.append(''.join(f'[v{i}]' for i in range(len(media_items)))+f'concat=n={len(media_items)}:v=1:a=0[v]')
  if has_voice:
   for i,d in enumerate(durations):
    filt.append(f'[{voice_start+i}:a]aresample=44100,apad,atrim=duration={d},asetpts=PTS-STARTPTS[a{i}]')
   filt.append(''.join(f'[a{i}]' for i in range(len(voices)))+f'concat=n={len(voices)}:v=0:a=1[narr]')
-  filt.append(f'[{mi}:a]volume=0.30[mus];[narr]volume=1.0[nar];[mus][nar]amix=inputs=2:duration=first:dropout_transition=0:normalize=0,alimiter=limit=0.94[a]')
+  filt.append(f'[{media_count}:a]volume=0.30[mus];[narr]volume=1.0[nar];[mus][nar]amix=inputs=2:duration=first:dropout_transition=0:normalize=0,alimiter=limit=0.94[a]')
  else:
-  filt.append(f'[{mi}:a]volume=0.65,alimiter=limit=0.94[a]')
+  filt.append(f'[{media_count}:a]volume=0.65,alimiter=limit=0.94[a]')
  movie=out/(ep['episode_id']+'.mp4')
  ffmpeg([*inputs,'-filter_complex',';'.join(filt),'-map','[v]','-map','[a]','-t',str(total),
          '-r',str(FPS),'-c:v','libx264','-preset','veryfast','-crf','23','-pix_fmt','yuv420p',
@@ -842,41 +924,19 @@ def publish(ep,movie,approval,story=False,auto=False,out_dir=None):
   row=items.setdefault(ep['episode_id'],{});row[which]=status;row['updated_at']=utcnow()
   receipt=gh.write(STATE_PATH,json.dumps(state,ensure_ascii=False,indent=2).encode(),sha)
   sha=receipt['content']['sha']
- # Instagram admite como máximo 2.200 caracteres en la descripción.
- # Mantener atribuciones completas y concisas; nunca recortar licencias a ciegas.
- def clean_credit(v,limit=100):
-  value=re.sub(r'\s+',' ',re.sub(r'<[^>]*>',' ',str(v or ''))).strip()
-  return value if len(value)<=limit else value[:limit].rsplit(' ',1)[0].rstrip(' ,;')
+ # El texto público contiene SOLO contenido editorial y hashtags del episodio.
+ # Las fuentes científicas y metadatos de imágenes permanecen en el JSON
+ # local/artefactos como documentación interna, no en el pie de Instagram.
  credits=ep.get('image_credits',[])
- # El vídeo usa como máximo tres fotos; se listan TODAS las utilizadas.
- credit_lines=[]
- for ix,c in enumerate(credits,1):
-  title=clean_credit(c.get('title') or 'Imagen',65)
-  author=clean_credit(c.get('creator') or 'Autor no identificado',60)
-  lic=clean_credit(c.get('license') or 'Licencia no identificada',36)
-  source=str(c.get('source') or '').strip()
-  if not source.startswith('https://'):
-   raise RuntimeError('Falta URL verificable de atribución de imagen; no se publica')
-  credit_lines.append(f'{ix}. {title} — {author} — {lic} — {source}')
- credit_text=('\n\nImágenes / créditos:\n'+'\n'.join(credit_lines)) if credit_lines else ''
+ if not credits or any(not license_accepted(c.get('license','')) for c in credits):
+  raise RuntimeError('Sin créditos públicos: solo se permite CC0/dominio público verificado')
  hashtags='\n\n'+episode_hashtags(ep)
- base=episode_caption_base(ep)
- caption=base+credit_text+hashtags
+ caption=episode_caption_base(ep)+hashtags
  if len(caption)>2200:
-  # Simplificar identificadores descriptivos, sin suprimir autor, licencia o enlaces.
-  credit_lines=[]
-  for ix,c in enumerate(credits,1):
-   author=clean_credit(c.get('creator') or 'Autor no identificado',35)
-   lic=clean_credit(c.get('license') or 'Licencia no identificada',24)
-   source=str(c.get('source') or '').strip()
-   credit_lines.append(f'{ix}. {author} — {lic} — {source}')
-  credit_text=('\n\nCréditos:\n'+'\n'.join(credit_lines)) if credit_lines else ''
-  caption=base+credit_text+hashtags
- if len(caption)>2200:
-  raise RuntimeError('Atribuciones completas superan 2200 caracteres; reducir número de fotos o usar imágenes de dominio público verificadas')
+  raise RuntimeError('La descripción editorial y sus hashtags superan 2200 caracteres')
  if len(re.findall(r'(?<!\w)#[A-Za-z0-9_]+',caption))<10:
   raise RuntimeError('La publicación requiere al menos 10 hashtags relacionados con el tema')
- print(f'DESCRIPCIÓN Instagram: {len(caption)}/2200 caracteres; hashtags: {len(episode_hashtags(ep).split())}; fotos acreditadas: {len(credits)}',flush=True)
+ print(f'DESCRIPCIÓN Instagram: {len(caption)}/2200; hashtags: {len(episode_hashtags(ep).split())}; fuentes y créditos SOLO en JSON interno',flush=True)
  save('enviando')
  try:pid=ig_publish(user,token,url,caption)
  except BaseException:save('incierto');raise
