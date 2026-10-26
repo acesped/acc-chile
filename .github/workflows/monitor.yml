@@ -1,4 +1,4 @@
-name: GROUNDSHAKE CL - Reels sismicos Instagram
+name: GROUNDSHAKE CL - Reels sismicos sincronizados
 
 on:
   workflow_dispatch:
@@ -109,7 +109,32 @@ jobs:
             if [[ "$STORY" == 'true' ]]; then args+=(--story); fi
           fi
           echo "Cuenta de destino: @groundshake_cl | publicacion=$PUBLISH | story=$STORY"
+          echo "Video con voz individual, rotulo y foto por escena"
           python monitor.py "${args[@]}"
+
+      - name: Confirmar publicacion efectiva con identificador Meta
+        if: ${{ inputs.publish }}
+        shell: bash
+        env:
+          REQUIRE_STORY: ${{ inputs.story && 'true' || 'false' }}
+        run: |
+          set -euo pipefail
+          python - <<'PYCODE'
+          import json
+          from pathlib import Path
+          receipt = Path('output_sismos/publicacion_confirmada.json')
+          if not receipt.exists():
+              raise SystemExit('::error::No existe recibo de Meta; el workflow no puede declararse publicado')
+          data = json.loads(receipt.read_text(encoding='utf-8'))
+          if data.get('account') != 'groundshake_cl' or not data.get('reel_published') or not str(data.get('reel_id') or '').isdigit():
+              raise SystemExit('::error::Recibo Reel invalido; no se confirma publicacion')
+          import os
+          if os.environ.get('REQUIRE_STORY') == 'true' and (not data.get('story_published') or not str(data.get('story_id') or '').isdigit()):
+              raise SystemExit('::error::Reel confirmado, pero Story no confirmada; revisar en Instagram antes de reintentar')
+          print('PUBLICACION CONFIRMADA @groundshake_cl: Reel ID', data['reel_id'])
+          if data.get('story_published'):
+              print('STORY CONFIRMADA: ID', data['story_id'])
+          PYCODE
 
       - name: Guardar videos guiones e imagenes
         if: always()
