@@ -52,7 +52,7 @@ jobs:
       - name: Comprobar identidad y renovar solo si corresponde
         env:
           IG_LOGIN_TYPE: instagram
-          IG_EXPECTED_USERNAME: groundshake_cl
+          IG_EXPECTED_USERNAME: sismonauta
           INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
           INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
           GH_SECRETS_TOKEN: ${{ secrets.GH_SECRETS_TOKEN }}
