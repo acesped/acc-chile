@@ -1,0 +1,319 @@
+
+name: SISMONAUTA - Alertas mundiales M7+
+
+on:
+  schedule:
+    # Cada cinco minutos, todos los dias.
+    - cron: '*/5 * * * *'
+
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publicar en Instagram y Facebook'
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+# Grupo independiente de monitor y noticias.
+concurrency:
+  group: sismonauta-alertas-m7
+  cancel-in-progress: false
+
+jobs:
+  alerta_m7:
+    name: Monitorear y publicar terremotos M7+
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+
+    env:
+      PYTHONUNBUFFERED: '1'
+
+      # GitHub
+      GH_TOKEN: ${{ github.token }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      GITHUB_REF_NAME: ${{ github.event.repository.default_branch }}
+
+      # Instagram SISMONAUTA
+      INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
+      INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
+
+      # Fanpage Facebook SISMONAUTA
+      FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+      FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
+
+      # API Meta
+      IG_GRAPH_VERSION: 'v25.0'
+
+    steps:
+
+      # ========================================
+      # 1. OBTENER REPOSITORIO
+      # ========================================
+
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      # ========================================
+      # 2. PREPARAR PYTHON
+      # ========================================
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # ========================================
+      # 3. INSTALAR DEPENDENCIAS
+      # ========================================
+
+      - name: Instalar librerias
+        shell: bash
+        timeout-minutes: 8
+        run: |
+          set -euo pipefail
+
+          python -m pip install \
+            --disable-pip-version-check \
+            --retries 3 \
+            --timeout 45 \
+            'requests>=2.31,<3' \
+            'Pillow>=10,<13' \
+            'matplotlib>=3.8,<4' \
+            'cartopy>=0.23,<1'
+
+      # ========================================
+      # 4. VALIDAR SCRIPT
+      # ========================================
+
+      - name: Validar Python
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test -f sismonauta_alertas.py || {
+            echo "::error::Falta sismonauta_alertas.py"
+            exit 1
+          }
+
+          python -m py_compile sismonauta_alertas.py
+
+          echo "Script Python validado"
+
+      # ========================================
+      # 5. MODO PUBLICACION
+      # ========================================
+
+      - name: Determinar modo
+        id: modo
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          MANUAL_PUBLISH: ${{ inputs.publish }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$EVENT_NAME" == "schedule" ]]; then
+            PUBLISH=true
+          elif [[ "$MANUAL_PUBLISH" == "true" ]]; then
+            PUBLISH=true
+          else
+            PUBLISH=false
+          fi
+
+          echo "publish=$PUBLISH" >> "$GITHUB_OUTPUT"
+
+          echo "==================================="
+          echo "SISMONAUTA ALERTAS M7+"
+          echo "==================================="
+          echo "Publicar: $PUBLISH"
+          echo "Umbral: magnitud >= 7.0"
+          echo "Frecuencia: cada cinco minutos"
+          echo "Fuente sismica: USGS"
+          echo "Fuente tsunami: PTWC/NTWC"
+          echo "==================================="
+
+      # ========================================
+      # 6. VALIDAR CREDENCIALES
+      # ========================================
+
+      - name: Validar secretos
+        if: ${{ steps.modo.outputs.publish == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for name in \
+            INSTAGRAM_TOKEN \
+            INSTAGRAM_USER_ID \
+            FACEBOOK_PAGE_ID \
+            FACEBOOK_PAGE_TOKEN \
+            GH_TOKEN
+          do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::Falta secreto $name"
+              exit 1
+            fi
+          done
+
+          echo "Credenciales disponibles"
+
+      # ========================================
+      # 7. MONITOREAR USGS Y PUBLICAR
+      # ========================================
+
+      - name: Ejecutar monitoreo
+        id: monitoreo
+        shell: bash
+        timeout-minutes: 16
+        env:
+          PUBLISH: ${{ steps.modo.outputs.publish }}
+        run: |
+          set -uo pipefail
+
+          args=(
+            --out output_alertas
+            --lookback-hours 24
+          )
+
+          if [[ "$PUBLISH" == "true" ]]; then
+            args+=(--publish)
+          fi
+
+          python sismonauta_alertas.py "${args[@]}"
+          CODE=$?
+
+          echo "exit_code=$CODE" >> "$GITHUB_OUTPUT"
+
+          echo "Codigo del programa: $CODE"
+
+          # El siguiente paso valida el recibo.
+          exit 0
+
+      # ========================================
+      # 8. COMPROBAR RESULTADOS
+      # ========================================
+
+      - name: Verificar publicaciones
+        if: ${{ steps.monitoreo.conclusion == 'success' }}
+        shell: bash
+        env:
+          SCRIPT_EXIT: ${{ steps.monitoreo.outputs.exit_code }}
+          PUBLISH: ${{ steps.modo.outputs.publish }}
+        run: |
+          set -euo pipefail
+
+          python - <<'PYVERIFY'
+          import json
+          import os
+          from pathlib import Path
+
+          file = Path(
+              "output_alertas/estado_publicacion.json"
+          )
+
+          if not file.exists():
+              raise SystemExit(
+                  "::error::No existe recibo de monitoreo"
+              )
+
+          data = json.loads(
+              file.read_text(encoding="utf-8")
+          )
+
+          status = data.get("status")
+          code = int(
+              os.getenv("SCRIPT_EXIT") or "1"
+          )
+          publish = (
+              os.getenv("PUBLISH") == "true"
+          )
+
+          print("Modo publicar:", publish)
+          print("Codigo Python:", code)
+          print("Estado:", status)
+
+          if code != 0:
+              raise SystemExit(
+                  "::error::Error en el script Python"
+              )
+
+          if status == "no_new_event":
+              print(
+                  "::notice::No existen eventos M7+ "
+                  "nuevos pendientes de publicación"
+              )
+              raise SystemExit(0)
+
+          if status == "preview_only":
+              if publish:
+                  raise SystemExit(
+                      "::error::Se esperaba publicación"
+                  )
+
+              print("Vista previa generada")
+              raise SystemExit(0)
+
+          if status == "partial_or_uncertain":
+              raise SystemExit(
+                  "::error::Publicación parcial o "
+                  "incierta. Revisar las plataformas."
+              )
+
+          if status != "published":
+              raise SystemExit(
+                  "::error::Resultado inesperado: "
+                  + str(status)
+              )
+
+          events = data.get("events", [])
+
+          if not events:
+              raise SystemExit(
+                  "::error::No hay eventos confirmados"
+              )
+
+          for event in events:
+              targets = event.get("targets", {})
+
+              for platform in ("instagram", "facebook"):
+                  info = targets.get(platform, {})
+
+                  if (
+                      info.get("status") != "published"
+                      or not str(info.get("id") or "").strip()
+                  ):
+                      raise SystemExit(
+                          "::error::Falta confirmación: "
+                          + platform
+                      )
+
+                  print(
+                      "CONFIRMADO:",
+                      event.get("id"),
+                      platform,
+                      info["id"]
+                  )
+
+          print(
+              "SISMONAUTA: publicación confirmada "
+              "en Instagram y Facebook"
+          )
+          PYVERIFY
+
+      # ========================================
+      # 9. GUARDAR EVIDENCIAS
+      # ========================================
+
+      - name: Guardar imágenes y registros
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sismonauta-m7-${{ github.run_id }}-${{ github.run_attempt }}
+          path: output_alertas/
+          if-no-files-found: warn
+          retention-days: 14
