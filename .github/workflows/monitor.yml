@@ -1,4 +1,4 @@
-name: GROUNDSHAKE CL - Reels sismicos sincronizados
+name: SISMONAUTA - Reels sismicos sincronizados
 
 on:
   workflow_dispatch:
@@ -23,7 +23,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: groundshake-cl-instagram
+  group: sismonauta-instagram
   cancel-in-progress: false
 
 jobs:
@@ -38,7 +38,7 @@ jobs:
       INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
       INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
       IG_GRAPH_VERSION: 'v25.0'
-      IG_EXPECTED_USERNAME: 'groundshake_cl'
+      IG_EXPECTED_USERNAME: 'sismonauta'
       GH_TOKEN: ${{ github.token }}
       GITHUB_REF_NAME: ${{ github.event.repository.default_branch }}
       DV_VOICE: 'es-CL-CatalinaNeural'
@@ -108,7 +108,7 @@ jobs:
             args+=(--publish --auto-publish)
             if [[ "$STORY" == 'true' ]]; then args+=(--story); fi
           fi
-          echo "Cuenta de destino: @groundshake_cl | publicacion=$PUBLISH | story=$STORY"
+          echo "Cuenta de destino: @sismonauta | publicacion=$PUBLISH | story=$STORY"
           echo "Video con voz individual, rotulo y foto por escena"
           python monitor.py "${args[@]}"
 
@@ -126,12 +126,12 @@ jobs:
           if not receipt.exists():
               raise SystemExit('::error::No existe recibo de Meta; el workflow no puede declararse publicado')
           data = json.loads(receipt.read_text(encoding='utf-8'))
-          if data.get('account') != 'groundshake_cl' or not data.get('reel_published') or not str(data.get('reel_id') or '').isdigit():
+          if data.get('account') != 'sismonauta' or not data.get('reel_published') or not str(data.get('reel_id') or '').isdigit():
               raise SystemExit('::error::Recibo Reel invalido; no se confirma publicacion')
           import os
           if os.environ.get('REQUIRE_STORY') == 'true' and (not data.get('story_published') or not str(data.get('story_id') or '').isdigit()):
               raise SystemExit('::error::Reel confirmado, pero Story no confirmada; revisar en Instagram antes de reintentar')
-          print('PUBLICACION CONFIRMADA @groundshake_cl: Reel ID', data['reel_id'])
+          print('PUBLICACION CONFIRMADA @sismonauta: Reel ID', data['reel_id'])
           if data.get('story_published'):
               print('STORY CONFIRMADA: ID', data['story_id'])
           PYCODE
@@ -140,7 +140,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: groundshake-${{ github.run_id }}-${{ github.run_attempt }}
+          name: sismonauta-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             output_sismos/**/*.json
             output_sismos/**/*.mp4
