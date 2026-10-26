@@ -10,9 +10,9 @@ on:
         type: boolean
         default: false
 
-  # Todos los dias a las 07:00 AM, hora de Chile
+  # Todos los dias a las 12:00 AM, hora de Chile
   schedule:
-    - cron: '0 7 * * *'
+    - cron: '0 12 * * *'
       timezone: 'America/Santiago'
 
 permissions:
