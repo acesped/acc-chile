@@ -1,7 +1,8 @@
 
-name: SISMONAUTA - Noticias sismicas 07 Chile
+name: SISMONAUTA - Noticias cientificas diarias
 
 on:
+  # Ejecucion manual desde GitHub Actions
   workflow_dispatch:
     inputs:
       publish:
@@ -10,6 +11,7 @@ on:
         type: boolean
         default: false
 
+  # Publicacion diaria a las 07:00 AM de Chile
   schedule:
     - cron: '0 7 * * *'
       timezone: 'America/Santiago'
@@ -23,51 +25,98 @@ concurrency:
 
 jobs:
   noticias:
-    name: Buscar y publicar noticia sismica
+    name: Buscar, redactar y publicar noticia
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
+    timeout-minutes: 45
 
     env:
       PYTHONUNBUFFERED: '1'
+
+      # GitHub
       GH_TOKEN: ${{ github.token }}
       GITHUB_REPOSITORY: ${{ github.repository }}
       GITHUB_REF_NAME: ${{ github.event.repository.default_branch }}
 
+      # Instagram
       INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
       INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
 
+      # Facebook
       FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
       FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
 
+      # Proveedores de IA para explicaciones extensas
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+      # Modelos configurables
+      GEMINI_NEWS_MODEL: 'gemini-2.5-flash'
+      OPENROUTER_NEWS_MODEL: 'openai/gpt-4o-mini'
+      GROQ_NEWS_MODEL: 'llama-3.3-70b-versatile'
+
+      # API Meta
       IG_GRAPH_VERSION: 'v25.0'
+      IG_EXPECTED_USERNAME: 'sismonauta'
+      FACEBOOK_EXPECTED_USERNAME: 'sismonauta'
 
     steps:
-      - name: Obtener repositorio
+      # ==========================================
+      # 1. OBTENER REPOSITORIO
+      # ==========================================
+
+      - name: Descargar repositorio
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.repository.default_branch }}
+
+      # ==========================================
+      # 2. CONFIGURAR PYTHON
+      # ==========================================
 
       - name: Configurar Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Instalar dependencias
+      # ==========================================
+      # 3. INSTALAR DEPENDENCIAS
+      # ==========================================
+
+      - name: Instalar librerias
         shell: bash
+        timeout-minutes: 8
         run: |
           set -euo pipefail
+
           python -m pip install \
             --disable-pip-version-check \
             --retries 3 \
+            --timeout 45 \
             'requests>=2.31,<3' \
             'Pillow>=10,<13'
 
-      - name: Validar Python
+      # ==========================================
+      # 4. COMPROBAR ARCHIVO PYTHON
+      # ==========================================
+
+      - name: Verificar programa
         shell: bash
         run: |
           set -euo pipefail
-          test -f noticias_sismonauta.py
+
+          test -f noticias_sismonauta.py || {
+            echo "::error::Falta noticias_sismonauta.py"
+            exit 1
+          }
+
           python -m py_compile noticias_sismonauta.py
+
+          echo "Python verificado correctamente"
+
+      # ==========================================
+      # 5. SELECCIONAR MODO DE EJECUCION
+      # ==========================================
 
       - name: Determinar modo de publicacion
         id: modo
@@ -87,11 +136,54 @@ jobs:
           fi
 
           echo "publish=$PUBLISH" >> "$GITHUB_OUTPUT"
-          echo "Publicacion activada: $PUBLISH"
 
-      - name: Buscar noticia y procesar publicacion
+          echo "Evento: $EVENT_NAME"
+          echo "Publicacion activada: $PUBLISH"
+          echo "Destino Instagram: @sismonauta"
+          echo "Destino Facebook: SISMONAUTA"
+
+      # ==========================================
+      # 6. COMPROBAR CREDENCIALES
+      # ==========================================
+
+      - name: Verificar secretos necesarios
+        if: ${{ steps.modo.outputs.publish == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for name in \
+            INSTAGRAM_TOKEN \
+            INSTAGRAM_USER_ID \
+            FACEBOOK_PAGE_ID \
+            FACEBOOK_PAGE_TOKEN
+          do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::Falta el secreto $name"
+              exit 1
+            fi
+          done
+
+          if [[ \
+            -z "${GEMINI_API_KEY:-}" && \
+            -z "${OPENROUTER_API_KEY:-}" && \
+            -z "${GROQ_API_KEY:-}" \
+          ]]; then
+            echo "::error::Configura al menos una clave de IA"
+            echo "::error::GEMINI_API_KEY, OPENROUTER_API_KEY o GROQ_API_KEY"
+            exit 1
+          fi
+
+          echo "Credenciales presentes"
+
+      # ==========================================
+      # 7. BUSCAR, REDACTAR Y PUBLICAR
+      # ==========================================
+
+      - name: Procesar noticia del dia
         id: ejecutar
         shell: bash
+        timeout-minutes: 32
         env:
           PUBLISH: ${{ steps.modo.outputs.publish }}
         run: |
@@ -103,20 +195,33 @@ jobs:
             args+=(--publish)
           fi
 
-          echo "Modo publicacion: $PUBLISH"
+          echo "==================================="
+          echo "SISMONAUTA - NOTICIAS"
+          echo "==================================="
+          echo "Publicar: $PUBLISH"
+          echo "Periodo: ultimas 24 horas"
+          echo "Idiomas: espanol e ingles"
+          echo "Descripcion: explicacion extensa"
+          echo "Imagen: banner azul y letras blancas"
+          echo "Destinos: Instagram y Facebook"
+          echo "==================================="
 
           python noticias_sismonauta.py "${args[@]}"
           code=$?
 
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
-          echo "Codigo de salida Python: $code"
+          echo "Codigo de salida: $code"
 
-          # Los resultados se revisan en el siguiente paso.
-          # Si hubo un error, el verificador lo identificara.
+          # El siguiente paso comprueba tanto
+          # el codigo de salida como el recibo.
           exit 0
 
-      - name: Verificar resultado real
-        if: always() && steps.ejecutar.conclusion == 'success'
+      # ==========================================
+      # 8. VERIFICAR RESULTADOS
+      # ==========================================
+
+      - name: Confirmar resultado de la ejecucion
+        if: ${{ always() && steps.ejecutar.conclusion == 'success' }}
         shell: bash
         env:
           PUBLISH: ${{ steps.modo.outputs.publish }}
@@ -133,12 +238,12 @@ jobs:
               "output_noticias/estado_publicacion.json"
           )
 
-          exit_code = int(
-              os.environ.get("SCRIPT_EXIT") or "1"
-          )
-
           publish = (
               os.environ.get("PUBLISH") == "true"
+          )
+
+          exit_code = int(
+              os.environ.get("SCRIPT_EXIT") or "1"
           )
 
           if not receipt.exists():
@@ -152,61 +257,62 @@ jobs:
 
           status = data.get("status")
 
-          print("Publicacion solicitada:", publish)
+          print("Modo publicacion:", publish)
           print("Codigo Python:", exit_code)
-          print("Estado del recibo:", status)
+          print("Estado:", status)
 
+          # Los errores tecnicos no deben
+          # confundirse con ausencia de noticias.
+          if exit_code not in (0, 2, 3):
+              raise SystemExit(
+                  "::error::Error tecnico del programa. "
+                  "Revisar el registro de ejecucion."
+              )
+
+          if status == "partial_or_uncertain":
+              raise SystemExit(
+                  "::error::Publicacion parcial o incierta. "
+                  "Revisar ambas plataformas antes de repetir."
+              )
+
+          # No se encontro noticia elegible.
           no_news = {
               "no_eligible_news",
               "no_licensed_relevant_photo",
           }
 
-          # Error tecnico o parcial: nunca ocultarlo.
-          if status == "partial_or_uncertain":
-              raise SystemExit(
-                  "::error::Publicacion parcial o incierta. "
-                  "Revisar Meta antes de reintentar."
-              )
-
-          # Si no habia noticia o fotografia valida,
-          # no debe exigirse un ID de publicacion.
           if status in no_news:
-              if exit_code not in (0, 2, 3):
-                  raise SystemExit(
-                      "::error::Error tecnico durante "
-                      "la busqueda de noticias"
-                  )
-
               print(
-                  "::notice::SIN PUBLICACION HOY: "
+                  "::notice::Sin publicacion hoy: "
                   + status
               )
               raise SystemExit(0)
 
-          # Cualquier otro error del programa
-          # debe hacer fallar el workflow.
-          if exit_code != 0:
-              raise SystemExit(
-                  "::error::Python termino con error: "
-                  + str(exit_code)
-              )
-
-          # Ejecucion manual de vista previa.
+          # Solo vista previa.
           if not publish:
               if status != "preview_only":
                   raise SystemExit(
-                      "::error::Estado inesperado "
-                      "para vista previa: " + str(status)
+                      "::error::Resultado inesperado "
+                      "en modo vista previa: "
+                      + str(status)
                   )
 
-              print("Vista previa generada correctamente")
+              print(
+                  "Vista previa generada correctamente"
+              )
               raise SystemExit(0)
 
-          # Publicacion real solicitada.
+          # Publicacion real.
+          if exit_code != 0:
+              raise SystemExit(
+                  "::error::La publicacion no finalizo "
+                  "correctamente"
+              )
+
           if status != "published":
               raise SystemExit(
-                  "::error::Publicacion no confirmada. "
-                  "Estado: " + str(status)
+                  "::error::No se confirmo la publicacion "
+                  "en ambas redes"
               )
 
           targets = data.get("targets", {})
@@ -231,12 +337,16 @@ jobs:
               )
 
           print(
-              "SISMONAUTA: publicaciones "
-              "confirmadas en ambas plataformas"
+              "SISMONAUTA: noticias publicadas "
+              "en Instagram y Facebook"
           )
           PYVERIFY
 
-      - name: Guardar resultados
+      # ==========================================
+      # 9. CONSERVAR EVIDENCIAS
+      # ==========================================
+
+      - name: Guardar imagen, noticia y registros
         if: always()
         uses: actions/upload-artifact@v4
         with:
