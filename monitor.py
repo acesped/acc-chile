@@ -374,32 +374,37 @@ def build_storyboard(ep):
 PHOTO_TERMS={
  'ondas':('san andreas fault','geological fault scarp','earthquake surface rupture','tectonic fault landscape','rift valley'),
  'magnitud':('earthquake surface rupture','earthquake ground fissure','earthquake landslide','earthquake fault scarp'),
- 'replicas':('earthquake surface rupture','earthquake ground fissure','earthquake landslide','fault scarp'),
+ 'replicas':('earthquake surface rupture','earthquake ground fissure','earthquake landslide','fault scarp','landslide'),
  'valdivia':('1960 chile earthquake coast','1960 valdivia coast','1960 chile tsunami coast','1960 valdivia tsunami','valdivia 1960 shoreline'),
  'profundidad':('subduction trench','san andreas fault','geological fault scarp','earthquake surface rupture'),
- 'placas':('san andreas fault','tectonic fault landscape','rift valley','geological fault scarp','plate boundary landscape'),
- 'tsunamis':('tsunami coastline','tsunami inundation coast','tsunami coastal erosion','tsunami wave coast'),
+ 'placas':('san andreas fault','tectonic fault landscape','rift valley','geological fault scarp','plate boundary landscape','fault scarp'),
+ 'tsunamis':('tsunami coastline','tsunami inundation coast','tsunami coastal erosion','tsunami wave coast','tsunami coast','tsunami shoreline'),
  'alerta':('san andreas fault','earthquake surface rupture','tectonic fault landscape','earthquake ground fissure'),
  'falla':('san andreas fault','geological fault scarp','fault line landscape','fault rupture landscape','surface rupture'),
  'prediccion':('san andreas fault','earthquake fault scarp','earthquake ground fissure','tectonic fault landscape'),
  'sismografo':('san andreas fault','earthquake surface rupture','earthquake ground fissure','geological fault scarp'),
- 'terremoto':('earthquake surface rupture','earthquake landslide','earthquake ground fissure','earthquake fault scarp'),
+ 'terremoto':('earthquake surface rupture','earthquake landslide','earthquake ground fissure','earthquake fault scarp','landslide'),
 }
 
 PHOTO_SEARCH_QUERIES={
- 'ondas':['San Andreas Fault aerial landscape','earthquake surface rupture natural landscape'],
- 'magnitud':['earthquake surface rupture landscape','earthquake ground fissure landscape'],
- 'replicas':['earthquake ground rupture natural terrain','earthquake landslide hillside'],
- 'valdivia':['1960 Valdivia Chile tsunami coastline','1960 Chile earthquake coastal subsidence landscape'],
- 'profundidad':['subduction trench coastal cliffs landscape','San Andreas Fault landscape'],
- 'placas':['San Andreas Fault aerial landscape','tectonic rift valley landscape'],
- 'tsunamis':['tsunami coastal erosion natural landscape','tsunami inundation coastline landscape'],
- 'alerta':['San Andreas Fault aerial landscape','earthquake surface rupture natural terrain'],
- 'falla':['San Andreas Fault California aerial landscape','geological fault scarp natural terrain'],
- 'prediccion':['San Andreas Fault geological landscape','earthquake ground fissure landscape'],
- 'sismografo':['earthquake surface rupture natural terrain','San Andreas Fault aerial landscape'],
- 'terremoto':['earthquake surface rupture natural landscape','earthquake landslide mountain landscape'],
+ 'ondas':['San Andreas Fault','fault scarp'],
+ 'magnitud':['earthquake landslide','earthquake surface rupture'],
+ 'replicas':['earthquake landslide','fault scarp'],
+ 'valdivia':['1960 Valdivia earthquake coast','1960 Chile tsunami'],
+ 'profundidad':['subduction coast','tectonic fault landscape'],
+ 'placas':['San Andreas Fault','rift valley'],
+ 'tsunamis':['tsunami coast','tsunami shoreline'],
+ 'alerta':['earthquake surface rupture','San Andreas Fault'],
+ 'falla':['San Andreas Fault','fault scarp','surface rupture'],
+ 'prediccion':['San Andreas Fault','fault scarp'],
+ 'sismografo':['San Andreas Fault','surface rupture'],
+ 'terremoto':['earthquake landslide','earthquake surface rupture'],
 }
+
+# Con el requisito editorial "solo paisajes", algunos temas instrumentales o
+# abstractos no tienen una ilustración directa honesta. No seleccionarlos al azar.
+LANDSCAPE_AUTO_TOPICS=frozenset(('falla','placas','tsunamis','terremoto','replicas'))
+
 
 # Rechazo explícito: personas, escenas urbanas y aparatos. Se revisa el título,
 # la descripción y las etiquetas; no se admiten fotos dudosas como relleno.
@@ -451,13 +456,13 @@ def photo_relevant(item,ep):
  if not title:return False
  if re.search(r'\.(?:pdf|djvu|tiff?|svg|gif)(?:$|[?# ])',title):return False
  combined=' '+re.sub(r'[_-]+',' ',title+' '+desc+' '+tags)+' '
- if any(term in combined for term in NON_PHOTO_TERMS):return False
- if any(term in combined for term in FORBIDDEN_VISUAL_TERMS):return False
+ if any(re.search(r"(?<![a-z])"+re.escape(term.strip())+r"(?![a-z])",title) for term in NON_PHOTO_TERMS):return False
+ if any(term in title for term in FORBIDDEN_VISUAL_TERMS):return False
  terms=tuple(norm(x) for x in PHOTO_TERMS.get(ep.get('id'),()))
  if not terms:return False
  # Aceptar solo títulos descriptivos del fenómeno, no etiquetas añadidas.
  if not any(term in title for term in terms):return False
- if not any(term in combined for term in LANDSCAPE_EVIDENCE):return False
+ if not any(term in title for term in LANDSCAPE_EVIDENCE):return False
  # Para un hecho histórico, no inventar autenticidad con un paisaje moderno.
  if ep.get('id')=='valdivia' and not ('1960' in title and any(x in title for x in ('chile','valdivia'))):return False
  return True
@@ -577,11 +582,13 @@ def choose_topic(history, requested=''):
   matches=[x for x in TOPICS if x['id']==requested]
   if not matches: raise ValueError('Tema desconocido. Disponibles: '+', '.join(x['id'] for x in TOPICS))
   return matches[0]
- counts={x['id']:0 for x in TOPICS}
+ candidates=[x for x in TOPICS if x['id'] in LANDSCAPE_AUTO_TOPICS]
+ if not candidates:raise RuntimeError('No hay temas compatibles con paisajes naturales')
+ counts={x['id']:0 for x in candidates}
  for item in history.get('items',[]):
   if item.get('topic') in counts: counts[item['topic']]+=1
  minimum=min(counts.values())
- return random.SystemRandom().choice([x for x in TOPICS if counts[x['id']]==minimum])
+ return random.SystemRandom().choice([x for x in candidates if counts[x['id']]==minimum])
 
 
 def commons(query):
@@ -659,7 +666,7 @@ def get_photos(ep,folder,local_dir=None):
  Se rechazan automáticamente metadatos ajenos y documentos/diagramas.
  Las escenas usan solo este conjunto seleccionado; no fotografías de relleno.
  """
- found=[];credits=[];seen=set()
+ found=[];credits=[];seen=set();counts={'candidates':0,'metadata_rejected':0,'download_failed':0,'visual_rejected':0}
  if local_dir:
   for f in sorted(Path(local_dir).iterdir()):
    if f.suffix.lower() in ('.jpg','.jpeg','.png','.webp'):
@@ -680,20 +687,21 @@ def get_photos(ep,folder,local_dir=None):
     print(f'Fotos {provider.__name__} / {q}: {str(exc)[:110]}',flush=True);continue
    for item in results:
     if item['url'] in seen:continue
-    seen.add(item['url'])
-    if not photo_relevant(item,ep):continue
+    seen.add(item['url']);counts['candidates']+=1
+    if not photo_relevant(item,ep):counts['metadata_rejected']+=1;continue
     path=folder/f'foto_{len(found)+1}.jpg'
-    if not photo_download(item,path):continue
+    if not photo_download(item,path):counts['download_failed']+=1;continue
     okay,reason=visual_photo_audit(path)
     if not okay:
      print('FOTO DESCARTADA:',reason,'|',str(item.get('title',''))[:95],flush=True)
-     path.unlink(missing_ok=True);continue
+     path.unlink(missing_ok=True);counts['visual_rejected']+=1;continue
     found.append(path)
     credits.append({k:item.get(k,'') for k in ('source','license','title','creator','provider','description','tags')})
     print('Foto temática:',ep['id'],'|',item['title'][:85],'|',item['license'],flush=True)
     if len(found)>=3:break
    if len(found)>=3:break
   if len(found)>=3:break
+ print('AUDITORIA FOTOGRAFIAS:',counts,'aceptadas=',len(found),flush=True)
  if not found:
   raise RuntimeError('No se encontraron fotografías auténticas del tema específico con licencia CC0/PD. No se publican imágenes de relleno.')
  return found,credits
