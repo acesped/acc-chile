@@ -394,7 +394,7 @@ PHOTO_SEARCH_QUERIES={
  'valdivia':['1960 Valdivia earthquake coast','1960 Chile tsunami'],
  'profundidad':['subduction coast','tectonic fault landscape'],
  'placas':['San Andreas Fault','rift valley'],
- 'tsunamis':['tsunami coast','tsunami shoreline'],
+ 'tsunamis':['tsunami coast','tsunami shoreline','tsunami coastal erosion','tsunami inundation','tsunami coastal landscape','tsunami wave shoreline','tsunami damage beach'],
  'alerta':['earthquake surface rupture','San Andreas Fault'],
  'falla':['San Andreas Fault','fault scarp','surface rupture'],
  'prediccion':['San Andreas Fault','fault scarp'],
@@ -459,11 +459,24 @@ def photo_relevant(item,ep):
  combined=' '+re.sub(r'[_-]+',' ',title+' '+desc+' '+tags)+' '
  if any(re.search(r"(?<![a-z])"+re.escape(term.strip())+r"(?![a-z])",title) for term in NON_PHOTO_TERMS):return False
  if any(term in title for term in FORBIDDEN_VISUAL_TERMS):return False
+ # Evitar imágenes humanas/urbanas también cuando la descripción lo indique.
+ if any(re.search(r'(?<![a-z])'+re.escape(term.strip())+r'(?![a-z])',desc) for term in ('people','person','portrait','crowd','tourist','rescue workers','buildings','houses','city street','evacuees','victims')):return False
  terms=tuple(norm(x) for x in PHOTO_TERMS.get(ep.get('id'),()))
  if not terms:return False
  # Aceptar solo títulos descriptivos del fenómeno, no etiquetas añadidas.
- if not any(term in title for term in terms):return False
- if not any(term in title for term in LANDSCAPE_EVIDENCE):return False
+ if ep.get('id')=='tsunamis':
+  # Los títulos de Commons suelen ser el nombre del evento, p. ej. «2011 tsunami».
+  # Aceptar evidencia costera en título O descripción, nunca costa genérica
+  # sin vínculo explícito al tsunami. Mantener el rechazo de material urbano.
+  coastal=('coast','coastal','shore','shoreline','beach','sea','ocean','bay',
+           'inundation','flood','erosion','wave','cliff','landscape','waterfront',
+           'costa','playa','oleaje','inundacion','acantilado')
+  event=('tsunami','maremoto','inundation by tsunami','tsunami inundation')
+  if not any(x in title for x in event):return False
+  if not any(x in (title+' '+desc) for x in coastal):return False
+ else:
+  if not any(term in title for term in terms):return False
+  if not any(term in title for term in LANDSCAPE_EVIDENCE):return False
  # Para un hecho histórico, no inventar autenticidad con un paisaje moderno.
  if ep.get('id')=='valdivia' and not ('1960' in title and any(x in title for x in ('chile','valdivia'))):return False
  return True
@@ -481,7 +494,7 @@ def visual_photo_audit(path):
    if rgb.width<500 or rgb.height<350:return False,'resolución insuficiente'
    sample=ImageOps.contain(rgb,(480,480))
    # Fondos predominantemente blancos son habituales en papers y diagramas.
-   pixels=list(sample.resize((160,160)).getdata())
+   pixels=list(sample.resize((160,160)).get_flattened_data() if hasattr(Image.Image,'get_flattened_data') else sample.resize((160,160)).getdata())
    white=sum(1 for r,g,b in pixels if min(r,g,b)>224 and max(r,g,b)-min(r,g,b)<20)/len(pixels)
    if white>0.58:return False,'fondo documental predominantemente blanco'
    gray=sample.convert('L')
@@ -681,6 +694,7 @@ def get_photos(ep,folder,local_dir=None):
  queries=PHOTO_SEARCH_QUERIES.get(ep.get('id'))
  if not queries:raise RuntimeError('Tema sin estrategia visual específica; no se usarán fotos genéricas')
  print('BUSQUEDA VISUAL TEMATICA:',ep['id'],'|',queries,flush=True)
+ rejected_examples=[]
  for q in queries:
   for provider in (commons,openverse):
    try:results=list(provider(q))
@@ -689,7 +703,10 @@ def get_photos(ep,folder,local_dir=None):
    for item in results:
     if item['url'] in seen:continue
     seen.add(item['url']);counts['candidates']+=1
-    if not photo_relevant(item,ep):counts['metadata_rejected']+=1;continue
+    if not photo_relevant(item,ep):
+     counts['metadata_rejected']+=1
+     if len(rejected_examples)<5:rejected_examples.append(str(item.get('title',''))[:85])
+     continue
     path=folder/f'foto_{len(found)+1}.jpg'
     if not photo_download(item,path):counts['download_failed']+=1;continue
     okay,reason=visual_photo_audit(path)
@@ -702,6 +719,7 @@ def get_photos(ep,folder,local_dir=None):
     if len(found)>=3:break
    if len(found)>=3:break
   if len(found)>=3:break
+ if not found and rejected_examples:print('EJEMPLOS DE TITULOS RECHAZADOS:',rejected_examples,flush=True)
  print('AUDITORIA FOTOGRAFIAS:',counts,'aceptadas=',len(found),flush=True)
  if not found:
   raise RuntimeError('No se encontraron fotografías auténticas del tema específico con licencia CC0/PD. No se publican imágenes de relleno.')
