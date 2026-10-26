@@ -591,13 +591,48 @@ def ai_json(prompt):
  return json.loads(match.group())
 
 
-def choose_topic(history, requested=''):
+# Politica antirrepeticion: un tema cientifico solo puede publicarse una vez.
+# Si una publicacion anterior quedo parcialmente completada, se reanuda el mismo
+# episode_id en lugar de generar otro video con distintos estilos.
+def legacy_topic_for_episode(episode_id):
+ if not str(episode_id).startswith('sismos-'):
+  return None
+ angles=['¿Sabías esto?','La explicación científica','Lo que muestran los datos',
+         'La diferencia importante','La pregunta que importa','Un detalle sorprendente',
+         'Lo que no debemos confundir','Lo esencial en segundos']
+ for topic in TOPICS:
+  for style in STYLES:
+   for angle in angles:
+    old_id='sismos-'+hashlib.sha1((topic['id']+style+angle).encode()).hexdigest()[:12]
+    if old_id==episode_id:return topic['id']
+ return None
+
+def remote_published_topics(state,history):
+ used=set()
+ published_keys=('reel','story','facebook_reel','facebook_story','facebook_feed')
+ for eid,row in (state.get('episodes') or {}).items():
+  if not isinstance(row,dict):continue
+  if not any(row.get(k) in ('publicado','enviando','incierto') for k in published_keys):continue
+  topic=row.get('topic') or legacy_topic_for_episode(eid)
+  if not topic:
+   topic=next((h.get('topic') for h in history.get('items',[]) if h.get('episode_id')==eid),None)
+  if topic:used.add(topic)
+  else:
+   # Un episodio historico no identificable impide garantizar que no se repita.
+   raise RuntimeError(f'Historial de publicación sin tema identificable: {eid}. Revisar antes de generar videos nuevos.')
+ for entry in history.get('items',[]):
+  if entry.get('status')=='publicado' and entry.get('topic'):used.add(entry['topic'])
+ return used
+
+def choose_topic(history, requested='', excluded_topics=None):
+ excluded_topics=set(excluded_topics or ())
  if requested:
+  if requested in excluded_topics:raise RuntimeError('Tema ya publicado en SISMONAUTA: '+requested+'. Se evita publicar una nueva variante del mismo video.')
   matches=[x for x in TOPICS if x['id']==requested]
   if not matches: raise ValueError('Tema desconocido. Disponibles: '+', '.join(x['id'] for x in TOPICS))
   return matches[0]
- candidates=[x for x in TOPICS if x['id'] in LANDSCAPE_AUTO_TOPICS]
- if not candidates:raise RuntimeError('No hay temas compatibles con paisajes naturales')
+ candidates=[x for x in TOPICS if x['id'] in LANDSCAPE_AUTO_TOPICS and x['id'] not in excluded_topics]
+ if not candidates:raise RuntimeError('Todos los temas de paisajes sísmicos disponibles ya fueron publicados. Se detiene para evitar videos repetidos; es necesario incorporar nuevos temas científicos verificados.')
  counts={x['id']:0 for x in candidates}
  for item in history.get('items',[]):
   if item.get('topic') in counts: counts[item['topic']]+=1
@@ -1162,6 +1197,14 @@ def publish(ep,movie,approval,story=False,auto=False,out_dir=None,facebook=True)
  raw,sha=gh.read(STATE_PATH)
  state=json.loads(raw) if raw else {'schema':1,'episodes':{}}
  items=state.setdefault('episodes',{});row=items.setdefault(ep['episode_id'],{})
+ for old_eid,old_row in items.items():
+  if old_eid==ep['episode_id'] or not isinstance(old_row,dict):continue
+  old_topic=old_row.get('topic') or legacy_topic_for_episode(old_eid)
+  if old_topic==ep.get('id') and any(old_row.get(k) in ('publicado','enviando','incierto') for k in ('reel','story','facebook_reel','facebook_story','facebook_feed')):
+   raise RuntimeError(f'Tema {old_topic} ya tiene un video enviado ({old_eid}); no se publicará una variante duplicada.')
+ if not row.get('topic'):
+  row['topic']=ep.get('id') or legacy_topic_for_episode(ep['episode_id'])
+
  destinations=['reel']+(['story'] if story else [])+(['facebook_reel']+(['facebook_story'] if story else [])+['facebook_feed'] if facebook else [])
  for dest in destinations:
   status=row.get(dest)
@@ -1280,6 +1323,15 @@ def main():
    gh=Github();raw,_=gh.read('dataviral/sismos_editorial.json')
    if raw:history=json.loads(raw)
   except Exception as exc:print('Historial remoto no disponible:',str(exc)[:140],flush=True)
+ # Consultar historial de ENVÍOS, no solo historial editorial: un episodio puede
+ # haberse publicado parcialmente y no figurar aun en sismos_editorial.json.
+ published_topics=set()
+ if args.publish:
+  gh_state=Github()
+  raw_state,_=gh_state.read(STATE_PATH)
+  live_state=json.loads(raw_state) if raw_state else {'episodes':{}}
+  published_topics=remote_published_topics(live_state,history)
+  print('ANTIDUPLICADOS: temas ya publicados/en proceso:',sorted(published_topics),flush=True)
  if args.auto_publish and not args.publish:
   raise RuntimeError('--auto-publish requiere --publish')
  if args.publish:
@@ -1295,7 +1347,7 @@ def main():
    raise RuntimeError('Este archivo solo admite episodios sísmicos de SISMONAUTA')
   t={'id':ep.get('id','revisado')}
  else:
-  t=choose_topic(history,args.topic);ep=generate_angle(t,history,use_ai=(not args.no_ai and not args.auto_publish))
+  t=choose_topic(history,args.topic,published_topics);ep=generate_angle(t,history,use_ai=(not args.no_ai and not args.auto_publish))
   ep['base_verified']=bool(args.auto_publish and t.get('source') and t.get('fact') and t.get('lesson'))
   ep['editorial_check']='Afirmaciones restringidas a la base editorial; no es verificación automática de la página de origen' if args.auto_publish else 'Requiere revisión de datos'
  episode=ep['episode_id'];write_json_atomic(out/(episode+'_guion.json'),ep)
