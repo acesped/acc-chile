@@ -52,6 +52,19 @@ HTTP = requests.Session(); HTTP.headers.update({'User-Agent':USER_AGENT})
 # Temas documentados con referencia informativa verificable. No son noticias.
 # Cada ejecución puede abordar otros ángulos, pero nunca inventar cifras.
 TOPICS = [
+ {'id': 'ruptura', 'category': 'Geología y fenómenos sísmicos', 'title': '¿Todos los terremotos rompen la superficie?', 'fact': 'Un terremoto puede romper la superficie cuando el desplazamiento de una falla alcanza el terreno; no todos lo hacen.', 'lesson': 'Una grieta visible no acompaña a todos los sismos.', 'source': 'https://www.usgs.gov/programs/earthquake-hazards/science/faqs?page=1', 'queries': ['earthquake surface rupture', 'fault scarp']},
+ {'id': 'deslizamientos', 'category': 'Geología y fenómenos sísmicos', 'title': '¿Un terremoto puede derrumbar una montaña?', 'fact': 'Las sacudidas fuertes pueden desestabilizar laderas y desencadenar deslizamientos de tierra.', 'lesson': 'Las consecuencias de un terremoto no se limitan a las sacudidas.', 'source': 'https://www.usgs.gov/programs/earthquake-hazards/science/faqs', 'queries': ['earthquake landslide', 'earthquake triggered landslide']},
+ {'id': 'grietas', 'category': 'Geología y fenómenos sísmicos', 'title': '¿La Tierra se abre durante un terremoto?', 'fact': 'Algunos terremotos provocan grietas poco profundas por deslizamientos y deformación del terreno; las fallas no se abren como grandes abismos.', 'lesson': 'Las grietas superficiales no son pozos sin fondo.', 'source': 'https://www.usgs.gov/programs/earthquake-hazards/science/faqs', 'queries': ['earthquake ground fissure', 'earthquake surface rupture']},
+ {'id': 'transformante', 'category': 'Geología y fenómenos sísmicos', 'title': '¿Qué ocurre cuando dos placas se deslizan de lado?', 'fact': 'En los límites transformantes, dos placas se desplazan horizontalmente una respecto a la otra; estas zonas pueden generar grandes terremotos.', 'lesson': 'La falla de San Andrés es un ejemplo de este movimiento.', 'source': 'https://www.noaa.gov/jetstream/tsunamis/tsunami-generation-earthquakes/jetstream-max-plate-tectonics-and-earthquakes', 'queries': ['San Andreas Fault', 'transform fault landscape']},
+ {'id': 'rift', 'category': 'Geología y fenómenos sísmicos', 'title': '¿Por qué se forman grandes valles de fractura?', 'fact': 'En algunos límites divergentes, las placas se separan y pueden formar valles de rift acompañados de actividad sísmica.', 'lesson': 'Un valle puede contar la historia de placas que se separan.', 'source': 'https://www.noaa.gov/jetstream/tsunamis/tsunami-generation-earthquakes/jetstream-max-plate-tectonics-and-earthquakes', 'queries': ['East African Rift valley', 'rift valley landscape']},
+ {'id': 'subduccion', 'category': 'Geología y fenómenos sísmicos', 'title': '¿Qué ocurre cuando una placa se hunde bajo otra?', 'fact': 'En las zonas de subducción, una placa se introduce bajo otra y pueden producirse grandes terremotos y tsunamis.', 'lesson': 'La costa puede revelar dónde convergen las placas.', 'source': 'https://www.noaa.gov/jetstream/tsunamis/tsunami-generation-earthquakes/jetstream-max-plate-tectonics-and-earthquakes', 'queries': ['subduction zone coast', 'tectonic coastal mountains']},
+ {'id': 'colision', 'category': 'Geología y fenómenos sísmicos', 'title': '¿Qué relación tienen las montañas con la tectónica?', 'fact': 'La colisión de placas continentales puede elevar y deformar rocas, formando grandes cordilleras y fallas inversas.', 'lesson': 'Las cordilleras guardan señales del movimiento terrestre.', 'source': 'https://www.bgs.ac.uk/discovering-geology/earth-hazards/earthquakes/what-causes-earthquakes/', 'queries': ['Himalaya tectonic mountains', 'folded geological mountain rocks']},
+ {'id': 'falla_inversa', 'category': 'Geología y fenómenos sísmicos', 'title': '¿Puede una falla elevar parte del paisaje?', 'fact': 'En una falla inversa un bloque de roca se desplaza hacia arriba respecto al otro, debido a esfuerzos de compresión.', 'lesson': 'La compresión también transforma el relieve.', 'source': 'https://www.bgs.ac.uk/discovering-geology/earth-hazards/earthquakes/what-causes-earthquakes/', 'queries': ['thrust fault scarp', 'reverse fault rock outcrop']},
+ {'id': 'falla_normal', 'category': 'Geología y fenómenos sísmicos', 'title': '¿Una falla puede hundir un bloque de terreno?', 'fact': 'En las fallas normales un bloque desciende respecto al otro bajo condiciones de extensión de la corteza.', 'lesson': 'La extensión deja escalones visibles en el terreno.', 'source': 'https://www.bgs.ac.uk/discovering-geology/earth-hazards/earthquakes/what-causes-earthquakes/', 'queries': ['normal fault scarp', 'rift valley fault scarp']},
+ {'id': 'tsunami_oleadas', 'category': 'Geología y fenómenos sísmicos', 'title': '¿La primera ola de un tsunami es siempre la mayor?', 'fact': 'La primera ola de un tsunami no tiene por qué ser la más alta ni la más destructiva; pueden llegar varias oleadas.', 'lesson': 'La primera ola no marca necesariamente el final del peligro.', 'source': 'https://www.noaa.gov/jetstream/tsunamis/tsunami-inundation', 'queries': ['tsunami inundation coast', 'tsunami shoreline']},
+ {'id': 'tsunami_retroceso', 'category': 'Geología y fenómenos sísmicos', 'title': '¿Por qué el mar puede retroceder antes de un tsunami?', 'fact': 'Algunos tsunamis llegan primero con un valle de onda y producen un retiro inusual del mar; no ocurre en todos los casos.', 'lesson': 'Un retiro repentino del mar es una señal natural de peligro.', 'source': 'https://www.noaa.gov/jetstream/tsunamis/tsunami-inundation', 'queries': ['tsunami receding shoreline', 'tsunami exposed seafloor coast']},
+ {'id': 'tsunami_rios', 'category': 'Geología y fenómenos sísmicos', 'title': '¿Un tsunami puede avanzar por un río?', 'fact': 'Los tsunamis pueden remontar ríos y estuarios conectados con el mar, extendiendo la inundación tierra adentro.', 'lesson': 'La amenaza puede seguir el curso de un río.', 'source': 'https://www.noaa.gov/jetstream/tsunamis/tsunami-inundation', 'queries': ['tsunami river estuary', 'tsunami flooded coast']},
+ {'id': 'tsunami_inundacion', 'category': 'Geología y fenómenos sísmicos', 'title': '¿Un tsunami siempre parece una enorme ola que rompe?', 'fact': 'Un tsunami puede llegar a la costa como una inundación que sube rápidamente, y no necesariamente como una ola gigante de película.', 'lesson': 'El peligro no siempre tiene la forma que imaginamos.', 'source': 'https://www.weather.gov/safety/tsunami-about', 'queries': ['tsunami coastal inundation', 'tsunami flood shoreline']},
  {'id':'ondas','category':'Ciencia sísmica','title':'¿Por qué hay distintos tipos de ondas sísmicas?',
   'fact':'Las ondas P y S viajan de maneras diferentes; las ondas S no se propagan a través de líquidos.',
   'lesson':'El comportamiento de las ondas revela propiedades del interior terrestre.',
@@ -272,6 +285,19 @@ def short_reveal(sentence):
 # Guiones por fenómeno: cada escena entrega información distinta y verificable.
 # Cada par contiene (locución, rótulo de máximo 12 palabras).
 RETENTION_STORIES = {
+ 'ruptura': [('¿Todos los terremotos dejan una gran fractura visible?', '¿SE ROMPE SIEMPRE EL SUELO?'), ('La respuesta depende de dónde llega el movimiento.', 'NO SIEMPRE ES VISIBLE'), ('Una falla puede romper la superficie si el desplazamiento alcanza el terreno.', 'RUPTURA EN LA SUPERFICIE'), ('Muchos terremotos no producen una ruptura superficial visible.', 'NO TODOS LA PRODUCEN'), ('La ausencia de una grieta no significa que no haya ocurrido un sismo.', 'LO INVISIBLE TAMBIÉN SUCEDE')],
+ 'deslizamientos': [('¿Puede un terremoto derrumbar una ladera entera?', '¿TEMBLOR O DERRUMBE?'), ('Las montañas también responden al movimiento.', 'LA LADERA PUEDE CEDER'), ('Una sacudida intensa puede desestabilizar el terreno.', 'EL TERRENO PIERDE ESTABILIDAD'), ('Esto puede desencadenar deslizamientos de tierra.', 'SE PRODUCEN DESLIZAMIENTOS'), ('El peligro no siempre termina cuando el suelo deja de temblar.', 'MIRA TAMBIÉN LAS LADERAS')],
+ 'grietas': [('¿Un terremoto puede abrir el suelo como en las películas?', '¿SE ABRE LA TIERRA?'), ('Las grietas reales no son abismos infinitos.', 'LA REALIDAD ES DISTINTA'), ('Pueden aparecer fisuras superficiales por movimientos del terreno.', 'APARECEN FISURAS REALES'), ('Deslizamientos y deformaciones pueden causar esas fracturas.', 'EL TERRENO SE DEFORMA'), ('No confundas una grieta superficial con un enorme abismo.', 'NO ES UN ABISMO')],
+ 'transformante': [('¿Qué sucede cuando dos placas se rozan de lado?', '¿PLACAS QUE SE DESLIZAN?'), ('No todos los bordes de placas chocan de frente.', 'NO SIEMPRE HAY CHOQUE'), ('En una falla transformante, las placas se mueven lateralmente.', 'MOVIMIENTO HORIZONTAL'), ('Ese desplazamiento puede generar fuertes terremotos.', 'PUEDEN OCURRIR TERREMOTOS'), ('La falla de San Andrés permite observar este tipo de límite.', 'SAN ANDRÉS DA PISTAS')],
+ 'rift': [('¿Por qué existen valles tan largos entre montañas?', '¿CÓMO NACE UN RIFT?'), ('Algunos revelan que la corteza se está separando.', 'LA CORTEZA SE SEPARA'), ('En un límite divergente las placas se alejan entre sí.', 'PLACAS EN SEPARACIÓN'), ('La extensión puede formar valles de rift y actividad sísmica.', 'UN VALLE QUE SE ABRE'), ('El relieve también deja huellas del movimiento de placas.', 'EL PAISAJE CUENTA HISTORIAS')],
+ 'subduccion': [('¿Cómo puede una placa hundirse bajo otra?', '¿QUÉ ES SUBDUCCIÓN?'), ('En algunas costas ocurre un movimiento enorme y lento.', 'OCURRE BAJO LAS COSTAS'), ('Una placa tectónica se introduce por debajo de otra.', 'UNA PLACA DESCIENDE'), ('Estas zonas pueden producir grandes terremotos y tsunamis.', 'GRANDES EVENTOS POSIBLES'), ('La forma de una costa puede estar ligada a su tectónica.', 'UNA COSTA EN MOVIMIENTO')],
+ 'colision': [('¿Las montañas pueden formarse por choque de placas?', '¿MONTAÑAS POR UN CHOQUE?'), ('Una cordillera puede acumular la historia de una colisión.', 'LAS ROCAS SE COMPRIMEN'), ('Las placas continentales pueden empujar y deformar rocas.', 'LA CORTEZA SE DEFORMA'), ('Ese proceso eleva montañas y origina fallas inversas.', 'SE ELEVA EL RELIEVE'), ('Las rocas de una montaña conservan señales tectónicas.', 'LA MONTAÑA GUARDA PISTAS')],
+ 'falla_inversa': [('¿Puede un terremoto elevar una parte del terreno?', '¿EL SUELO PUEDE ELEVARSE?'), ('Las rocas se deforman cuando están comprimidas.', 'LAS ROCAS SE COMPRIMEN'), ('En una falla inversa un bloque sube respecto al otro.', 'UN BLOQUE SUBE'), ('El desplazamiento puede cambiar la forma del paisaje.', 'EL RELIEVE CAMBIA'), ('Una falla puede dejar escalones en la superficie.', 'LA TIERRA DEJA MARCAS')],
+ 'falla_normal': [('¿Qué ocurre cuando la corteza se estira?', '¿LA CORTEZA SE ESTIRA?'), ('No todos los movimientos tectónicos comprimen.', 'TAMBIÉN HAY EXTENSIÓN'), ('En una falla normal un bloque baja respecto al otro.', 'UN BLOQUE DESCIENDE'), ('Ese movimiento puede formar escarpes y valles.', 'APARECEN ESCARPES'), ('La forma del terreno conserva señales de la extensión.', 'EL PAISAJE REVELA EXTENSIÓN')],
+ 'tsunami_oleadas': [('¿La primera ola de un tsunami es siempre la mayor?', '¿LA PRIMERA ES LA PEOR?'), ('Una sola ola no cuenta toda la historia.', 'PUEDE HABER MÁS OLAS'), ('La primera no tiene por qué ser la más alta.', 'LA MAYOR PUEDE LLEGAR DESPUÉS'), ('Pueden llegar oleadas sucesivas durante horas.', 'EL RIESGO PUEDE CONTINUAR'), ('No vuelvas a la costa hasta que las autoridades indiquen que es seguro.', 'ESPERA INDICACIONES OFICIALES')],
+ 'tsunami_retroceso': [('¿Por qué a veces el mar se aleja de repente?', '¿EL MAR DESAPARECE?'), ('Ese retiro no siempre es una marea normal.', 'PUEDE SER UNA SEÑAL'), ('Algunos tsunamis llegan primero con un valle de onda.', 'EL AGUA PUEDE RETROCEDER'), ('El fondo marino puede quedar temporalmente expuesto.', 'EL FONDO QUEDA A LA VISTA'), ('Si notas un retiro repentino inusual, aléjate a zonas altas.', 'ALÉJATE DE LA COSTA')],
+ 'tsunami_rios': [('¿Un tsunami puede avanzar por un río?', '¿UN TSUNAMI EN UN RÍO?'), ('El océano puede llevar el riesgo tierra adentro.', 'EL PELIGRO AVANZA'), ('Las olas pueden remontar ríos y estuarios costeros.', 'PUEDE ENTRAR POR ESTUARIOS'), ('Eso puede extender la inundación lejos de la orilla.', 'LLEGA MÁS ALLÁ DE LA PLAYA'), ('Los cauces conectados con el mar también requieren precaución.', 'CUIDADO CON LOS CAUCES')],
+ 'tsunami_inundacion': [('¿Un tsunami siempre parece una ola gigante de película?', '¿UNA OLA GIGANTE?'), ('Su aspecto puede ser mucho menos evidente.', 'NO SIEMPRE ROMPE COMO OLA'), ('A veces llega como una subida rápida del agua.', 'UNA INUNDACIÓN REPENTINA'), ('Las corrientes y la inundación pueden ser peligrosas.', 'EL AGUA TIENE FUERZA'), ('No esperes una pared de agua para reconocer el peligro.', 'NO ESPERES VER UNA GRAN OLA')],
  'alerta': [
   ('¿Cómo puede una alerta avisarte antes de que sientas el terremoto?', '¿TE PUEDE AVISAR ANTES?'),
   ('No es que conozca el futuro. La explicación ocurre bajo nuestros pies.', 'NO ES ADIVINACIÓN'),
@@ -373,6 +399,19 @@ def build_storyboard(ep):
 # Paisajes naturales exclusivamente: fallas, deformación del terreno, costas y montañas.
 # No usar instrumentos, edificios, rescates ni retratos como imágenes de apoyo.
 PHOTO_TERMS={
+ 'ruptura':('surface rupture', 'fault scarp', 'ground rupture', 'earthquake fissure'),
+ 'deslizamientos':('earthquake landslide', 'earthquake triggered landslide', 'landslide'),
+ 'grietas':('ground fissure', 'surface rupture', 'earthquake fissure', 'fault scarp'),
+ 'transformante':('san andreas fault', 'transform fault', 'fault scarp'),
+ 'rift':('rift valley', 'east african rift', 'rift escarpment'),
+ 'subduccion':('subduction coast', 'subduction zone coast', 'tectonic coast', 'coastal mountain'),
+ 'colision':('himalaya tectonic', 'folded rock', 'mountain rock', 'folded geological'),
+ 'falla_inversa':('thrust fault', 'reverse fault', 'fault scarp'),
+ 'falla_normal':('normal fault', 'rift valley', 'fault scarp'),
+ 'tsunami_oleadas':('tsunami', 'maremoto'),
+ 'tsunami_retroceso':('tsunami', 'maremoto'),
+ 'tsunami_rios':('tsunami', 'maremoto'),
+ 'tsunami_inundacion':('tsunami', 'maremoto'),
  'ondas':('san andreas fault','geological fault scarp','earthquake surface rupture','tectonic fault landscape','rift valley'),
  'magnitud':('earthquake surface rupture','earthquake ground fissure','earthquake landslide','earthquake fault scarp'),
  'replicas':('earthquake surface rupture','earthquake ground fissure','earthquake landslide','fault scarp','landslide'),
@@ -388,6 +427,19 @@ PHOTO_TERMS={
 }
 
 PHOTO_SEARCH_QUERIES={
+ 'ruptura':['earthquake surface rupture', 'fault scarp'],
+ 'deslizamientos':['earthquake landslide', 'earthquake triggered landslide'],
+ 'grietas':['earthquake ground fissure', 'earthquake surface rupture'],
+ 'transformante':['San Andreas Fault', 'transform fault landscape'],
+ 'rift':['East African Rift valley', 'rift valley landscape'],
+ 'subduccion':['subduction zone coast', 'tectonic coastal mountains'],
+ 'colision':['Himalaya tectonic mountains', 'folded geological mountain rocks'],
+ 'falla_inversa':['thrust fault scarp', 'reverse fault rock outcrop'],
+ 'falla_normal':['normal fault scarp', 'rift valley fault scarp'],
+ 'tsunami_oleadas':['tsunami inundation coast', 'tsunami shoreline'],
+ 'tsunami_retroceso':['tsunami receding shoreline', 'tsunami exposed seafloor coast'],
+ 'tsunami_rios':['tsunami river estuary', 'tsunami flooded coast'],
+ 'tsunami_inundacion':['tsunami coastal inundation', 'tsunami flood shoreline'],
  'ondas':['San Andreas Fault','fault scarp'],
  'magnitud':['earthquake landslide','earthquake surface rupture'],
  'replicas':['earthquake landslide','fault scarp'],
@@ -404,7 +456,7 @@ PHOTO_SEARCH_QUERIES={
 
 # Con el requisito editorial "solo paisajes", algunos temas instrumentales o
 # abstractos no tienen una ilustración directa honesta. No seleccionarlos al azar.
-LANDSCAPE_AUTO_TOPICS=frozenset(('falla','placas','tsunamis','terremoto','replicas'))
+LANDSCAPE_AUTO_TOPICS=frozenset(('falla', 'placas', 'tsunamis', 'terremoto', 'replicas', 'ruptura', 'deslizamientos', 'grietas', 'transformante', 'rift', 'subduccion', 'colision', 'falla_inversa', 'falla_normal', 'tsunami_oleadas', 'tsunami_retroceso', 'tsunami_rios', 'tsunami_inundacion'))
 
 
 # Rechazo explícito: personas, escenas urbanas y aparatos. Se revisa el título,
@@ -464,7 +516,7 @@ def photo_relevant(item,ep):
  terms=tuple(norm(x) for x in PHOTO_TERMS.get(ep.get('id'),()))
  if not terms:return False
  # Aceptar solo títulos descriptivos del fenómeno, no etiquetas añadidas.
- if ep.get('id')=='tsunamis':
+ if ep.get('id') in ('tsunamis','tsunami_oleadas','tsunami_retroceso','tsunami_rios','tsunami_inundacion'):
   # Los títulos de Commons suelen ser el nombre del evento, p. ej. «2011 tsunami».
   # Aceptar evidencia costera en título O descripción, nunca costa genérica
   # sin vínculo explícito al tsunami. Mantener el rechazo de material urbano.
@@ -632,7 +684,7 @@ def choose_topic(history, requested='', excluded_topics=None):
   if not matches: raise ValueError('Tema desconocido. Disponibles: '+', '.join(x['id'] for x in TOPICS))
   return matches[0]
  candidates=[x for x in TOPICS if x['id'] in LANDSCAPE_AUTO_TOPICS and x['id'] not in excluded_topics]
- if not candidates:raise RuntimeError('Todos los temas de paisajes sísmicos disponibles ya fueron publicados. Se detiene para evitar videos repetidos; es necesario incorporar nuevos temas científicos verificados.')
+ if not candidates:raise RuntimeError('CATALOGO_AGOTADO: todos los temas cientificos nuevos ya fueron publicados; no se publica contenido duplicado.')
  counts={x['id']:0 for x in candidates}
  for item in history.get('items',[]):
   if item.get('topic') in counts: counts[item['topic']]+=1
