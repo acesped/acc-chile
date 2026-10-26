@@ -191,6 +191,62 @@ EDITORIAL_BEATS = {
  'terremoto': ('¿POR QUÉ SE SIENTE UN SISMO TAN LEJOS?', 'LA ENERGÍA NO SE QUEDA QUIETA', 'LAS ONDAS RECORREN GRANDES DISTANCIAS', 'LA DISTANCIA NO CUENTA TODO'),
 }
 
+# Remates editoriales: frases originales, breves, sin hechos añadidos.
+# Voz y pantalla presentan el mismo remate; no se usan frases genéricas.
+MEMORABLE_CLOSINGS = {
+ 'ondas': 'LAS ONDAS CUENTAN LO QUE NO VEMOS.',
+ 'magnitud': 'UN SOLO SISMO. MUCHAS FORMAS DE SENTIRLO.',
+ 'replicas': 'QUE PARE EL TEMBLOR NO SIGNIFICA QUE TERMINEN LAS RÉPLICAS.',
+ 'valdivia': 'VALDIVIA 1960: UNA FECHA QUE LA TIERRA NO BORRA.',
+ 'profundidad': 'LA PROFUNDIDAD TAMBIÉN CUENTA LA HISTORIA.',
+ 'placas': 'BAJO NUESTROS PIES, LA TIERRA SIGUE MOVIÉNDOSE.',
+ 'tsunamis': 'BAJO EL MAR, NO TODO TEMBLOR LEVANTA UNA OLA.',
+ 'alerta': 'LA ALERTA NO ADIVINA: DETECTA LO QUE YA COMENZÓ.',
+ 'falla': 'UNA FALLA NO ES SOLO UNA GRIETA: ES MOVIMIENTO.',
+ 'prediccion': 'PROBABILIDAD NO SIGNIFICA SABER CUÁNDO TEMBLARÁ.',
+ 'sismografo': 'UN SISMÓMETRO HACE VISIBLE LO INVISIBLE.',
+ 'terremoto': 'LAS ONDAS VIAJAN MÁS ALLÁ DE LO QUE VEMOS.',
+}
+
+# Etiquetas por fenómeno, sin inventar lugares o eventos ajenos al episodio.
+TOPIC_HASHTAGS = {
+ 'ondas': ['OndasSismicas','OndasP','OndasS','PropagacionDeOndas','InteriorTerrestre','Sismologia','Geofisica','CienciaDeLaTierra'],
+ 'magnitud': ['MagnitudSismica','IntensidadSismica','EscalaDeMagnitud','MovimientoDelSuelo','Sismologia','RiesgoSismico','CienciaDeLaTierra','Geofisica'],
+ 'replicas': ['ReplicasSismicas','ActividadSismica','Terremoto','FallasGeologicas','CortezaTerrestre','Sismologia','Geologia','CienciaDeLaTierra'],
+ 'valdivia': ['Valdivia1960','TerremotoDeValdivia','ChileSismico','HistoriaSismica','Magnitud95','Sismologia','TerremotosHistoricos','GeologiaDeChile'],
+ 'profundidad': ['ProfundidadSismica','Hipocentro','Epicentro','Sismologia','TerremotosProfundos','TerremotosSuperficiales','Geofisica','CienciaDeLaTierra'],
+ 'placas': ['PlacasTectonicas','TectonicaDePlacas','Litosfera','Geologia','FallasGeologicas','CienciaDeLaTierra','Sismologia','MovimientoDePlacas'],
+ 'tsunamis': ['Tsunami','TerremotoSubmarino','FondoMarino','RiesgoDeTsunami','Sismologia','Oceano','CienciaDeLaTierra','SeguridadCostera'],
+ 'alerta': ['AlertaSismica','AlertaTemprana','DeteccionSismica','Sismometros','OndasSismicas','PrevencionSismica','Sismologia','TecnologiaSismica'],
+ 'falla': ['FallaGeologica','FallasTectonicas','Geologia','FracturaDeRocas','TectonicaDePlacas','Sismologia','CienciaDeLaTierra','MovimientoTectonico'],
+ 'prediccion': ['PrediccionSismica','ProbabilidadSismica','MitosSismicos','CienciaSismica','Sismologia','RiesgoSismico','Terremotos','Geofisica'],
+ 'sismografo': ['Sismometro','Sismografo','RegistroSismico','InstrumentosSismicos','Sismologia','Geofisica','OndasSismicas','TecnologiaSismica'],
+ 'terremoto': ['OndasSismicas','DistanciaEpicentral','PropagacionSismica','MovimientoDelSuelo','Sismologia','Geofisica','Terremotos','CienciaDeLaTierra'],
+}
+
+def episode_hashtags(ep):
+ key=norm(ep.get('id',''))
+ tags=['GroundshakeCL','Sismos','EducacionSismica','Terremotos']+TOPIC_HASHTAGS.get(key,['Sismologia','Geofisica','CienciaDeLaTierra','Geologia','PrevencionSismica','CulturaSismica','OndasSismicas','RiesgoSismico'])
+ unique=[];seen=set()
+ for tag in tags:
+  if tag.lower() not in seen:
+   unique.append('#'+tag);seen.add(tag.lower())
+ assert len(unique)>=10
+ return ' '.join(unique[:14])
+
+def episode_caption_base(ep):
+ key=norm(ep.get('id',''))
+ title=str(ep.get('title','')).strip()
+ fact=str(ep.get('fact','')).strip()
+ lesson=str(ep.get('lesson','')).strip()
+ close=MEMORABLE_CLOSINGS.get(key, str(ep.get('storyboard',[{}])[-1].get('overlay','')) if ep.get('storyboard') else lesson)
+ if not all((title,fact,lesson,close)):
+  raise RuntimeError('Falta información temática para la descripción de Instagram')
+ # El pie usa exactamente el hecho, enseñanza y conclusión del episodio.
+ return (f'{title}\n\n{fact}\n\n{lesson}\n\n'
+         f'{close}\n\n¿Conocías esta diferencia? Te leemos en los comentarios.\n\n'
+         f'Fuente científica: {ep["source"]}')
+
 def short_reveal(sentence):
  """Selecciona una unidad semántica completa; jamás añade '...' o '…'."""
  t=re.sub(r'\s+',' ',str(sentence)).strip().rstrip('.,;:')
@@ -220,10 +276,11 @@ def build_storyboard(ep):
   hook=title if title.startswith('¿') else '¿Qué revela este fenómeno sísmico?'
   labels=(hook,'HAY UNA EXPLICACIÓN CIENTÍFICA',short_reveal(fact),short_reveal(lesson))
  hook,tease,reveal,close=labels
+ close=MEMORABLE_CLOSINGS.get(key,close)
  # Primera escena: pregunta audible y visible. La revelación lleva la evidencia.
  # La intriga no presenta una afirmación científica nueva.
  parts=[(hook,hook,'pregunta'),(tease,tease,'intriga'),
-        (fact,reveal,'revelacion'),(lesson,close,'cierre')]
+        (fact,reveal,'revelacion'),(close,close,'cierre')]
  storyboard=[]
  queries=list(ep.get('queries') or ['earthquake seismograph'])
  for i,(narration,overlay,stage) in enumerate(parts):
@@ -802,8 +859,8 @@ def publish(ep,movie,approval,story=False,auto=False,out_dir=None):
    raise RuntimeError('Falta URL verificable de atribución de imagen; no se publica')
   credit_lines.append(f'{ix}. {title} — {author} — {lic} — {source}')
  credit_text=('\n\nImágenes / créditos:\n'+'\n'.join(credit_lines)) if credit_lines else ''
- hashtags='\n\n#GroundshakeCL #Sismos #Ciencia #Terremotos'
- base=f'{ep["title"]}\n\n{ep["lesson"]}\n\nFuente científica: {ep["source"]}'
+ hashtags='\n\n'+episode_hashtags(ep)
+ base=episode_caption_base(ep)
  caption=base+credit_text+hashtags
  if len(caption)>2200:
   # Simplificar identificadores descriptivos, sin suprimir autor, licencia o enlaces.
@@ -817,7 +874,9 @@ def publish(ep,movie,approval,story=False,auto=False,out_dir=None):
   caption=base+credit_text+hashtags
  if len(caption)>2200:
   raise RuntimeError('Atribuciones completas superan 2200 caracteres; reducir número de fotos o usar imágenes de dominio público verificadas')
- print(f'DESCRIPCIÓN Instagram: {len(caption)}/2200 caracteres; fotos acreditadas: {len(credits)}',flush=True)
+ if len(re.findall(r'(?<!\w)#[A-Za-z0-9_]+',caption))<10:
+  raise RuntimeError('La publicación requiere al menos 10 hashtags relacionados con el tema')
+ print(f'DESCRIPCIÓN Instagram: {len(caption)}/2200 caracteres; hashtags: {len(episode_hashtags(ep).split())}; fotos acreditadas: {len(credits)}',flush=True)
  save('enviando')
  try:pid=ig_publish(user,token,url,caption)
  except BaseException:save('incierto');raise
