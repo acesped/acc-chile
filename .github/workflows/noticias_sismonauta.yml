@@ -2,7 +2,6 @@
 name: SISMONAUTA - Noticias cientificas diarias
 
 on:
-  # Ejecucion manual desde GitHub Actions
   workflow_dispatch:
     inputs:
       publish:
@@ -11,7 +10,7 @@ on:
         type: boolean
         default: false
 
-  # Publicacion diaria a las 07:00 AM de Chile
+  # Todos los dias a las 07:00 AM, hora de Chile
   schedule:
     - cron: '0 7 * * *'
       timezone: 'America/Santiago'
@@ -45,7 +44,7 @@ jobs:
       FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
       FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
 
-      # Proveedores de IA para explicaciones extensas
+      # Inteligencia artificial: tres proveedores
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
@@ -55,14 +54,14 @@ jobs:
       OPENROUTER_NEWS_MODEL: 'openai/gpt-4o-mini'
       GROQ_NEWS_MODEL: 'llama-3.3-70b-versatile'
 
-      # API Meta
+      # Meta Graph API
       IG_GRAPH_VERSION: 'v25.0'
       IG_EXPECTED_USERNAME: 'sismonauta'
       FACEBOOK_EXPECTED_USERNAME: 'sismonauta'
 
     steps:
       # ==========================================
-      # 1. OBTENER REPOSITORIO
+      # 1. DESCARGAR REPOSITORIO
       # ==========================================
 
       - name: Descargar repositorio
@@ -97,10 +96,10 @@ jobs:
             'Pillow>=10,<13'
 
       # ==========================================
-      # 4. COMPROBAR ARCHIVO PYTHON
+      # 4. VALIDAR ARCHIVO PYTHON
       # ==========================================
 
-      - name: Verificar programa
+      - name: Verificar programa Python
         shell: bash
         run: |
           set -euo pipefail
@@ -115,7 +114,7 @@ jobs:
           echo "Python verificado correctamente"
 
       # ==========================================
-      # 5. SELECCIONAR MODO DE EJECUCION
+      # 5. DETERMINAR MODO DE EJECUCION
       # ==========================================
 
       - name: Determinar modo de publicacion
@@ -137,47 +136,67 @@ jobs:
 
           echo "publish=$PUBLISH" >> "$GITHUB_OUTPUT"
 
+          echo "==================================="
+          echo "SISMONAUTA - NOTICIAS"
+          echo "==================================="
           echo "Evento: $EVENT_NAME"
-          echo "Publicacion activada: $PUBLISH"
-          echo "Destino Instagram: @sismonauta"
-          echo "Destino Facebook: SISMONAUTA"
+          echo "Publicacion: $PUBLISH"
+          echo "Instagram: @sismonauta"
+          echo "Facebook: Sismonauta"
+          echo "==================================="
 
       # ==========================================
       # 6. COMPROBAR CREDENCIALES
       # ==========================================
 
-      - name: Verificar secretos necesarios
-        if: ${{ steps.modo.outputs.publish == 'true' }}
+      - name: Validar secretos y proveedores IA
         shell: bash
+        env:
+          PUBLISH: ${{ steps.modo.outputs.publish }}
         run: |
           set -euo pipefail
 
-          for name in \
-            INSTAGRAM_TOKEN \
-            INSTAGRAM_USER_ID \
-            FACEBOOK_PAGE_ID \
-            FACEBOOK_PAGE_TOKEN
-          do
-            if [[ -z "${!name:-}" ]]; then
-              echo "::error::Falta el secreto $name"
-              exit 1
-            fi
-          done
+          if [[ "$PUBLISH" == "true" ]]; then
+            for name in \
+              INSTAGRAM_TOKEN \
+              INSTAGRAM_USER_ID \
+              FACEBOOK_PAGE_ID \
+              FACEBOOK_PAGE_TOKEN
+            do
+              if [[ -z "${!name:-}" ]]; then
+                echo "::error::Falta secreto: $name"
+                exit 1
+              fi
+            done
+          fi
 
-          if [[ \
-            -z "${GEMINI_API_KEY:-}" && \
-            -z "${OPENROUTER_API_KEY:-}" && \
-            -z "${GROQ_API_KEY:-}" \
-          ]]; then
-            echo "::error::Configura al menos una clave de IA"
-            echo "::error::GEMINI_API_KEY, OPENROUTER_API_KEY o GROQ_API_KEY"
+          HAS_AI=false
+
+          if [[ -n "${GEMINI_API_KEY:-}" ]]; then
+            echo "Gemini configurado"
+            HAS_AI=true
+          fi
+
+          if [[ -n "${OPENROUTER_API_KEY:-}" ]]; then
+            echo "OpenRouter configurado"
+            HAS_AI=true
+          fi
+
+          if [[ -n "${GROQ_API_KEY:-}" ]]; then
+            echo "Groq configurado"
+            HAS_AI=true
+          fi
+
+          if [[ "$HAS_AI" != "true" ]]; then
+            echo "::error::No hay proveedor de IA configurado"
+            echo "::error::Agrega GEMINI_API_KEY, OPENROUTER_API_KEY o GROQ_API_KEY"
             exit 1
           fi
 
-          echo "Credenciales presentes"
+          echo "Credenciales disponibles para ejecutar noticias"
 
       # ==========================================
-      # 7. BUSCAR, REDACTAR Y PUBLICAR
+      # 7. BUSCAR NOTICIAS, REDACTAR Y PUBLICAR
       # ==========================================
 
       - name: Procesar noticia del dia
@@ -196,32 +215,33 @@ jobs:
           fi
 
           echo "==================================="
-          echo "SISMONAUTA - NOTICIAS"
+          echo "BUSQUEDA Y PUBLICACION"
           echo "==================================="
-          echo "Publicar: $PUBLISH"
-          echo "Periodo: ultimas 24 horas"
+          echo "Ultimas 24 horas"
           echo "Idiomas: espanol e ingles"
-          echo "Descripcion: explicacion extensa"
-          echo "Imagen: banner azul y letras blancas"
-          echo "Destinos: Instagram y Facebook"
+          echo "Traduccion al espanol"
+          echo "Explicacion cientifica extensa"
+          echo "Banner azul, texto blanco"
+          echo "Contorno negro en titular"
+          echo "Publicar: $PUBLISH"
           echo "==================================="
 
           python noticias_sismonauta.py "${args[@]}"
-          code=$?
+          CODE=$?
 
-          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
-          echo "Codigo de salida: $code"
+          echo "exit_code=$CODE" >> "$GITHUB_OUTPUT"
+          echo "Codigo Python: $CODE"
 
-          # El siguiente paso comprueba tanto
-          # el codigo de salida como el recibo.
+          # El siguiente paso analiza el recibo
+          # y distingue errores de dias sin noticias.
           exit 0
 
       # ==========================================
-      # 8. VERIFICAR RESULTADOS
+      # 8. VERIFICAR PUBLICACIONES
       # ==========================================
 
-      - name: Confirmar resultado de la ejecucion
-        if: ${{ always() && steps.ejecutar.conclusion == 'success' }}
+      - name: Confirmar resultados en Instagram y Facebook
+        if: ${{ steps.ejecutar.conclusion == 'success' }}
         shell: bash
         env:
           PUBLISH: ${{ steps.modo.outputs.publish }}
@@ -257,25 +277,23 @@ jobs:
 
           status = data.get("status")
 
-          print("Modo publicacion:", publish)
+          print("Publicacion solicitada:", publish)
           print("Codigo Python:", exit_code)
-          print("Estado:", status)
+          print("Estado real:", status)
 
-          # Los errores tecnicos no deben
-          # confundirse con ausencia de noticias.
+          # Errores tecnicos o publicaciones inciertas
           if exit_code not in (0, 2, 3):
               raise SystemExit(
-                  "::error::Error tecnico del programa. "
-                  "Revisar el registro de ejecucion."
+                  "::error::El programa termino con error"
               )
 
           if status == "partial_or_uncertain":
               raise SystemExit(
                   "::error::Publicacion parcial o incierta. "
-                  "Revisar ambas plataformas antes de repetir."
+                  "Revisar Meta antes de reintentar."
               )
 
-          # No se encontro noticia elegible.
+          # Ausencia de noticia o imagen valida
           no_news = {
               "no_eligible_news",
               "no_licensed_relevant_photo",
@@ -283,12 +301,12 @@ jobs:
 
           if status in no_news:
               print(
-                  "::notice::Sin publicacion hoy: "
+                  "::notice::SIN PUBLICACION HOY: "
                   + status
               )
               raise SystemExit(0)
 
-          # Solo vista previa.
+          # Vista previa manual
           if not publish:
               if status != "preview_only":
                   raise SystemExit(
@@ -298,21 +316,14 @@ jobs:
                   )
 
               print(
-                  "Vista previa generada correctamente"
+                  "VISTA PREVIA GENERADA CORRECTAMENTE"
               )
               raise SystemExit(0)
 
-          # Publicacion real.
-          if exit_code != 0:
+          # Confirmar publicaciones reales
+          if exit_code != 0 or status != "published":
               raise SystemExit(
-                  "::error::La publicacion no finalizo "
-                  "correctamente"
-              )
-
-          if status != "published":
-              raise SystemExit(
-                  "::error::No se confirmo la publicacion "
-                  "en ambas redes"
+                  "::error::Publicacion no confirmada"
               )
 
           targets = data.get("targets", {})
@@ -325,7 +336,7 @@ jobs:
                   or not str(item.get("id") or "").strip()
               ):
                   raise SystemExit(
-                      "::error::Publicacion no confirmada: "
+                      "::error::Falta confirmacion de "
                       + site
                   )
 
@@ -337,16 +348,16 @@ jobs:
               )
 
           print(
-              "SISMONAUTA: noticias publicadas "
+              "SISMONAUTA: noticia publicada "
               "en Instagram y Facebook"
           )
           PYVERIFY
 
       # ==========================================
-      # 9. CONSERVAR EVIDENCIAS
+      # 9. GUARDAR EVIDENCIAS
       # ==========================================
 
-      - name: Guardar imagen, noticia y registros
+      - name: Guardar imagen y registros
         if: always()
         uses: actions/upload-artifact@v4
         with:
