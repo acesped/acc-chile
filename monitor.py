@@ -27,7 +27,7 @@ import argparse, asyncio, base64, hashlib, io, json, math, os, random, re, shuti
 from datetime import datetime, timezone
 from pathlib import Path
 import requests
-from PIL import Image, ImageDraw, ImageEnhance, ImageFont, ImageOps
+from PIL import Image, ImageDraw, ImageEnhance, ImageFont, ImageOps, ImageFilter, ImageStat
 
 BRAND = 'GROUNDSHAKE CL'
 ACCOUNT = 'groundshake_cl'
@@ -254,17 +254,81 @@ PHOTO_TERMS={
  'terremoto':('earthquake','seism','terremot','sismo'),
 }
 
+# Etiquetas que señalan materiales informativos, no fotografía documental.
+# No se descarta "File:" indiscriminadamente porque Commons nombra así TODAS las fotos.
+NON_PHOTO_TERMS = (
+ 'diagram','diagrama','infographic','infografia','flowchart','flow chart',
+ 'schematic','schema','esquema','cross section','cross-section','cutaway',
+ 'seismogram','waveform','spectrogram','graph','graphic','chart','plot',
+ 'hazard map','seismic map','mapa','cartography','map ','illustration',
+ 'drawing','dibujo','cartoon','vector','icon','logo','poster','banner',
+ 'slide','presentation','powerpoint','screenshot','screen capture',
+ 'screengrab','table ','figure ','fig.','pdf','paper','journal',
+ 'proceedings','research report','technical report','book cover',
+ 'newspaper','document','scanned','scan of','textbook',
+ 'certificate','brochure','leaflet','manual','report of','guide for',
+ 'advertisement','stock photo','watermark','labeled','labelled',
+ 'sonar','buried objects','target classification'
+)
+
 def photo_relevant(item,ep):
- """Comprobar temática en título, descripción y etiquetas (no solo título)."""
- title=norm(item.get('title',''))
- metadata=norm(' '.join(str(item.get(k,'') or '') for k in ('title','description','tags')))
- forbidden=('logo','flag','poster','screenshot','infographic','cartoon','svg','clipart','stock photo','generic')
- # Evitar material documental escaneado presentado como fotografías de sismos.
- if re.search(r'\.(pdf|djvu|tiff?|svg)(?:$|[?# ])',title) or any(x in title for x in ('report of','guide for','measurements of','probabilistic','technical report','journal','handbook','proceedings','paper ')):return False
- if any(x in title for x in forbidden):return False
+ """Priorizar fotos documentales, excluir infografías y estudios científicos."""
+ title=norm(str(item.get('title','') or ''))
+ desc=norm(str(item.get('description','') or ''))
+ tags=norm(str(item.get('tags','') or ''))
+ metadata=' '.join((title,desc,tags))
+ if not metadata.strip():return False
+ if re.search(r'\.(?:pdf|djvu|tiff?|svg|gif)(?:$|[?# ])',title):return False
+ if any(term in title for term in NON_PHOTO_TERMS):return False
+ # Las palabras prohibidas en etiquetas/descripción suelen indicar gráficos también.
+ if any(term in tags for term in NON_PHOTO_TERMS if len(term)>5):return False
  terms=PHOTO_TERMS.get(ep.get('id'),('earthquake','seism','sismo','terremot','tectonic'))
- # No se acepta una imagen simplemente por coincidir con el texto de búsqueda.
- return bool(metadata.strip() and any(norm(x) in metadata for x in terms))
+ return any(norm(x) in metadata for x in terms)
+
+
+def visual_photo_audit(path):
+ """Rechazar páginas, gráficos y fotos con texto; no afirmar certeza absoluta.
+
+ Tesseract es opcional. Sin OCR hacemos inspección de aspecto, saturación,
+ luminosidad y bordes: si no resulta convincente se rechaza (fail closed).
+ """
+ try:
+  with Image.open(path) as src:
+   rgb=ImageOps.exif_transpose(src).convert('RGB')
+   if rgb.width<500 or rgb.height<350:return False,'resolución insuficiente'
+   sample=ImageOps.contain(rgb,(480,480))
+   # Fondos predominantemente blancos son habituales en papers y diagramas.
+   pixels=list(sample.resize((160,160)).getdata())
+   white=sum(1 for r,g,b in pixels if min(r,g,b)>224 and max(r,g,b)-min(r,g,b)<20)/len(pixels)
+   if white>0.58:return False,'fondo documental predominantemente blanco'
+   gray=sample.convert('L')
+   edges=gray.filter(ImageFilter.FIND_EDGES)
+   avg_edge=ImageStat.Stat(edges).mean[0]
+   # Un umbral extremo evita descartar fotografías de escombros con textura.
+   if avg_edge>63:return False,'densidad extrema de bordes'
+   if shutil.which('tesseract'):
+    # TSV incluye confianza: evita confundir rocas/escombros con letras.
+    try:
+     result=subprocess.run(['tesseract',str(path),'stdout','--psm','11','tsv'],
+       capture_output=True,text=True,timeout=18)
+     if result.returncode==0:
+      import csv
+      rows=list(csv.DictReader(io.StringIO(result.stdout),delimiter='\t'))
+      confident=[]
+      for row in rows:
+       word=(row.get('text') or '').strip()
+       try:confidence=float(row.get('conf') or '-1')
+       except ValueError:confidence=-1
+       if confidence>=75 and re.fullmatch(r'[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9]{3,}',word):
+        confident.append(word)
+      if len(confident)>=3:return False,'texto visible detectado por OCR (alta confianza)'
+    except (OSError,subprocess.TimeoutExpired):
+     pass
+   else:
+    # Si no hay OCR, limitar gráficos habituales: página pálida con aristas.
+    if white>0.27 and avg_edge>24:return False,'posible diagrama sin OCR disponible'
+   return True,'imagen apta por inspección automática'
+ except Exception as exc:return False,'imagen ilegible: '+str(exc)[:80]
 
 
 def license_accepted(code):
@@ -422,7 +486,7 @@ def get_photos(ep,folder,local_dir=None):
    if f.suffix.lower() in ('.jpg','.jpeg','.png','.webp'):
     try:
      with Image.open(f) as im:
-      if im.width>=500 and im.height>=350:
+      if im.width>=500 and im.height>=350 and visual_photo_audit(f)[0]:
        found.append(f);credits.append({'source':str(f),'license':'Verificar autorización de uso'})
     except Exception: pass
   if not found:raise RuntimeError('No se encontraron fotos válidas en --photo-dir')
@@ -443,6 +507,11 @@ def get_photos(ep,folder,local_dir=None):
     if not photo_relevant(item,ep):continue
     path=folder/f'foto_{len(found)+1}.jpg'
     if photo_download(item,path):
+     okay,reason=visual_photo_audit(path)
+     if not okay:
+      print('FOTO DESCARTADA:',reason,'|',str(item.get('title',''))[:95],flush=True)
+      path.unlink(missing_ok=True)
+      continue
      found.append(path)
      credits.append({k:item.get(k,'') for k in ('source','license','title','creator','provider','description')})
      accepted+=1
@@ -450,7 +519,7 @@ def get_photos(ep,folder,local_dir=None):
      if accepted>=2 or len(found)>=3:break
    if len(found)>=3:break
   if len(found)>=3:break
- if not found: raise RuntimeError('No se encontraron fotografías sísmicas pertinentes con licencia reutilizable (CC0, PD, CC BY o CC BY-SA); se cancela el Reel.')
+ if not found: raise RuntimeError('No se encontraron FOTOGRAFÍAS limpias y pertinentes (sin documentos, gráficos o texto) con licencia reutilizable con licencia reutilizable (CC0, PD, CC BY o CC BY-SA); se cancela el Reel.')
  return found,credits
 
 
@@ -476,8 +545,18 @@ def clean_scene(photo,message,dest):
  """Fondo fotográfico limpio; adapta textos largos sin truncarlos."""
  with Image.open(photo) as src:
   im=ImageOps.fit(ImageOps.exif_transpose(src).convert('RGB'),(W,H),method=Image.Resampling.LANCZOS)
- im=ImageEnhance.Contrast(im).enhance(1.11)
- im=Image.blend(im,Image.new('RGB',(W,H),(0,0,0)),0.36)
+ im=im.filter(ImageFilter.GaussianBlur(radius=6))
+ im=ImageEnhance.Color(im).enhance(0.78)
+ im=ImageEnhance.Contrast(im).enhance(0.93)
+ # Fondo oscuro, pero conservando la fotografía como protagonista.
+ im=Image.blend(im,Image.new('RGB',(W,H),(0,0,0)),0.49)
+ # Centro más oscuro sin recuadros, líneas ni cintillos.
+ veil=Image.new('RGBA',(W,H),(0,0,0,0));vp=veil.load()
+ for yy in range(H):
+  strength=max(0.0,1.0-abs(yy-H*0.5)/(H*0.43))
+  alpha=int(56*strength*strength)
+  ImageDraw.Draw(veil).line((0,yy,W,yy),fill=(0,0,0,alpha))
+ im=Image.alpha_composite(im.convert('RGBA'),veil).convert('RGB')
  draw=ImageDraw.Draw(im)
  message=re.sub(r'\s+',' ',str(message or '')).replace('…','').replace('...','').strip()
  if not message:raise ValueError('Escena sin texto')
