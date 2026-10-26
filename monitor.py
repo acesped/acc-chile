@@ -756,7 +756,7 @@ def verify_instagram_account():
   raise RuntimeError('Token de Meta asociado a otra cuenta de Instagram; se requiere @'+ACCOUNT)
  print('TOKEN Instagram válido; cuenta verificada: @'+ACCOUNT,flush=True)
 
-def publish(ep,movie,approval,story=False,auto=False):
+def publish(ep,movie,approval,story=False,auto=False,out_dir=None):
  if not auto and approval!=ep['episode_id']:raise RuntimeError('Necesita --approved-id que coincida con el episodio')
  if auto and not ep.get('base_verified'):
   raise RuntimeError('Publicación autónoma bloqueada: episodio no basado en hechos editoriales verificados')
@@ -821,12 +821,26 @@ def publish(ep,movie,approval,story=False,auto=False):
  save('enviando')
  try:pid=ig_publish(user,token,url,caption)
  except BaseException:save('incierto');raise
- save('publicado');items[ep['episode_id']]['reel_id']=pid
+ items[ep['episode_id']]['reel_id']=pid
+ save('publicado')
+ # Recibo verificable: se emite solo después de la respuesta media_publish de Meta.
+ receipt_path=Path(out_dir or movie.parent)/'publicacion_confirmada.json'
+ confirmation={'account':ACCOUNT,'episode_id':ep['episode_id'],'reel_id':str(pid),
+               'reel_published':True,'story_requested':bool(story),'story_published':False,
+               'story_id':None,'confirmed_at':utcnow()}
+ write_json_atomic(receipt_path,confirmation)
+ print('REEL PUBLICADO EN META:',pid,flush=True)
  if story:
   save('enviando','story')
   try:sid=ig_publish(user,token,url,'',media_type='STORIES')
   except BaseException:save('incierto','story');raise
-  save('publicado','story');items[ep['episode_id']]['story_id']=sid
+  items[ep['episode_id']]['story_id']=sid
+  save('publicado','story')
+  confirmation['story_id']=str(sid)
+  confirmation['story_published']=True
+  confirmation['confirmed_at']=utcnow()
+  write_json_atomic(receipt_path,confirmation)
+  print('STORY PUBLICADA EN META:',sid,flush=True)
  # Registrar IDs completos a remoto.
  receipt=gh.write(STATE_PATH,json.dumps(state,ensure_ascii=False,indent=2).encode(),sha)
  print('PUBLICADO Instagram:',pid,flush=True)
@@ -856,6 +870,7 @@ def main():
   return
  if args.metrics_csv:metrics(args.metrics_csv);return
  out=Path(args.out);out.mkdir(parents=True,exist_ok=True)
+ (out/'publicacion_confirmada.json').unlink(missing_ok=True)
  history_path=out/'historial_sismos.json';history=read_json(history_path,{'items':[]})
  # En GitHub Actions, consultar historial remoto también para no repetir enfoques.
  if os.getenv('GH_TOKEN') and os.getenv('GITHUB_REPOSITORY'):
@@ -894,7 +909,7 @@ def main():
                            'time':utcnow(),'status':'preparado' if args.publish else 'vista_previa'})
  write_json_atomic(history_path,history)
  if args.publish:
-  publish(ep,movie,args.approved_id,story=args.story,auto=args.auto_publish)
+  publish(ep,movie,args.approved_id,story=args.story,auto=args.auto_publish,out_dir=out)
   for entry in history['items']:
    if entry.get('episode_id')==episode:entry['status']='publicado'
   write_json_atomic(history_path,history)
