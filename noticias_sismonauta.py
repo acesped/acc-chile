@@ -39,6 +39,13 @@ SOURCES=[
  ('en','seismology research when:1d'),
  ('en','earthquake technology when:1d'),
  ('en','tsunami research when:1d'),
+ ('en','seismic early warning technology when:1d'),
+ ('en','geophysics fault scientific discovery when:1d'),
+ ('en','earthquake sensors scientific study when:1d'),
+ ('en','tectonic plates new research when:1d'),
+ ('en','earthquake satellite monitoring research when:1d'),
+ ('es','nueva investigación terremotos when:1d'),
+ ('es','estudio científico fallas geológicas when:1d'),
 ]
 
 SCIENCE=re.compile(r'(?i)\b(sism|sismic|sísmic|seismic|seismolog|earthquake|terremot|tsunami|tectoni|tectóni|fault|falla|geof[ií]sic|geophysic)')
@@ -96,6 +103,55 @@ def feed_items():
   raise RuntimeError('Todas las fuentes RSS fallaron: comprobar conexión a Google News')
  return list(out.values())
 
+
+# La traducción conserva el contenido original; si no hay traducción fiable,
+# no se presenta inglés como si fuese una noticia redactada en español.
+def translate_es(value):
+    value=clean(value)
+    if not value:
+        return ''
+    key=os.getenv('GEMINI_API_KEY','').strip()
+    if key:
+        try:
+            endpoint='https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent'
+            r=HTTP.post(endpoint,params={'key':key},json={
+                'contents':[{'parts':[{'text':'Traduce fielmente al español de Chile el siguiente texto periodístico. Conserva cifras, nombres y matices; no añadas afirmaciones ni comentarios. Devuelve solo la traducción:\n'+value}]}],
+                'generationConfig':{'temperature':0.0}},timeout=25)
+            r.raise_for_status()
+            data=r.json()
+            result=clean(data['candidates'][0]['content']['parts'][0]['text'])
+            if len(result)>12:
+                return result
+        except Exception as exc:
+            print('Traducción Gemini no disponible:',type(exc).__name__,flush=True)
+    # Servicio de traducción pública: puede limitar solicitudes o cambiar.
+    # No se asume su disponibilidad y no se publica si devuelve un fallo.
+    try:
+        r=get('https://translate.googleapis.com/translate_a/single',params={
+            'client':'gtx','sl':'auto','tl':'es','dt':'t','q':value},timeout=18)
+        result=clean(''.join(piece[0] for piece in r.json()[0] if piece and piece[0]))
+        if len(result)>=12:
+            return result
+    except Exception as exc:
+        print('Traducción pública no disponible:',type(exc).__name__,flush=True)
+    return None
+
+def spanish_article(article):
+    if article['lang']=='es':
+        return dict(article)
+    title=translate_es(article['title'])
+    if not title:
+        return None
+    desc=translate_es(article['description']) if article['description'] else ''
+    if desc is None:
+        desc=''
+    converted=dict(article)
+    converted['original_title']=article['title']
+    converted['title']=title
+    converted['description']=desc
+    converted['translation']='automática; revisar fuente original'
+    return converted
+
 def priority(a):
  t=(a['title']+' '+a['description']).lower()
  pts=0
@@ -112,7 +168,7 @@ def commons_photo(article):
  title=article['title']; tks=tokens(title)
  core=[w for w in tks if SCIENCE.search(w)]
  queries=[]
- for q in [ ' '.join(tks[:4]), ' '.join((core+tks)[:4]), 'seismology research', 'earthquake fault landscape' ]:
+ for q in [ ' '.join(tks[:4]), ' '.join((core+tks)[:4]), ' '.join((core+tks)[:3])+' geological landscape', ' '.join(core[:2])+' research'  ]:
   if q and q not in queries:queries.append(q)
  scored=[]
  for q in queries[:3]:
@@ -129,7 +185,7 @@ def commons_photo(article):
    if not (re.search(r'\bcc0\b|public domain|publicdomain|pdm',l) or 'public domain' in usage):continue
    name=p.get('title','');desc=clean(meta.get('ImageDescription',{}).get('value',''))
    txt=(name+' '+desc).lower()
-   if re.search(r'(?i)\b(moon|lunar|mars|planet|logo|poster|screenshot|diagram|chart|map|drawing|illustration|portrait|people|person|crowd|tourist|lroc|spacecraft|render|ai.generated)\b',txt):continue
+   if re.search(r'(?i)\b(moon|lunar|mars|planet|astronaut|logo|poster|screenshot|diagram|chart|map|drawing|illustration|portrait|people|person|crowd|tourist|lroc|spacecraft|render|ai.generated)\b',txt):continue
    if not SCIENCE.search(txt):continue
    match=sum(1 for w in set(tks[:8]) if w in txt)
    if match<1:continue
@@ -287,21 +343,29 @@ def main():
  out=Path(args.out);out.mkdir(exist_ok=True,parents=True)
  gh=Github() if args.publish else None
  state=load_state(gh) if gh else {'stories':{}}
- articles=feed_items();articles=[a for a in articles if a['lang']=='es'];articles.sort(key=priority,reverse=True)
- print('Noticias EN ESPAÑOL candidatas últimas 24 h:',len(articles),flush=True)
+ articles=feed_items();articles.sort(key=priority,reverse=True)
+ print('Noticias candidatas ES + EN (últimas 24 h):',len(articles),flush=True)
  if not articles:
   print('SIN NOTICIAS verificables del período. No se publica.',flush=True)
   (out/'estado_publicacion.json').write_text(json.dumps({'status':'no_eligible_news','published':False},ensure_ascii=False),encoding='utf8')
   return 0  # Sin noticia elegible no es error técnico ni publicación exitosa
  chosen=None;img=None;credit=None
- for a in articles[:25]:
+ for a in articles[:35]:
   if a['id'] in state['stories']:continue
-  print('Evaluando:',a['title'][:110],flush=True)
+  print('Evaluando:',a['title'][:110],'idioma:',a['lang'],flush=True)
+  # Buscar imagen usando los términos ORIGINALES de la noticia; para los
+  # estudios en inglés, Wikimedia Commons suele estar catalogada en inglés.
   photo,meta=commons_photo(a)
-  if photo is not None:chosen,img,credit=a,photo,meta;break
+  if photo is None:continue
+  translated=spanish_article(a)
+  if translated is None:
+   print('OMITIDA: fallo al traducir titular inglés, sin publicar inglés',flush=True)
+   continue
+  chosen,img,credit=translated,photo,meta
+  break
  if not chosen:
   print('No existe noticia inédita con fotografía reutilizable y pertinente. No se publica.',flush=True)
-  (out/'estado_publicacion.json').write_text(json.dumps({'status':'no_licensed_relevant_photo','published':False,'articles_reviewed':min(len(articles),25)},ensure_ascii=False),encoding='utf8')
+  (out/'estado_publicacion.json').write_text(json.dumps({'status':'no_licensed_relevant_photo','published':False,'articles_reviewed':min(len(articles),35)},ensure_ascii=False),encoding='utf8')
   return 0  # Sin foto con licencia verificada: omitir publicación
  file=out/(chosen['id']+'.jpg');make_card(img,chosen,file)
  description=caption(chosen,credit)
