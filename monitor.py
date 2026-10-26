@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""GROUNDSHAKE CL (@groundshake_cl) — edición SISMOS. Un único archivo Python 3.11+.
+"""SISMONAUTA (@sismonauta) — edición SISMOS. Un único archivo Python 3.11+.
 
 Genera Reels educativos 9:16 a partir de temas de sismología, sin catálogo fijo.
 Usa IA opcional para nuevos enfoques, fuentes científicas de referencia y fotos
@@ -14,7 +14,7 @@ INSTALAR: pip install pillow requests edge-tts mutagen imageio-ffmpeg
 PRUEBA:  python monitor.py --out output
 CON IA:  GEMINI_API_KEY=... python monitor.py --out output
 PUBLICAR AUTOMATICAMENTE: python monitor.py --publish --auto-publish --story
-Variables: INSTAGRAM_TOKEN, INSTAGRAM_USER_ID, IG_EXPECTED_USERNAME=groundshake_cl,
+Variables: INSTAGRAM_TOKEN, INSTAGRAM_USER_ID, IG_EXPECTED_USERNAME=sismonauta,
            GH_TOKEN, GITHUB_REPOSITORY=propietario/repo; repositorio público.
 Opcional: --photo-dir /ruta/a/fotos para aportar fotografías autorizadas.
 
@@ -37,15 +37,15 @@ except ImportError:
     def display(*args, **kwargs):
         return None
 
-BRAND = 'GROUNDSHAKE CL'
-ACCOUNT = 'groundshake_cl'
-STATE_PATH = 'groundshake/state.json'  # Historial exclusivo de @groundshake_cl
+BRAND = 'SISMONAUTA'
+ACCOUNT = 'sismonauta'
+STATE_PATH = 'groundshake/state.json'  # Ruta histórica conservada para impedir duplicados tras renombrar la misma cuenta
 GRAPH_VERSION = os.getenv('IG_GRAPH_VERSION','v25.0')
 GRAPH_URL = os.getenv('IG_GRAPH_BASE','https://graph.instagram.com').rstrip('/')
 W,H,FPS = 720,1280,30
 TARGET_R7 = 0.70  # OBJETIVO EXPERIMENTAL: no se garantiza
 VOICE = os.getenv('DV_VOICE','es-CL-CatalinaNeural')
-USER_AGENT = 'GroundshakeSismos/2.0 (educational research; https://commons.wikimedia.org)'
+USER_AGENT = 'SismonautaSismos/2.1 (educational research; https://commons.wikimedia.org)'
 HTTP = requests.Session(); HTTP.headers.update({'User-Agent':USER_AGENT})
 
 # Temas documentados con referencia informativa verificable. No son noticias.
@@ -157,7 +157,7 @@ def generate_angle(topic, history, use_ai=True):
  script=' '.join([topic['title'],topic['fact'],topic['lesson']])
  visuals=[topic['title'],topic['fact'],topic['lesson']]
  if use_ai and (os.getenv('GEMINI_API_KEY') or os.getenv('OPENROUTER_API_KEY')):
-  prompt=(f'Eres guionista científico de GROUNDSHAKE CL, cuenta @groundshake_cl. Tema: {topic["title"]}. '
+  prompt=(f'Eres guionista científico de SISMONAUTA, cuenta @sismonauta. Tema: {topic["title"]}. '
           f'HECHO PERMITIDO: {topic["fact"]} CONCLUSIÓN: {topic["lesson"]}. '
           f'Enfoque: {angle}. Estructura: {style}. '
           'Escribe solo JSON con claves "script" (40-58 palabras) y "visuals" '
@@ -234,7 +234,7 @@ TOPIC_HASHTAGS = {
 
 def episode_hashtags(ep):
  key=norm(ep.get('id',''))
- tags=['GroundshakeCL','Sismos','EducacionSismica','Terremotos']+TOPIC_HASHTAGS.get(key,['Sismologia','Geofisica','CienciaDeLaTierra','Geologia','PrevencionSismica','CulturaSismica','OndasSismicas','RiesgoSismico'])
+ tags=['Sismonauta','Sismos','EducacionSismica','Terremotos']+TOPIC_HASHTAGS.get(key,['Sismologia','Geofisica','CienciaDeLaTierra','Geologia','PrevencionSismica','CulturaSismica','OndasSismicas','RiesgoSismico'])
  unique=[];seen=set()
  for tag in tags:
   if tag.lower() not in seen:
@@ -936,7 +936,7 @@ class Github:
   if r.status_code==404:return None,None
   r.raise_for_status();j=r.json();return base64.b64decode(j['content']),j['sha']
  def write(self,path,data,sha=None):
-  payload={'message':'GROUNDSHAKE CL SISMOS: '+path,'content':base64.b64encode(data).decode(),'branch':self.branch}
+  payload={'message':'SISMONAUTA SISMOS: '+path,'content':base64.b64encode(data).decode(),'branch':self.branch}
   if sha:payload['sha']=sha
   return self.api('PUT','/contents/'+urllib.parse.quote(path,safe='/'),json=payload)
  def assert_public(self):
@@ -1053,7 +1053,7 @@ def metrics(csv_path):
 
 
 def main():
- ap=argparse.ArgumentParser(description='GROUNDSHAKE CL @groundshake_cl: edición sismos, fotos reales, escenas limpias')
+ ap=argparse.ArgumentParser(description='SISMONAUTA @sismonauta: edición sismos, fotos reales, escenas limpias')
  ap.add_argument('--out',default='output_sismos');ap.add_argument('--topic',default='',help='ID de tema o vacío para elegir')
  ap.add_argument('--photo-dir',default='',help='Carpeta con fotografías propias/autorizadas, sin descarga')
  ap.add_argument('--no-ai',action='store_true');ap.add_argument('--no-voice',action='store_true')
@@ -1085,7 +1085,7 @@ def main():
   if not isinstance(ep,dict) or not all(ep.get(x) for x in ('episode_id','title','script','visuals','source','queries')):
    raise RuntimeError('El JSON del episodio no es válido o está incompleto')
   if not str(ep['episode_id']).startswith('sismos-'):
-   raise RuntimeError('Este archivo solo admite episodios sísmicos de GROUNDSHAKE CL')
+   raise RuntimeError('Este archivo solo admite episodios sísmicos de SISMONAUTA')
   t={'id':ep.get('id','revisado')}
  else:
   t=choose_topic(history,args.topic);ep=generate_angle(t,history,use_ai=(not args.no_ai and not args.auto_publish))
