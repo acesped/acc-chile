@@ -19,7 +19,7 @@ import requests
 from nacl import encoding, public
 
 SESSION = requests.Session()
-SESSION.headers.update({'User-Agent': 'GroundShake-IG-Lifecycle/3.0'})
+SESSION.headers.update({'User-Agent': 'Sismonauta-IG-Lifecycle/3.0'})
 TIMEOUT = (8, 22)
 GH = 'https://api.github.com'
 IG = 'https://graph.instagram.com'
@@ -213,7 +213,7 @@ def save_secret(repo, admin, token):
 
 def main():
     parser = argparse.ArgumentParser(
-        description='GroundShake Instagram token lifecycle'
+        description='Sismonauta Instagram token lifecycle'
     )
 
     parser.add_argument(
@@ -239,9 +239,9 @@ def main():
         'IG_EXPECTED_USERNAME'
     ).lstrip('@').lower()
 
-    if username != 'groundshake_cl':
+    if username != 'sismonauta':
         raise RuntimeError(
-            'Protección: este renovador solo opera para @groundshake_cl'
+            'Protección: este renovador solo opera para @sismonauta'
         )
 
     repo = need('GITHUB_REPOSITORY')
@@ -428,7 +428,7 @@ def main():
     )
 
     summary(
-        f'✅ @groundshake_cl: token renovado, '
+        f'✅ @sismonauta: token renovado, '
         f'validado y escrito en GitHub. '
         f'Vigencia informada por Meta: '
         f'{int(expires // 86400)} días. '
@@ -445,7 +445,7 @@ if __name__ == '__main__':
             'ERROR: ' + str(exc)
         )
         summary(
-            '❌ GroundShake: revisar el monitor '
+            '❌ Sismonauta: revisar el monitor '
             'del token y autorización de Meta.'
         )
         sys.exit(1)
