@@ -32,7 +32,7 @@ concurrency:
 jobs:
   generar-y-publicar:
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 55
     env:
       PYTHONUNBUFFERED: '1'
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -106,7 +106,7 @@ jobs:
 
       - name: Crear Reel y publicar automaticamente
         shell: bash
-        timeout-minutes: 32
+        timeout-minutes: 37
         env:
           PUBLISH: ${{ github.event_name == 'repository_dispatch' && 'true' || (inputs.publish && 'true' || 'false') }}
           STORY: ${{ github.event_name == 'repository_dispatch' && 'true' || (inputs.story && 'true' || 'false') }}
@@ -119,7 +119,7 @@ jobs:
             args+=(--publish --auto-publish)
             if [[ "$STORY" == 'true' ]]; then args+=(--story); fi
           fi
-          echo "Destinos: Instagram @sismonauta + fanpage SISMONAUTA | publicacion=$PUBLISH | story=$STORY"
+          echo "Destinos: Instagram Reel+Story; Facebook Reel+Story+Feed | publicacion=$PUBLISH | story=$STORY"
           echo "Video con voz individual, rotulo y foto por escena"
           python monitor.py "${args[@]}"
 
@@ -143,6 +143,13 @@ jobs:
           if not data.get('facebook_reel_published') or not str(data.get('facebook_reel_id') or '').isdigit():
               raise SystemExit('::error::Facebook Reel no confirmado; Instagram puede estar publicado, evitar reintento automatico')
           print('FACEBOOK REEL CONFIRMADO:', data['facebook_reel_id'])
+          if not data.get('facebook_feed_published') or not str(data.get('facebook_feed_id') or '').isdigit():
+              raise SystemExit('::error::Facebook Feed no confirmado; evitar reintentar automáticamente las otras publicaciones')
+          print('FACEBOOK FEED VIDEO ACEPTADO:', data['facebook_feed_id'])
+          if os.environ.get('REQUIRE_STORY') == 'true':
+              if not data.get('facebook_story_published') or not str(data.get('facebook_story_id') or '').isdigit():
+                  raise SystemExit('::error::Facebook Story no confirmada; revisar la página antes de reintentar')
+              print('FACEBOOK STORY ACEPTADA:', data['facebook_story_id'])
           if os.environ.get('REQUIRE_STORY') == 'true' and (not data.get('story_published') or not str(data.get('story_id') or '').isdigit()):
               raise SystemExit('::error::Reel confirmado, pero Story no confirmada; revisar en Instagram antes de reintentar')
           print('PUBLICACION CONFIRMADA @sismonauta: Reel ID', data['reel_id'])
