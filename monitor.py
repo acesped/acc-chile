@@ -366,20 +366,62 @@ def build_storyboard(ep):
 
 # Títulos o palabras clave compatibles con fotografías del fenómeno;
 # se rechazan paisajes genéricos aunque la búsqueda los haya devuelto.
+# Temática visual estricta: señales concretas, no menciones genéricas a "seismic".
+# El selector prioriza el título del archivo: una palabra suelta en etiquetas
+# nunca basta para aceptar una imagen de un tema distinto.
+# Paisajes naturales exclusivamente: fallas, deformación del terreno, costas y montañas.
+# No usar instrumentos, edificios, rescates ni retratos como imágenes de apoyo.
 PHOTO_TERMS={
- 'ondas':('seism','earthquake','seismo','sismo','terremot'),
- 'magnitud':('earthquake','seism','terremot','sismo','damage'),
- 'replicas':('earthquake','seism','terremot','sismo','fault'),
- 'valdivia':('valdivia','1960 chile earthquake','1960 chile tsunami'),
- 'profundidad':('seism','earthquake','subduction','sismo','terremot'),
- 'placas':('tectonic','fault','subduction','seism','earthquake'),
- 'tsunamis':('tsunami','earthquake','terremot','maremoto'),
- 'alerta':('seism','earthquake','early warning','sism','terremot'),
- 'falla':('fault','tectonic','earthquake','falla geol'),
- 'prediccion':('seism','earthquake','sism','terremot'),
- 'sismografo':('seismograph','seismometer','seismogram','sismograf','sismometr'),
- 'terremoto':('earthquake','seism','terremot','sismo'),
+ 'ondas':('san andreas fault','geological fault scarp','earthquake surface rupture','tectonic fault landscape','rift valley'),
+ 'magnitud':('earthquake surface rupture','earthquake ground fissure','earthquake landslide','earthquake fault scarp'),
+ 'replicas':('earthquake surface rupture','earthquake ground fissure','earthquake landslide','fault scarp'),
+ 'valdivia':('1960 chile earthquake coast','1960 valdivia coast','1960 chile tsunami coast','1960 valdivia tsunami','valdivia 1960 shoreline'),
+ 'profundidad':('subduction trench','san andreas fault','geological fault scarp','earthquake surface rupture'),
+ 'placas':('san andreas fault','tectonic fault landscape','rift valley','geological fault scarp','plate boundary landscape'),
+ 'tsunamis':('tsunami coastline','tsunami inundation coast','tsunami coastal erosion','tsunami wave coast'),
+ 'alerta':('san andreas fault','earthquake surface rupture','tectonic fault landscape','earthquake ground fissure'),
+ 'falla':('san andreas fault','geological fault scarp','fault line landscape','fault rupture landscape','surface rupture'),
+ 'prediccion':('san andreas fault','earthquake fault scarp','earthquake ground fissure','tectonic fault landscape'),
+ 'sismografo':('san andreas fault','earthquake surface rupture','earthquake ground fissure','geological fault scarp'),
+ 'terremoto':('earthquake surface rupture','earthquake landslide','earthquake ground fissure','earthquake fault scarp'),
 }
+
+PHOTO_SEARCH_QUERIES={
+ 'ondas':['San Andreas Fault aerial landscape','earthquake surface rupture natural landscape'],
+ 'magnitud':['earthquake surface rupture landscape','earthquake ground fissure landscape'],
+ 'replicas':['earthquake ground rupture natural terrain','earthquake landslide hillside'],
+ 'valdivia':['1960 Valdivia Chile tsunami coastline','1960 Chile earthquake coastal subsidence landscape'],
+ 'profundidad':['subduction trench coastal cliffs landscape','San Andreas Fault landscape'],
+ 'placas':['San Andreas Fault aerial landscape','tectonic rift valley landscape'],
+ 'tsunamis':['tsunami coastal erosion natural landscape','tsunami inundation coastline landscape'],
+ 'alerta':['San Andreas Fault aerial landscape','earthquake surface rupture natural terrain'],
+ 'falla':['San Andreas Fault California aerial landscape','geological fault scarp natural terrain'],
+ 'prediccion':['San Andreas Fault geological landscape','earthquake ground fissure landscape'],
+ 'sismografo':['earthquake surface rupture natural terrain','San Andreas Fault aerial landscape'],
+ 'terremoto':['earthquake surface rupture natural landscape','earthquake landslide mountain landscape'],
+}
+
+# Rechazo explícito: personas, escenas urbanas y aparatos. Se revisa el título,
+# la descripción y las etiquetas; no se admiten fotos dudosas como relleno.
+FORBIDDEN_VISUAL_TERMS=(
+ 'person','people','portrait','selfie','man ','woman ','child','children',
+ 'crowd','tourist','hiker','hiking','visitor','rescue','rescuer','firefighter',
+ 'soldier','police','protester','human','family','group photo','group of',
+ 'persona','personas','gente','retrato','turista','excursionista','rescate',
+ 'building','buildings','house','houses','city','cities','urban','street',
+ 'road','bridge','car ','vehicle','train','construction','infrastructure',
+ 'edificio','edificios','casa ','ciudad','calle','puente','vehiculo',
+ 'seismometer','seismograph','sensor','instrument','equipment','station',
+ 'sismometro','sismografo','instrumento','laboratory','laboratorio',
+ 'museum','exhibit','memorial','monument','sign','warning','poster'
+)
+LANDSCAPE_EVIDENCE=(
+ 'fault','rupture','fissure','rift','scarp','landslide','slip','subsidence',
+ 'coast','coastal','shoreline','shore','cliff','terrain','landscape',
+ 'valley','mountain','hillside','rock','outcrop','geological','tectonic',
+ 'tsunami','erosion','trench','falla','fractura','deslizamiento','costa',
+ 'acantilado','terreno','paisaje','cordillera','montana','ladera','roca'
+)
 
 # Etiquetas que señalan materiales informativos, no fotografía documental.
 # No se descarta "File:" indiscriminadamente porque Commons nombra así TODAS las fotos.
@@ -399,18 +441,26 @@ NON_PHOTO_TERMS = (
 )
 
 def photo_relevant(item,ep):
- """Priorizar fotos documentales, excluir infografías y estudios científicos."""
- title=norm(str(item.get('title','') or ''))
+ """Filtro conservador de metadatos: tema sísmico + paisaje sin personas.
+
+ No prueba con certeza el contenido visual: si hay dudas se rechaza.
+ """
+ title=norm(re.sub(r'^file:', '',str(item.get('title','') or '').strip(),flags=re.I))
  desc=norm(str(item.get('description','') or ''))
  tags=norm(str(item.get('tags','') or ''))
- metadata=' '.join((title,desc,tags))
- if not metadata.strip():return False
+ if not title:return False
  if re.search(r'\.(?:pdf|djvu|tiff?|svg|gif)(?:$|[?# ])',title):return False
- if any(term in title for term in NON_PHOTO_TERMS):return False
- # Las palabras prohibidas en etiquetas/descripción suelen indicar gráficos también.
- if any(term in tags for term in NON_PHOTO_TERMS if len(term)>5):return False
- terms=PHOTO_TERMS.get(ep.get('id'),('earthquake','seism','sismo','terremot','tectonic'))
- return any(norm(x) in metadata for x in terms)
+ combined=' '+re.sub(r'[_-]+',' ',title+' '+desc+' '+tags)+' '
+ if any(term in combined for term in NON_PHOTO_TERMS):return False
+ if any(term in combined for term in FORBIDDEN_VISUAL_TERMS):return False
+ terms=tuple(norm(x) for x in PHOTO_TERMS.get(ep.get('id'),()))
+ if not terms:return False
+ # Aceptar solo títulos descriptivos del fenómeno, no etiquetas añadidas.
+ if not any(term in title for term in terms):return False
+ if not any(term in combined for term in LANDSCAPE_EVIDENCE):return False
+ # Para un hecho histórico, no inventar autenticidad con un paisaje moderno.
+ if ep.get('id')=='valdivia' and not ('1960' in title and any(x in title for x in ('chile','valdivia'))):return False
+ return True
 
 
 def visual_photo_audit(path):
@@ -604,8 +654,12 @@ def photo_download(item,dest):
 
 
 def get_photos(ep,folder,local_dir=None):
- """La ausencia de fotos reales bloquea el render: nunca genera fondos planos."""
- found=[];credits=[]; seen=set()
+ """Fotografías reales del fenómeno, sin búsquedas sísmicas genéricas.
+
+ Se rechazan automáticamente metadatos ajenos y documentos/diagramas.
+ Las escenas usan solo este conjunto seleccionado; no fotografías de relleno.
+ """
+ found=[];credits=[];seen=set()
  if local_dir:
   for f in sorted(Path(local_dir).iterdir()):
    if f.suffix.lower() in ('.jpg','.jpeg','.png','.webp'):
@@ -613,38 +667,35 @@ def get_photos(ep,folder,local_dir=None):
      with Image.open(f) as im:
       if im.width>=500 and im.height>=350 and visual_photo_audit(f)[0]:
        found.append(f);credits.append({'source':str(f),'license':'Verificar autorización de uso'})
-    except Exception: pass
+    except Exception:pass
   if not found:raise RuntimeError('No se encontraron fotos válidas en --photo-dir')
   return found,credits
- queries=list(dict.fromkeys([*ep['queries'],
-    'earthquake seismometer','seismograph earthquake','seismic monitoring station',
-    'earthquake early warning seismometer', 'earthquake monitoring equipment']))
+ queries=PHOTO_SEARCH_QUERIES.get(ep.get('id'))
+ if not queries:raise RuntimeError('Tema sin estrategia visual específica; no se usarán fotos genéricas')
+ print('BUSQUEDA VISUAL TEMATICA:',ep['id'],'|',queries,flush=True)
  for q in queries:
   for provider in (commons,openverse):
-   try:
-    results=list(provider(q))
+   try:results=list(provider(q))
    except Exception as exc:
     print(f'Fotos {provider.__name__} / {q}: {str(exc)[:110]}',flush=True);continue
-   accepted=0
    for item in results:
     if item['url'] in seen:continue
     seen.add(item['url'])
     if not photo_relevant(item,ep):continue
     path=folder/f'foto_{len(found)+1}.jpg'
-    if photo_download(item,path):
-     okay,reason=visual_photo_audit(path)
-     if not okay:
-      print('FOTO DESCARTADA:',reason,'|',str(item.get('title',''))[:95],flush=True)
-      path.unlink(missing_ok=True)
-      continue
-     found.append(path)
-     credits.append({k:item.get(k,'') for k in ('source','license','title','creator','provider','description')})
-     accepted+=1
-     print('Foto válida:',item['title'][:85],'licencia:',item['license'],flush=True)
-     if accepted>=2 or len(found)>=3:break
+    if not photo_download(item,path):continue
+    okay,reason=visual_photo_audit(path)
+    if not okay:
+     print('FOTO DESCARTADA:',reason,'|',str(item.get('title',''))[:95],flush=True)
+     path.unlink(missing_ok=True);continue
+    found.append(path)
+    credits.append({k:item.get(k,'') for k in ('source','license','title','creator','provider','description','tags')})
+    print('Foto temática:',ep['id'],'|',item['title'][:85],'|',item['license'],flush=True)
+    if len(found)>=3:break
    if len(found)>=3:break
   if len(found)>=3:break
- if not found: raise RuntimeError('No se encontraron FOTOGRAFÍAS limpias y pertinentes (sin documentos, gráficos o texto) con licencia CC0 o dominio público; se cancela el Reel.')
+ if not found:
+  raise RuntimeError('No se encontraron fotografías auténticas del tema específico con licencia CC0/PD. No se publican imágenes de relleno.')
  return found,credits
 
 
@@ -877,11 +928,12 @@ def render(ep,out,photo_dir=None,voice=True):
    media_items.append({'kind':'video','path':clip_path,'duration':durations[i]})
   else:
    frame=folder/f'escena_{i:02d}.jpg'
-   clean_scene(photos[photo_idx%len(photos)],beat['overlay'],frame)
+   clean_scene(photos[min(photo_idx,len(photos)-1)],beat['overlay'],frame)
    media_items.append({'kind':'image','path':frame,'duration':durations[i]})
    if cover is None:
     cover=out/(ep['episode_id']+'_portada.jpg')
     shutil.copy2(frame,cover)
+   print('ESCENA-FOTO:',i+1,'|',beat['stage'],'|',photos[min(photo_idx,len(photos)-1)].name,flush=True)
    photo_idx+=1
  if cover is None:
   raise RuntimeError('No se pudo generar portada')
