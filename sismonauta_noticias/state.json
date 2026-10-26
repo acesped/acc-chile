@@ -29,6 +29,34 @@
           "status": "published"
         }
       }
+    },
+    "b8249d63af52eb76948d": {
+      "article": {
+        "date": "2026-10-26T13:29:52+00:00",
+        "description": "Utilizando matemáticas tomadas de economistas, un joven de 14 años de Virginia pasó seis meses investigando dónde deberían ubicarse los sensores de terremotos Futura, le média qui explore le monde",
+        "explanation": "Una información reciente del ámbito de la sismología aborda: Utilizando matemáticas tomadas de economistas, un joven de 14 años de Virginia pasó seis meses calculando dónde deberían ubicarse los sensores de terremotos. De acuerdo con la descripción disponible, Utilizando matemáticas tomadas de economistas, un joven de 14 años de Virginia pasó seis meses investigando dónde deberían ubicarse los sensores de terremotos Futura, le média qui explore le monde.\n\nEsta publicación ofrece una síntesis preliminar de la información disponible. El contenido accesible no permite confirmar todos los detalles de la metodología, los resultados ni sus limitaciones. Los avances científicos deben interpretarse en su contexto y no como una capacidad para predecir la fecha exacta de un terremoto. Para SISMONAUTA, compartir información responsable es tan importante como conocer las nuevas investigaciones.",
+        "id": "b8249d63af52eb76948d",
+        "lang": "en",
+        "original_title": "Using math borrowed from economists, a 14-year-old in Virginia spent six months working out where earthquake sensors should go",
+        "source": "Futura, le média qui explore le monde",
+        "title": "Utilizando matemáticas tomadas de economistas, un joven de 14 años de Virginia pasó seis meses calculando dónde deberían ubicarse los sensores de terremotos",
+        "url": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxPU1MyY2hJQnAxM1p3N2VRNVlsVUdzY05iWms3czZWQ2I5Zzdhdy1uRHVnRnVlOFp1cXJsbHZ3dVV1cTdMWnFtOGtDb1lFaVVobU0tWERFemdERGlXS2kyUDBOYmlWQXZ0RG1ETllkNlRfNUpseGhobEtoNW9Ed0kzY25QY3FSZ2IzUFE4TTZqRWhhd0FaQWNUOWVuYXBtNVNRbFRYcG9VS2RMM3EyV21UVktmYXhPSFNkTmU0TjZpLW5BQQ?oc=5"
+      },
+      "image": {
+        "description": "USGS Cascades Volcano Observatory Geophysicist Wes Thelen, removes ropes from new station LSON, at Mount Hood (Mount Hood is pictured in the distance). The fiberglass hut, delivered by helicopter, wil",
+        "illustrative": true,
+        "license": "public domain pd",
+        "title": "File:Mount Hood monitoring station.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/0/08/Mount_Hood_monitoring_station.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
     }
   }
 }
