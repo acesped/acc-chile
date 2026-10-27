@@ -180,8 +180,9 @@
     },
     "sismos-6c0a7ae01428": {
       "topic": "falla_normal",
-      "reel": "enviando",
-      "updated_at": "2026-10-27T07:01:00.960753+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-10-27T07:01:38.701338+00:00",
+      "reel_id": "17979964733915633"
     }
   }
 }
