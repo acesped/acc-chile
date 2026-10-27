@@ -1692,6 +1692,7 @@ def narration(final_info):
 
         + (
             "por ciento, para un sismo de al menos"
+        )
 
         + f"de magnitud {magnitude} o superior "
 
