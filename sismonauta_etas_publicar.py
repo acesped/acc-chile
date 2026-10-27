@@ -1681,7 +1681,7 @@ def narration(final_info):
     )
 
     return (
-        "Te invitamos a revisar una actualización "
+        "Hola!, a continuación, te invitamos a revisar una actualización "
         "del riesgo sísmico en Chile "
         "para las próximas 24 horas. "
 
@@ -1707,8 +1707,8 @@ def narration(final_info):
         + delta_text
 
         + (
-            " IMPORTANTE: los resultados de este modelo "
-            "son experimentales, constituyen una alerta sísmica "
+            "IMPORTANTE: los resultados de este modelo "
+            "son experimentales, no constituyen una alerta sísmica "
             "ni una predicción oficial."
         )
     )
