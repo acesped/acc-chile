@@ -11,13 +11,13 @@ on:
         default: false
 
   # Todos los dias a las 07:00 y 19:00 Horas, hora de Chile
- schedule:
-    # Primera ejecución: 07:07 Chile
-    - cron: '7 30 * * *'
+  schedule:
+    # Primera ejecución: 07:30 AM, hora de Chile
+    - cron: '30 7 * * *'
       timezone: 'America/Santiago'
 
-    # Segunda ejecución: 19:07 Chile
-    - cron: '7 30 * * *'
+    # Segunda ejecución: 19:30 PM, hora de Chile
+    - cron: '30 19 * * *'
       timezone: 'America/Santiago'
 
 permissions:
