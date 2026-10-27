@@ -1,30 +1,28 @@
 
 name: SISMONAUTA - ETAS Chile (cron-job.org)
 
-# ==================================================
-# EJECUCION EXTERNA POR CRON-JOB.ORG
-# ==================================================
+# ==========================================================
+# SISMONAUTA ETAS CHILE
+#
+# Activacion:
+# cron-job.org -> GitHub API -> workflow_dispatch
+#
+# publish=false: generar video sin publicar
+# publish=true: generar y publicar Instagram/Facebook
 #
 # Pais fijo: Chile
+# Sin apt-get, sin sudo, sin /mnt/data
 #
-# publish=false:
-#   Generar video sin publicar.
-#
-# publish=true:
-#   Generar video y publicar en Instagram
-#   @sismonauta y Fanpage Sismonauta.
-#
-# No depende del schedule interno de GitHub.
-#
-# El modelo ETAS es experimental.
-# No constituye una alerta sismica oficial.
-# ==================================================
+# IMPORTANTE:
+# Modelo ETAS experimental, no constituye
+# prediccion oficial ni alerta sismica.
+# ==========================================================
 
 on:
   workflow_dispatch:
     inputs:
       publish:
-        description: 'Publicar en Instagram y Facebook'
+        description: "Publicar en Instagram y Facebook"
         required: true
         type: boolean
         default: false
@@ -39,7 +37,7 @@ concurrency:
 jobs:
   generar_y_publicar:
 
-    name: Generar ETAS Chile y publicar video
+    name: ETAS Chile - Generacion y publicacion
 
     runs-on: ubuntu-24.04
 
@@ -50,162 +48,247 @@ jobs:
         shell: bash
 
     env:
+      # ------------------------------------------
+      # Rendimiento
+      # ------------------------------------------
+      PYTHONUNBUFFERED: "1"
+      MPLBACKEND: "Agg"
+      OPENBLAS_NUM_THREADS: "2"
+      OMP_NUM_THREADS: "2"
+      NUMBA_NUM_THREADS: "2"
 
-      # ==========================================
-      # RENDIMIENTO
-      # ==========================================
-
-      PYTHONUNBUFFERED: '1'
-      MPLBACKEND: 'Agg'
-      OPENBLAS_NUM_THREADS: '2'
-      OMP_NUM_THREADS: '2'
-      NUMBA_NUM_THREADS: '2'
-
-      # ==========================================
-      # GITHUB
-      # ==========================================
-
+      # ------------------------------------------
+      # Identidad del repositorio
+      # ------------------------------------------
       GH_TOKEN: ${{ github.token }}
       GITHUB_REPOSITORY: ${{ github.repository }}
       GITHUB_REF_NAME: ${{ github.event.repository.default_branch }}
 
-      # ==========================================
-      # INSTAGRAM
-      # ==========================================
-
+      # ------------------------------------------
+      # Instagram
+      # ------------------------------------------
       INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
       INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
 
-      # ==========================================
-      # FACEBOOK
-      # ==========================================
-
+      # ------------------------------------------
+      # Facebook
+      # ------------------------------------------
       FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
       FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
 
-      # ==========================================
-      # META GRAPH API
-      # ==========================================
+      # ------------------------------------------
+      # Meta API
+      # ------------------------------------------
+      IG_GRAPH_BASE: "https://graph.instagram.com"
+      META_GRAPH_VERSION: "v25.0"
+      IG_UPLOAD_MODE: "url"
 
-      IG_GRAPH_BASE: 'https://graph.instagram.com'
-      META_GRAPH_VERSION: 'v25.0'
-      IG_UPLOAD_MODE: 'url'
-
-      # ==========================================
-      # ETAS
-      # ==========================================
-
-      ETAS_TIMEOUT_SECONDS: '16500'
+      # ------------------------------------------
+      # ETAS: salida en directorio escribible
+      # ------------------------------------------
+      ETAS_OUTPUT_DIR: "output_etas"
+      ETAS_COUNTRY: "Chile"
+      ETAS_TIMEOUT_SECONDS: "16500"
 
     steps:
 
-      # ==========================================
-      # 1. DESCARGAR REPOSITORIO
-      # ==========================================
+      # ====================================================
+      # 1. CHECKOUT
+      # ====================================================
 
       - name: Descargar repositorio
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.repository.default_branch }}
 
-      # ==========================================
-      # 2. CONFIGURAR PYTHON
-      # ==========================================
+      # ====================================================
+      # 2. PYTHON
+      # ====================================================
 
       - name: Configurar Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
-      # ==========================================
-      # 3. PREPARAR DIRECTORIOS Y HERRAMIENTAS
-      # ==========================================
+      # ====================================================
+      # 3. PREPARAR DIRECTORIO
+      # ====================================================
 
-      - name: Verificar FFmpeg fuentes y directorios
-        timeout-minutes: 3
+      - name: Preparar directorio ETAS
+        timeout-minutes: 2
         run: |
           set -euo pipefail
+
+          mkdir -p "$GITHUB_WORKSPACE/output_etas"
 
           echo "==================================="
           echo "SISMONAUTA ETAS CHILE"
-          echo "PREPARACION DEL ENTORNO"
+          echo "==================================="
+          echo "Repositorio: $GITHUB_REPOSITORY"
+          echo "Espacio de trabajo: $GITHUB_WORKSPACE"
+          echo "Salida: $GITHUB_WORKSPACE/output_etas"
           echo "==================================="
 
-          # Directorio con permisos del runner.
-          mkdir -p output_etas
+          touch "$GITHUB_WORKSPACE/output_etas/test.tmp"
+          rm "$GITHUB_WORKSPACE/output_etas/test.tmp"
 
-          echo "Directorio de trabajo:"
-          pwd
+          echo "Directorio con permisos de escritura: OK"
 
-          echo "Directorio de salida:"
-          realpath output_etas
+      # ====================================================
+      # 4. INSTALAR FFMPEG + FFPROBE SIN APT-GET
+      # ====================================================
 
-          # Verificar escritura.
-          touch output_etas/prueba_escritura.tmp
-          rm output_etas/prueba_escritura.tmp
-
-          echo "Permisos de escritura verificados"
-
-          # --------------------------------------
-          # FFMPEG
-          # --------------------------------------
-
-          if command -v ffmpeg >/dev/null 2>&1; then
-            echo "FFmpeg disponible:"
-            ffmpeg -version | sed -n '1p'
-          else
-            echo "::error::FFmpeg no disponible."
-            exit 1
-          fi
-
-          # --------------------------------------
-          # FFPROBE
-          # --------------------------------------
-
-          if command -v ffprobe >/dev/null 2>&1; then
-            echo "FFprobe disponible:"
-            ffprobe -version | sed -n '1p'
-          else
-            echo "::error::FFprobe no disponible."
-            exit 1
-          fi
-
-          # --------------------------------------
-          # FUENTES DEJAVU
-          # --------------------------------------
-
-          if [[ -f /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf ]] &&
-             [[ -f /usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf ]]; then
-
-            echo "Fuentes DejaVu verificadas"
-
-          else
-
-            echo "::warning::Fuentes DejaVu no encontradas"
-            if command -v fc-list >/dev/null 2>&1; then
-              fc-list | sed -n '1,5p' || true
-            fi
-
-          fi
-
-          echo "==================================="
-          echo "ENTORNO PREPARADO"
-          echo "==================================="
-
-      # ==========================================
-      # 4. INSTALAR DEPENDENCIAS CIENTIFICAS
-      # ==========================================
-
-      - name: Instalar dependencias ETAS
-        timeout-minutes: 20
+      - name: Instalar FFmpeg y FFprobe sin sudo
+        timeout-minutes: 12
         run: |
           set -euo pipefail
 
-          echo "Instalando bibliotecas del modelo ETAS"
+          echo "==================================="
+          echo "INSTALACION FFMPEG / FFPROBE"
+          echo "==================================="
+
+          BIN_DIR="$RUNNER_TEMP/etas_ffmpeg_bin"
+          EXTRACT_DIR="$RUNNER_TEMP/etas_ffmpeg_extract"
+          ARCHIVE="$RUNNER_TEMP/etas_ffmpeg.tar.xz"
+
+          mkdir -p "$BIN_DIR" "$EXTRACT_DIR"
+
+          if command -v ffmpeg >/dev/null 2>&1 &&
+             command -v ffprobe >/dev/null 2>&1; then
+
+            echo "FFmpeg y FFprobe ya disponibles."
+
+          else
+
+            echo "Descargando paquete Linux x86-64..."
+
+            DOWNLOAD_URL="https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz"
+
+            curl \
+              --fail \
+              --location \
+              --show-error \
+              --silent \
+              --retry 3 \
+              --retry-delay 5 \
+              --connect-timeout 20 \
+              --max-time 420 \
+              "$DOWNLOAD_URL" \
+              --output "$ARCHIVE"
+
+            echo "Descarga completada."
+            echo "Tamano:"
+            du -h "$ARCHIVE"
+
+            echo "Extrayendo herramientas..."
+
+            tar -xJf "$ARCHIVE" -C "$EXTRACT_DIR"
+
+            FFMPEG_SOURCE="$(
+              find "$EXTRACT_DIR" \
+                -type f \
+                -name ffmpeg \
+                -print -quit
+            )"
+
+            FFPROBE_SOURCE="$(
+              find "$EXTRACT_DIR" \
+                -type f \
+                -name ffprobe \
+                -print -quit
+            )"
+
+            if [[ -z "$FFMPEG_SOURCE" ]]; then
+              echo "::error::No se encontro ffmpeg en el paquete."
+              exit 1
+            fi
+
+            if [[ -z "$FFPROBE_SOURCE" ]]; then
+              echo "::error::No se encontro ffprobe en el paquete."
+              exit 1
+            fi
+
+            install -m 755 \
+              "$FFMPEG_SOURCE" \
+              "$BIN_DIR/ffmpeg"
+
+            install -m 755 \
+              "$FFPROBE_SOURCE" \
+              "$BIN_DIR/ffprobe"
+
+            # Exportar para pasos posteriores.
+            echo "$BIN_DIR" >> "$GITHUB_PATH"
+
+            # Exportar para este mismo paso.
+            export PATH="$BIN_DIR:$PATH"
+
+          fi
+
+          echo "==================================="
+          echo "VERIFICANDO BINARIOS"
+          echo "==================================="
+
+          command -v ffmpeg
+          command -v ffprobe
+
+          ffmpeg -version | sed -n '1p'
+          ffprobe -version | sed -n '1p'
+
+          echo "Comprobando libx264:"
+          ffmpeg -hide_banner -encoders | grep -F libx264
+
+          echo "Comprobando AAC:"
+          ffmpeg -hide_banner -encoders | grep -E '^[[:space:]]*A.* aac '
+
+          echo "FFmpeg y FFprobe operativos."
+
+      # ====================================================
+      # 5. VERIFICAR FUENTES
+      # ====================================================
+
+      - name: Verificar fuentes disponibles
+        timeout-minutes: 2
+        run: |
+          set -euo pipefail
+
+          echo "==================================="
+          echo "FUENTES PARA MAPAS ETAS"
+          echo "==================================="
+
+          if [[ -f /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf ]]; then
+            echo "DejaVuSans regular: OK"
+          else
+            echo "::warning::DejaVuSans regular no encontrada."
+          fi
+
+          if [[ -f /usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf ]]; then
+            echo "DejaVuSans Bold: OK"
+          else
+            echo "::warning::DejaVuSans Bold no encontrada."
+          fi
+
+          if command -v fc-list >/dev/null 2>&1; then
+            echo "Primeras fuentes disponibles:"
+            fc-list | sed -n '1,8p' || true
+          fi
+
+      # ====================================================
+      # 6. INSTALAR DEPENDENCIAS
+      # ====================================================
+
+      - name: Instalar librerias ETAS
+        timeout-minutes: 25
+        run: |
+          set -euo pipefail
+
+          echo "==================================="
+          echo "DEPENDENCIAS CIENTIFICAS"
+          echo "==================================="
 
           python -m pip install \
             --disable-pip-version-check \
             --prefer-binary \
+            --only-binary=:all: \
             --retries 3 \
             --timeout 45 \
             'numpy>=1.26,<3' \
@@ -220,16 +303,17 @@ jobs:
             'gTTS>=2.5,<3' \
             'pycountry>=23,<30' \
             'geopy>=2,<3' \
-            'shapely>=2,<3'
+            'shapely>=2,<3' \
+            'ipython>=8,<10'
 
-          echo "Dependencias instaladas"
+          echo "Dependencias instaladas."
 
-      # ==========================================
-      # 5. VERIFICAR LIBRERIAS
-      # ==========================================
+      # ====================================================
+      # 7. COMPROBAR LIBRERIAS
+      # ====================================================
 
       - name: Verificar modulos cientificos
-        timeout-minutes: 3
+        timeout-minutes: 4
         run: |
           set -euo pipefail
 
@@ -247,9 +331,10 @@ jobs:
           import pycountry
           import geopy
           import shapely
+          import IPython
 
           print("===================================")
-          print("BIBLIOTECAS CIENTIFICAS DISPONIBLES")
+          print("BIBLIOTECAS VERIFICADAS")
           print("===================================")
           print("NumPy:", numpy.__version__)
           print("Pandas:", pandas.__version__)
@@ -258,75 +343,89 @@ jobs:
           print("Cartopy:", cartopy.__version__)
           print("Numba:", numba.__version__)
           print("Shapely:", shapely.__version__)
+          print("IPython:", IPython.__version__)
           print("===================================")
           PY
 
-      # ==========================================
-      # 6. VALIDAR ARCHIVOS PYTHON
-      # ==========================================
+      # ====================================================
+      # 8. COMPROBAR ARCHIVOS PYTHON
+      # ====================================================
 
-      - name: Validar archivos Python
+      - name: Validar archivos ETAS
+        timeout-minutes: 2
         run: |
           set -euo pipefail
 
-          if [[ ! -f sismonauta_etas_publicar.py ]]; then
-            echo "::error::No existe sismonauta_etas_publicar.py"
+          test -f "sismonauta_etas_publicar.py" || {
+            echo "::error::Falta sismonauta_etas_publicar.py"
             exit 1
-          fi
+          }
 
-          if [[ ! -f etas_multipaís_24h_animado.py ]]; then
-            echo "::error::No existe etas_multipaís_24h_animado.py"
+          test -f "etas_multipaís_24h_animado.py" || {
+            echo "::error::Falta etas_multipaís_24h_animado.py"
             exit 1
-          fi
+          }
 
           python -m py_compile \
-            sismonauta_etas_publicar.py \
-            etas_multipaís_24h_animado.py
+            "sismonauta_etas_publicar.py" \
+            "etas_multipaís_24h_animado.py"
 
-          echo "Archivos Python verificados"
+          echo "Sintaxis Python: OK"
 
-      # ==========================================
-      # 7. VALIDAR RUTA DE SALIDA DEL PUBLICADOR
-      # ==========================================
+      # ====================================================
+      # 9. VALIDAR QUE EL PUBLICADOR NO USE /mnt/data
+      # ====================================================
 
-      - name: Verificar compatibilidad de rutas
+      - name: Verificar rutas del publicador
+        timeout-minutes: 2
         run: |
           set -euo pipefail
 
           python - <<'PY'
+          import ast
           from pathlib import Path
 
-          output = Path("output_etas").resolve()
+          path = Path("sismonauta_etas_publicar.py")
+          source = path.read_text(encoding="utf-8")
+
+          ast.parse(source, filename=str(path))
+
+          if "/mnt/data" in source:
+              raise SystemExit(
+                  "::error::El publicador todavia contiene "
+                  "/mnt/data. Actualiza run_original() "
+                  "antes de ejecutar ETAS."
+              )
+
+          output = Path("output_etas")
           output.mkdir(parents=True, exist_ok=True)
 
-          print("Directorio válido:", output)
+          test = output / "test_output.tmp"
+          test.write_text("OK", encoding="utf-8")
 
-          file = output / "test_output.tmp"
-          file.write_text("OK", encoding="utf-8")
-          assert file.read_text(encoding="utf-8") == "OK"
-          file.unlink()
+          assert test.read_text(encoding="utf-8") == "OK"
 
-          print("Permisos de escritura correctos")
-          print("Salida esperada:")
-          print(output / "ETAS_DOBLE_HEATMAP_CON_LIKE.mp4")
+          test.unlink()
+
+          print("Publicador sin /mnt/data: OK")
+          print("Directorio output_etas: OK")
           PY
 
-      # ==========================================
-      # 8. DETERMINAR MODO DE EJECUCION
-      # ==========================================
+      # ====================================================
+      # 10. MODO DE PUBLICACION
+      # ====================================================
 
-      - name: Determinar modo de publicacion
+      - name: Determinar modo de ejecucion
         id: modo
 
         env:
-          EVENT_NAME: ${{ github.event_name }}
           REQUESTED_PUBLISH: ${{ inputs.publish }}
 
         run: |
           set -euo pipefail
 
-          if [[ "$EVENT_NAME" != "workflow_dispatch" ]]; then
-            echo "::error::Evento no permitido"
+          if [[ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ]]; then
+            echo "::error::Evento no autorizado."
             exit 1
           fi
 
@@ -339,26 +438,21 @@ jobs:
           echo "publish=$PUBLISH" >> "$GITHUB_OUTPUT"
 
           echo "==================================="
-          echo "SISMONAUTA - ETAS CHILE"
+          echo "SISMONAUTA ETAS CHILE"
           echo "==================================="
           echo "Pais: Chile"
-          echo "Origen: workflow_dispatch"
           echo "Publicar: $PUBLISH"
           echo "Instagram: @sismonauta"
           echo "Facebook: Sismonauta"
+          echo "Hora Chile:"
+          TZ=America/Santiago date
           echo "==================================="
 
-          echo "Fecha UTC:"
-          date -u
+      # ====================================================
+      # 11. VALIDAR CREDENCIALES
+      # ====================================================
 
-          echo "Hora de Chile:"
-          TZ=America/Santiago date
-
-      # ==========================================
-      # 9. COMPROBAR SECRETOS
-      # ==========================================
-
-      - name: Comprobar credenciales Meta
+      - name: Verificar secretos Meta
         env:
           PUBLISH: ${{ steps.modo.outputs.publish }}
 
@@ -373,27 +467,24 @@ jobs:
               FACEBOOK_PAGE_ID \
               FACEBOOK_PAGE_TOKEN
             do
-
               if [[ -z "${!name:-}" ]]; then
-                echo "::error::Falta secreto $name"
+                echo "::error::Falta secreto: $name"
                 exit 1
               fi
-
             done
 
-            echo "Credenciales de Meta presentes"
-
+            echo "Credenciales Meta presentes."
           else
-            echo "Vista previa sin publicar"
+            echo "Modo prueba: no se publicara en Meta."
           fi
 
-      # ==========================================
-      # 10. EJECUTAR MODELO ETAS CHILE
-      # ==========================================
+      # ====================================================
+      # 12. GENERAR ETAS Y PUBLICAR
+      # ====================================================
 
-      - name: Generar mapas video y publicar
+      - name: Ejecutar modelo ETAS Chile
         id: ejecutar
-        timeout-minutes: 335
+        timeout-minutes: 310
 
         env:
           PUBLISH: ${{ steps.modo.outputs.publish }}
@@ -411,32 +502,33 @@ jobs:
           fi
 
           echo "==================================="
-          echo "ETAS CHILE - GENERACION"
+          echo "INICIANDO ETAS CHILE"
           echo "==================================="
-          echo "Pais fijo: Chile"
-          echo "25 instantaneas horarias"
+          echo "Pais: Chile"
+          echo "25 mapas horarios"
           echo "Dos mapas de calor"
           echo "Narracion y musica"
-          echo "Video Facebook: 1080x1350"
-          echo "Reel Instagram: 1080x1920"
+          echo "Video Instagram 9:16"
+          echo "Video Facebook 4:5"
           echo "Publicar: $PUBLISH"
           echo "==================================="
 
-          python sismonauta_etas_publicar.py "${args[@]}"
+          python -u sismonauta_etas_publicar.py "${args[@]}"
+
           CODE=$?
 
           echo "exit_code=$CODE" >> "$GITHUB_OUTPUT"
 
-          echo "Codigo de salida: $CODE"
+          echo "Codigo de salida Python: $CODE"
 
-          # La verificacion posterior evalua el error.
+          # El siguiente paso verifica el resultado.
           exit 0
 
-      # ==========================================
-      # 11. VERIFICAR RESULTADOS
-      # ==========================================
+      # ====================================================
+      # 13. VERIFICAR RESULTADO
+      # ====================================================
 
-      - name: Verificar generacion y publicacion
+      - name: Comprobar videos y publicacion
         env:
           PUBLISH: ${{ steps.modo.outputs.publish }}
           EXIT_CODE: ${{ steps.ejecutar.outputs.exit_code }}
@@ -449,107 +541,85 @@ jobs:
           import os
           from pathlib import Path
 
-          output = Path("output_etas")
+          out = Path("output_etas")
+          receipt = out / "estado_publicacion.json"
 
-          receipt = output / "estado_publicacion.json"
-
-          if not receipt.exists():
+          if not receipt.is_file():
               raise SystemExit(
-                  "::error::No existe recibo de publicacion"
+                  "::error::No existe el recibo ETAS"
               )
 
-          try:
-              data = json.loads(
-                  receipt.read_text(encoding="utf-8")
-              )
-          except Exception as exc:
-              raise SystemExit(
-                  "::error::Recibo invalido: " + str(exc)
-              )
+          data = json.loads(
+              receipt.read_text(encoding="utf-8")
+          )
 
           country = data.get("country")
           status = data.get("status")
-
-          code = int(os.getenv("EXIT_CODE") or "1")
+          code = int(os.environ.get("EXIT_CODE") or "1")
 
           print("===================================")
-          print("RESULTADOS SISMONAUTA ETAS")
+          print("RESULTADOS SISMONAUTA ETAS CHILE")
           print("===================================")
           print("Pais:", country)
           print("Estado:", status)
           print("Codigo Python:", code)
 
           if country != "Chile":
-              raise SystemExit(
-                  "::error::Pais incorrecto"
-              )
+              raise SystemExit("::error::Pais incorrecto")
 
           if code != 0:
               raise SystemExit(
-                  "::error::Fallo generacion o publicacion"
+                  "::error::El publicador ETAS fallo"
               )
 
-          # Comprobar videos locales.
-          original = (
-              output / "ETAS_DOBLE_HEATMAP_CON_LIKE.mp4"
-          )
+          original = out / "ETAS_DOBLE_HEATMAP_CON_LIKE.mp4"
+          reel = out / "sismonauta_etas_reel_9x16.mp4"
 
-          reel = (
-              output / "sismonauta_etas_reel_9x16.mp4"
-          )
+          for video in (original, reel):
+              if not video.is_file():
+                  raise SystemExit(
+                      "::error::Falta video: " + str(video)
+                  )
 
-          if not original.is_file():
-              raise SystemExit(
-                  "::error::No existe video ETAS original"
+              if video.stat().st_size < 10000:
+                  raise SystemExit(
+                      "::error::Video incompleto: "
+                      + str(video)
+                  )
+
+              print(
+                  "Video verificado:",
+                  video,
+                  "Bytes:",
+                  video.stat().st_size
               )
 
-          if not reel.is_file():
-              raise SystemExit(
-                  "::error::No existe Reel vertical"
-              )
-
-          if original.stat().st_size < 10000:
-              raise SystemExit(
-                  "::error::Video ETAS original incompleto"
-              )
-
-          if reel.stat().st_size < 10000:
-              raise SystemExit(
-                  "::error::Reel vertical incompleto"
-              )
-
-          print("Video ETAS original:", original)
-          print("Reel vertical:", reel)
-
-          publish = (
-              os.getenv("PUBLISH") == "true"
-          )
-
-          if publish:
+          if os.getenv("PUBLISH") == "true":
 
               if status != "published":
                   raise SystemExit(
                       "::error::Publicacion no confirmada"
                   )
 
-              targets = data.get("targets", {})
-
               for platform in ("instagram", "facebook"):
 
-                  item = targets.get(platform, {})
+                  item = (
+                      data.get("targets", {})
+                      .get(platform, {})
+                  )
 
                   if (
                       item.get("status") != "published"
                       or not item.get("id")
                   ):
                       raise SystemExit(
-                          "::error::Falta confirmacion de "
+                          "::error::Destino no confirmado: "
                           + platform
                       )
 
                   print(
                       platform.upper(),
-                      "ENVIO CONFIRMADO:",
+                      "ID:",
                       item["id"]
                   )
 
@@ -560,18 +630,16 @@ jobs:
                       "::error::Vista previa no confirmada"
                   )
 
-              print("MODO VISTA PREVIA: SIN PUBLICAR")
+              print("VISTA PREVIA: SIN PUBLICAR")
 
-          print("===================================")
           print("VERIFICACION COMPLETADA")
-          print("===================================")
           PYVERIFY
 
-      # ==========================================
-      # 12. RESUMEN DE GITHUB ACTIONS
-      # ==========================================
+      # ====================================================
+      # 14. RESUMEN GITHUB ACTIONS
+      # ====================================================
 
-      - name: Resumen de ejecucion
+      - name: Resumen de la ejecucion
         if: always()
 
         env:
@@ -580,32 +648,34 @@ jobs:
 
         run: |
           {
-            echo "## SISMONAUTA ETAS CHILE"
+            echo "## SISMONAUTA - ETAS Chile"
             echo ""
             echo "- Pais: Chile"
             echo "- Activacion: $GITHUB_EVENT_NAME"
-            echo "- Publicar: ${PUBLISH:-desconocido}"
+            echo "- Publicacion: ${PUBLISH:-desconocida}"
             echo "- Codigo Python: ${EXIT_CODE:-no ejecutado}"
-            echo "- Fecha UTC: $(date -u '+%Y-%m-%d %H:%M:%S')"
-            echo "- Hora Chile: $(TZ=America/Santiago date '+%Y-%m-%d %H:%M:%S %Z')"
+            echo "- UTC: $(date -u '+%Y-%m-%d %H:%M:%S')"
+            echo "- Chile: $(TZ=America/Santiago date '+%Y-%m-%d %H:%M:%S %Z')"
             echo ""
           } >> "$GITHUB_STEP_SUMMARY"
 
           if [[ -f output_etas/estado_publicacion.json ]]; then
             {
-              echo "### Estado de publicacion"
+              echo "### Estado del proceso"
               echo ""
               echo '```json'
+
               python -m json.tool \
                 output_etas/estado_publicacion.json \
-                2>/dev/null || echo "Recibo no legible"
+                || echo "Recibo no legible"
+
               echo '```'
             } >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      # ==========================================
-      # 13. GUARDAR VIDEOS Y EVIDENCIAS
-      # ==========================================
+      # ====================================================
+      # 15. GUARDAR EVIDENCIAS
+      # ====================================================
 
       - name: Guardar videos y registros
         if: always()
