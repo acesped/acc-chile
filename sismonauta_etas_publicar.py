@@ -1707,6 +1707,7 @@ def narration(final_info):
         + delta_text
 
         + (
+            "\n\n"
             "IMPORTANTE: los resultados de este modelo "
             "son experimentales, no constituyen una alerta sísmica "
             "ni una predicción oficial."
