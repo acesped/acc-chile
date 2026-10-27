@@ -1,0 +1,31 @@
+
+name: SISMONAUTA - Prueba de programacion automatica
+
+on:
+  workflow_dispatch:
+
+  schedule:
+    - cron: '*/5 * * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  comprobar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Confirmar activacion automatica
+        shell: bash
+        run: |
+          echo "================================="
+          echo "PRUEBA DE GITHUB ACTIONS"
+          echo "================================="
+          echo "Evento: $GITHUB_EVENT_NAME"
+          echo "Fecha UTC:"
+          date -u
+          echo "Fecha y hora de Chile:"
+          TZ=America/Santiago date
+          echo "================================="
+          echo "PROGRAMADOR ACTIVADO CORRECTAMENTE"
+``
