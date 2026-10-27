@@ -1,10 +1,21 @@
 
 name: SISMONAUTA - Noticias cientificas diarias
 
+# ==================================================
+# ACTIVACION POR CRON-JOB.ORG O EJECUCION MANUAL
+# ==================================================
+#
+# cron-job.org utiliza la API de GitHub para
+# activar workflow_dispatch con publish=true.
+#
+# Los horarios 07:30 y 19:30 America/Santiago
+# se configuran en cron-job.org.
+#
+# No se usa schedule de GitHub para evitar
+# depender de su programador interno.
+# ==================================================
+
 on:
-  # ==========================================
-  # EJECUCION MANUAL
-  # ==========================================
   workflow_dispatch:
     inputs:
       publish:
@@ -13,23 +24,11 @@ on:
         type: boolean
         default: false
 
-  # ==========================================
-  # PROGRAMACION AUTOMATICA - HORA DE CHILE
-  # ==========================================
-  schedule:
-    # Primera ejecucion: 07:30 AM
-    - cron: '0 8 * * *'
-      timezone: 'America/Santiago'
-
-    # Segunda ejecucion: 19:30 PM
-    - cron: '30 19 * * *'
-      timezone: 'America/Santiago'
-
 permissions:
   contents: write
 
-# Evita ejecuciones simultaneas de este
-# workflow, sin afectar los otros proyectos.
+# Evita ejecuciones simultaneas de noticias.
+# No afecta los otros workflows de SISMONAUTA.
 concurrency:
   group: sismonauta-noticias
   cancel-in-progress: false
@@ -43,40 +42,42 @@ jobs:
     env:
       PYTHONUNBUFFERED: '1'
 
-      # ======================================
+      # ==========================================
       # GITHUB
-      # ======================================
+      # ==========================================
       GH_TOKEN: ${{ github.token }}
       GITHUB_REPOSITORY: ${{ github.repository }}
       GITHUB_REF_NAME: ${{ github.event.repository.default_branch }}
 
-      # ======================================
+      # ==========================================
       # INSTAGRAM
-      # ======================================
+      # ==========================================
       INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
       INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
 
-      # ======================================
+      # ==========================================
       # FACEBOOK
-      # ======================================
+      # ==========================================
       FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
       FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
 
-      # ======================================
+      # ==========================================
       # INTELIGENCIA ARTIFICIAL
-      # ======================================
+      # ==========================================
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
-      # Modelos
+      # ==========================================
+      # MODELOS
+      # ==========================================
       GEMINI_NEWS_MODEL: 'gemini-2.5-flash'
       OPENROUTER_NEWS_MODEL: 'openai/gpt-4o-mini'
       GROQ_NEWS_MODEL: 'llama-3.3-70b-versatile'
 
-      # ======================================
+      # ==========================================
       # META GRAPH API
-      # ======================================
+      # ==========================================
       IG_GRAPH_VERSION: 'v25.0'
       IG_EXPECTED_USERNAME: 'sismonauta'
       FACEBOOK_EXPECTED_USERNAME: 'sismonauta'
@@ -84,7 +85,40 @@ jobs:
     steps:
 
       # ==========================================
-      # 1. DESCARGAR REPOSITORIO
+      # 1. IDENTIFICAR EJECUCION
+      # ==========================================
+
+      - name: Identificar origen de ejecucion
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          ACTOR: ${{ github.actor }}
+          REQUESTED_PUBLISH: ${{ inputs.publish }}
+        run: |
+          set -euo pipefail
+
+          echo "==================================="
+          echo "SISMONAUTA - NOTICIAS"
+          echo "==================================="
+          echo "Evento: $EVENT_NAME"
+          echo "Actor GitHub: $ACTOR"
+          echo "Publicacion solicitada: $REQUESTED_PUBLISH"
+          echo "Repositorio: $GITHUB_REPOSITORY"
+          echo "==================================="
+
+          echo "Fecha y hora UTC:"
+          date -u
+
+          echo "Fecha y hora de Chile:"
+          TZ=America/Santiago date
+
+          echo "==================================="
+          echo "Activacion: workflow_dispatch"
+          echo "Programador externo: cron-job.org"
+          echo "==================================="
+
+      # ==========================================
+      # 2. DESCARGAR REPOSITORIO
       # ==========================================
 
       - name: Descargar repositorio
@@ -93,7 +127,7 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
 
       # ==========================================
-      # 2. CONFIGURAR PYTHON
+      # 3. CONFIGURAR PYTHON
       # ==========================================
 
       - name: Configurar Python 3.11
@@ -102,7 +136,7 @@ jobs:
           python-version: '3.11'
 
       # ==========================================
-      # 3. INSTALAR DEPENDENCIAS
+      # 4. INSTALAR DEPENDENCIAS
       # ==========================================
 
       - name: Instalar librerias
@@ -121,7 +155,7 @@ jobs:
           echo "Dependencias instaladas correctamente"
 
       # ==========================================
-      # 4. VALIDAR ARCHIVO PYTHON
+      # 5. VALIDAR PYTHON
       # ==========================================
 
       - name: Verificar programa Python
@@ -139,7 +173,7 @@ jobs:
           echo "Python verificado correctamente"
 
       # ==========================================
-      # 5. DETERMINAR MODO DE EJECUCION
+      # 6. DETERMINAR MODO DE PUBLICACION
       # ==========================================
 
       - name: Determinar modo de publicacion
@@ -147,13 +181,16 @@ jobs:
         shell: bash
         env:
           EVENT_NAME: ${{ github.event_name }}
-          MANUAL_PUBLISH: ${{ inputs.publish }}
+          REQUESTED_PUBLISH: ${{ inputs.publish }}
         run: |
           set -euo pipefail
 
-          if [[ "$EVENT_NAME" == "schedule" ]]; then
-            PUBLISH=true
-          elif [[ "$MANUAL_PUBLISH" == "true" ]]; then
+          if [[ "$EVENT_NAME" != "workflow_dispatch" ]]; then
+            echo "::error::Evento no autorizado para este workflow"
+            exit 1
+          fi
+
+          if [[ "$REQUESTED_PUBLISH" == "true" ]]; then
             PUBLISH=true
           else
             PUBLISH=false
@@ -162,20 +199,22 @@ jobs:
           echo "publish=$PUBLISH" >> "$GITHUB_OUTPUT"
 
           echo "==================================="
-          echo "SISMONAUTA - NOTICIAS"
+          echo "MODO DE EJECUCION"
           echo "==================================="
           echo "Evento: $EVENT_NAME"
-          echo "Publicacion: $PUBLISH"
+          echo "Publicar: $PUBLISH"
           echo "Instagram: @sismonauta"
           echo "Facebook: Sismonauta"
           echo "==================================="
 
-          echo "Horarios automaticos:"
-          echo "07:30 AM - America/Santiago"
-          echo "19:30 PM - America/Santiago"
+          if [[ "$PUBLISH" == "true" ]]; then
+            echo "MODO PUBLICACION ACTIVADO"
+          else
+            echo "MODO VISTA PREVIA ACTIVADO"
+          fi
 
       # ==========================================
-      # 6. COMPROBAR CREDENCIALES
+      # 7. VALIDAR SECRETOS Y PROVEEDORES IA
       # ==========================================
 
       - name: Validar secretos y proveedores IA
@@ -222,10 +261,10 @@ jobs:
             exit 1
           fi
 
-          echo "Credenciales disponibles para ejecutar noticias"
+          echo "Credenciales verificadas"
 
       # ==========================================
-      # 7. BUSCAR, REDACTAR Y PUBLICAR
+      # 8. BUSCAR, REDACTAR Y PUBLICAR NOTICIA
       # ==========================================
 
       - name: Procesar noticia del dia
@@ -246,12 +285,11 @@ jobs:
           echo "==================================="
           echo "BUSQUEDA Y PUBLICACION"
           echo "==================================="
-          echo "Ultimas 24 horas"
+          echo "Busqueda de noticias recientes"
           echo "Idiomas: espanol e ingles"
           echo "Traduccion al espanol"
-          echo "Explicacion cientifica extensa"
-          echo "Banner azul, texto blanco"
-          echo "Contorno negro en titular"
+          echo "Redaccion cientifica"
+          echo "Generacion de imagen"
           echo "Publicar: $PUBLISH"
           echo "==================================="
 
@@ -259,13 +297,14 @@ jobs:
           CODE=$?
 
           echo "exit_code=$CODE" >> "$GITHUB_OUTPUT"
-          echo "Codigo Python: $CODE"
 
-          # El siguiente paso verifica el resultado.
+          echo "Codigo de salida Python: $CODE"
+
+          # El paso siguiente analiza el recibo.
           exit 0
 
       # ==========================================
-      # 8. VERIFICAR PUBLICACIONES
+      # 9. VERIFICAR RESULTADO Y PUBLICACIONES
       # ==========================================
 
       - name: Confirmar resultados en Instagram y Facebook
@@ -299,9 +338,15 @@ jobs:
                   "::error::No existe recibo de resultados"
               )
 
-          data = json.loads(
-              receipt.read_text(encoding="utf-8")
-          )
+          try:
+              data = json.loads(
+                  receipt.read_text(encoding="utf-8")
+              )
+          except (OSError, json.JSONDecodeError) as exc:
+              raise SystemExit(
+                  "::error::Recibo de resultados invalido: "
+                  + str(exc)
+              )
 
           status = data.get("status")
 
@@ -310,7 +355,7 @@ jobs:
           print("Estado real:", status)
 
           # --------------------------------------
-          # VALIDAR CODIGO DE SALIDA
+          # VALIDAR CODIGO DEL PROGRAMA
           # --------------------------------------
 
           if exit_code not in (0, 2, 3):
@@ -329,7 +374,7 @@ jobs:
               )
 
           # --------------------------------------
-          # NO SE ENCONTRO NOTICIA PUBLICABLE
+          # NO HAY NOTICIAS PUBLICABLES
           # --------------------------------------
 
           no_news = {
@@ -338,22 +383,26 @@ jobs:
           }
 
           if status in no_news:
+              if exit_code not in (0, 2, 3):
+                  raise SystemExit(
+                      "::error::Codigo inesperado sin noticia"
+                  )
+
               print(
-                  "::notice::SIN PUBLICACION "
-                  "EN ESTA EJECUCION: "
-                  + status
+                  "::notice::SIN PUBLICACION: "
+                  + str(status)
               )
               raise SystemExit(0)
 
           # --------------------------------------
-          # MODO VISTA PREVIA
+          # VISTA PREVIA
           # --------------------------------------
 
           if not publish:
-              if status != "preview_only":
+              if exit_code != 0 or status != "preview_only":
                   raise SystemExit(
                       "::error::Resultado inesperado "
-                      "en modo vista previa: "
+                      "en vista previa: "
                       + str(status)
                   )
 
@@ -363,7 +412,7 @@ jobs:
               raise SystemExit(0)
 
           # --------------------------------------
-          # CONFIRMACION DE PUBLICACION
+          # CONFIRMACION DE PUBLICACION REAL
           # --------------------------------------
 
           if exit_code != 0 or status != "published":
@@ -399,7 +448,42 @@ jobs:
           PYVERIFY
 
       # ==========================================
-      # 9. GUARDAR EVIDENCIAS
+      # 10. RESUMEN DE EJECUCION
+      # ==========================================
+
+      - name: Registrar resumen de ejecucion
+        if: always()
+        shell: bash
+        env:
+          PUBLISH: ${{ steps.modo.outputs.publish }}
+          SCRIPT_EXIT: ${{ steps.ejecutar.outputs.exit_code }}
+        run: |
+          {
+            echo "## SISMONAUTA - Noticias"
+            echo ""
+            echo "- Evento: $GITHUB_EVENT_NAME"
+            echo "- Publicacion solicitada: ${PUBLISH:-desconocida}"
+            echo "- Codigo Python: ${SCRIPT_EXIT:-no ejecutado}"
+            echo "- Repositorio: $GITHUB_REPOSITORY"
+            echo "- Fecha UTC: $(date -u '+%Y-%m-%d %H:%M:%S')"
+            echo "- Fecha Chile: $(TZ=America/Santiago date '+%Y-%m-%d %H:%M:%S %Z')"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ -f output_noticias/estado_publicacion.json ]]; then
+            {
+              echo "### Recibo de publicacion"
+              echo ""
+              echo '```json'
+              python -m json.tool \
+                output_noticias/estado_publicacion.json \
+                2>/dev/null || echo "Recibo no legible"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # ==========================================
+      # 11. GUARDAR EVIDENCIAS
       # ==========================================
 
       - name: Guardar imagen y registros
