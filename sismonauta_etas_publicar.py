@@ -1835,7 +1835,7 @@ def draw_snapshot(
     fig.text(
         0.265,
         0.863,
-        "PROBABILIDAD MODELADA",
+        "PROBABILIDAD ACUMULADA",
         ha="center",
         fontsize=11,
         fontweight="bold",
@@ -1845,7 +1845,7 @@ def draw_snapshot(
     fig.text(
         0.735,
         0.863,
-        "AUMENTO DESDE HACE 24 H",
+        "AUMENTO ULTIMAS 24 H",
         ha="center",
         fontsize=11,
         fontweight="bold",
@@ -4006,14 +4006,14 @@ def caption(metadata):
         "ETAS (Epidemic-Type Aftershock Sequence) "
         "es un modelo estadístico que evalúa "
         "la tasa sísmica de fondo y la "
-        "influencia temporal de los terremotos "
+        "influencia temporal de los terremotos, "
         "detectando patrones probabilísticos.\n\n"
 
-        "El mapa izquierdo muestra el riesgo sísmico "
+        "El mapa de la izquierda muestra el riesgo sísmico "
         "acumulado para las próximas 24 horas. "
         "El mapa derecho en tanto, muestra las zonas"
         "donde la probabilidad de riesgo aumentó "
-        "con mayor rapidez en las últimas horas. "
+        "con mayor rapidez en las últimas horas.\n\n "
 
         "⚠️ IMPORTANTE: ETAS es un modelo experimental, "
         "no constituye una predicción operativa de terremotos "
