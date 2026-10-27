@@ -237,14 +237,15 @@
     "sismos-caa7a886a7fc": {
       "topic": "subduccion",
       "reel": "publicado",
-      "updated_at": "2026-10-27T19:03:07.658618+00:00",
+      "updated_at": "2026-10-27T19:03:08.754138+00:00",
       "reel_id": "18096409307665437",
       "story": "publicado",
       "story_id": "18098338814394027",
       "facebook_reel": "publicado",
       "facebook_reel_id": "934743579517117",
       "facebook_story": "publicado",
-      "facebook_story_id": "1124297513418126"
+      "facebook_story_id": "1124297513418126",
+      "facebook_feed": "enviando"
     }
   }
 }
