@@ -1,7 +1,8 @@
 {
-  "country": "Chile",
   "status": "generating",
-  "created_at": "2026-10-27T16:23:15.177293+00:00",
+  "country": "Chile",
+  "created_at": "2026-10-27T17:24:12.468973+00:00",
+  "run_id": "40550115911",
   "targets": {
     "instagram": {
       "status": "pending"
