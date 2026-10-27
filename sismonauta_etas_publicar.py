@@ -1376,7 +1376,7 @@ def draw_snapshot(
 
     fig.text(
         .735, .863,
-        "AUMENTO ÚLTIMAS 24 H",
+        "VARIACIÓN PROBABILIDAD",
         ha="center",
         fontsize=11,
         fontweight="bold",
