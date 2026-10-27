@@ -2,18 +2,27 @@
 name: SISMONAUTA - ETAS Chile (cron-job.org)
 
 # ==================================================
-# ACTIVACION EXTERNA POR CRON-JOB.ORG
+# SISMONAUTA - MODELO ETAS CHILE
 # ==================================================
 #
-# cron-job.org envia un POST a la API de GitHub.
-# GitHub recibe workflow_dispatch.
+# Activacion automatica externa:
+# cron-job.org -> GitHub API -> workflow_dispatch
 #
-# publish=true  -> Generar y publicar video.
-# publish=false -> Generar sin publicar.
+# Pais: Chile exclusivamente
 #
-# Pais fijo: Chile.
+# publish=false:
+#   Genera mapas y videos sin publicar.
 #
-# No requiere el schedule interno de GitHub.
+# publish=true:
+#   Genera videos e intenta publicar en:
+#   - Instagram @sismonauta
+#   - Fanpage Facebook Sismonauta
+#
+# No usa el schedule interno de GitHub.
+#
+# MEJORA:
+# Se elimina la instalacion apt-get de FFmpeg
+# y se utilizan las herramientas del runner.
 # ==================================================
 
 on:
@@ -26,14 +35,14 @@ on:
         default: false
 
 # ==================================================
-# PERMISOS DEL WORKFLOW
+# PERMISOS
 # ==================================================
 
 permissions:
   contents: write
 
 # ==================================================
-# EVITAR EJECUCIONES SIMULTANEAS
+# CONTROL DE CONCURRENCIA
 # ==================================================
 
 concurrency:
@@ -56,7 +65,7 @@ jobs:
     env:
 
       # ==========================================
-      # CONFIGURACION PYTHON
+      # CONFIGURACION PYTHON Y RENDIMIENTO
       # ==========================================
 
       PYTHONUNBUFFERED: '1'
@@ -129,25 +138,75 @@ jobs:
           python-version: '3.11'
 
       # ==========================================
-      # 3. INSTALAR FFMPEG Y FUENTES
+      # 3. VERIFICAR FFMPEG Y FUENTES
       # ==========================================
 
-      - name: Instalar FFmpeg y fuentes
+      - name: Verificar FFmpeg y fuentes
         shell: bash
-        timeout-minutes: 15
+        timeout-minutes: 3
         run: |
           set -euo pipefail
 
-          sudo apt-get update -qq
+          echo "==================================="
+          echo "SISMONAUTA - ETAS CHILE"
+          echo "VERIFICACION DE HERRAMIENTAS"
+          echo "==================================="
 
-          sudo apt-get install -y -qq \
-            ffmpeg \
-            fonts-dejavu-core
-
+          # Directorios para video y evidencias
           mkdir -p /mnt/data
           mkdir -p output_etas
 
-          echo "FFmpeg instalado correctamente"
+          # --------------------------------------
+          # FFMPEG
+          # --------------------------------------
+
+          if command -v ffmpeg >/dev/null 2>&1; then
+
+            echo "FFmpeg disponible:"
+            ffmpeg -version | head -n 1
+
+          else
+
+            echo "::error::FFmpeg no esta disponible en el runner."
+            exit 1
+
+          fi
+
+          # --------------------------------------
+          # FFPROBE
+          # --------------------------------------
+
+          if command -v ffprobe >/dev/null 2>&1; then
+
+            echo "FFprobe disponible:"
+            ffprobe -version | head -n 1
+
+          else
+
+            echo "::error::FFprobe no esta disponible."
+            exit 1
+
+          fi
+
+          # --------------------------------------
+          # FUENTES DEJAVU
+          # --------------------------------------
+
+          if [[ -f /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf ]] &&
+             [[ -f /usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf ]]; then
+
+            echo "Fuentes DejaVu verificadas"
+
+          else
+
+            echo "::warning::Fuentes DejaVu no encontradas."
+            echo "Se utilizara una fuente alternativa si existe."
+
+          fi
+
+          echo "==================================="
+          echo "HERRAMIENTAS VERIFICADAS"
+          echo "==================================="
 
       # ==========================================
       # 4. INSTALAR DEPENDENCIAS CIENTIFICAS
@@ -155,13 +214,19 @@ jobs:
 
       - name: Instalar dependencias cientificas
         shell: bash
-        timeout-minutes: 15
+        timeout-minutes: 20
         run: |
           set -euo pipefail
+
+          echo "==================================="
+          echo "INSTALACION DE LIBRERIAS ETAS"
+          echo "==================================="
 
           python -m pip install \
             --disable-pip-version-check \
             --prefer-binary \
+            --retries 3 \
+            --timeout 45 \
             'numpy>=1.26,<3' \
             'pandas>=2.1,<3' \
             'scipy>=1.11,<2' \
@@ -176,10 +241,54 @@ jobs:
             'geopy>=2,<3' \
             'shapely>=2,<3'
 
-          echo "Dependencias instaladas"
+          echo "==================================="
+          echo "DEPENDENCIAS INSTALADAS"
+          echo "==================================="
 
       # ==========================================
-      # 5. VERIFICAR ARCHIVOS Y SINTAXIS
+      # 5. COMPROBAR MODULOS PYTHON
+      # ==========================================
+
+      - name: Verificar librerias cientificas
+        shell: bash
+        timeout-minutes: 3
+        run: |
+          set -euo pipefail
+
+          python - <<'PY'
+          import numpy
+          import pandas
+          import scipy
+          import matplotlib
+          import requests
+          import cartopy
+          import numba
+          import PIL
+          import edge_tts
+          import gtts
+          import pycountry
+          import geopy
+          import shapely
+
+          print("===================================")
+          print("MODULOS CIENTIFICOS VERIFICADOS")
+          print("===================================")
+
+          print("NumPy:", numpy.__version__)
+          print("Pandas:", pandas.__version__)
+          print("SciPy:", scipy.__version__)
+          print("Matplotlib:", matplotlib.__version__)
+          print("Cartopy:", cartopy.__version__)
+          print("Numba:", numba.__version__)
+          print("Shapely:", shapely.__version__)
+
+          print("===================================")
+          print("DEPENDENCIAS LISTAS")
+          print("===================================")
+          PY
+
+      # ==========================================
+      # 6. VALIDAR PROGRAMAS PYTHON
       # ==========================================
 
       - name: Verificar archivos y sintaxis
@@ -187,24 +296,28 @@ jobs:
         run: |
           set -euo pipefail
 
-          test -f sismonauta_etas_publicar.py || {
+          echo "Comprobando archivos Python..."
+
+          if [[ ! -f sismonauta_etas_publicar.py ]]; then
             echo "::error::Falta sismonauta_etas_publicar.py"
             exit 1
-          }
+          fi
 
-          test -f etas_multipaís_24h_animado.py || {
+          if [[ ! -f etas_multipaís_24h_animado.py ]]; then
             echo "::error::Falta etas_multipaís_24h_animado.py"
             exit 1
-          }
+          fi
 
           python -m py_compile \
             sismonauta_etas_publicar.py \
             etas_multipaís_24h_animado.py
 
-          echo "Ambos programas Python verificados"
+          echo "==================================="
+          echo "AMBOS ARCHIVOS PYTHON VERIFICADOS"
+          echo "==================================="
 
       # ==========================================
-      # 6. IDENTIFICAR MODO DE EJECUCION
+      # 7. DETERMINAR MODO DE EJECUCION
       # ==========================================
 
       - name: Determinar modo de ejecucion
@@ -241,11 +354,14 @@ jobs:
           echo "Facebook: Sismonauta"
           echo "==================================="
 
+          echo "Fecha UTC:"
+          date -u
+
           echo "Fecha y hora de Chile:"
           TZ=America/Santiago date
 
       # ==========================================
-      # 7. VALIDAR CREDENCIALES
+      # 8. VALIDAR CREDENCIALES
       # ==========================================
 
       - name: Verificar secretos de Meta
@@ -267,7 +383,7 @@ jobs:
             do
 
               if [[ -z "${!name:-}" ]]; then
-                echo "::error::Falta secreto $name"
+                echo "::error::Falta secreto: $name"
                 exit 1
               fi
 
@@ -283,7 +399,7 @@ jobs:
           fi
 
       # ==========================================
-      # 8. EJECUTAR ETAS PARA CHILE
+      # 9. EJECUTAR ETAS CHILE
       # ==========================================
 
       - name: Generar y publicar video ETAS
@@ -313,8 +429,9 @@ jobs:
           echo "Pais: Chile"
           echo "Modelo: ETAS experimental"
           echo "25 mapas horarios"
-          echo "2 heatmaps simultaneos"
-          echo "Video vertical para Instagram"
+          echo "2 mapas de calor simultaneos"
+          echo "Narracion y musica"
+          echo "Reel vertical para Instagram"
           echo "Video original para Facebook"
           echo "Publicar: $PUBLISH"
           echo "==================================="
@@ -325,13 +442,13 @@ jobs:
 
           echo "exit_code=$CODE" >> "$GITHUB_OUTPUT"
 
-          echo "Codigo de salida: $CODE"
+          echo "Codigo Python: $CODE"
 
-          # La siguiente etapa verifica el recibo.
+          # El paso siguiente interpreta el recibo.
           exit 0
 
       # ==========================================
-      # 9. VERIFICAR RESULTADOS
+      # 10. VERIFICAR RESULTADOS
       # ==========================================
 
       - name: Evaluar recibo de publicacion
@@ -345,22 +462,29 @@ jobs:
           set -euo pipefail
 
           python - <<'PYVERIFY'
-          import os
           import json
+          import os
           from pathlib import Path
 
-          path = Path(
+          receipt = Path(
               "output_etas/estado_publicacion.json"
           )
 
-          if not path.exists():
+          if not receipt.exists():
               raise SystemExit(
                   "::error::No existe recibo ETAS"
               )
 
-          data = json.loads(
-              path.read_text(encoding="utf-8")
-          )
+          try:
+              data = json.loads(
+                  receipt.read_text(
+                      encoding="utf-8"
+                  )
+              )
+          except Exception as exc:
+              raise SystemExit(
+                  "::error::Recibo invalido: " + str(exc)
+              )
 
           exit_code = int(
               os.environ.get("EXIT_CODE") or "1"
@@ -377,7 +501,7 @@ jobs:
           print("Codigo Python:", exit_code)
 
           # --------------------------------------
-          # PAIS OBLIGATORIO
+          # VALIDAR PAIS
           # --------------------------------------
 
           if country != "Chile":
@@ -386,19 +510,18 @@ jobs:
               )
 
           # --------------------------------------
-          # ERRORES DE EJECUCION
+          # VALIDAR ERRORES
           # --------------------------------------
 
           if exit_code != 0:
               raise SystemExit(
                   "::error::Error durante generacion "
-                  "o publicacion de video"
+                  "o publicacion del video"
               )
 
           if status == "partial_or_uncertain":
               raise SystemExit(
-                  "::error::Publicacion parcial o "
-                  "incierta. Revisar Meta."
+                  "::error::Publicacion parcial o incierta"
               )
 
           # --------------------------------------
@@ -412,24 +535,24 @@ jobs:
                       "::error::Publicacion no confirmada"
                   )
 
+              targets = data.get("targets", {})
+
               for platform in (
                   "instagram",
                   "facebook"
               ):
 
-                  item = (
-                      data.get("targets", {})
-                      .get(platform, {})
+                  item = targets.get(
+                      platform, {}
                   )
 
                   if (
                       item.get("status") != "published"
                       or not item.get("id")
                   ):
-
                       raise SystemExit(
-                          "::error::Falta confirmacion "
-                          "de " + platform
+                          "::error::Falta confirmacion de "
+                          + platform
                       )
 
                   print(
@@ -447,8 +570,7 @@ jobs:
 
               if status != "preview_only":
                   raise SystemExit(
-                      "::error::Vista previa "
-                      "no confirmada"
+                      "::error::Vista previa no confirmada"
                   )
 
               print(
@@ -461,7 +583,7 @@ jobs:
           PYVERIFY
 
       # ==========================================
-      # 10. RESUMEN EN GITHUB ACTIONS
+      # 11. RESUMEN EN GITHUB ACTIONS
       # ==========================================
 
       - name: Registrar resumen de ejecucion
@@ -502,7 +624,7 @@ jobs:
           fi
 
       # ==========================================
-      # 11. GUARDAR VIDEOS Y REGISTROS
+      # 12. GUARDAR VIDEOS Y REGISTROS
       # ==========================================
 
       - name: Guardar archivos generados
