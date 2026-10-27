@@ -4,23 +4,66 @@
 
 """
 SISMONAUTA ETAS CHILE
+=====================
 
-Ejecuta el modelo ETAS original sin interacción y
-publica el video en Instagram y Facebook.
+Publicador automático del modelo ETAS original.
 
-Requiere en el repositorio:
+MODELO REQUERIDO:
     etas_multipaís_24h_animado.py
 
-Activación automática:
-    cron-job.org -> GitHub workflow_dispatch
+WORKFLOW:
+    .github/workflows/sismonauta_etas.yml
 
-El país está fijado exclusivamente en Chile.
+ACTIVACION:
+    cron-job.org
+        |
+        v
+    GitHub workflow_dispatch
+        |
+        v
+    sismonauta_etas_publicar.py
+        |
+        v
+    ETAS CHILE
+        |
+        v
+    25 mapas + video
+        |
+        +--> Instagram @sismonauta
+        |
+        +--> Fanpage Sismonauta
 
-El modelo ETAS es experimental, no calibrado ni
-validado prospectivamente. No constituye alerta sísmica.
+ARCHIVOS GENERADOS:
+    output_etas/
+        ETAS_DOBLE_HEATMAP_CON_LIKE.mp4
+        sismonauta_etas_reel_9x16.mp4
+        estado_publicacion.json
+        _etas_temporal.py
+
+CARACTERISTICAS:
+    - Pais fijo: Chile.
+    - No requiere input interactivo.
+    - Sin /mnt/data.
+    - Sin sudo ni permisos de administrador.
+    - Salida dentro del workspace.
+    - Proteccion contra duplicados.
+    - Registro de publicaciones inciertas.
+    - Compatible con GitHub Actions.
+
+NOTA:
+    El modelo ETAS es experimental.
+    No esta calibrado ni validado
+    prospectivamente.
+
+    No constituye pronostico oficial
+    ni alerta sismica.
 """
 
+from __future__ import annotations
+
 import argparse
+import ast
+import base64
 import hashlib
 import json
 import os
@@ -35,15 +78,20 @@ import requests
 
 
 # ============================================================
-# CONFIGURACION GENERAL
+# 1. CONFIGURACION GENERAL
 # ============================================================
 
 COUNTRY = "Chile"
 
+ACCOUNT = "sismonauta"
+
+PAGE_NAME = "Sismonauta"
+
 GITHUB_API = "https://api.github.com"
 
 META_VERSION = os.getenv(
-    "META_GRAPH_VERSION", "v25.0"
+    "META_GRAPH_VERSION",
+    "v25.0"
 )
 
 IG_BASE = os.getenv(
@@ -55,31 +103,141 @@ FB_BASE = (
     f"https://graph.facebook.com/{META_VERSION}"
 )
 
-TIMEOUT = (20, 180)
+# Tiempo normal para solicitudes JSON.
+HTTP_TIMEOUT = (20, 180)
+
+# Subidas de videos pueden tardar mas.
+UPLOAD_TIMEOUT = (30, 900)
+
+# Tiempo maximo del modelo ETAS.
+ETAS_TIMEOUT_SECONDS = int(
+    os.getenv(
+        "ETAS_TIMEOUT_SECONDS",
+        "16500"
+    )
+)
+
+# Directorio local escribible.
+DEFAULT_OUTPUT_DIR = os.getenv(
+    "ETAS_OUTPUT_DIR",
+    "output_etas"
+)
+
+# Nombre original del MP4 cientifico.
+ORIGINAL_VIDEO_NAME = (
+    "ETAS_DOBLE_HEATMAP_CON_LIKE.mp4"
+)
+
+# Nombre de la version Instagram.
+REEL_VIDEO_NAME = (
+    "sismonauta_etas_reel_9x16.mp4"
+)
 
 SESSION = requests.Session()
 
-SESSION.headers["User-Agent"] = (
-    "Sismonauta-ETAS-Publisher/1.0"
-)
+SESSION.headers.update({
+    "User-Agent": (
+        "Sismonauta-ETAS-Chile/2.0"
+    )
+})
 
 
 # ============================================================
-# 1. SOLICITUDES HTTP
+# 2. UTILIDADES
 # ============================================================
 
-def request_json(method, url, *, token=None, **kwargs):
+def utcnow():
+    return datetime.now(
+        timezone.utc
+    ).isoformat()
 
-    headers = dict(kwargs.pop("headers", {}))
+
+def log(*args):
+    print(
+        *args,
+        flush=True
+    )
+
+
+def safe_error(exc):
+    return str(exc)[:500]
+
+
+def ensure_directory(path):
+    path = Path(path).resolve()
+
+    path.mkdir(
+        parents=True,
+        exist_ok=True
+    )
+
+    # Verificar permisos del usuario del runner.
+    test = path / ".etas_write_test"
+
+    try:
+        test.write_text(
+            "OK",
+            encoding="utf-8"
+        )
+
+        if test.read_text(
+            encoding="utf-8"
+        ) != "OK":
+            raise RuntimeError(
+                "No se pudo verificar escritura"
+            )
+
+    finally:
+        test.unlink(
+            missing_ok=True
+        )
+
+    return path
+
+
+def ensure_binary(name):
+    import shutil
+
+    executable = shutil.which(name)
+
+    if not executable:
+        raise RuntimeError(
+            f"No se encontro {name} en PATH. "
+            "Revisar instalacion en YAML."
+        )
+
+    return executable
+
+
+def request_json(
+    method,
+    url,
+    *,
+    token=None,
+    timeout=None,
+    **kwargs
+):
+    """
+    Solicitud HTTP JSON.
+
+    Evita imprimir tokens y utiliza
+    tiempos de espera definidos.
+    """
+
+    headers = dict(
+        kwargs.pop("headers", {})
+    )
 
     if token:
-        headers["Authorization"] = f"Bearer {token}"
+        headers["Authorization"] = (
+            "Bearer " + token
+        )
 
     response = SESSION.request(
         method,
         url,
         headers=headers,
-        timeout=TIMEOUT,
+        timeout=timeout or HTTP_TIMEOUT,
         **kwargs
     )
 
@@ -89,13 +247,13 @@ def request_json(method, url, *, token=None, **kwargs):
         payload = {}
 
     if not response.ok:
-
         problem = None
 
         if isinstance(payload, dict):
-            problem = (
-                payload.get("error") or {}
-            ).get("message")
+            error = payload.get("error")
+
+            if isinstance(error, dict):
+                problem = error.get("message")
 
         raise RuntimeError(
             f"HTTP {response.status_code} "
@@ -103,20 +261,38 @@ def request_json(method, url, *, token=None, **kwargs):
             f"{str(problem or response.reason)[:220]}"
         )
 
+    if not isinstance(payload, dict):
+        raise RuntimeError(
+            "La API no devolvio un objeto JSON"
+        )
+
     return payload
 
 
-def github_request(method, suffix, **kwargs):
+# ============================================================
+# 3. GITHUB API
+# ============================================================
 
-    token = os.environ["GH_TOKEN"]
+def github_request(
+    method,
+    suffix,
+    **kwargs
+):
+    token = os.environ[
+        "GH_TOKEN"
+    ]
 
     headers = dict(
         kwargs.pop("headers", {})
     )
 
     headers.update({
-        "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28"
+        "Accept": (
+            "application/vnd.github+json"
+        ),
+        "X-GitHub-Api-Version": (
+            "2022-11-28"
+        )
     })
 
     return request_json(
@@ -128,38 +304,174 @@ def github_request(method, suffix, **kwargs):
     )
 
 
-# ============================================================
-# 2. REGISTRO DE RESULTADOS
-# ============================================================
+def github_repository():
+    repo = os.environ.get(
+        "GITHUB_REPOSITORY",
+        ""
+    ).strip()
 
-def save_receipt(out, receipt):
+    if "/" not in repo:
+        raise RuntimeError(
+            "GITHUB_REPOSITORY no configurado"
+        )
 
-    out.mkdir(
-        parents=True,
-        exist_ok=True
+    return repo
+
+
+def github_branch():
+    return os.getenv(
+        "GITHUB_REF_NAME",
+        "main"
     )
+
+
+def check_public_repository():
+    repo = github_repository()
+
+    info = github_request(
+        "GET",
+        f"/repos/{repo}"
+    )
+
+    if info.get("private"):
+        raise RuntimeError(
+            "El repositorio debe ser publico "
+            "para alojar el Reel mediante "
+            "GitHub Releases."
+        )
+
+    log(
+        "Repositorio GitHub publico verificado"
+    )
+
+
+# ============================================================
+# 4. REGISTRO LOCAL
+# ============================================================
+
+def save_receipt(
+    out,
+    receipt
+):
+    out = ensure_directory(out)
 
     filepath = (
         out / "estado_publicacion.json"
     )
 
-    filepath.write_text(
+    temporary = filepath.with_suffix(
+        ".json.tmp"
+    )
+
+    temporary.write_text(
         json.dumps(
             receipt,
-            indent=2,
-            ensure_ascii=False
+            ensure_ascii=False,
+            indent=2
         ),
         encoding="utf-8"
     )
 
+    temporary.replace(
+        filepath
+    )
+
 
 # ============================================================
-# 3. VERIFICAR CUENTAS META
+# 5. ESTADO PERSISTENTE EN GITHUB
+# ============================================================
+
+def state_read(path):
+    repo = github_repository()
+
+    try:
+        result = github_request(
+            "GET",
+            (
+                f"/repos/{repo}/contents/"
+                f"{quote(path, safe='/')}"
+            ),
+            params={
+                "ref": github_branch()
+            }
+        )
+
+    except RuntimeError as exc:
+        if "HTTP 404 " in str(exc):
+            return {}, None
+
+        raise
+
+    content = base64.b64decode(
+        result["content"]
+    ).decode("utf-8")
+
+    return (
+        json.loads(content),
+        result["sha"]
+    )
+
+
+def state_save(
+    path,
+    data
+):
+    repo = github_repository()
+
+    encoded = base64.b64encode(
+        json.dumps(
+            data,
+            ensure_ascii=False,
+            indent=2
+        ).encode("utf-8")
+    ).decode("ascii")
+
+    for attempt in range(4):
+        _, sha = state_read(path)
+
+        payload = {
+            "message": (
+                "SISMONAUTA ETAS: "
+                "actualizar estado Chile"
+            ),
+            "content": encoded,
+            "branch": github_branch()
+        }
+
+        if sha:
+            payload["sha"] = sha
+
+        try:
+            github_request(
+                "PUT",
+                (
+                    f"/repos/{repo}/contents/"
+                    f"{quote(path, safe='/')}"
+                ),
+                json=payload
+            )
+
+            return
+
+        except RuntimeError:
+            if attempt == 3:
+                raise
+
+            time.sleep(
+                2 * (attempt + 1)
+            )
+
+
+# ============================================================
+# 6. VERIFICAR CUENTAS META
 # ============================================================
 
 def check_accounts(publish):
-
     if not publish:
+        log(
+            "Vista previa: no se verifican "
+            "tokens de publicacion."
+        )
         return
 
     required = [
@@ -179,11 +491,13 @@ def check_accounts(publish):
 
     if missing:
         raise RuntimeError(
-            "Faltan secretos o variables: "
+            "Faltan secretos: "
             + ", ".join(missing)
         )
 
-    # Verificar Instagram @sismonauta
+    # ----------------------------------------
+    # INSTAGRAM
+    # ----------------------------------------
 
     ig = request_json(
         "GET",
@@ -191,30 +505,39 @@ def check_accounts(publish):
             f"{IG_BASE}/{META_VERSION}/"
             f"{os.environ['INSTAGRAM_USER_ID']}"
         ),
-        token=os.environ["INSTAGRAM_TOKEN"],
+        token=os.environ[
+            "INSTAGRAM_TOKEN"
+        ],
         params={
             "fields": "id,username"
         }
     )
 
-    username = (
+    username = str(
         ig.get("username", "")
-        .lower()
-        .lstrip("@")
-    )
+    ).lower().lstrip("@")
 
-    if username != "sismonauta":
+    expected_id = os.environ[
+        "INSTAGRAM_USER_ID"
+    ]
+
+    if (
+        username != ACCOUNT
+        or str(ig.get("id")) != expected_id
+    ):
         raise RuntimeError(
-            "La cuenta de Instagram no corresponde "
+            "Instagram no corresponde "
             "a @sismonauta"
         )
 
-    print(
-        "Instagram verificado: @sismonauta",
-        flush=True
+    log(
+        "INSTAGRAM VERIFICADO:",
+        "@sismonauta"
     )
 
-    # Verificar Fanpage Sismonauta
+    # ----------------------------------------
+    # FACEBOOK
+    # ----------------------------------------
 
     fb = request_json(
         "GET",
@@ -222,317 +545,432 @@ def check_accounts(publish):
             f"{FB_BASE}/"
             f"{os.environ['FACEBOOK_PAGE_ID']}"
         ),
-        token=os.environ["FACEBOOK_PAGE_TOKEN"],
+        token=os.environ[
+            "FACEBOOK_PAGE_TOKEN"
+        ],
         params={
             "fields": "id,name"
         }
     )
 
-    expected_page = (
-        os.environ["FACEBOOK_PAGE_ID"]
-    )
+    expected_page = os.environ[
+        "FACEBOOK_PAGE_ID"
+    ]
 
     if (
         str(fb.get("id")) != expected_page
-        or "sismonauta" not in (
-            fb.get("name", "").lower()
-        )
+        or "sismonauta" not in str(
+            fb.get("name", "")
+        ).lower()
     ):
         raise RuntimeError(
-            "La página de Facebook no corresponde "
+            "La Fanpage no corresponde "
             "a Sismonauta"
         )
 
-    print(
-        "Facebook verificado: Sismonauta",
-        flush=True
+    log(
+        "FACEBOOK VERIFICADO:",
+        fb.get("name")
     )
+
+    check_public_repository()
 
 
 # ============================================================
-# 4. ESTADO PERSISTENTE EN GITHUB
+# 7. ADAPTAR MODELO ETAS ORIGINAL
 # ============================================================
 
-def state_read(path):
+def adapt_original_source(
+    source,
+    video_path
+):
+    """
+    Cambia exclusivamente la asignacion
+    OUTPUT_MP4 mediante el AST de Python.
 
-    import base64
+    Ventajas:
+    - Acepta asignaciones multilinea.
+    - Conserva la indentacion.
+    - No necesita modificar el original.
+    - Se detiene si encuentra ambiguedad.
 
-    repo = os.environ[
-        "GITHUB_REPOSITORY"
-    ]
-
-    branch = os.getenv(
-        "GITHUB_REF_NAME",
-        "main"
-    )
-
-    try:
-
-        result = github_request(
-            "GET",
-            (
-                f"/repos/{repo}/contents/"
-                f"{quote(path, safe='/')}"
-            ),
-            params={
-                "ref": branch
-            }
-        )
-
-        content = base64.b64decode(
-            result["content"]
-        ).decode("utf-8")
-
-        return (
-            json.loads(content),
-            result["sha"]
-        )
-
-    except RuntimeError as exc:
-
-        if "HTTP 404 " in str(exc):
-            return {}, None
-
-        raise
-
-
-def state_save(path, data):
-
-    import base64
-
-    repo = os.environ[
-        "GITHUB_REPOSITORY"
-    ]
-
-    branch = os.getenv(
-        "GITHUB_REF_NAME",
-        "main"
-    )
-
-    for attempt in range(4):
-
-        _, sha = state_read(path)
-
-        encoded = base64.b64encode(
-            json.dumps(
-                data,
-                ensure_ascii=False,
-                indent=2
-            ).encode("utf-8")
-        ).decode("ascii")
-
-        body = {
-            "message": (
-                "SISMONAUTA: actualizar estado ETAS"
-            ),
-            "content": encoded,
-            "branch": branch
-        }
-
-        if sha:
-            body["sha"] = sha
-
-        try:
-
-            github_request(
-                "PUT",
-                (
-                    f"/repos/{repo}/contents/"
-                    f"{quote(path, safe='/')}"
-                ),
-                json=body
-            )
-
-            return
-
-        except RuntimeError:
-
-            if attempt == 3:
-                raise
-
-            time.sleep(
-                2 * (attempt + 1)
-            )
-
-
-# ============================================================
-# 5. EJECUTAR ETAS ORIGINAL PARA CHILE
-# ============================================================
-
-def run_original(original, out):
-
-    # El script ETAS original guarda su video
-    # en /mnt/data cuando no ejecuta en Colab.
-
-    Path("/mnt/data").mkdir(
-        parents=True,
-        exist_ok=True
-    )
-
-    env = os.environ.copy()
-
-    env["PYTHONUNBUFFERED"] = "1"
-
-    source = original.read_text(
-        encoding="utf-8"
-    )
-
-    # Corrección científica:
-    #
-    # El script original recibe un porcentaje.
-    # No debe volver a multiplicarlo por 100
-    # al convertirlo en texto narrado.
-    #
-    # Se corrige solamente la copia temporal.
+    Tambien corrige la doble multiplicacion
+    por 100 en la locucion, si existe.
+    """
 
     old_expression = (
         "float(porcentaje_original) * 100.0"
     )
 
     if old_expression in source:
-
         source = source.replace(
             old_expression,
             "float(porcentaje_original)"
         )
 
-        print(
-            "Corrección de unidades aplicada "
-            "a la narración.",
-            flush=True
+        log(
+            "Correccion de porcentaje "
+            "de narracion aplicada."
         )
 
-    # Conservamos los cálculos, los heatmaps,
-    # la música y las animaciones originales.
+    tree = ast.parse(source)
+
+    assignments = []
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign):
+            if any(
+                isinstance(target, ast.Name)
+                and target.id == "OUTPUT_MP4"
+                for target in node.targets
+            ):
+                assignments.append(node)
+
+        elif isinstance(node, ast.AnnAssign):
+            if (
+                isinstance(node.target, ast.Name)
+                and node.target.id == "OUTPUT_MP4"
+            ):
+                assignments.append(node)
+
+    if len(assignments) != 1:
+        raise RuntimeError(
+            "Se esperaba una unica asignacion "
+            "a OUTPUT_MP4 en el modelo ETAS. "
+            f"Se encontraron {len(assignments)}. "
+            "Revisar el modelo antes de ejecutarlo."
+        )
+
+    node = assignments[0]
+
+    lines = source.splitlines(
+        keepends=True
+    )
+
+    # No modificar codigo que comparte linea
+    # con otras instrucciones.
+    first_line = lines[
+        node.lineno - 1
+    ]
+
+    prefix = first_line[
+        :node.col_offset
+    ]
+
+    if prefix.strip():
+        raise RuntimeError(
+            "Asignacion OUTPUT_MP4 "
+            "no aislada en una linea."
+        )
+
+    # AnnAssign admite anotacion de tipo.
+    # Sustituimos la instruccion completa
+    # por una asignacion normal.
+    new_statement = (
+        prefix
+        + "OUTPUT_MP4 = "
+        + repr(str(video_path))
+        + "\n"
+    )
+
+    start = node.lineno - 1
+    end = node.end_lineno
+
+    lines[start:end] = [
+        new_statement
+    ]
+
+    modified = "".join(lines)
+
+    # Validar sintaxis antes de ejecutar.
+    compile(
+        modified,
+        "_etas_temporal.py",
+        "exec"
+    )
+
+    return modified
+
+
+# ============================================================
+# 8. EJECUTAR ETAS ORIGINAL PARA CHILE
+# ============================================================
+
+def run_original(
+    original,
+    out
+):
+    """
+    Ejecuta el modelo ETAS original.
+
+    No utiliza /mnt/data.
+
+    Produce:
+        output_etas/
+        ETAS_DOBLE_HEATMAP_CON_LIKE.mp4
+    """
+
+    out = ensure_directory(out)
+
+    original = Path(
+        original
+    ).resolve()
+
+    if not original.is_file():
+        raise RuntimeError(
+            "No existe el modelo original: "
+            + str(original)
+        )
+
+    # Archivo final en el workspace.
+    video = (
+        out / ORIGINAL_VIDEO_NAME
+    )
+
+    # Evitar confundir videos antiguos
+    # con resultados de una ejecucion nueva.
+    video.unlink(
+        missing_ok=True
+    )
+
+    source = original.read_text(
+        encoding="utf-8"
+    )
+
+    # Adaptar la copia temporal.
+    modified = adapt_original_source(
+        source,
+        video
+    )
 
     temporary_script = (
         out / "_etas_temporal.py"
     )
 
     temporary_script.write_text(
-        source,
+        modified,
         encoding="utf-8"
     )
 
-    print(
-        "===================================",
-        flush=True
+    env = os.environ.copy()
+
+    env["PYTHONUNBUFFERED"] = "1"
+    env["MPLBACKEND"] = "Agg"
+
+    log(
+        "==================================="
     )
 
-    print(
-        "SISMONAUTA ETAS - CHILE",
-        flush=True
+    log(
+        "SISMONAUTA ETAS CHILE"
     )
 
-    print(
-        "País seleccionado: Chile",
-        flush=True
+    log(
+        "==================================="
     )
 
-    print(
-        "Generación de 25 mapas horarios",
-        flush=True
+    log(
+        "Pais fijo:",
+        COUNTRY
     )
 
-    print(
-        "===================================",
-        flush=True
+    log(
+        "Modelo:",
+        original.name
     )
 
-    # El código original pide el país usando input().
-    # Respondemos automáticamente Chile.
+    log(
+        "Salida:",
+        video
+    )
 
-    result = subprocess.run(
-        [
-            sys.executable,
-            "-u",
-            str(temporary_script)
-        ],
-        input="Chile\n",
-        text=True,
-        env=env,
-        timeout=int(
-            os.getenv(
-                "ETAS_TIMEOUT_SECONDS",
-                "16500"
-            )
+    log(
+        "25 mapas horarios"
+    )
+
+    log(
+        "Dos mapas de calor"
+    )
+
+    log(
+        "Narracion y musica originales"
+    )
+
+    log(
+        "==================================="
+    )
+
+    # El programa original pide el pais
+    # mediante input().
+    #
+    # Se envia Chile automaticamente.
+
+    try:
+        process = subprocess.run(
+            [
+                sys.executable,
+                "-u",
+                str(temporary_script)
+            ],
+            input="Chile\n",
+            text=True,
+            env=env,
+            cwd=str(
+                Path.cwd()
+            ),
+            timeout=ETAS_TIMEOUT_SECONDS,
+            check=False
         )
-    )
 
-    if result.returncode != 0:
-
+    except subprocess.TimeoutExpired as exc:
         raise RuntimeError(
-            "ETAS terminó con código "
-            f"{result.returncode}"
+            "El calculo ETAS supero el "
+            "tiempo maximo permitido."
+        ) from exc
+
+    if process.returncode != 0:
+        raise RuntimeError(
+            "El modelo ETAS termino con "
+            f"codigo {process.returncode}"
         )
 
-    video = Path(
-        "/mnt/data/"
-        "ETAS_DOBLE_HEATMAP_CON_LIKE.mp4"
-    )
-
-    if not video.exists():
-
+    if not video.is_file():
         raise RuntimeError(
-            "ETAS no generó el video esperado: "
+            "El modelo no genero el MP4 "
+            "esperado: "
             + str(video)
         )
 
     if video.stat().st_size < 10000:
-
         raise RuntimeError(
-            "El archivo MP4 generado es inválido "
-            "o está incompleto."
+            "El video ETAS esta vacio "
+            "o incompleto."
         )
 
-    print(
-        "Video ETAS generado correctamente:",
-        video,
-        flush=True
+    log(
+        "VIDEO ETAS GENERADO:",
+        video
+    )
+
+    log(
+        "Tamano en bytes:",
+        video.stat().st_size
     )
 
     return video
 
 
 # ============================================================
-# 6. COMPROBAR VIDEO CON FFPROBE
+# 9. VALIDAR VIDEO CON FFPROBE
 # ============================================================
 
 def video_probe(video):
+    """
+    Comprueba que el MP4 tenga
+    duracion y video detectables.
+    """
 
-    raw = subprocess.check_output(
+    ensure_binary(
+        "ffprobe"
+    )
+
+    process = subprocess.run(
         [
             "ffprobe",
             "-v",
             "error",
             "-show_entries",
             (
-                "format=duration:"
-                "stream=codec_type,width,height,codec_name"
+                "format=duration,size:"
+                "stream=codec_type,"
+                "width,height,codec_name"
             ),
             "-of",
             "json",
             str(video)
         ],
-        text=True
+        capture_output=True,
+        text=True,
+        check=False
     )
 
-    return json.loads(raw)
+    if process.returncode != 0:
+        raise RuntimeError(
+            "FFprobe no pudo leer "
+            f"{video}: "
+            + process.stderr[-300:]
+        )
+
+    info = json.loads(
+        process.stdout
+    )
+
+    streams = info.get(
+        "streams", []
+    )
+
+    video_streams = [
+        stream
+        for stream in streams
+        if stream.get("codec_type") == "video"
+    ]
+
+    if not video_streams:
+        raise RuntimeError(
+            "El archivo MP4 no contiene "
+            "una pista de video."
+        )
+
+    duration = float(
+        info.get(
+            "format", {}
+        ).get(
+            "duration", 0
+        )
+    )
+
+    if duration <= 0:
+        raise RuntimeError(
+            "Duracion del video invalida."
+        )
+
+    return info
 
 
 # ============================================================
-# 7. CREAR REEL VERTICAL 9:16
+# 10. CREAR REEL INSTAGRAM 9:16
 # ============================================================
 
-def reel_version(original, destination):
+def reel_version(
+    original,
+    destination
+):
+    """
+    Crea un MP4 1080 x 1920.
 
-    # El video original es 1080x1350.
-    #
-    # Instagram recibe 1080x1920.
-    # No recortamos ninguno de los heatmaps.
-    #
-    # Se preserva el diseño original,
-    # añadiendo bandas de fondo.
+    El mapa original se conserva completo.
+    No se cortan los heatmaps.
+
+    Se utilizan bandas de fondo oscuro
+    cuando cambia la relacion de aspecto.
+    """
+
+    ensure_binary(
+        "ffmpeg"
+    )
+
+    destination = Path(
+        destination
+    )
+
+    destination.parent.mkdir(
+        parents=True,
+        exist_ok=True
+    )
+
+    destination.unlink(
+        missing_ok=True
+    )
 
     command = [
         "ffmpeg",
@@ -546,7 +984,7 @@ def reel_version(original, destination):
 
         "-vf",
         (
-            "scale=1080:1350:"
+            "scale=1080:1920:"
             "force_original_aspect_ratio=decrease,"
             "pad=1080:1920:"
             "(ow-iw)/2:(oh-ih)/2:"
@@ -584,104 +1022,151 @@ def reel_version(original, destination):
         str(destination)
     ]
 
-    subprocess.run(
+    process = subprocess.run(
         command,
-        check=True
+        capture_output=True,
+        text=True,
+        check=False
     )
 
-    print(
-        "Reel vertical preparado:",
-        destination,
-        flush=True
+    if process.returncode != 0:
+        raise RuntimeError(
+            "FFmpeg no pudo crear el Reel: "
+            + process.stderr[-900:]
+        )
+
+    if (
+        not destination.is_file()
+        or destination.stat().st_size < 10000
+    ):
+        raise RuntimeError(
+            "Reel vertical vacio o incompleto."
+        )
+
+    info = video_probe(
+        destination
+    )
+
+    videos = [
+        stream
+        for stream in info["streams"]
+        if stream.get("codec_type") == "video"
+    ]
+
+    stream = videos[0]
+
+    if (
+        stream.get("width") != 1080
+        or stream.get("height") != 1920
+    ):
+        raise RuntimeError(
+            "Resolucion del Reel incorrecta."
+        )
+
+    log(
+        "REEL VERTICAL CREADO:",
+        destination
     )
 
     return destination
 
 
 # ============================================================
-# 8. ALOJAR REEL EN GITHUB RELEASES
+# 11. PUBLICAR REEL EN GITHUB RELEASES
 # ============================================================
 
-def create_release_asset(path, unique_tag):
+def create_release_asset(
+    path,
+    unique_tag
+):
+    """
+    Alojamiento publico para que Meta
+    pueda descargar el Reel mediante URL.
 
-    # El Reel se aloja públicamente para que
-    # Instagram pueda descargarlo mediante
-    # video_url.
-    #
-    # El repositorio y el release deben ser
-    # accesibles públicamente.
+    Los assets de Releases permanecen
+    publicos hasta su eliminacion.
+    """
 
-    repo = os.environ[
-        "GITHUB_REPOSITORY"
-    ]
+    repo = github_repository()
 
     release = github_request(
         "POST",
         f"/repos/{repo}/releases",
         json={
             "tag_name": unique_tag,
+            "target_commitish": github_branch(),
             "name": (
-                f"ETAS {unique_tag}"
+                "SISMONAUTA ETAS Chile - "
+                + unique_tag
             ),
             "draft": False,
             "prerelease": True,
             "generate_release_notes": False,
             "body": (
-                "Video científico experimental "
-                "de SISMONAUTA. "
-                "No constituye alerta sísmica."
+                "Modelo ETAS experimental. "
+                "No constituye alerta sismica."
             )
         }
     )
 
-    release_id = release["id"]
+    release_id = str(
+        release["id"]
+    )
 
     upload_url = (
-        release["upload_url"]
-        .split("{")[0]
+        release["upload_url"].split("{")[0]
         + "?name="
         + quote(path.name)
     )
 
     try:
-
-        with path.open("rb") as video_file:
-
+        with path.open("rb") as stream:
             asset = request_json(
                 "POST",
                 upload_url,
                 token=os.environ["GH_TOKEN"],
+                timeout=UPLOAD_TIMEOUT,
                 headers={
-                    "Content-Type": "video/mp4",
                     "Accept": (
                         "application/vnd.github+json"
-                    )
+                    ),
+                    "Content-Type": "video/mp4"
                 },
-                data=video_file
+                data=stream
             )
 
     except Exception as exc:
-
         raise RuntimeError(
-            "No se pudo alojar el Reel "
-            f"en GitHub Release {release_id}: "
-            f"{str(exc)[:180]}"
+            "Error alojando Reel en "
+            f"GitHub Release {release_id}: "
+            + safe_error(exc)
         ) from exc
+
+    if not asset.get(
+        "browser_download_url"
+    ):
+        raise RuntimeError(
+            "GitHub no devolvio URL publica "
+            "para el video."
+        )
 
     public_url = asset[
         "browser_download_url"
     ]
 
-    print(
-        "Reel alojado en GitHub Releases",
-        flush=True
+    log(
+        "GITHUB RELEASE CREADO:",
+        release_id
     )
 
-    return public_url, release_id
+    return (
+        public_url,
+        release_id
+    )
 
 
 # ============================================================
-# 9. PUBLICAR REEL EN INSTAGRAM
+# 12. INSTAGRAM REEL
 # ============================================================
 
 def instagram_reel(
@@ -690,6 +1175,15 @@ def instagram_reel(
     result,
     persist
 ):
+    """
+    Publica un Reel en @sismonauta.
+
+    Antes de las operaciones con efecto
+    externo, registra estado incierto.
+
+    No debe reintentarse automaticamente
+    si Meta no confirma el resultado.
+    """
 
     token = os.environ[
         "INSTAGRAM_TOKEN"
@@ -718,13 +1212,22 @@ def instagram_reel(
         "url"
     ).lower()
 
-    # ------------------------------------------
-    # ALTERNATIVA: CARGA REANUDABLE
-    # ------------------------------------------
+    if mode not in (
+        "url",
+        "resumable"
+    ):
+        raise RuntimeError(
+            "IG_UPLOAD_MODE invalido: " + mode
+        )
+
+    # ----------------------------------------
+    # OPCION A: CARGA REANUDABLE
+    # ----------------------------------------
 
     if mode == "resumable":
-
-        data["upload_type"] = "resumable"
+        data["upload_type"] = (
+            "resumable"
+        )
 
         container = request_json(
             "POST",
@@ -747,16 +1250,24 @@ def instagram_reel(
             container.get("uri")
             or (
                 "https://rupload.facebook.com/"
-                f"ig-api-upload/{META_VERSION}/"
-                f"{container_id}"
+                "ig-api-upload/"
+                f"{META_VERSION}/{container_id}"
             )
         )
 
-        with video.open("rb") as video_file:
+        if not str(upload_url).startswith(
+            "https://rupload.facebook.com/"
+        ):
+            raise RuntimeError(
+                "Instagram devolvio una URL "
+                "de carga inesperada."
+            )
 
+        with video.open("rb") as stream:
             request_json(
                 "POST",
                 upload_url,
+                timeout=UPLOAD_TIMEOUT,
                 headers={
                     "Authorization": (
                         "OAuth " + token
@@ -769,18 +1280,26 @@ def instagram_reel(
                         "application/octet-stream"
                     )
                 },
-                data=video_file
+                data=stream
             )
 
-    # ------------------------------------------
-    # MODO PREDETERMINADO: URL PÚBLICA
-    # ------------------------------------------
+    # ----------------------------------------
+    # OPCION B: URL PUBLICA
+    # ----------------------------------------
 
     else:
-
         unique_tag = (
             "sismonauta-etas-"
-            + str(int(time.time()))
+            + datetime.now(
+                timezone.utc
+            ).strftime(
+                "%Y%m%d-%H%M%S"
+            )
+            + "-"
+            + os.getenv(
+                "GITHUB_RUN_ID",
+                str(int(time.time()))
+            )
         )
 
         public_url, release_id = (
@@ -821,12 +1340,11 @@ def instagram_reel(
 
         persist()
 
-    # ------------------------------------------
-    # ESPERAR PROCESAMIENTO
-    # ------------------------------------------
+    # ----------------------------------------
+    # ESPERAR PROCESAMIENTO META
+    # ----------------------------------------
 
     for attempt in range(30):
-
         status = request_json(
             "GET",
             f"{graph}/{container_id}",
@@ -842,9 +1360,11 @@ def instagram_reel(
             "status_code"
         )
 
-        print(
-            f"Instagram: procesamiento {state}",
-            flush=True
+        log(
+            "INSTAGRAM:",
+            "procesamiento",
+            state,
+            f"intento {attempt+1}/30"
         )
 
         if state == "FINISHED":
@@ -854,26 +1374,25 @@ def instagram_reel(
             "ERROR",
             "EXPIRED"
         ):
-
             raise RuntimeError(
-                "Instagram no procesó el Reel: "
+                "Instagram no proceso el Reel: "
                 + str(
                     status.get("status")
-                )[:160]
+                )[:200]
             )
 
         time.sleep(20)
 
     else:
-
         raise RuntimeError(
-            "Instagram no terminó de procesar "
-            "el video en 10 minutos."
+            "Instagram no termino de procesar "
+            "el Reel en el tiempo esperado. "
+            "Revisar estado manualmente."
         )
 
-    # ------------------------------------------
-    # PUBLICAR CONTENEDOR
-    # ------------------------------------------
+    # ----------------------------------------
+    # PUBLICACION FINAL
+    # ----------------------------------------
 
     published = request_json(
         "POST",
@@ -887,24 +1406,31 @@ def instagram_reel(
         }
     )
 
+    media_id = str(
+        published.get("id") or ""
+    )
+
+    if not media_id.isdigit():
+        raise RuntimeError(
+            "Instagram no devolvio un "
+            "identificador de publicacion valido."
+        )
+
     result.update({
         "status": "published",
-        "id": str(
-            published["id"]
-        )
+        "id": media_id
     })
 
     persist()
 
-    print(
-        "REEL PUBLICADO EN INSTAGRAM:",
-        published["id"],
-        flush=True
+    log(
+        "INSTAGRAM REEL ACEPTADO:",
+        media_id
     )
 
 
 # ============================================================
-# 10. PUBLICAR VIDEO EN FACEBOOK
+# 13. FACEBOOK VIDEO ORIGINAL
 # ============================================================
 
 def facebook_video(
@@ -913,10 +1439,16 @@ def facebook_video(
     result,
     persist
 ):
+    """
+    Publica video nativo en la Fanpage.
 
-    result["status"] = "uncertain"
+    Utiliza el video original, sin
+    cambiar su relacion de aspecto.
 
-    persist()
+    Un ID devuelto significa aceptacion
+    de Meta, no garantiza procesamiento
+    ni visibilidad final inmediata.
+    """
 
     page_id = os.environ[
         "FACEBOOK_PAGE_ID"
@@ -926,58 +1458,104 @@ def facebook_video(
         "FACEBOOK_PAGE_TOKEN"
     ]
 
+    result["status"] = "uncertain"
+
+    persist()
+
     url = (
         f"{FB_BASE}/{page_id}/videos"
     )
 
-    # Se utiliza el video original 4:5,
-    # conservando su resolución 1080x1350.
-
-    with video.open("rb") as video_file:
-
+    with video.open("rb") as stream:
         posted = request_json(
             "POST",
             url,
             token=token,
+            timeout=UPLOAD_TIMEOUT,
             data={
-                "description": caption,
+                "description": caption[:5000],
                 "title": (
                     "SISMONAUTA | "
-                    "ETAS experimental"
+                    "ETAS Chile experimental"
                 ),
                 "published": "true"
             },
             files={
                 "source": (
                     video.name,
-                    video_file,
+                    stream,
                     "video/mp4"
                 )
             }
         )
 
+    media_id = str(
+        posted.get("id") or ""
+    )
+
+    if not media_id.isdigit():
+        raise RuntimeError(
+            "Facebook no devolvio "
+            "un identificador de video valido."
+        )
+
     result.update({
         "status": "published",
-        "id": str(
-            posted["id"]
-        )
+        "id": media_id
     })
 
     persist()
 
-    print(
-        "VIDEO ENVIADO A FACEBOOK:",
-        posted["id"],
-        flush=True
+    log(
+        "FACEBOOK VIDEO ACEPTADO:",
+        media_id
     )
 
 
 # ============================================================
-# 11. PROGRAMA PRINCIPAL
+# 14. TEXTO CIENTIFICO DE PUBLICACION
+# ============================================================
+
+def build_caption():
+    return (
+        "🌎 SISMONAUTA | "
+        "Evolucion ETAS experimental en Chile\n\n"
+
+        "25 instantaneas horarias basadas "
+        "en datos de actividad sismica.\n\n"
+
+        "Cada mapa presenta estimaciones "
+        "del modelo ETAS para las 24 horas "
+        "posteriores a esa instantanea.\n\n"
+
+        "El video compara valores modelados "
+        "y sus cambios espaciales.\n\n"
+
+        "⚠️ ATENCION: son resultados "
+        "experimentales, no calibrados ni "
+        "validados prospectivamente. "
+        "No representan probabilidades "
+        "sismicas oficiales, no predicen "
+        "un terremoto especifico y "
+        "NO CONSTITUYEN ALERTA SISMICA.\n\n"
+
+        "Consulta los organismos oficiales "
+        "de sismologia y proteccion civil.\n\n"
+
+        "Datos sismicos: USGS. "
+        "Cartografia: Natural Earth.\n\n"
+
+        "#Sismonauta #Chile #Sismologia "
+        "#Terremotos #ETAS #Ciencia "
+        "#Geologia #PlacasTectonicas"
+    )
+
+
+# ============================================================
+# 15. PROGRAMA PRINCIPAL
 # ============================================================
 
 def main():
-
     parser = argparse.ArgumentParser(
         description=(
             "SISMONAUTA ETAS Chile"
@@ -993,7 +1571,7 @@ def main():
 
     parser.add_argument(
         "--out",
-        default="output_etas"
+        default=DEFAULT_OUTPUT_DIR
     )
 
     parser.add_argument(
@@ -1003,23 +1581,32 @@ def main():
 
     args = parser.parse_args()
 
-    out = Path(
+    # ----------------------------------------
+    # DIRECTORIO DE SALIDA
+    # ----------------------------------------
+
+    out = ensure_directory(
         args.out
+    )
+
+    original = Path(
+        args.original
     ).resolve()
 
-    out.mkdir(
-        parents=True,
-        exist_ok=True
+    # Verificar dependencias externas antes
+    # de iniciar un calculo potencialmente largo.
+    ensure_binary(
+        "ffmpeg"
+    )
+
+    ensure_binary(
+        "ffprobe"
     )
 
     receipt = {
         "status": "starting",
         "country": COUNTRY,
-        "created_at": (
-            datetime.now(
-                timezone.utc
-            ).isoformat()
-        ),
+        "created_at": utcnow(),
         "targets": {
             "instagram": {
                 "status": "pending"
@@ -1030,6 +1617,7 @@ def main():
         }
     }
 
+    # Historial persistente de Chile.
     state_path = (
         "sismonauta_etas/"
         "state_"
@@ -1039,106 +1627,138 @@ def main():
         + ".json"
     )
 
-    # ------------------------------------------
-    # GUARDAR ESTADO
-    # ------------------------------------------
+    # ----------------------------------------
+    # PERSISTENCIA LOCAL Y REMOTA
+    # ----------------------------------------
 
     def persist():
-
+        # Registrar localmente primero.
         save_receipt(
             out,
             receipt
         )
 
+        # Solo publicar cambios remotos
+        # cuando el workflow esta autorizado.
         if args.publish:
-
             state_save(
                 state_path,
                 receipt
             )
 
     try:
+        # ------------------------------------
+        # VALIDAR MODELO
+        # ------------------------------------
 
-        # --------------------------------------
-        # COMPROBAR CUENTAS
-        # --------------------------------------
+        if not original.is_file():
+            raise RuntimeError(
+                "Falta el archivo ETAS original: "
+                + str(original)
+            )
+
+        # ------------------------------------
+        # VALIDAR DESTINOS
+        # ------------------------------------
 
         check_accounts(
             args.publish
         )
 
-        # --------------------------------------
-        # EVITAR DUPLICACIONES DIARIAS
-        # --------------------------------------
+        # ------------------------------------
+        # CONTROL ANTIDUPLICADOS
+        # ------------------------------------
 
         if args.publish:
-
             old, _ = state_read(
                 state_path
             )
 
-            today = (
-                receipt["created_at"][:10]
+            today = receipt[
+                "created_at"
+            ][:10]
+
+            old_date = str(
+                old.get("created_at", "")
+            )[:10]
+
+            old_status = old.get(
+                "status"
             )
 
             if (
-                old.get("status")
-                in (
+                old_date == today
+                and old_status in (
                     "published",
-                    "partial_or_uncertain"
+                    "partial_or_uncertain",
+                    "publishing"
                 )
-                and old.get(
-                    "created_at", ""
-                )[:10] == today
             ):
+                # No generar un nuevo video
+                # ni repetir solicitudes a Meta.
+                receipt["status"] = (
+                    "duplicate_blocked"
+                )
 
-                receipt = old
+                receipt["error"] = (
+                    "Ya existe una publicacion "
+                    "o un envio no conciliado "
+                    "para Chile en esta fecha UTC."
+                )
+
+                receipt["previous_status"] = (
+                    old_status
+                )
 
                 save_receipt(
                     out,
                     receipt
                 )
 
-                print(
-                    "Ya existe una publicación "
-                    "o estado incierto hoy.",
-                    flush=True
+                raise RuntimeError(
+                    "Publicacion duplicada o incierta. "
+                    "Revisar historial antes "
+                    "de volver a publicar."
                 )
 
-                print(
-                    "Se evita la duplicación.",
-                    flush=True
-                )
-
-                return
-
-        # --------------------------------------
-        # VERIFICAR MODELO ORIGINAL
-        # --------------------------------------
-
-        original = Path(
-            args.original
-        ).resolve()
-
-        if not original.is_file():
-
-            raise RuntimeError(
-                "Falta el archivo ETAS original: "
-                + str(original)
-            )
-
-        # --------------------------------------
-        # GENERAR VIDEO
-        # --------------------------------------
+        # ------------------------------------
+        # ETAPA DE GENERACION
+        # ------------------------------------
 
         receipt["status"] = "generating"
 
         persist()
 
+        log(
+            "==================================="
+        )
+
+        log(
+            "INICIANDO ETAS CHILE"
+        )
+
+        log(
+            "Publicar:",
+            args.publish
+        )
+
+        log(
+            "Directorio:",
+            out
+        )
+
+        log(
+            "==================================="
+        )
+
         video = run_original(
             original,
             out
         )
+
+        # ------------------------------------
+        # VALIDAR MP4 ORIGINAL
+        # ------------------------------------
 
         info = video_probe(
             video
@@ -1152,10 +1772,9 @@ def main():
             duration < 3
             or duration > 15 * 60
         ):
-
             raise RuntimeError(
-                "Duración incompatible con "
-                "Reel de Instagram: "
+                "Duracion incompatible "
+                "con Instagram Reel: "
                 f"{duration:.1f} segundos"
             )
 
@@ -1167,98 +1786,78 @@ def main():
             str(video)
         )
 
-        # --------------------------------------
-        # PREPARAR VERSIÓN VERTICAL
-        # --------------------------------------
+        log(
+            "VIDEO ORIGINAL:",
+            video
+        )
+
+        log(
+            "DURACION:",
+            round(duration, 2),
+            "segundos"
+        )
+
+        # ------------------------------------
+        # CREAR REEL VERTICAL
+        # ------------------------------------
 
         reel = reel_version(
             video,
-            out / (
-                "sismonauta_etas_"
-                "reel_9x16.mp4"
-            )
+            out / REEL_VIDEO_NAME
         )
 
-        # --------------------------------------
-        # TEXTO DE PUBLICACIÓN
-        # --------------------------------------
-
-        caption = (
-            "🌎 SISMONAUTA | "
-            "Evolución ETAS experimental "
-            "en Chile\n\n"
-
-            "25 instantáneas de la actividad "
-            "sísmica de las últimas 24 horas. "
-
-            "Cada mapa estima, mediante un "
-            "modelo no calibrado "
-            "prospectivamente, valores para "
-            "las 24 horas posteriores "
-            "a esa instantánea.\n\n"
-
-            "Se muestra la probabilidad "
-            "modelada por celda y su variación "
-            "respecto al inicio del análisis.\n\n"
-
-            "⚠️ Resultados experimentales. "
-            "No equivalen a probabilidades "
-            "sísmicas oficiales, no predicen "
-            "un terremoto específico y "
-            "no constituyen alerta sísmica.\n\n"
-
-            "Consulta siempre las fuentes "
-            "oficiales de protección civil.\n\n"
-
-            "Fuente: USGS. "
-            "Cartografía: Natural Earth. "
-            "Ciudades: GeoNames/OpenStreetMap.\n\n"
-
-            "#Sismonauta #Sismologia "
-            "#Terremotos #ETAS #Ciencia "
-            "#Chile"
+        receipt["reel_file"] = (
+            str(reel)
         )
 
-        # --------------------------------------
+        # ------------------------------------
         # VISTA PREVIA
-        # --------------------------------------
-
-        receipt["status"] = "preview_only"
-
-        persist()
+        # ------------------------------------
 
         if not args.publish:
-
-            print(
-                "===================================",
-                flush=True
+            receipt["status"] = (
+                "preview_only"
             )
 
-            print(
-                "VIDEO GENERADO - SIN PUBLICAR",
-                flush=True
+            persist()
+
+            log(
+                "==================================="
             )
 
-            print(
-                "Archivo:",
-                video,
-                flush=True
+            log(
+                "SISMONAUTA ETAS CHILE"
             )
 
-            print(
-                "===================================",
-                flush=True
+            log(
+                "VIDEO GENERADO SIN PUBLICAR"
+            )
+
+            log(
+                "Original:",
+                video
+            )
+
+            log(
+                "Reel:",
+                reel
+            )
+
+            log(
+                "==================================="
             )
 
             return
 
-        # --------------------------------------
-        # PUBLICACIÓN REAL
-        # --------------------------------------
+        # ------------------------------------
+        # PUBLICACION EN META
+        # ------------------------------------
 
         receipt["status"] = "publishing"
 
         persist()
+
+        caption = build_caption()
 
         errors = []
 
@@ -1276,13 +1875,11 @@ def main():
         ]
 
         for site, action, file in targets:
-
-            target = (
-                receipt["targets"][site]
-            )
+            target = receipt[
+                "targets"
+            ][site]
 
             try:
-
                 action(
                     file,
                     caption,
@@ -1290,31 +1887,36 @@ def main():
                     persist
                 )
 
-                print(
-                    "PUBLICADO:",
+                log(
+                    "PUBLICACION ACEPTADA:",
                     site,
-                    target.get("id"),
-                    flush=True
+                    target.get("id")
                 )
 
             except Exception as exc:
-
                 errors.append(
-                    f"{site}: {exc}"
+                    f"{site}: {safe_error(exc)}"
                 )
 
                 target["error"] = (
-                    str(exc)[:250]
+                    safe_error(exc)
                 )
+
+                # Mantener estado incierto si
+                # ya se realizo una solicitud
+                # potencialmente publicada.
+                if target.get("status") != "published":
+                    target["status"] = (
+                        "uncertain"
+                    )
 
                 persist()
 
-        # --------------------------------------
-        # ERRORES PARCIALES
-        # --------------------------------------
+        # ------------------------------------
+        # CONTROL DE ERRORES
+        # ------------------------------------
 
         if errors:
-
             receipt["status"] = (
                 "partial_or_uncertain"
             )
@@ -1325,69 +1927,72 @@ def main():
                 " / ".join(errors)
             )
 
-        # --------------------------------------
-        # ÉXITO
-        # --------------------------------------
+        # ------------------------------------
+        # EXITO
+        # ------------------------------------
 
         receipt["status"] = "published"
 
         persist()
 
-        print(
-            "===================================",
-            flush=True
+        log(
+            "==================================="
         )
 
-        print(
-            "SISMONAUTA ETAS CHILE",
-            flush=True
+        log(
+            "SISMONAUTA ETAS CHILE"
         )
 
-        print(
-            "PUBLICACIÓN COMPLETADA",
-            flush=True
+        log(
+            "PUBLICACIONES ACEPTADAS POR META"
         )
 
-        print(
-            "Instagram: publicado",
-            flush=True
+        log(
+            "INSTAGRAM:",
+            receipt["targets"][
+                "instagram"
+            ].get("id")
         )
 
-        print(
-            "Facebook: enviado",
-            flush=True
+        log(
+            "FACEBOOK:",
+            receipt["targets"][
+                "facebook"
+            ].get("id")
         )
 
-        print(
-            "===================================",
-            flush=True
+        log(
+            "==================================="
         )
 
     except Exception as exc:
+        # ------------------------------------
+        # ESTADO DE FALLO
+        # ------------------------------------
 
         if receipt["status"] not in (
             "partial_or_uncertain",
-            "published"
+            "published",
+            "duplicate_blocked"
         ):
-
-            has_uncertain_target = any(
+            uncertain = any(
                 item.get("status") in (
                     "uncertain",
                     "published"
                 )
-                for item in (
-                    receipt["targets"].values()
-                )
+                for item in receipt[
+                    "targets"
+                ].values()
             )
 
             receipt["status"] = (
                 "partial_or_uncertain"
-                if has_uncertain_target
+                if uncertain
                 else "error"
             )
 
         receipt["error"] = (
-            str(exc)[:500]
+            safe_error(exc)
         )
 
         save_receipt(
@@ -1395,10 +2000,9 @@ def main():
             receipt
         )
 
-        print(
+        log(
             "ERROR:",
-            str(exc),
-            file=sys.stderr
+            safe_error(exc)
         )
 
         raise
@@ -1409,4 +2013,15 @@ def main():
 # ============================================================
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+
+    except Exception as exc:
+        print(
+            "SISMONAUTA ETAS ERROR:",
+            str(exc),
+            file=sys.stderr,
+            flush=True
+        )
+
+        sys.exit(1)
