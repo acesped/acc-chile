@@ -1,38 +1,20 @@
 
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 """
-SISMONAUTA | ETAS CHILE | MODELO Y PUBLICADOR UNIFICADOS
+SISMONAUTA ETAS CHILE
+Modelo científico y publicador unificado.
 
-Un solo archivo Python para:
-  - Obtener el catálogo sísmico USGS desde 2018.
-  - Delimitar Chile con Natural Earth.
-  - Identificar ciudades mediante GeoNames.
-  - Estimar Mc, parámetro b y ajustar ETAS con Numba.
-  - Reconstruir 25 mapas horarios.
-  - Mostrar dos heatmaps JET simultáneos.
-  - Localizar tres incrementos positivos separados.
-  - Generar animación con marcadores parpadeantes.
-  - Generar voz en español chileno y música original.
-  - Incorporar un cierre "Dale Like y Comenta!".
-  - Crear video 4:5 y Reel 9:16.
-  - Publicar en Instagram y Facebook opcionalmente.
-  - Registrar estados en GitHub para evitar duplicados.
-
-EJEMPLOS:
+Uso:
   python sismonauta_etas_publicar.py --out output_etas
-
   python sismonauta_etas_publicar.py --out output_etas --publish
 
-REQUISITOS:
-  numpy pandas scipy matplotlib requests cartopy numba Pillow
-  edge-tts gTTS pycountry geopy shapely
-  ffmpeg ffprobe
+No requiere etas_multipaís_24h_animado.py.
+No utiliza /mnt/data ni apt-get.
+No utiliza -vsync.
 
-IMPORTANTE:
-  ETAS EXPERIMENTAL, NO CALIBRADO NI VALIDADO PROSPECTIVAMENTE.
-  NO CONSTITUYE PREDICCIÓN NI ALERTA SÍSMICA OFICIAL.
+Modelo experimental no calibrado ni validado
+prospectivamente. NO constituye alerta sísmica.
 """
 
 from __future__ import annotations
@@ -54,7 +36,7 @@ import zipfile
 
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 
 import numpy as np
 import pandas as pd
@@ -74,7 +56,6 @@ from scipy.ndimage import gaussian_filter
 from scipy.io import wavfile
 
 from numba import njit
-
 from PIL import Image, ImageDraw, ImageFont
 
 import cartopy.crs as ccrs
@@ -82,41 +63,32 @@ import cartopy.feature as cfeature
 
 from cartopy.io import shapereader
 
-from shapely.geometry import Point, box as shapely_box
+from shapely.geometry import Point, box as shp_box
 from shapely.ops import unary_union
 from shapely.prepared import prep
 
 import pycountry
-
 from geopy.geocoders import Nominatim
 
 
 # ============================================================
-# 1. CONFIGURACIÓN GLOBAL
+# CONFIGURACIÓN
 # ============================================================
 
 COUNTRY_NAME = "Chile"
 COUNTRY_ISO = "CHL"
 
 START = "2018-01-01"
-
 DOWNLOAD_M = 3.0
 REQUESTED_M = 4.0
 
 HORIZON_DAYS = 1.0
-
 LOOKBACK_HOURS = 24
-SNAPSHOT_MINUTES = 60
 
 VIDEO_SECONDS = 30
-
-VOICE_RATE = "+35%"
-AUDIO_TEMPO = 1.25
-
 FPS = 24
 
 FIT_N = 1300
-
 TRIGGER_DAYS = 365
 TRIGGER_MAX = 2500
 
@@ -125,35 +97,20 @@ MAX_GRID_CELLS = 15000
 W = 1080
 H = 1350
 
-OUTPUT_NAME = "ETAS_DOBLE_HEATMAP_CON_LIKE.mp4"
-REEL_NAME = "sismonauta_etas_reel_9x16.mp4"
+VOICE_RATE = "+35%"
+AUDIO_TEMPO = 1.25
 
-OUTPUT_DIR = Path(
-    os.getenv("ETAS_OUTPUT_DIR", "output_etas")
-).resolve()
+ORIGINAL_VIDEO_NAME = (
+    "ETAS_DOBLE_HEATMAP_CON_LIKE.mp4"
+)
 
-OUTPUT_MP4 = OUTPUT_DIR / OUTPUT_NAME
-
-CUTOFF = None
-
-COUNTRY_GEOM = None
-
-LAT0 = LAT1 = None
-LON0 = LON1 = None
-
-GRID = None
-LATS = LONS = None
-XX = YY = None
-
-CITY = []
-CITY_SOURCE = ""
-
-CAPITAL_CITY = None
-
-_DETAIL_CACHE = None
+REEL_NAME = (
+    "sismonauta_etas_reel_9x16.mp4"
+)
 
 GRAPH_VERSION = os.getenv(
-    "META_GRAPH_VERSION", "v25.0"
+    "META_GRAPH_VERSION",
+    "v25.0"
 )
 
 IG_BASE = os.getenv(
@@ -162,26 +119,39 @@ IG_BASE = os.getenv(
 ).rstrip("/")
 
 FB_BASE = (
-    f"https://graph.facebook.com/{GRAPH_VERSION}"
+    "https://graph.facebook.com/"
+    + GRAPH_VERSION
 )
 
-GITHUB_API = "https://api.github.com"
+GH_API = "https://api.github.com"
 
-SESSION = requests.Session()
-SESSION.headers.update({
-    "User-Agent": "SismonautaETASChile/3.0"
-})
-
-ETAS_TIMEOUT = int(
-    os.getenv("ETAS_TIMEOUT_SECONDS", "16500")
+HTTP = requests.Session()
+HTTP.headers["User-Agent"] = (
+    "Sismonauta-ETAS-Chile/4.0"
 )
 
-# El límite temporal de GitHub Actions se establece en el YAML.
-# Este timeout se aplica a las solicitudes de red individuales.
+CUTOFF = None
+COUNTRY_GEOM = None
+
+LAT0 = LAT1 = LON0 = LON1 = GRID = None
+LATS = LONS = XX = YY = None
+
+CITY = []
+CITY_SOURCE = ""
+CAPITAL_CITY = None
+
+_DETAIL_CACHE = None
+
+OUT = Path(
+    os.getenv(
+        "ETAS_OUTPUT_DIR",
+        "output_etas"
+    )
+).resolve()
 
 
 # ============================================================
-# 2. UTILIDADES
+# UTILIDADES
 # ============================================================
 
 def log(*args):
@@ -192,142 +162,146 @@ def utcnow():
     return datetime.now(timezone.utc).isoformat()
 
 
-def ensure_output():
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
-    probe = OUTPUT_DIR / ".test_write"
-    probe.write_text("ok", encoding="utf-8")
-    probe.unlink()
-
-    return OUTPUT_DIR
-
-
-def atomic_json(path, payload):
+def atomic_json(path, data):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
 
-    tmp = path.with_suffix(path.suffix + ".tmp")
+    temp = path.with_name(
+        path.name + ".tmp"
+    )
 
-    tmp.write_text(
+    temp.write_text(
         json.dumps(
-            payload,
+            data,
             ensure_ascii=False,
-            indent=2
+            indent=2,
+            default=str
         ),
         encoding="utf-8"
     )
 
-    tmp.replace(path)
+    temp.replace(path)
 
 
-def check_binary(name):
-    if not shutil.which(name):
+def binary(name):
+    executable = shutil.which(name)
+
+    if not executable:
         raise RuntimeError(
-            f"No está disponible {name}. "
-            "Revisar el paso de instalación del YAML."
+            f"{name} no disponible en PATH. "
+            "Revisar instalación del workflow."
         )
+
+    return executable
 
 
 def ffmpeg(*args):
-    check_binary("ffmpeg")
-
     cmd = [
-        "ffmpeg",
+        binary("ffmpeg"),
         "-hide_banner",
-        "-loglevel", "error",
+        "-loglevel",
+        "error",
         "-y",
         *map(str, args)
     ]
 
-    proc = subprocess.run(
+    process = subprocess.run(
         cmd,
-        capture_output=True,
-        text=True
+        text=True,
+        capture_output=True
     )
 
-    if proc.returncode:
+    if process.returncode:
         raise RuntimeError(
-            "FFmpeg: " + proc.stderr[-1800:]
+            "FFmpeg: "
+            + (process.stderr or process.stdout)[-1800:]
         )
 
 
-def ffprobe(path):
-    check_binary("ffprobe")
-
-    proc = subprocess.run(
+def probe(path):
+    process = subprocess.run(
         [
-            "ffprobe",
-            "-v", "error",
+            binary("ffprobe"),
+            "-v",
+            "error",
             "-show_entries",
-            "format=duration,size:"
-            "stream=codec_type,codec_name,width,height",
-            "-of", "json",
+            (
+                "format=duration,size:"
+                "stream=codec_type,codec_name,"
+                "width,height,r_frame_rate"
+            ),
+            "-of",
+            "json",
             str(path)
         ],
-        capture_output=True,
-        text=True
+        text=True,
+        capture_output=True
     )
 
-    if proc.returncode:
+    if process.returncode:
         raise RuntimeError(
-            "FFprobe: " + proc.stderr[-1000:]
+            "FFprobe: " + process.stderr[-900:]
         )
 
-    result = json.loads(proc.stdout)
+    result = json.loads(process.stdout)
+
+    if not any(
+        stream.get("codec_type") == "video"
+        for stream in result.get("streams", [])
+    ):
+        raise RuntimeError(
+            "MP4 sin pista de vídeo: " + str(path)
+        )
 
     duration = float(
         result.get("format", {}).get("duration") or 0
     )
 
-    streams = result.get("streams", [])
-
-    videos = [
-        s for s in streams
-        if s.get("codec_type") == "video"
-    ]
-
-    if duration <= 0 or not videos:
+    if duration <= 0:
         raise RuntimeError(
-            "Video sin pista válida o duración incorrecta."
+            "MP4 sin duración válida: " + str(path)
         )
 
     return result
 
 
 def audio_duration(path):
-    proc = subprocess.run(
+    process = subprocess.run(
         [
-            "ffprobe", "-v", "error",
-            "-show_entries", "format=duration",
-            "-of", "default=noprint_wrappers=1:nokey=1",
+            binary("ffprobe"),
+            "-v",
+            "error",
+            "-show_entries",
+            "format=duration",
+            "-of",
+            "default=noprint_wrappers=1:nokey=1",
             str(path)
         ],
         capture_output=True,
         text=True
     )
 
-    if proc.returncode:
+    if process.returncode:
         raise RuntimeError(
-            "No se pudo medir la duración de audio."
+            "FFprobe audio: " + process.stderr[-500:]
         )
 
-    return float(proc.stdout.strip())
+    return float(process.stdout.strip())
 
 
 # ============================================================
-# 3. PAÍS FIJO: CHILE
+# GEOGRAFÍA DE CHILE
 # ============================================================
 
 def setup_country():
     global COUNTRY_GEOM
-    global LAT0, LAT1, LON0, LON1
-    global GRID, LATS, LONS, XX, YY
+    global LAT0, LAT1, LON0, LON1, GRID
+    global LATS, LONS, XX, YY
     global CITY, CITY_SOURCE, CAPITAL_CITY
 
-    country = pycountry.countries.get(alpha_3="CHL")
-
-    if country is None:
-        raise RuntimeError("Chile no aparece en pycountry.")
+    country = pycountry.countries.get(
+        alpha_3=COUNTRY_ISO
+    )
 
     shp = shapereader.natural_earth(
         resolution="110m",
@@ -337,13 +311,11 @@ def setup_country():
 
     reader = shapereader.Reader(shp)
 
-    geoms = []
-
-    for record in reader.records():
-        attributes = record.attributes
-
-        codes = [
-            str(attributes.get(key, ""))
+    geoms = [
+        record.geometry
+        for record in reader.records()
+        if COUNTRY_ISO in [
+            record.attributes.get(key, "")
             for key in (
                 "ADM0_A3",
                 "SOV_A3",
@@ -352,9 +324,7 @@ def setup_country():
                 "SU_A3"
             )
         ]
-
-        if "CHL" in codes:
-            geoms.append(record.geometry)
+    ]
 
     reader.close()
 
@@ -372,32 +342,36 @@ def setup_country():
     )
 
     polygons = [
-        g for g in parts
-        if g.geom_type == "Polygon"
+        item
+        for item in parts
+        if item.geom_type == "Polygon"
     ]
 
     if polygons:
-        biggest = max(polygons, key=lambda g: g.area)
+        biggest = max(
+            polygons,
+            key=lambda item: item.area
+        )
 
         kept = [
-            g for g in polygons
-            if g.area >= 0.025 * biggest.area
+            item
+            for item in polygons
+            if item.area >= 0.025 * biggest.area
         ]
-
-        geom = unary_union(kept)
 
         if len(kept) < len(polygons):
             log(
-                "Aviso: representación limitada "
-                "a componentes geográficas principales."
+                "Geografía: se omiten componentes "
+                "menores de Natural Earth."
             )
+
+        geom = unary_union(kept)
 
     x0, y0, x1, y1 = geom.bounds
 
     if x1 - x0 > 150:
         raise RuntimeError(
-            "Extensión geográfica no compatible "
-            "con la malla ETAS."
+            "Extensión geográfica incompatible."
         )
 
     LAT0 = max(-89.0, y0 - 2.2)
@@ -410,7 +384,8 @@ def setup_country():
         max(
             0.20,
             math.sqrt(
-                (LAT1-LAT0) * (LON1-LON0)
+                (LAT1-LAT0)
+                * (LON1-LON0)
                 / MAX_GRID_CELLS
             )
         ),
@@ -418,14 +393,21 @@ def setup_country():
     )
 
     LATS = np.arange(
-        LAT0, LAT1 + GRID/2, GRID
+        LAT0,
+        LAT1 + GRID/2,
+        GRID
     )
 
     LONS = np.arange(
-        LON0, LON1 + GRID/2, GRID
+        LON0,
+        LON1 + GRID/2,
+        GRID
     )
 
-    XX, YY = np.meshgrid(LONS, LATS)
+    XX, YY = np.meshgrid(
+        LONS,
+        LATS
+    )
 
     COUNTRY_GEOM = geom
 
@@ -434,15 +416,11 @@ def setup_country():
         f"malla {GRID:.3f}°"
     )
 
-    # --------------------------------------------------------
-    # GEONAMES
-    # --------------------------------------------------------
-
     try:
-        response = SESSION.get(
+        response = HTTP.get(
             "https://download.geonames.org/"
             "export/dump/cities15000.zip",
-            timeout=(15, 45)
+            timeout=(15, 50)
         )
 
         response.raise_for_status()
@@ -451,14 +429,20 @@ def setup_country():
             io.BytesIO(response.content)
         ) as archive:
 
-            with archive.open("cities15000.txt") as stream:
+            with archive.open(
+                "cities15000.txt"
+            ) as stream:
+
                 table = pd.read_csv(
                     stream,
                     sep="\t",
                     header=None,
                     usecols=[1, 4, 5, 8],
                     names=[
-                        "name", "lat", "lon", "iso2"
+                        "name",
+                        "lat",
+                        "lon",
+                        "iso2"
                     ],
                     low_memory=False
                 )
@@ -481,22 +465,25 @@ def setup_country():
                 float(row.lat),
                 float(row.lon)
             )
-            for row in table.itertuples(index=False)
+            for row in table.itertuples(
+                index=False
+            )
         ]
 
-        CITY_SOURCE = "GeoNames cities15000 (CC BY 4.0)"
+        CITY_SOURCE = (
+            "GeoNames cities15000 (CC BY 4.0)"
+        )
 
         log(
             "Ciudades de referencia:",
             len(CITY)
         )
 
-        # Capital obtenida de GeoNames countryInfo.
         try:
-            response = SESSION.get(
+            response = HTTP.get(
                 "https://download.geonames.org/"
                 "export/dump/countryInfo.txt",
-                timeout=(15, 35)
+                timeout=(15, 40)
             )
 
             response.raise_for_status()
@@ -508,43 +495,49 @@ def setup_country():
             ]
 
             matches = [
-                fields for fields in rows
-                if len(fields) > 5
-                and fields[0] == country.alpha_2
+                value
+                for value in rows
+                if (
+                    len(value) > 5
+                    and value[0] == country.alpha_2
+                )
             ]
 
             if matches:
-                capital_name = matches[0][5].strip()
+                name = matches[0][5].strip()
 
                 candidates = [
-                    c for c in CITY
-                    if c[0].casefold() == capital_name.casefold()
+                    city
+                    for city in CITY
+                    if city[0].casefold()
+                    == name.casefold()
                 ]
 
                 if candidates:
                     CAPITAL_CITY = candidates[0]
-
-                elif capital_name:
+                else:
                     geocoder = Nominatim(
-                        user_agent="sismonauta-etas-capital/3.0",
+                        user_agent=(
+                            "sismonauta-etas-capital/4.0"
+                        ),
                         timeout=15
                     )
 
                     place = geocoder.geocode(
-                        f"{capital_name}, Chile",
+                        name + ", Chile",
                         exactly_one=True
                     )
 
                     if place:
                         CAPITAL_CITY = (
-                            capital_name,
+                            name,
                             float(place.latitude),
                             float(place.longitude)
                         )
 
                 log(
                     "Capital:",
-                    CAPITAL_CITY or capital_name
+                    CAPITAL_CITY or name
                 )
 
         except Exception as exc:
@@ -559,27 +552,27 @@ def setup_country():
 
         log(
             "GeoNames no disponible:",
-            str(exc)[:110]
+            str(exc)[:100]
         )
 
 
 def nearest_city(lat, lon):
     if CITY:
-        lats = np.radians(
-            [city[1] for city in CITY]
-        )
+        city_lats = np.radians([
+            city[1] for city in CITY
+        ])
 
-        lons = np.radians(
-            [city[2] for city in CITY]
-        )
+        city_lons = np.radians([
+            city[2] for city in CITY
+        ])
 
-        dy = lats - np.radians(lat)
-        dx = lons - np.radians(lon)
+        dy = city_lats - np.radians(lat)
+        dx = city_lons - np.radians(lon)
 
         a = (
             np.sin(dy/2)**2
             + np.cos(np.radians(lat))
-            * np.cos(lats)
+            * np.cos(city_lats)
             * np.sin(dx/2)**2
         )
 
@@ -596,7 +589,7 @@ def nearest_city(lat, lon):
 
     try:
         geocoder = Nominatim(
-            user_agent="sismonauta-etas-reverse/3.0",
+            user_agent="sismonauta-etas-reverse/4.0",
             timeout=15
         )
 
@@ -613,9 +606,9 @@ def nearest_city(lat, lon):
             else {}
         )
 
-        locality = next(
+        place = next(
             (
-                address.get(key)
+                address[key]
                 for key in (
                     "city",
                     "town",
@@ -628,30 +621,8 @@ def nearest_city(lat, lon):
             None
         )
 
-        if locality:
-            dlat = np.radians(
-                result.latitude - lat
-            )
-
-            dlon = np.radians(
-                result.longitude - lon
-            )
-
-            a = (
-                np.sin(dlat/2)**2
-                + np.cos(np.radians(lat))
-                * np.cos(np.radians(result.latitude))
-                * np.sin(dlon/2)**2
-            )
-
-            distance = float(
-                12742
-                * np.arcsin(
-                    np.sqrt(np.clip(a, 0, 1))
-                )
-            )
-
-            return distance, str(locality)
+        if place:
+            return 0.0, str(place)
 
     except Exception:
         pass
@@ -660,25 +631,23 @@ def nearest_city(lat, lon):
 
 
 # ============================================================
-# 4. CATÁLOGO USGS DESDE 2018
+# CATÁLOGO SÍSMICO USGS
 # ============================================================
 
 def catalog_usgs():
-    frames = []
-
     session = requests.Session()
 
-    session.headers.update({
-        "User-Agent": (
-            "SismonautaETASChile/3.0 research"
-        )
-    })
+    session.headers[
+        "User-Agent"
+    ] = "Sismonauta-ETAS-Chile/4.0"
 
     begin = pd.Timestamp(
-        START, tz="UTC"
+        START,
+        tz="UTC"
     )
 
     blocks = []
+    frames = []
 
     while begin < CUTOFF:
         end = min(
@@ -689,7 +658,10 @@ def catalog_usgs():
         blocks.append((begin, end))
         begin = end
 
-    for index, (start, end) in enumerate(blocks, 1):
+    for index, (start, end) in enumerate(
+        blocks,
+        1
+    ):
         params = {
             "format": "csv",
             "starttime": start.strftime(
@@ -707,15 +679,13 @@ def catalog_usgs():
             "limit": 20000
         }
 
-        part = None
-
         for attempt in range(4):
             try:
                 response = session.get(
                     "https://earthquake.usgs.gov/"
                     "fdsnws/event/1/query",
                     params=params,
-                    timeout=(15, 70)
+                    timeout=(15, 75)
                 )
 
                 if response.status_code == 204:
@@ -738,8 +708,8 @@ def catalog_usgs():
 
                     if len(part) >= 20000:
                         raise RuntimeError(
-                            "Bloque USGS de 20.000 eventos: "
-                            "es necesario subdividirlo."
+                            "Límite USGS alcanzado. "
+                            "Dividir intervalo mensual."
                         )
 
                 break
@@ -747,7 +717,8 @@ def catalog_usgs():
             except Exception as exc:
                 if attempt == 3:
                     raise RuntimeError(
-                        f"Error USGS {start:%Y-%m}: {exc}"
+                        f"Error USGS {start:%Y-%m}: "
+                        f"{exc}"
                     ) from exc
 
                 time.sleep(
@@ -756,15 +727,13 @@ def catalog_usgs():
 
         frames.append(part)
 
-        if index % 4 == 0 or index == len(blocks):
+        if (
+            index % 4 == 0
+            or index == len(blocks)
+        ):
             log(
                 f"USGS: {index}/{len(blocks)} meses"
             )
-
-    if not frames:
-        raise RuntimeError(
-            "El catálogo USGS no contiene bloques."
-        )
 
     df = pd.concat(
         frames,
@@ -777,13 +746,13 @@ def catalog_usgs():
         errors="coerce"
     )
 
-    for field in (
+    for key in (
         "latitude",
         "longitude",
         "mag"
     ):
-        df[field] = pd.to_numeric(
-            df[field],
+        df[key] = pd.to_numeric(
+            df[key],
             errors="coerce"
         )
 
@@ -803,16 +772,17 @@ def catalog_usgs():
         & (df.mag >= DOWNLOAD_M)
     ]
 
-    # Mantener área sísmica terrestre y marina
-    # cercana a Chile, según el modelo original.
-    area = COUNTRY_GEOM.buffer(2.5)
+    area = prep(
+        COUNTRY_GEOM.buffer(2.5)
+    )
 
-    prepared = prep(area)
-
-    mask = np.fromiter(
+    keep = np.fromiter(
         (
-            prepared.covers(
-                Point(float(lon), float(lat))
+            area.covers(
+                Point(
+                    float(lon),
+                    float(lat)
+                )
             )
             for lat, lon in zip(
                 df.latitude,
@@ -824,7 +794,7 @@ def catalog_usgs():
     )
 
     df = (
-        df.loc[mask]
+        df.loc[keep]
         .drop_duplicates(subset=["id"])
         .sort_values("time")
         .reset_index(drop=True)
@@ -832,7 +802,7 @@ def catalog_usgs():
 
     if len(df) < 200:
         raise RuntimeError(
-            "Menos de 200 eventos válidos USGS."
+            "Menos de 200 eventos USGS válidos."
         )
 
     log(
@@ -843,7 +813,7 @@ def catalog_usgs():
 
 
 # ============================================================
-# 5. ESTIMAR Mc Y PARÁMETRO b
+# Mc Y PARÁMETRO b
 # ============================================================
 
 def estimate_mc_b(df):
@@ -880,18 +850,17 @@ def estimate_mc_b(df):
 
     if denominator <= 0:
         raise RuntimeError(
-            "No fue posible estimar el parámetro b."
+            "No se pudo estimar parámetro b."
         )
 
-    b = float(
-        np.log10(np.e) / denominator
+    return (
+        mc,
+        float(np.log10(np.e) / denominator)
     )
-
-    return mc, b
 
 
 # ============================================================
-# 6. VEROSIMILITUD ETAS CON NUMBA
+# MODELO ETAS CON NUMBA
 # ============================================================
 
 @njit
@@ -906,7 +875,7 @@ def negll(theta, t, m, mc, T):
     ):
         return 1e90
 
-    result = mu * T
+    out = mu * T
 
     for i in range(len(t)):
         rate = mu
@@ -917,20 +886,20 @@ def negll(theta, t, m, mc, T):
             if dt > 0:
                 rate += (
                     K
-                    * np.exp(alpha*(m[j]-mc))
+                    * np.exp(alpha * (m[j]-mc))
                     * (dt+c)**(-p)
                 )
 
         if rate <= 0 or not np.isfinite(rate):
             return 1e90
 
-        result -= np.log(rate)
+        out -= np.log(rate)
 
     for j in range(len(t)):
         age = T - t[j]
 
         if age > 0:
-            result += (
+            out += (
                 K
                 * np.exp(alpha*(m[j]-mc))
                 * (
@@ -939,10 +908,10 @@ def negll(theta, t, m, mc, T):
                 ) / (1-p)
             )
 
-    if not np.isfinite(result):
+    if not np.isfinite(out):
         return 1e90
 
-    return result
+    return out
 
 
 def fit_etas(df, mc):
@@ -952,22 +921,18 @@ def fit_etas(df, mc):
 
     if len(sub) < 100:
         raise RuntimeError(
-            "Eventos insuficientes para ajustar ETAS."
+            "Eventos insuficientes para ajuste ETAS."
         )
 
     t = (
-        (sub.time - sub.time.iloc[0])
+        (sub.time-sub.time.iloc[0])
         .dt.total_seconds()
         .to_numpy()
         / 86400.0
     )
 
     m = sub.mag.to_numpy()
-
-    T = max(
-        float(t[-1]),
-        1e-6
-    )
+    T = max(float(t[-1]), 1e-6)
 
     bounds = [
         (1e-6, 100),
@@ -977,7 +942,7 @@ def fit_etas(df, mc):
         (1.01, 2.8)
     ]
 
-    initial_values = [
+    attempts = [
         [0.2, 0.01, 0.8, 0.02, 1.2],
         [0.5, 0.005, 1.0, 0.08, 1.3],
         [1.0, 0.001, 0.6, 0.1, 1.5]
@@ -985,7 +950,7 @@ def fit_etas(df, mc):
 
     fits = []
 
-    for index, x0 in enumerate(initial_values, 1):
+    for index, x0 in enumerate(attempts, 1):
         log(
             f"Ajuste ETAS {index}/3"
         )
@@ -996,7 +961,9 @@ def fit_etas(df, mc):
             args=(t, m, mc, T),
             method="L-BFGS-B",
             bounds=bounds,
-            options={"maxiter": 260}
+            options={
+                "maxiter": 260
+            }
         )
 
         if (
@@ -1007,7 +974,7 @@ def fit_etas(df, mc):
 
     if not fits:
         raise RuntimeError(
-            "El ajuste ETAS no convergió."
+            "ETAS no convergió."
         )
 
     best = min(
@@ -1015,68 +982,63 @@ def fit_etas(df, mc):
         key=lambda item: item.fun
     )
 
-    names = [
-        "mu",
-        "K",
-        "alpha",
-        "c",
-        "p"
-    ]
-
     return dict(
-        zip(names, map(float, best.x))
+        zip(
+            ("mu", "K", "alpha", "c", "p"),
+            map(float, best.x)
+        )
     )
 
 
 # ============================================================
-# 7. FONDO ESPACIAL Y TRES MÁXIMOS
+# FONDO ESPACIAL
 # ============================================================
 
 def make_background(events):
     bins_lat = np.r_[
-        LATS - GRID/2,
-        LATS[-1] + GRID/2
+        LATS-GRID/2,
+        LATS[-1]+GRID/2
     ]
 
     bins_lon = np.r_[
-        LONS - GRID/2,
-        LONS[-1] + GRID/2
+        LONS-GRID/2,
+        LONS[-1]+GRID/2
     ]
 
     histogram, _, _ = np.histogram2d(
         events.latitude,
         events.longitude,
-        bins=[bins_lat, bins_lon]
+        bins=[
+            bins_lat,
+            bins_lon
+        ]
     )
 
-    smoothed = (
+    values = (
         gaussian_filter(histogram, 1.7)
         + 1e-10
     )
 
     return (
-        smoothed / smoothed.sum()
+        values / values.sum()
     ).astype(np.float32)
 
+
+# ============================================================
+# TRES ZONAS DE MAYOR INCREMENTO
+# ============================================================
 
 def three_distinct_increases(
     delta_pp,
     min_km=90.0
 ):
-    """
-    Seleccionar hasta tres máximos positivos
-    separados espacialmente 90 km como mínimo.
-    """
-
     flat = np.asarray(
         delta_pp
     ).ravel()
 
-    order = np.argsort(flat)[::-1]
-
     selected = []
 
-    for index in order:
+    for index in np.argsort(flat)[::-1]:
         value = float(flat[index])
 
         if (
@@ -1096,32 +1058,29 @@ def three_distinct_increases(
         distinct = True
 
         for point in selected:
-            dlat = np.radians(
-                lat - point["lat"]
+            dy = np.radians(
+                lat-point["lat"]
             )
 
-            dlon = np.radians(
-                lon - point["lon"]
+            dx = np.radians(
+                lon-point["lon"]
             )
 
             a = (
-                np.sin(dlat/2)**2
+                np.sin(dy/2)**2
                 + np.cos(np.radians(lat))
                 * np.cos(np.radians(point["lat"]))
-                * np.sin(dlon/2)**2
+                * np.sin(dx/2)**2
             )
 
-            km = (
-                6371.0 * 2
+            distance = (
+                12742
                 * np.arcsin(
-                    min(
-                        1.0,
-                        np.sqrt(a)
-                    )
+                    min(1.0, np.sqrt(a))
                 )
             )
 
-            if km < min_km:
+            if distance < min_km:
                 distinct = False
                 break
 
@@ -1139,20 +1098,16 @@ def three_distinct_increases(
 
 
 # ============================================================
-# 8. EVOLUCIÓN DE 25 MAPAS HORARIOS
+# 25 MAPAS HORARIOS
 # ============================================================
 
-def evolution_24h(df, theta, mc, b, magnitude):
-    """
-    Reconstruye 25 mapas desde T-24h hasta T.
-
-    Cada fotograma utiliza exclusivamente
-    eventos anteriores a su fecha de corte.
-
-    Cada valor corresponde al resultado
-    experimental ETAS para las siguientes 24 h.
-    """
-
+def evolution_24h(
+    df,
+    theta,
+    mc,
+    b,
+    magnitude
+):
     start = CUTOFF - pd.Timedelta(
         hours=LOOKBACK_HOURS
     )
@@ -1178,9 +1133,9 @@ def evolution_24h(df, theta, mc, b, magnitude):
 
     if len(chosen) > TRIGGER_MAX:
         raise RuntimeError(
-            f"Hay {len(chosen)} disparadores "
-            "en la ventana de 365 días. "
-            "No se descartarán silenciosamente."
+            f"{len(chosen)} disparadores. "
+            "Aumentar TRIGGER_MAX; "
+            "no se descartan eventos."
         )
 
     log(
@@ -1193,14 +1148,19 @@ def evolution_24h(df, theta, mc, b, magnitude):
         dtype=np.float32
     )
 
-    lat_flat = YY.ravel().astype(np.float32)
-    lon_flat = XX.ravel().astype(np.float32)
+    lat_flat = YY.ravel().astype(
+        np.float32
+    )
+
+    lon_flat = XX.ravel().astype(
+        np.float32
+    )
 
     for j, event in enumerate(
         chosen.itertuples(index=False)
     ):
         dx = (
-            lon_flat - event.longitude
+            lon_flat-event.longitude
         ) * (
             111.32
             * np.cos(
@@ -1209,7 +1169,7 @@ def evolution_24h(df, theta, mc, b, magnitude):
         )
 
         dy = (
-            lat_flat - event.latitude
+            lat_flat-event.latitude
         ) * 111.32
 
         weights = np.power(
@@ -1239,7 +1199,8 @@ def evolution_24h(df, theta, mc, b, magnitude):
 
     productivity = np.exp(
         np.clip(
-            theta["alpha"] * (magnitudes-mc),
+            theta["alpha"]
+            * (magnitudes-mc),
             -40,
             40
         )
@@ -1252,17 +1213,15 @@ def evolution_24h(df, theta, mc, b, magnitude):
     c = theta["c"]
     p = theta["p"]
 
-    probabilities = []
+    maps = []
     maxima = []
-
     baseline = None
 
     for k, stamp in enumerate(times):
-        timestamp = stamp.value
-
         ages = (
-            (timestamp - event_times)
-            / 1e9 / 86400.0
+            (stamp.value-event_times)
+            / 1e9
+            / 86400.0
         )
 
         valid = (
@@ -1275,16 +1234,20 @@ def evolution_24h(df, theta, mc, b, magnitude):
             dtype=np.float32
         )
 
-        a = ages[valid]
+        ages_valid = ages[valid]
 
         masses[valid] = (
             theta["K"]
             * productivity[valid]
             * (
                 (
-                    a + HORIZON_DAYS + c
+                    ages_valid
+                    + HORIZON_DAYS
+                    + c
                 )**(1-p)
-                - (a+c)**(1-p)
+                - (
+                    ages_valid+c
+                )**(1-p)
             ) / (1-p)
         ).astype(np.float32)
 
@@ -1293,22 +1256,24 @@ def evolution_24h(df, theta, mc, b, magnitude):
             & (df.mag >= mc)
         ]
 
-        bg = make_background(before)
+        background = make_background(
+            before
+        )
 
         expected = (
             theta["mu"]
             * HORIZON_DAYS
-            * bg.ravel()
+            * background.ravel()
         )
 
         if len(chosen):
             expected = (
                 expected
-                + (masses @ kernels)
+                + masses @ kernels
             )
 
         forecast = -np.expm1(
-            -expected.reshape(bg.shape)
+            -expected.reshape(background.shape)
             * factor
         )
 
@@ -1316,18 +1281,19 @@ def evolution_24h(df, theta, mc, b, magnitude):
             np.isfinite(forecast)
         ):
             raise RuntimeError(
-                "El mapa ETAS contiene "
-                "valores no finitos."
+                "Mapa ETAS no finito."
             )
 
         forecast = np.clip(
-            forecast, 0, 1
+            forecast,
+            0,
+            1
         ).astype(np.float32)
 
         if baseline is None:
             baseline = forecast.copy()
 
-        delta_pp = (
+        delta = (
             forecast.astype(np.float64)
             - baseline.astype(np.float64)
         ) * 100.0
@@ -1338,15 +1304,11 @@ def evolution_24h(df, theta, mc, b, magnitude):
         )
 
         row_d, col_d = np.unravel_index(
-            np.argmax(delta_pp),
-            delta_pp.shape
+            np.argmax(delta),
+            delta.shape
         )
 
-        delta_points = three_distinct_increases(
-            delta_pp
-        )
-
-        probabilities.append(
+        maps.append(
             forecast
         )
 
@@ -1359,15 +1321,18 @@ def evolution_24h(df, theta, mc, b, magnitude):
 
             "delta_lat": float(LATS[row_d]),
             "delta_lon": float(LONS[col_d]),
-            "delta_val": float(
-                delta_pp[row_d, col_d]
+            "delta_val": max(
+                0.0,
+                float(delta[row_d, col_d])
             ),
 
-            "delta_points": delta_points
+            "delta_points": (
+                three_distinct_increases(delta)
+            )
         })
 
         log(
-            f"Mapa {k+1}/{len(times)} | "
+            f"Mapa {k+1}/25 | "
             f"{stamp:%d/%m %H:%M} UTC | "
             f"máx prob "
             f"{maxima[-1]['prob_val']:.4f}% | "
@@ -1375,27 +1340,41 @@ def evolution_24h(df, theta, mc, b, magnitude):
             f"{maxima[-1]['delta_val']:.5f} pp"
         )
 
-    return times, probabilities, maxima
+    return times, maps, maxima
 
 
 # ============================================================
-# 9. TIPOGRAFÍA Y CARTOGRAFÍA
+# FUENTES Y CARTOGRAFÍA
 # ============================================================
 
 def font(size, bold=False):
-    files = (
-        "/usr/share/fonts/truetype/dejavu/"
-        + (
-            "DejaVuSans-Bold.ttf"
-            if bold
-            else "DejaVuSans.ttf"
+    candidates = [
+        (
+            "/usr/share/fonts/truetype/dejavu/"
+            + (
+                "DejaVuSans-Bold.ttf"
+                if bold
+                else "DejaVuSans.ttf"
+            )
+        ),
+        (
+            "/usr/share/fonts/truetype/liberation2/"
+            + (
+                "LiberationSans-Bold.ttf"
+                if bold
+                else "LiberationSans-Regular.ttf"
+            )
         )
-    )
+    ]
 
-    try:
-        return ImageFont.truetype(files, size)
-    except Exception:
-        return ImageFont.load_default()
+    for path in candidates:
+        if Path(path).is_file():
+            return ImageFont.truetype(
+                path,
+                size
+            )
+
+    return ImageFont.load_default()
 
 
 def load_detailed_geography():
@@ -1404,9 +1383,14 @@ def load_detailed_geography():
     if _DETAIL_CACHE is not None:
         return _DETAIL_CACHE
 
-    region = shapely_box(
-        LON0, LAT0, LON1, LAT1
+    region = shp_box(
+        LON0,
+        LAT0,
+        LON1,
+        LAT1
     )
+
+    layers = {}
 
     catalog = {
         "coast": (
@@ -1423,17 +1407,14 @@ def load_detailed_geography():
             "50m",
             "cultural",
             "admin_1_states_provinces_lines"
-        ),
+        )
     }
-
-    layers = {}
 
     for key, (
         resolution,
         category,
         name
     ) in catalog.items():
-
         try:
             shp = shapereader.natural_earth(
                 resolution=resolution,
@@ -1443,7 +1424,12 @@ def load_detailed_geography():
 
             reader = shapereader.Reader(
                 shp,
-                bbox=(LON0, LAT0, LON1, LAT1)
+                bbox=(
+                    LON0,
+                    LAT0,
+                    LON1,
+                    LAT1
+                )
             )
 
             geoms = [
@@ -1468,8 +1454,9 @@ def load_detailed_geography():
             layers[key] = []
 
             log(
-                f"Aviso cartografía {name}:",
-                str(exc)[:120]
+                "Aviso cartografía",
+                name,
+                str(exc)[:100]
             )
 
     _DETAIL_CACHE = layers
@@ -1478,13 +1465,12 @@ def load_detailed_geography():
 
 
 # ============================================================
-# 10. PLANTILLA DE LOS DOS HEATMAPS
+# DIBUJO DE HEATMAPS
 # ============================================================
 
 def draw_heatmap_panel(
     fig,
     rect,
-    title,
     data,
     clims,
     city_points,
@@ -1505,7 +1491,12 @@ def draw_heatmap_panel(
     )
 
     ax.set_extent(
-        [LON0, LON1, LAT0, LAT1],
+        [
+            LON0,
+            LON1,
+            LAT0,
+            LAT1
+        ],
         crs=ccrs.PlateCarree()
     )
 
@@ -1523,13 +1514,14 @@ def draw_heatmap_panel(
             facecolor="#DFEAF1",
             zorder=0
         )
+
     except Exception:
         pass
 
     for layer, color, width, style, level in (
         ("coast", "#152C3D", 1.35, "-", 15),
         ("country", "#203747", 0.85, "-", 14),
-        ("states", "#6C8190", 0.42, ":", 13),
+        ("states", "#6C8190", 0.42, ":", 13)
     ):
         if detailed.get(layer):
             ax.add_geometries(
@@ -1584,24 +1576,25 @@ def draw_heatmap_panel(
 
     for name, lat, lon in city_points:
         ax.plot(
-            lon, lat,
+            lon,
+            lat,
             "o",
             ms=2.8,
             color="#152E3F",
             markeredgecolor="white",
             markeredgewidth=0.45,
             transform=ccrs.PlateCarree(),
-            zorder=10
+            zorder=20
         )
 
         ax.text(
-            lon + 0.12,
-            lat + 0.07,
+            lon+0.12,
+            lat+0.07,
             name,
             fontsize=7.2,
             color="#183143",
             transform=ccrs.PlateCarree(),
-            zorder=11,
+            zorder=21,
             bbox={
                 "facecolor": "white",
                 "edgecolor": "none",
@@ -1618,7 +1611,7 @@ def draw_heatmap_panel(
     else:
         norm = mcolors.PowerNorm(
             gamma=0.50,
-            vmin=0,
+            vmin=0.0,
             vmax=clims[1]
         )
 
@@ -1644,24 +1637,20 @@ def draw_heatmap_panel(
         orientation="horizontal"
     )
 
-    try:
-        ticks = (
-            np.geomspace(
-                clims[0],
-                clims[1],
-                5
-            )
-            if scale == "log"
-            else np.linspace(
-                0,
-                clims[1],
-                5
-            )
+    if scale == "log":
+        ticks = np.geomspace(
+            clims[0],
+            clims[1],
+            5
+        )
+    else:
+        ticks = np.linspace(
+            0,
+            clims[1],
+            5
         )
 
-        bar.set_ticks(ticks)
-    except Exception:
-        pass
+    bar.set_ticks(ticks)
 
     bar.ax.xaxis.set_major_formatter(
         FuncFormatter(colorbar_fmt)
@@ -1697,8 +1686,8 @@ def draw_heatmap_panel(
     fig.patches.append(patch)
 
     fig.text(
-        card_rect[0] + 0.015,
-        card_rect[1] + 0.078,
+        card_rect[0]+0.015,
+        card_rect[1]+0.078,
         card_title,
         fontsize=10.5,
         fontweight="bold",
@@ -1706,27 +1695,27 @@ def draw_heatmap_panel(
     )
 
     fig.text(
-        card_rect[0] + 0.015,
-        card_rect[1] + 0.051,
+        card_rect[0]+0.015,
+        card_rect[1]+0.051,
         card_value,
-        fontsize=14,
+        fontsize=12,
         fontweight="bold",
         color="#173A52"
     )
 
     fig.text(
-        card_rect[0] + 0.015,
-        card_rect[1] + 0.024,
+        card_rect[0]+0.015,
+        card_rect[1]+0.024,
         card_city,
-        fontsize=9.2,
+        fontsize=9,
         color="#415B6D"
     )
 
-    return ax, mesh
+    return ax
 
 
 # ============================================================
-# 11. DIBUJAR UNA INSTANTÁNEA
+# FOTOGRAMA CON DOS MAPAS Y ESTRELLAS
 # ============================================================
 
 def draw_snapshot(
@@ -1736,7 +1725,7 @@ def draw_snapshot(
     total,
     abs_clims,
     delta_clims,
-    frame_info,
+    info,
     work,
     baseline
 ):
@@ -1748,33 +1737,24 @@ def draw_snapshot(
 
     percent = prob * 100.0
 
-    masked_prob = np.ma.masked_less_equal(
-        percent, 0
-    )
-
-    delta_pp = (
+    delta = (
         prob.astype(np.float64)
         - baseline.astype(np.float64)
     ) * 100.0
 
-    delta_color = np.maximum(
-        delta_pp,
-        0.0
-    )
-
     def labels_near(lat, lon):
         points = []
 
-        candidates = sorted(
-            CITY,
-            key=lambda c: (
-                (c[1]-lat)**2
-                + (c[2]-lon)**2
+        if CITY:
+            points.append(
+                min(
+                    CITY,
+                    key=lambda city: (
+                        (city[1]-lat)**2
+                        + (city[2]-lon)**2
+                    )
+                )
             )
-        )
-
-        if candidates:
-            points.append(candidates[0])
 
         if CAPITAL_CITY:
             _, capital_lat, capital_lon = CAPITAL_CITY
@@ -1783,105 +1763,92 @@ def draw_snapshot(
                 LAT0 <= capital_lat <= LAT1
                 and LON0 <= capital_lon <= LON1
             ):
-                if not any(
-                    city[0] == CAPITAL_CITY[0]
+                if all(
+                    city[0] != CAPITAL_CITY[0]
                     for city in points
                 ):
                     points.append(CAPITAL_CITY)
 
         return points
 
-    selected_prob = labels_near(
-        frame_info["prob_lat"],
-        frame_info["prob_lon"]
-    )
-
-    delta_points = frame_info.get(
-        "delta_points", []
+    points = info.get(
+        "delta_points",
+        []
     )[:3]
 
-    # Comprobar que marcadores y valores coincidan.
-    for point in delta_points:
-        lat = float(point["lat"])
-        lon = float(point["lon"])
-
+    for point in points:
         row = int(
             np.argmin(
-                np.abs(LATS-lat)
+                np.abs(LATS-point["lat"])
             )
         )
 
         col = int(
             np.argmin(
-                np.abs(LONS-lon)
+                np.abs(LONS-point["lon"])
             )
         )
 
         actual = float(
-            delta_pp[row, col]
+            delta[row, col]
         )
 
-        tolerance = max(
-            1e-5,
-            abs(actual) * 1e-3
-        )
-
-        if abs(
-            float(point["val"]) - actual
-        ) > tolerance:
+        if (
+            abs(actual-float(point["val"]))
+            > max(1e-5, abs(actual)*1e-3)
+        ):
             raise RuntimeError(
-                f"Marcador desalineado en mapa {index}."
+                "Marcador de aumento no corresponde "
+                "a su fotograma."
             )
 
-    ax_left, _ = draw_heatmap_panel(
-        fig=fig,
-        rect=[0.055, 0.27, 0.42, 0.57],
-        title="PROBABILIDAD MODELADA",
-        data=masked_prob,
-        clims=abs_clims,
-        city_points=selected_prob,
-        colorbar_rect=[0.08, 0.22, 0.37, 0.016],
-        colorbar_label=(
+    left = draw_heatmap_panel(
+        fig,
+        [0.055, 0.27, 0.42, 0.57],
+        np.ma.masked_less_equal(percent, 0),
+        abs_clims,
+        labels_near(
+            info["prob_lat"],
+            info["prob_lon"]
+        ),
+        [0.08, 0.22, 0.37, 0.016],
+        (
             f"Por celda: ≥1 sismo M≥"
-            f"{frame_info['mag']:.1f} en 24 h"
+            f"{info['mag']:.1f} en 24 h"
         ),
-        colorbar_fmt=lambda value, pos: f"{value:.3g}%",
-        card_rect=[0.055, 0.08, 0.42, 0.105],
-        card_title="Coordenada del valor absoluto más alto",
-        card_value=(
-            f"{frame_info['prob_val']:.4f}% · "
-            f"{frame_info['prob_lat']:+.2f}°, "
-            f"{frame_info['prob_lon']:+.2f}°"
+        lambda value, pos: f"{value:.3g}%",
+        [0.055, 0.08, 0.42, 0.105],
+        "Coordenada de valor máximo",
+        (
+            f"{info['prob_val']:.4f}% · "
+            f"{info['prob_lat']:+.2f}°, "
+            f"{info['prob_lon']:+.2f}°"
         ),
-        card_city=(
-            f"Ciudad cercana: "
-            f"{frame_info['prob_city']} "
-            f"({frame_info['prob_dist']:.0f} km)"
+        (
+            f"Ciudad cercana: {info['prob_city']} "
+            f"({info['prob_dist']:.0f} km)"
         )
     )
 
-    ax_right, _ = draw_heatmap_panel(
-        fig=fig,
-        rect=[0.525, 0.27, 0.42, 0.57],
-        title="MAYOR AUMENTO",
-        data=delta_color,
-        clims=delta_clims,
-        city_points=[],
-        colorbar_rect=[0.55, 0.22, 0.37, 0.016],
-        colorbar_label=(
-            "Variación respecto al comienzo (pp)"
-        ),
-        colorbar_fmt=lambda value, pos: f"{value:.3g} pp",
-        card_rect=[0.525, 0.08, 0.42, 0.105],
-        card_title="Tres zonas de mayor incremento positivo",
-        card_value="",
-        card_city="",
+    right = draw_heatmap_panel(
+        fig,
+        [0.525, 0.27, 0.42, 0.57],
+        np.maximum(delta, 0),
+        delta_clims,
+        [],
+        [0.55, 0.22, 0.37, 0.016],
+        "Aumento respecto al inicio (pp)",
+        lambda value, pos: f"{value:.3g} pp",
+        [0.525, 0.08, 0.42, 0.105],
+        "Zonas de mayor aumento positivo",
+        "",
+        "",
         scale="power"
     )
 
-    # Encabezados.
     fig.text(
-        0.5, 0.953,
+        0.5,
+        0.953,
         "SISMONAUTA · ETAS CHILE",
         ha="center",
         fontsize=20,
@@ -1890,7 +1857,8 @@ def draw_snapshot(
     )
 
     fig.text(
-        0.5, 0.921,
+        0.5,
+        0.921,
         (
             f"Instantánea {index+1}/{total} · "
             f"{stamp:%d/%m/%Y %H:%M} UTC"
@@ -1901,7 +1869,8 @@ def draw_snapshot(
     )
 
     fig.text(
-        0.265, 0.863,
+        0.265,
+        0.863,
         "PROBABILIDAD MODELADA",
         ha="center",
         fontsize=11,
@@ -1910,7 +1879,8 @@ def draw_snapshot(
     )
 
     fig.text(
-        0.735, 0.863,
+        0.735,
+        0.863,
         "AUMENTO DESDE HACE 24 H",
         ha="center",
         fontsize=11,
@@ -1919,7 +1889,8 @@ def draw_snapshot(
     )
 
     fig.text(
-        0.5, 0.035,
+        0.5,
+        0.035,
         "MODELO EXPERIMENTAL · NO ES ALERTA SÍSMICA",
         ha="center",
         fontsize=10,
@@ -1934,25 +1905,25 @@ def draw_snapshot(
             LAT0 <= lat <= LAT1
             and LON0 <= lon <= LON1
         ):
-            ax_right.plot(
-                lon, lat,
+            right.plot(
+                lon,
+                lat,
                 "o",
                 ms=2.8,
                 color="#152E3F",
                 markeredgecolor="white",
-                markeredgewidth=0.45,
                 transform=ccrs.PlateCarree(),
-                zorder=10
+                zorder=20
             )
 
-            ax_right.text(
-                lon + 0.12,
-                lat + 0.07,
+            right.text(
+                lon+0.12,
+                lat+0.07,
                 name,
                 fontsize=7.2,
                 color="#183143",
                 transform=ccrs.PlateCarree(),
-                zorder=11,
+                zorder=21,
                 bbox={
                     "facecolor": "white",
                     "edgecolor": "none",
@@ -1967,16 +1938,16 @@ def draw_snapshot(
         (20, -23)
     ]
 
-    geo_transform = (
+    transform = (
         ccrs.PlateCarree()
-        ._as_mpl_transform(ax_right)
+        ._as_mpl_transform(right)
     )
 
-    for rank, point in enumerate(delta_points, 1):
+    for rank, point in enumerate(points, 1):
         lon = float(point["lon"])
         lat = float(point["lat"])
 
-        ax_right.scatter(
+        right.scatter(
             [lon],
             [lat],
             s=92,
@@ -1989,13 +1960,13 @@ def draw_snapshot(
         )
 
         dx, dy = offsets[
-            (rank-1) % len(offsets)
+            (rank-1) % 3
         ]
 
-        ax_right.annotate(
+        right.annotate(
             str(rank),
             xy=(lon, lat),
-            xycoords=geo_transform,
+            xycoords=transform,
             xytext=(dx, dy),
             textcoords="offset points",
             fontsize=9,
@@ -2012,15 +1983,13 @@ def draw_snapshot(
                 "shrinkB": 5
             },
             bbox={
-                "boxstyle": "circle,pad=0.30",
+                "boxstyle": "circle,pad=.30",
                 "facecolor": "#162D43",
                 "edgecolor": "white",
-                "linewidth": 1.2,
-                "alpha": 0.98
+                "linewidth": 1.2
             }
         )
 
-    for rank, point in enumerate(delta_points, 1):
         city = str(
             point.get("city")
             or "Localidad no identificada"
@@ -2031,7 +2000,7 @@ def draw_snapshot(
 
         fig.text(
             0.54,
-            0.131 - (rank-1)*0.022,
+            0.131-(rank-1)*0.022,
             (
                 f"{rank}. {city} · "
                 f"{point['val']:+.4f} pp"
@@ -2042,59 +2011,56 @@ def draw_snapshot(
             zorder=30
         )
 
-    def add_blink_stars():
-        stars = [
-            (
-                ax_left,
-                float(frame_info["prob_lon"]),
-                float(frame_info["prob_lat"])
-            )
-        ]
-
-        stars.extend(
-            (
-                ax_right,
-                float(point["lon"]),
-                float(point["lat"])
-            )
-            for point in delta_points
-        )
-
-        for ax, lon, lat in stars:
-            ax.scatter(
-                [lon],
-                [lat],
-                s=210,
-                marker="*",
-                c="#FFE55B",
-                edgecolors="#142B3A",
-                linewidths=1.3,
-                transform=ccrs.PlateCarree(),
-                zorder=40
-            )
-
-    off_path = (
+    off = (
         Path(work)
         / f"frame_{index:03d}_off.png"
     )
 
-    on_path = (
+    on = (
         Path(work)
         / f"frame_{index:03d}_on.png"
     )
 
     fig.savefig(
-        off_path,
+        off,
         dpi=fig.dpi,
         facecolor=fig.get_facecolor(),
         bbox_inches=None,
         pad_inches=0
     )
 
-    add_blink_stars()
+    stars = [
+        (
+            left,
+            float(info["prob_lon"]),
+            float(info["prob_lat"])
+        )
+    ]
+
+    stars.extend(
+        (
+            right,
+            float(point["lon"]),
+            float(point["lat"])
+        )
+        for point in points
+    )
+
+    for ax, lon, lat in stars:
+        ax.scatter(
+            [lon],
+            [lat],
+            s=210,
+            marker="*",
+            c="#FFE55B",
+            edgecolors="#142B3A",
+            linewidths=1.3,
+            transform=ccrs.PlateCarree(),
+            zorder=40
+        )
 
     fig.savefig(
-        on_path,
+        on,
         dpi=fig.dpi,
         facecolor=fig.get_facecolor(),
         bbox_inches=None,
@@ -2103,20 +2069,24 @@ def draw_snapshot(
 
     plt.close(fig)
 
-    return on_path, off_path
+    return on, off
 
 
 # ============================================================
-# 12. MÚSICA SINTETIZADA
+# MÚSICA
 # ============================================================
 
-def music_wav(filepath, duration=30, sr=24000):
-    samples = int(sr * duration)
-
-    t = np.arange(
-        samples,
-        dtype=np.float64
-    ) / sr
+def music_wav(
+    filepath,
+    duration=30,
+    sr=24000
+):
+    t = (
+        np.arange(
+            sr*duration,
+            dtype=np.float64
+        ) / sr
+    )
 
     audio = np.zeros_like(t)
 
@@ -2127,8 +2097,12 @@ def music_wav(filepath, duration=30, sr=24000):
         (146.83, 185.0, 220.0)
     ]
 
-    for begin in range(0, duration, 4):
-        local = t - begin
+    for begin in range(
+        0,
+        duration,
+        4
+    ):
+        local = t-begin
 
         active = (
             (local >= 0)
@@ -2147,17 +2121,20 @@ def music_wav(filepath, duration=30, sr=24000):
             (begin//4) % len(chords)
         ]:
             phase = (
-                2 * np.pi
-                * frequency * t
+                2*np.pi*frequency*t
             )
 
             audio += (
-                0.6 * np.sin(phase)
-                + 0.13 * np.sin(phase*2)
+                0.6*np.sin(phase)
+                + 0.13*np.sin(phase*2)
             ) * envelope / 3
 
-    for beat in np.arange(0, duration, 2):
-        tau = t - beat
+    for beat in np.arange(
+        0,
+        duration,
+        2
+    ):
+        tau = t-beat
 
         active = (
             (tau >= 0)
@@ -2182,10 +2159,12 @@ def music_wav(filepath, duration=30, sr=24000):
         )
     )
 
-    peak = np.max(np.abs(audio))
+    peak = np.max(
+        np.abs(audio)
+    )
 
     if peak > 0:
-        audio *= 0.67 / peak
+        audio *= 0.67/peak
 
     wavfile.write(
         str(filepath),
@@ -2198,31 +2177,17 @@ def music_wav(filepath, duration=30, sr=24000):
 
 
 # ============================================================
-# 13. NARRACIÓN CIENTÍFICA
+# NARRACIÓN
 # ============================================================
 
-def narration(final_info, first_prob, last_prob):
-    """
-    Narración basada en el último mapa real.
-
-    Corrección importante:
-    prob_val ya está expresado en porcentaje.
-    No multiplicarlo nuevamente por 100.
-    """
-
-    def number(value, digits=4):
-        return (
-            f"{value:.{digits}f}"
-            .replace(".", ",")
+def narration(final_info):
+    def percentage(value):
+        value = min(
+            100.0,
+            max(0.0, float(value))
         )
 
-    def percentage_speech(value):
-        value = max(
-            0.0,
-            min(100.0, float(value))
-        )
-
-        if value >= 100.0:
+        if value >= 100:
             return "100 por ciento"
 
         return (
@@ -2231,24 +2196,28 @@ def narration(final_info, first_prob, last_prob):
         )
 
     areas = final_info.get(
-        "delta_points", []
+        "delta_points",
+        []
     )
 
     if areas:
         pieces = []
 
         for rank, point in enumerate(areas, 1):
-            label = point.get(
+            city = point.get(
                 "city",
-                "una zona sin ciudad cercana"
+                "una zona sin ciudad identificada"
+            )
+
+            amount = (
+                f"{point['val']:.4f}"
+                .replace(".", ",")
             )
 
             pieces.append(
-                f"La zona {rank} está cerca "
-                f"de la ciudad de {label}, "
-                f"con un incremento de "
-                f"{number(point['val'])} "
-                "puntos porcentuales."
+                f"La zona {rank} está cerca de "
+                f"{city}, con un incremento de "
+                f"{amount} puntos porcentuales."
             )
 
         delta_text = " ".join(pieces)
@@ -2267,60 +2236,63 @@ def narration(final_info, first_prob, last_prob):
 
     return (
         "Te invitamos a revisar la actualización "
-        "del modelo sísmico experimental ETAS "
-        "en Chile durante las últimas 24 horas. "
+        "del modelo sísmico experimental ETAS en Chile "
+        "durante las últimas 24 horas. "
 
         "En el mapa de la izquierda se observa "
         "que el valor de probabilidad modelada "
-        "más alto está cerca de la ciudad de "
+        "más alto está cerca de "
 
-        f"{final_info['prob_city']}, "
-        f"con {percentage_speech(final_info['prob_val'])} "
+        + str(final_info["prob_city"])
 
-        "para al menos un sismo de magnitud "
-        f"{final_info['mag']:.1f} o superior "
-        "en las próximas 24 horas, según este modelo. "
+        + ", con "
 
-        "En el gráfico de la derecha en tanto, "
-        "observamos las zonas donde la probabilidad "
-        "modelada aumentó más durante el período. "
+        + percentage(final_info["prob_val"])
 
-        f"{delta_text} "
+        + (
+            f" para al menos un sismo de magnitud "
+            f"{final_info['mag']:.1f} o superior "
+            "en las próximas 24 horas, según este modelo. "
 
-        "IMPORTANTE: estos resultados son "
-        "experimentales y no están calibrados "
-        "ni validados prospectivamente. "
-        "No constituyen una alerta sísmica "
-        "ni una predicción oficial."
+            "En el gráfico de la derecha en tanto, "
+            "observamos las zonas donde la probabilidad "
+            "modelada aumentó más durante el período. "
+        )
+
+        + delta_text
+
+        + (
+            " IMPORTANTE: los resultados son experimentales "
+            "y no están calibrados ni validados "
+            "prospectivamente. No constituyen una alerta "
+            "sísmica ni una predicción oficial."
+        )
     )
 
 
 # ============================================================
-# 14. VOZ EDGE-TTS CON RESPALDO GTTS
+# EDGE TTS Y GTTS
 # ============================================================
 
-def voice(text, work, filename="voz.mp3"):
-    filepath = (
-        Path(work) / filename
+def voice(text, work, name):
+    path = (
+        Path(work) / name
     )
 
     try:
         import edge_tts
 
-        async def speak():
+        async def make():
             await edge_tts.Communicate(
                 text,
                 voice="es-CL-CatalinaNeural",
                 rate=VOICE_RATE
-            ).save(str(filepath))
+            ).save(str(path))
 
-        asyncio.run(speak())
+        asyncio.run(make())
 
-        if (
-            filepath.is_file()
-            and filepath.stat().st_size > 1000
-        ):
-            return filepath
+        if path.stat().st_size > 1000:
+            return path
 
     except Exception as exc:
         log(
@@ -2336,13 +2308,10 @@ def voice(text, work, filename="voz.mp3"):
             lang="es",
             tld="cl",
             slow=False
-        ).save(str(filepath))
+        ).save(str(path))
 
-        if (
-            filepath.is_file()
-            and filepath.stat().st_size > 1000
-        ):
-            return filepath
+        if path.stat().st_size > 1000:
+            return path
 
     except Exception as exc:
         log(
@@ -2351,16 +2320,20 @@ def voice(text, work, filename="voz.mp3"):
         )
 
     raise RuntimeError(
-        "No fue posible generar la locución."
+        "No se pudo generar voz. "
+        "No se publicará video sin narración."
     )
 
 
 # ============================================================
-# 15. CIERRE: DALE LIKE Y COMENTA
+# ESCENA FINAL
 # ============================================================
 
-def create_outro_frame(work, visible):
-    filename = (
+def create_outro_frame(
+    work,
+    visible
+):
+    path = (
         Path(work)
         / (
             "outro_on.png"
@@ -2369,13 +2342,13 @@ def create_outro_frame(work, visible):
         )
     )
 
-    im = Image.new(
+    image = Image.new(
         "RGB",
         (W, H),
         "#000000"
     )
 
-    draw = ImageDraw.Draw(im)
+    draw = ImageDraw.Draw(image)
 
     if visible:
         hand = Image.new(
@@ -2384,7 +2357,7 @@ def create_outro_frame(work, visible):
             (0, 0, 0, 0)
         )
 
-        d = ImageDraw.Draw(hand)
+        painter = ImageDraw.Draw(hand)
 
         outline = [
             (180,460),(280,460),(320,420),
@@ -2399,7 +2372,7 @@ def create_outro_frame(work, visible):
             (285,685),(180,685)
         ]
 
-        d.line(
+        painter.line(
             outline,
             fill="#1877F2",
             width=34,
@@ -2407,7 +2380,7 @@ def create_outro_frame(work, visible):
         )
 
         for x, y in outline:
-            d.ellipse(
+            painter.ellipse(
                 (
                     x-17,
                     y-17,
@@ -2417,13 +2390,13 @@ def create_outro_frame(work, visible):
                 fill="#1877F2"
             )
 
-        d.line(
+        painter.line(
             (180,460,180,685),
             fill="#1877F2",
             width=34
         )
 
-        d.line(
+        painter.line(
             [(280,468),(280,686)],
             fill="#1877F2",
             width=26
@@ -2434,7 +2407,7 @@ def create_outro_frame(work, visible):
             Image.Resampling.LANCZOS
         )
 
-        im.paste(
+        image.paste(
             hand,
             (
                 (W-440)//2,
@@ -2448,26 +2421,26 @@ def create_outro_frame(work, visible):
         bold=True
     )
 
-    for line, top in [
+    for text, top in [
         ("Dale Like", 690),
         ("y Comenta!", 850)
     ]:
         bbox = draw.textbbox(
             (0,0),
-            line,
+            text,
             font=large_font
         )
 
-        width = bbox[2] - bbox[0]
+        text_width = bbox[2]-bbox[0]
 
-        if width > W - 100:
+        if text_width > W-100:
             raise RuntimeError(
-                "Texto de cierre demasiado ancho. "
-                "Comprobar disponibilidad de fuentes."
+                "Texto de cierre no cabe. "
+                "Verificar fuentes."
             )
 
         x = int(
-            (W-width)/2 - bbox[0]
+            (W-text_width)/2 - bbox[0]
         )
 
         y = int(
@@ -2476,68 +2449,279 @@ def create_outro_frame(work, visible):
 
         draw.text(
             (x,y),
-            line,
+            text,
             font=large_font,
             fill="white"
         )
 
-    im.save(filename)
+    image.save(path)
 
-    return filename
+    return path
 
 
 # ============================================================
-# 16. GENERAR VIDEO CIENTÍFICO ORIGINAL
+# GENERACIÓN CFR 24 FPS SIN -vsync
 # ============================================================
 
-def create_video(times, maps, maxima, final_info):
+def frame_sequence_video(
+    frame_paths,
+    animation_seconds,
+    summary_seconds,
+    outro_seconds,
+    work
+):
     """
-    Renderiza el contenido audiovisual original:
-      * 25 mapas con escalas fijas.
-      * Estrellas parpadeantes.
-      * Tres marcadores de aumento.
-      * Voz sincronizada.
-      * Último mapa congelado en el resumen.
-      * Música.
-      * Cierre animado.
+    Crea video de fotogramas numerados.
 
-    No utiliza /mnt/data ni apt-get.
+    No utiliza:
+      -vsync
+      -fps_mode
+
+    Utiliza:
+      -framerate 24
+      image2
+      libx264
+
+    Conserva el parpadeo y la duración.
     """
 
-    check_binary("ffmpeg")
-    check_binary("ffprobe")
+    all_paths = []
+    frame_index = 0
 
-    ensure_output()
-
-    work = tempfile.mkdtemp(
-        prefix="sismonauta_etas_"
+    amount = (
+        animation_seconds * FPS
     )
 
-    try:
-        positive_arrays = [
+    quotient, remainder = divmod(
+        amount,
+        len(frame_paths)
+    )
+
+    for index, (
+        on_path,
+        off_path
+    ) in enumerate(frame_paths):
+
+        repeats = (
+            quotient
+            + (1 if index < remainder else 0)
+        )
+
+        for _ in range(repeats):
+            shown = (
+                (
+                    frame_index
+                    // max(1, FPS//2)
+                ) % 2
+            ) == 0
+
+            all_paths.append(
+                on_path if shown else off_path
+            )
+
+            frame_index += 1
+
+    final_on, final_off = (
+        frame_paths[-1]
+    )
+
+    for j in range(
+        summary_seconds * FPS
+    ):
+        shown = (
+            (
+                (frame_index+j)
+                // max(1, FPS//2)
+            ) % 2
+        ) == 0
+
+        all_paths.append(
+            final_on if shown else final_off
+        )
+
+    outro_on = create_outro_frame(
+        work,
+        True
+    )
+
+    outro_off = create_outro_frame(
+        work,
+        False
+    )
+
+    for j in range(
+        outro_seconds * FPS
+    ):
+        shown = (
+            (
+                j // max(1, FPS//2)
+            ) % 2
+        ) == 0
+
+        all_paths.append(
+            outro_on if shown else outro_off
+        )
+
+    expected = (
+        animation_seconds
+        + summary_seconds
+        + outro_seconds
+    ) * FPS
+
+    if len(all_paths) != expected:
+        raise RuntimeError(
+            "Cantidad de fotogramas inconsistente."
+        )
+
+    sequence_dir = (
+        Path(work) / "secuencia"
+    )
+
+    sequence_dir.mkdir()
+
+    # Enlaces simbólicos evitan duplicar
+    # miles de imágenes PNG en el disco.
+    for index, source in enumerate(all_paths):
+        link = (
+            sequence_dir
+            / f"f_{index:06d}.png"
+        )
+
+        try:
+            os.symlink(
+                source,
+                link
+            )
+        except (
+            OSError,
+            NotImplementedError
+        ):
+            shutil.copyfile(
+                source,
+                link
+            )
+
+    silent = (
+        Path(work)
+        / "video_sin_audio.mp4"
+    )
+
+    # CORRECCIÓN PRINCIPAL:
+    # No utilizar -vsync.
+    #
+    # Se establece la frecuencia de entrada
+    # con -framerate para conservar 24 FPS.
+
+    ffmpeg(
+        "-framerate",
+        str(FPS),
+
+        "-start_number",
+        "0",
+
+        "-i",
+        sequence_dir / "f_%06d.png",
+
+        "-frames:v",
+        str(expected),
+
+        "-c:v",
+        "libx264",
+
+        "-preset",
+        "veryfast",
+
+        "-crf",
+        "21",
+
+        "-pix_fmt",
+        "yuv420p",
+
+        "-movflags",
+        "+faststart",
+
+        silent
+    )
+
+    info = probe(silent)
+
+    duration = float(
+        info["format"]["duration"]
+    )
+
+    target = expected / FPS
+
+    if abs(duration-target) > max(
+        0.35,
+        2/FPS
+    ):
+        raise RuntimeError(
+            "Duración de animación incorrecta: "
+            f"{duration} vs {target} segundos."
+        )
+
+    log(
+        "VIDEO ANIMADO SIN AUDIO:",
+        silent,
+        "duración:",
+        round(duration, 2),
+        "segundos",
+        "fotogramas:",
+        expected
+    )
+
+    return silent
+
+
+# ============================================================
+# VIDEO COMPLETO CON VOZ, MÚSICA Y CIERRE
+# ============================================================
+
+def create_video(
+    times,
+    maps,
+    maxima,
+    final_info
+):
+    binary("ffmpeg")
+    binary("ffprobe")
+
+    OUT.mkdir(
+        parents=True,
+        exist_ok=True
+    )
+
+    with tempfile.TemporaryDirectory(
+        prefix="sismonauta_etas_"
+    ) as temp_dir:
+
+        work = Path(temp_dir)
+
+        positives = [
             frame[frame > 0]
             for frame in maps
             if np.any(frame > 0)
         ]
 
-        if not positive_arrays:
+        if not positives:
             raise RuntimeError(
-                "Los mapas no tienen valores positivos."
+                "Mapas sin valores positivos."
             )
 
-        positive = np.concatenate(
-            positive_arrays
+        values = np.concatenate(
+            positives
         )
 
         vmax = float(
-            positive.max() * 100.0
+            values.max()*100.0
         )
 
         vmin = max(
             float(
                 np.percentile(
-                    positive, 2
-                ) * 100.0
+                    values,
+                    2
+                )*100.0
             ),
             vmax/1000.0,
             1e-10
@@ -2549,7 +2733,10 @@ def create_video(times, maps, maxima, final_info):
                 1e-10
             )
 
-        abs_clims = (vmin, vmax)
+        abs_clims = (
+            vmin,
+            vmax
+        )
 
         baseline = maps[0]
 
@@ -2557,7 +2744,7 @@ def create_video(times, maps, maxima, final_info):
             (
                 frame.astype(np.float64)
                 - baseline.astype(np.float64)
-            ) * 100.0
+            )*100.0
             for frame in maps
         ]
 
@@ -2581,14 +2768,14 @@ def create_video(times, maps, maxima, final_info):
             delta_clims
         )
 
-        frame_paths = []
-        last_frame_info = None
+        frames = []
+        last_info = None
 
-        # ----------------------------------------------------
-        # RENDERIZAR LOS 25 MAPAS
-        # ----------------------------------------------------
-
-        for index, (stamp, prob, meta) in enumerate(
+        for index, (
+            stamp,
+            prob,
+            meta
+        ) in enumerate(
             zip(times, maps, maxima)
         ):
             prob_dist, prob_city = nearest_city(
@@ -2601,19 +2788,20 @@ def create_video(times, maps, maxima, final_info):
                 meta["delta_lon"]
             )
 
-            frame_info = dict(meta)
+            info = dict(meta)
 
-            frame_info["delta_points"] = []
+            info["delta_points"] = []
 
             for point in meta.get(
-                "delta_points", []
+                "delta_points",
+                []
             ):
                 distance, city = nearest_city(
                     point["lat"],
                     point["lon"]
                 )
 
-                frame_info["delta_points"].append(
+                info["delta_points"].append(
                     dict(
                         point,
                         city=city,
@@ -2625,7 +2813,7 @@ def create_video(times, maps, maxima, final_info):
                     )
                 )
 
-            frame_info.update({
+            info.update({
                 "prob_city": prob_city,
                 "prob_dist": (
                     prob_dist
@@ -2641,211 +2829,193 @@ def create_video(times, maps, maxima, final_info):
                 "mag": final_info["mag"]
             })
 
-            if index == len(times)-1:
-                last_frame_info = frame_info
-
-            frame_paths.append(
-                draw_snapshot(
-                    prob,
-                    stamp,
-                    index,
-                    len(times),
-                    abs_clims,
-                    delta_clims,
-                    frame_info,
-                    work,
-                    baseline
-                )
+            frame_pair = draw_snapshot(
+                prob,
+                stamp,
+                index,
+                len(times),
+                abs_clims,
+                delta_clims,
+                info,
+                work,
+                baseline
             )
+
+            frames.append(
+                frame_pair
+            )
+
+            if index == len(times)-1:
+                last_info = info
 
             if (
                 (index+1) % 5 == 0
                 or index+1 == len(times)
             ):
                 log(
-                    f"Fotogramas: {index+1}/{len(times)}"
+                    f"Fotogramas renderizados: "
+                    f"{index+1}/{len(times)}"
                 )
 
-        if last_frame_info is None:
+        if last_info is None:
             raise RuntimeError(
-                "No se creó el último mapa."
+                "Falta mapa final."
             )
 
-        # Validar puntos del mapa y la voz.
-        final_info = dict(last_frame_info)
-
-        assert len(
-            final_info["delta_points"]
-        ) == len(
-            maxima[-1]["delta_points"]
-        )
-
-        for displayed, calculated in zip(
-            final_info["delta_points"],
+        for plotted, calculated in zip(
+            last_info["delta_points"],
             maxima[-1]["delta_points"]
         ):
-            assert (
-                float(displayed["lat"])
-                == float(calculated["lat"])
-            )
+            if not (
+                plotted["lat"] == calculated["lat"]
+                and plotted["lon"] == calculated["lon"]
+                and np.isclose(
+                    plotted["val"],
+                    calculated["val"]
+                )
+            ):
+                raise RuntimeError(
+                    "Marcadores finales no coinciden "
+                    "con el cálculo."
+                )
 
-            assert (
-                float(displayed["lon"])
-                == float(calculated["lon"])
-            )
-
-            assert np.isclose(
-                float(displayed["val"]),
-                float(calculated["val"])
-            )
-
-        # ----------------------------------------------------
-        # NARRACIÓN
-        # ----------------------------------------------------
-
-        narration_text = narration(
-            final_info,
-            maxima[0]["prob_val"],
-            maxima[-1]["prob_val"]
+        script = narration(
+            last_info
         )
 
         log(
             "\nNARRACIÓN FINAL:\n"
-            + narration_text + "\n"
+            + script
+            + "\n"
         )
 
-        separator = (
+        marker = (
             "En el gráfico de la derecha en tanto,"
         )
 
-        if separator not in narration_text:
+        if marker not in script:
             raise RuntimeError(
-                "No se encontró el separador "
-                "de la narración geográfica."
+                "No se encontró separador de narración."
             )
 
-        first_words, second_words = (
-            narration_text.split(
-                separator,
-                1
+        first_text, second_text = (
+            script.split(marker, 1)
+        )
+
+        voice_files = [
+            voice(
+                first_text.strip(),
+                work,
+                "voz_animacion.mp3"
+            ),
+            voice(
+                (marker+second_text).strip(),
+                work,
+                "voz_zonas_ultimo_mapa.mp3"
+            ),
+            voice(
+                "Dale me gusta y comparte para "
+                "seguir recibiendo esta importante "
+                "información!",
+                work,
+                "voz_cierre.mp3"
             )
-        )
+        ]
 
-        second_words = (
-            separator + second_words
-        )
+        fast = []
 
-        first_voice = voice(
-            first_words.strip(),
-            work,
-            "voz_animacion.mp3"
-        )
+        names = [
+            "voz_animacion_rapida.wav",
+            "voz_zonas_rapida.wav",
+            "voz_cierre_rapida.wav"
+        ]
 
-        second_voice = voice(
-            second_words.strip(),
-            work,
-            "voz_zonas_ultimo_mapa.mp3"
-        )
-
-        closing_words = (
-            "Dale me gusta y comparte para "
-            "seguir recibiendo esta importante "
-            "información!"
-        )
-
-        outro_voice = voice(
-            closing_words,
-            work,
-            "voz_cierre.mp3"
-        )
-
-        # ----------------------------------------------------
-        # ACELERACIÓN DE VOZ
-        # ----------------------------------------------------
-
-        fast_paths = []
-
-        for original_audio, name in [
-            (first_voice, "voz_animacion_rapida.wav"),
-            (second_voice, "voz_zonas_rapida.wav"),
-            (outro_voice, "voz_cierre_rapida.wav")
-        ]:
+        for source, name in zip(
+            voice_files,
+            names
+        ):
             destination = (
-                Path(work) / name
+                work / name
             )
 
             ffmpeg(
-                "-i", original_audio,
-                "-af", f"atempo={AUDIO_TEMPO:.3f}",
-                "-ar", "24000",
-                "-ac", "1",
+                "-i",
+                source,
+
+                "-af",
+                f"atempo={AUDIO_TEMPO:.3f}",
+
+                "-ar",
+                "24000",
+
+                "-ac",
+                "1",
+
                 destination
             )
 
-            fast_paths.append(destination)
+            fast.append(destination)
 
         first_fast, second_fast, outro_fast = (
-            fast_paths
+            fast
         )
 
-        animation_duration = max(
+        animation_seconds = max(
             VIDEO_SECONDS,
-            int(
-                math.ceil(
-                    audio_duration(first_fast) + 0.6
-                )
+            math.ceil(
+                audio_duration(first_fast)+0.6
             )
         )
 
-        summary_duration = max(
+        summary_seconds = max(
             2,
-            int(
-                math.ceil(
-                    audio_duration(second_fast) + 0.8
-                )
+            math.ceil(
+                audio_duration(second_fast)+0.8
             )
         )
 
-        outro_duration = max(
+        outro_seconds = max(
             7,
-            int(
-                math.ceil(
-                    audio_duration(outro_fast) + 0.7
-                )
+            math.ceil(
+                audio_duration(outro_fast)+0.7
             )
         )
 
-        video_seconds = (
-            animation_duration
-            + summary_duration
-            + outro_duration
+        total_seconds = (
+            animation_seconds
+            + summary_seconds
+            + outro_seconds
         )
 
-        # ----------------------------------------------------
-        # UNIR LAS TRES VOCES
-        # ----------------------------------------------------
-
-        narration_track = (
-            Path(work) / "narracion_completa.wav"
+        log(
+            "Duraciones:",
+            f"animación={animation_seconds}s",
+            f"resumen={summary_seconds}s",
+            f"cierre={outro_seconds}s",
+            f"total={total_seconds}s"
         )
 
-        audio_concat = (
+        spoken = (
+            work / "narracion_completa.wav"
+        )
+
+        audio_filter = (
             f"[0:a]aformat=sample_rates=24000:"
             f"channel_layouts=mono,"
             f"adelay=350,apad,"
-            f"atrim=duration={animation_duration},"
+            f"atrim=duration={animation_seconds},"
             f"asetpts=PTS-STARTPTS[a0];"
 
             f"[1:a]aformat=sample_rates=24000:"
             f"channel_layouts=mono,"
             f"adelay=150,apad,"
-            f"atrim=duration={summary_duration},"
+            f"atrim=duration={summary_seconds},"
             f"asetpts=PTS-STARTPTS[a1];"
 
             f"[2:a]aformat=sample_rates=24000:"
             f"channel_layouts=mono,"
             f"adelay=200,apad,"
-            f"atrim=duration={outro_duration},"
+            f"atrim=duration={outro_seconds},"
             f"asetpts=PTS-STARTPTS[a2];"
 
             "[a0][a1][a2]"
@@ -2853,180 +3023,50 @@ def create_video(times, maps, maxima, final_info):
         )
 
         ffmpeg(
-            "-i", first_fast,
-            "-i", second_fast,
-            "-i", outro_fast,
-            "-filter_complex", audio_concat,
-            "-map", "[spoken]",
-            "-ar", "24000",
-            "-ac", "1",
-            narration_track
+            "-i",
+            first_fast,
+
+            "-i",
+            second_fast,
+
+            "-i",
+            outro_fast,
+
+            "-filter_complex",
+            audio_filter,
+
+            "-map",
+            "[spoken]",
+
+            "-ar",
+            "24000",
+
+            "-ac",
+            "1",
+
+            spoken
         )
 
-        # ----------------------------------------------------
-        # MÚSICA ORIGINAL
-        # ----------------------------------------------------
-
-        soundtrack = (
-            Path(work) / "musica.wav"
+        music = (
+            work / "musica.wav"
         )
 
         music_wav(
-            soundtrack,
-            duration=video_seconds
+            music,
+            duration=total_seconds
         )
 
-        log(
-            "Duraciones:",
-            f"animación={animation_duration}s",
-            f"resumen={summary_duration}s",
-            f"cierre={outro_duration}s",
-            f"total={video_seconds}s"
+        # Construye MP4 a 24 FPS,
+        # sin utilizar -vsync.
+        silent = frame_sequence_video(
+            frames,
+            animation_seconds,
+            summary_seconds,
+            outro_seconds,
+            work
         )
 
-        # ----------------------------------------------------
-        # ANIMACIÓN CON PARPADEO
-        # ----------------------------------------------------
-
-        total_maps = len(frame_paths)
-
-        total_video_frames = (
-            animation_duration * FPS
-        )
-
-        frames_per_map = (
-            total_video_frames // total_maps
-        )
-
-        extra = (
-            total_video_frames % total_maps
-        )
-
-        expanded = []
-        frame_index = 0
-
-        for index, (
-            on_path, off_path
-        ) in enumerate(frame_paths):
-
-            repeats = (
-                frames_per_map
-                + (1 if index < extra else 0)
-            )
-
-            for _ in range(repeats):
-                visible = (
-                    (
-                        frame_index
-                        // max(1, int(FPS*0.5))
-                    ) % 2
-                ) == 0
-
-                expanded.append(
-                    on_path if visible else off_path
-                )
-
-                frame_index += 1
-
-        final_on, final_off = (
-            frame_paths[-1]
-        )
-
-        for j in range(
-            summary_duration * FPS
-        ):
-            visible = (
-                (
-                    (frame_index+j)
-                    // max(1, int(FPS*0.5))
-                ) % 2
-            ) == 0
-
-            expanded.append(
-                final_on if visible else final_off
-            )
-
-        outro_on = create_outro_frame(
-            work, True
-        )
-
-        outro_off = create_outro_frame(
-            work, False
-        )
-
-        for j in range(
-            outro_duration * FPS
-        ):
-            visible = (
-                (
-                    j // max(1, int(FPS*0.5))
-                ) % 2
-            ) == 0
-
-            expanded.append(
-                outro_on if visible else outro_off
-            )
-
-        if not expanded:
-            raise RuntimeError(
-                "La animación no contiene fotogramas."
-            )
-
-        # ----------------------------------------------------
-        # LISTA CONCAT FFMPEG
-        # ----------------------------------------------------
-
-        list_txt = (
-            Path(work) / "frames.txt"
-        )
-
-        with list_txt.open(
-            "w", encoding="utf-8"
-        ) as handle:
-
-            for path in expanded:
-                safe_path = str(path).replace(
-                    "'", "'\\''"
-                )
-
-                handle.write(
-                    f"file '{safe_path}'\n"
-                )
-
-                handle.write(
-                    f"duration {1/FPS:.8f}\n"
-                )
-
-            last_path = str(
-                expanded[-1]
-            ).replace("'", "'\\''")
-
-            handle.write(
-                f"file '{last_path}'\n"
-            )
-
-        silent = (
-            Path(work) / "video_sin_audio.mp4"
-        )
-
-        ffmpeg(
-            "-f", "concat",
-            "-safe", "0",
-            "-i", list_txt,
-            "-vsync", "vfr",
-            "-pix_fmt", "yuv420p",
-            "-c:v", "libx264",
-            "-preset", "veryfast",
-            "-crf", "21",
-            "-movflags", "+faststart",
-            silent
-        )
-
-        # ----------------------------------------------------
-        # MEZCLA AUDIO CON DUCKING
-        # ----------------------------------------------------
-
-        filters = (
+        mixing_filter = (
             "[2:a]aformat=sample_fmts=fltp:"
             "channel_layouts=mono,"
             "volume=0.37[music];"
@@ -3048,84 +3088,121 @@ def create_video(times, maps, maxima, final_info):
             "duration=longest:"
             "normalize=0,"
 
-            f"atrim=duration={video_seconds},"
+            f"atrim=duration={total_seconds},"
             "asetpts=N/SR/TB,"
             "alimiter=limit=0.92[aout]"
         )
 
-        OUTPUT_MP4.unlink(
+        video = (
+            OUT / ORIGINAL_VIDEO_NAME
+        )
+
+        video.unlink(
             missing_ok=True
         )
 
         ffmpeg(
-            "-i", silent,
-            "-i", narration_track,
-            "-stream_loop", "-1",
-            "-i", soundtrack,
-            "-filter_complex", filters,
-            "-map", "0:v:0",
-            "-map", "[aout]",
-            "-t", video_seconds,
-            "-c:v", "copy",
-            "-c:a", "aac",
-            "-b:a", "160k",
-            "-movflags", "+faststart",
-            OUTPUT_MP4
+            "-i",
+            silent,
+
+            "-i",
+            spoken,
+
+            "-stream_loop",
+            "-1",
+
+            "-i",
+            music,
+
+            "-filter_complex",
+            mixing_filter,
+
+            "-map",
+            "0:v:0",
+
+            "-map",
+            "[aout]",
+
+            "-t",
+            str(total_seconds),
+
+            "-c:v",
+            "copy",
+
+            "-c:a",
+            "aac",
+
+            "-b:a",
+            "160k",
+
+            "-movflags",
+            "+faststart",
+
+            video
         )
 
         if (
-            not OUTPUT_MP4.is_file()
-            or OUTPUT_MP4.stat().st_size < 10000
+            not video.is_file()
+            or video.stat().st_size < 10000
         ):
             raise RuntimeError(
-                "No se generó el MP4 científico."
+                "Video original incompleto."
+            )
+
+        result = probe(video)
+
+        duration = float(
+            result["format"]["duration"]
+        )
+
+        if abs(
+            duration-total_seconds
+        ) > 1.0:
+            raise RuntimeError(
+                "Duración del video final "
+                "no coincide."
             )
 
         log(
-            "VIDEO FINAL:",
-            OUTPUT_MP4
+            "VIDEO ORIGINAL FINAL:",
+            video
         )
 
-        return OUTPUT_MP4
-
-    finally:
-        shutil.rmtree(
-            work,
-            ignore_errors=True
-        )
+        return video
 
 
 # ============================================================
-# 17. EJECUTAR TODO EL MODELO CIENTÍFICO
+# EJECUCIÓN CIENTÍFICA COMPLETA
 # ============================================================
 
 def run_scientific_etas():
     global CUTOFF
 
-    CUTOFF = pd.Timestamp.now(tz="UTC")
+    CUTOFF = pd.Timestamp.now(
+        tz="UTC"
+    )
 
     log(
         f"Corte del catálogo: "
         f"{CUTOFF:%d/%m/%Y %H:%M} UTC"
     )
 
-    ensure_output()
-
     setup_country()
 
     df = catalog_usgs()
 
-    start = CUTOFF - pd.Timedelta(
-        hours=LOOKBACK_HOURS
-    )
-
     training = df[
-        df.time < start
+        df.time < (
+            CUTOFF
+            - pd.Timedelta(
+                hours=LOOKBACK_HOURS
+            )
+        )
     ].copy()
 
     if len(training) < 200:
         raise RuntimeError(
-            "Catálogo histórico insuficiente."
+            "Catálogo histórico ETAS insuficiente."
         )
 
     mc, b = estimate_mc_b(
@@ -3140,8 +3217,8 @@ def run_scientific_etas():
     if magnitude > REQUESTED_M:
         log(
             f"AVISO: Mc={mc:.2f}. "
-            f"Se utiliza M≥{magnitude:.2f} "
-            "y no exactamente M≥4."
+            f"Se usa M≥{magnitude:.2f}, "
+            "no M≥4."
         )
 
     log(
@@ -3156,7 +3233,7 @@ def run_scientific_etas():
     )
 
     log(
-        "Parámetros ETAS ajustados:",
+        "Parámetros ETAS:",
         theta
     )
 
@@ -3168,9 +3245,12 @@ def run_scientific_etas():
         magnitude
     )
 
-    if len(times) != 25 or len(maps) != 25:
+    if (
+        len(times) != 25
+        or len(maps) != 25
+    ):
         raise RuntimeError(
-            "Se esperaban exactamente 25 mapas."
+            "No se produjeron exactamente 25 mapas."
         )
 
     final = maxima[-1]
@@ -3187,9 +3267,7 @@ def run_scientific_etas():
 
     points = []
 
-    for point in final.get(
-        "delta_points", []
-    ):
+    for point in final["delta_points"]:
         distance, city = nearest_city(
             point["lat"],
             point["lon"]
@@ -3207,52 +3285,43 @@ def run_scientific_etas():
             )
         )
 
-    info = {
-        "delta_points": points,
-
-        "prob_lat": final["prob_lat"],
-        "prob_lon": final["prob_lon"],
-        "prob_val": final["prob_val"],
-        "prob_city": prob_city,
-        "prob_dist": (
+    info = dict(
+        final,
+        delta_points=points,
+        prob_city=prob_city,
+        prob_dist=(
             prob_dist
             if prob_dist is not None
             else 0.0
         ),
-
-        "delta_lat": final["delta_lat"],
-        "delta_lon": final["delta_lon"],
-        "delta_val": final["delta_val"],
-        "delta_city": delta_city,
-        "delta_dist": (
+        delta_city=delta_city,
+        delta_dist=(
             delta_dist
             if delta_dist is not None
             else 0.0
         ),
-
-        "mag": magnitude
-    }
+        mag=magnitude
+    )
 
     log(
         "MÁXIMO ACTUAL MODELADO:",
         f"{info['prob_lat']:.3f}°,",
-        f"{info['prob_lon']:.3f}°,",
-        f"{info['prob_val']:.6f}%,",
-        info["prob_city"]
+        f"{info['prob_lon']:.3f}°",
+        f"{info['prob_val']:.6f}%",
+        prob_city
     )
 
     log(
-        "MAYOR AUMENTO ACUMULADO:",
+        "MAYOR AUMENTO:",
         f"{info['delta_lat']:.3f}°,",
-        f"{info['delta_lon']:.3f}°,",
-        f"{info['delta_val']:.6f} pp,",
-        info["delta_city"]
+        f"{info['delta_lon']:.3f}°",
+        f"{info['delta_val']:.6f} pp",
+        delta_city
     )
 
     log(
-        "Los valores son locales por celda. "
-        "No representan probabilidades "
-        "municipales ni alertas oficiales."
+        "Valores por celda, no probabilidades "
+        "municipales ni alerta oficial."
     )
 
     video = create_video(
@@ -3262,7 +3331,6 @@ def run_scientific_etas():
         info
     )
 
-    # Metadatos científicos de la corrida.
     metadata = {
         "country": COUNTRY_NAME,
         "cutoff_utc": str(CUTOFF),
@@ -3274,17 +3342,18 @@ def run_scientific_etas():
         "etas_parameters": theta,
         "grid_degrees": GRID,
         "grid_cells": int(XX.size),
-        "snapshots": len(times),
+        "snapshots": 25,
         "final": info,
         "city_source": CITY_SOURCE,
         "disclaimer": (
-            "Modelo experimental, sin calibración "
-            "ni validación prospectiva."
+            "Modelo experimental no calibrado "
+            "ni validado prospectivamente. "
+            "No es alerta."
         )
     }
 
     atomic_json(
-        OUTPUT_DIR / "modelo_etas_resultados.json",
+        OUT / "modelo_etas_resultados.json",
         metadata
     )
 
@@ -3292,12 +3361,12 @@ def run_scientific_etas():
 
 
 # ============================================================
-# 18. CREAR REEL 9:16
+# REEL VERTICAL 1080x1920
 # ============================================================
 
-def make_reel(original):
+def make_reel(video):
     destination = (
-        OUTPUT_DIR / REEL_NAME
+        OUT / REEL_NAME
     )
 
     destination.unlink(
@@ -3305,7 +3374,9 @@ def make_reel(original):
     )
 
     ffmpeg(
-        "-i", original,
+        "-i",
+        video,
+
         "-vf",
         (
             "scale=1080:1920:"
@@ -3315,35 +3386,57 @@ def make_reel(original):
             "color=0x071727,"
             "setsar=1"
         ),
-        "-r", "24",
-        "-c:v", "libx264",
-        "-preset", "veryfast",
-        "-crf", "22",
-        "-pix_fmt", "yuv420p",
-        "-c:a", "aac",
-        "-ar", "48000",
-        "-b:a", "128k",
-        "-movflags", "+faststart",
+
+        "-r",
+        str(FPS),
+
+        "-c:v",
+        "libx264",
+
+        "-preset",
+        "veryfast",
+
+        "-crf",
+        "22",
+
+        "-pix_fmt",
+        "yuv420p",
+
+        "-c:a",
+        "aac",
+
+        "-ar",
+        "48000",
+
+        "-b:a",
+        "128k",
+
+        "-movflags",
+        "+faststart",
+
         destination
     )
 
-    probe = ffprobe(destination)
+    result = probe(destination)
 
     video_stream = next(
-        stream for stream in probe["streams"]
-        if stream.get("codec_type") == "video"
+        item
+        for item in result["streams"]
+        if item.get("codec_type") == "video"
     )
 
-    if (
-        video_stream.get("width") != 1080
-        or video_stream.get("height") != 1920
-    ):
+    resolution = (
+        video_stream.get("width"),
+        video_stream.get("height")
+    )
+
+    if resolution != (1080, 1920):
         raise RuntimeError(
-            "El Reel no tiene resolución 1080x1920."
+            "El Reel no es 1080x1920."
         )
 
     log(
-        "REEL INSTAGRAM:",
+        "REEL VERTICAL:",
         destination
     )
 
@@ -3351,105 +3444,134 @@ def make_reel(original):
 
 
 # ============================================================
-# 19. API HTTP PARA GITHUB Y META
+# API HTTP
 # ============================================================
 
-def api_json(
+def api(
     method,
     url,
     *,
     token=None,
     timeout=(20, 180),
+    headers=None,
     **kwargs
 ):
-    headers = dict(
-        kwargs.pop("headers", {})
+    request_headers = dict(
+        headers or {}
     )
 
     if token:
-        headers["Authorization"] = (
-            "Bearer " + token
-        )
+        request_headers[
+            "Authorization"
+        ] = "Bearer " + token
 
-    response = SESSION.request(
+    response = HTTP.request(
         method,
         url,
-        headers=headers,
+        headers=request_headers,
         timeout=timeout,
         **kwargs
     )
 
     try:
-        data = response.json()
+        body = response.json()
     except ValueError:
-        data = {}
+        body = {}
 
     if not response.ok:
-        message = response.reason
+        error = (
+            body.get("error")
+            if isinstance(body, dict)
+            else {}
+        )
 
-        error = data.get("error")
-
-        if isinstance(error, dict):
-            message = error.get(
-                "message",
-                message
-            )
+        message = (
+            error.get("message")
+            if isinstance(error, dict)
+            else response.reason
+        )
 
         raise RuntimeError(
             f"HTTP {response.status_code}: "
-            f"{str(message)[:250]}"
+            f"{str(message)[:240]}"
         )
 
-    return data
+    if not isinstance(body, dict):
+        raise RuntimeError(
+            "La API respondió JSON inesperado."
+        )
+
+    return body
 
 
-def github_api(method, path, **kwargs):
-    token = os.environ["GH_TOKEN"]
+def github_api(
+    method,
+    suffix,
+    **kwargs
+):
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28"
+    }
 
-    headers = dict(
+    headers.update(
         kwargs.pop("headers", {})
     )
 
-    headers.update({
-        "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28"
-    })
-
-    return api_json(
+    return api(
         method,
-        GITHUB_API + path,
-        token=token,
+        GH_API+suffix,
+        token=os.environ["GH_TOKEN"],
         headers=headers,
         **kwargs
     )
 
 
-def github_state_read(path):
+# ============================================================
+# HISTORIAL EN GITHUB
+# ============================================================
+
+def state_path():
+    identifier = hashlib.sha256(
+        COUNTRY_NAME.casefold().encode()
+    ).hexdigest()[:12]
+
+    return (
+        "sismonauta_etas/"
+        f"state_{identifier}.json"
+    )
+
+
+def state_read(path):
     repo = os.environ[
         "GITHUB_REPOSITORY"
     ]
 
     branch = os.getenv(
-        "GITHUB_REF_NAME", "main"
+        "GITHUB_REF_NAME",
+        "main"
     )
 
     url = (
-        f"{GITHUB_API}/repos/{repo}/contents/"
+        f"{GH_API}/repos/{repo}/contents/"
         f"{quote(path, safe='/')}"
     )
 
-    headers = {
-        "Authorization": (
-            "Bearer " + os.environ["GH_TOKEN"]
-        ),
-        "Accept": "application/vnd.github+json"
-    }
-
-    response = SESSION.get(
+    response = HTTP.get(
         url,
-        headers=headers,
-        params={"ref": branch},
-        timeout=(15, 60)
+        params={
+            "ref": branch
+        },
+        headers={
+            "Authorization": (
+                "Bearer "
+                + os.environ["GH_TOKEN"]
+            ),
+            "Accept": (
+                "application/vnd.github+json"
+            )
+        },
+        timeout=(15, 65)
     )
 
     if response.status_code == 404:
@@ -3463,74 +3585,120 @@ def github_state_read(path):
         data["content"]
     ).decode("utf-8")
 
-    return json.loads(content), data["sha"]
+    return (
+        json.loads(content),
+        data["sha"]
+    )
 
 
-def github_state_save(path, state):
+def state_save(path, data):
     repo = os.environ[
         "GITHUB_REPOSITORY"
     ]
 
     branch = os.getenv(
-        "GITHUB_REF_NAME", "main"
+        "GITHUB_REF_NAME",
+        "main"
     )
 
     for attempt in range(4):
-        _, sha = github_state_read(path)
+        previous, sha = state_read(path)
 
-        body = {
+        if (
+            previous
+            and previous.get("run_id")
+            not in (
+                None,
+                data.get("run_id")
+            )
+        ):
+            previous_day = str(
+                previous.get("created_at", "")
+            )[:10]
+
+            current_day = str(
+                data.get("created_at", "")
+            )[:10]
+
+            if (
+                previous_day == current_day
+                and previous.get("status") in (
+                    "publishing",
+                    "published",
+                    "partial_or_uncertain"
+                )
+            ):
+                raise RuntimeError(
+                    "Otro proceso tiene un estado "
+                    "de publicación activo o incierto "
+                    "para la misma fecha UTC."
+                )
+
+        payload = {
             "message": (
                 "SISMONAUTA ETAS Chile: "
                 "actualizar estado"
             ),
             "content": base64.b64encode(
                 json.dumps(
-                    state,
+                    data,
                     ensure_ascii=False,
-                    indent=2
+                    indent=2,
+                    default=str
                 ).encode()
             ).decode(),
             "branch": branch
         }
 
         if sha:
-            body["sha"] = sha
+            payload["sha"] = sha
 
         try:
             github_api(
                 "PUT",
-                f"/repos/{repo}/contents/"
-                f"{quote(path, safe='/')}",
-                json=body
+                (
+                    f"/repos/{repo}/contents/"
+                    f"{quote(path, safe='/')}"
+                ),
+                json=payload
             )
 
             return
 
-        except RuntimeError:
+        except RuntimeError as exc:
+            message = str(exc)
+
+            if (
+                "HTTP 409" not in message
+                and "HTTP 422" not in message
+            ):
+                raise
+
             if attempt == 3:
                 raise
 
             time.sleep(
-                2 * (attempt+1)
+                2*(attempt+1)
             )
 
 
 # ============================================================
-# 20. VALIDACIÓN DE CUENTAS
+# VERIFICAR INSTAGRAM Y FACEBOOK
 # ============================================================
 
-def validate_accounts():
+def verify_accounts():
     required = [
         "GH_TOKEN",
         "GITHUB_REPOSITORY",
         "INSTAGRAM_TOKEN",
         "INSTAGRAM_USER_ID",
-        "FACEBOOK_PAGE_TOKEN",
-        "FACEBOOK_PAGE_ID"
+        "FACEBOOK_PAGE_ID",
+        "FACEBOOK_PAGE_TOKEN"
     ]
 
     missing = [
-        key for key in required
+        key
+        for key in required
         if not os.getenv(key)
     ]
 
@@ -3540,77 +3708,86 @@ def validate_accounts():
             + ", ".join(missing)
         )
 
-    ig_id = os.environ[
+    uid = os.environ[
         "INSTAGRAM_USER_ID"
     ]
 
-    ig = api_json(
+    ig = api(
         "GET",
-        f"{IG_BASE}/{GRAPH_VERSION}/{ig_id}",
-        token=os.environ["INSTAGRAM_TOKEN"],
+        f"{IG_BASE}/{GRAPH_VERSION}/{uid}",
+        token=os.environ[
+            "INSTAGRAM_TOKEN"
+        ],
         params={
             "fields": "id,username"
         }
     )
 
     if (
-        str(ig.get("id")) != ig_id
+        str(ig.get("id")) != uid
         or str(
             ig.get("username", "")
         ).lower() != "sismonauta"
     ):
         raise RuntimeError(
-            "Instagram no corresponde a @sismonauta."
+            "Token Instagram no corresponde "
+            "a @sismonauta."
         )
 
-    page_id = os.environ[
+    page = os.environ[
         "FACEBOOK_PAGE_ID"
     ]
 
-    fb = api_json(
+    fb = api(
         "GET",
-        f"{FB_BASE}/{page_id}",
-        token=os.environ["FACEBOOK_PAGE_TOKEN"],
+        f"{FB_BASE}/{page}",
+        token=os.environ[
+            "FACEBOOK_PAGE_TOKEN"
+        ],
         params={
             "fields": "id,name"
         }
     )
 
     if (
-        str(fb.get("id")) != page_id
+        str(fb.get("id")) != page
         or "sismonauta" not in str(
             fb.get("name", "")
         ).lower()
     ):
         raise RuntimeError(
-            "La Fanpage no corresponde a Sismonauta."
+            "Token Facebook no corresponde "
+            "a la página Sismonauta."
         )
 
-    repo = os.environ[
-        "GITHUB_REPOSITORY"
-    ]
-
-    info = github_api(
+    repo = github_api(
         "GET",
-        f"/repos/{repo}"
+        "/repos/"
+        + os.environ["GITHUB_REPOSITORY"]
     )
 
-    if info.get("private"):
+    if repo.get("private"):
         raise RuntimeError(
-            "GitHub Releases requiere que el video "
-            "sea accesible públicamente por Meta."
+            "El repositorio debe ser público "
+            "para distribuir el video de "
+            "GitHub Releases a Instagram."
         )
 
     log(
-        "Cuentas verificadas: @sismonauta / Sismonauta"
+        "Cuentas verificadas: "
+        "@sismonauta / Sismonauta"
     )
 
 
 # ============================================================
-# 21. SUBIR REEL A GITHUB RELEASES
+# ALOJAMIENTO EN GITHUB RELEASES
 # ============================================================
 
-def release_video(video):
+def release_video(
+    video,
+    persist,
+    target
+):
     repo = os.environ[
         "GITHUB_REPOSITORY"
     ]
@@ -3621,9 +3798,11 @@ def release_video(video):
             timezone.utc
         ).strftime("%Y%m%d-%H%M%S")
         + "-"
-        + os.getenv(
-            "GITHUB_RUN_ID",
-            str(int(time.time()))
+        + str(
+            os.getenv(
+                "GITHUB_RUN_ID",
+                "local"
+            )
         )
     )
 
@@ -3632,15 +3811,25 @@ def release_video(video):
         f"/repos/{repo}/releases",
         json={
             "tag_name": tag,
+            "target_commitish": os.getenv(
+                "GITHUB_REF_NAME",
+                "main"
+            ),
             "name": "SISMONAUTA ETAS Chile",
             "draft": False,
             "prerelease": True,
             "body": (
-                "Animación ETAS experimental. "
-                "No es alerta sísmica."
+                "Modelo experimental. "
+                "No constituye alerta sísmica."
             )
         }
     )
+
+    target["release_id"] = str(
+        release["id"]
+    )
+
+    persist()
 
     upload_url = (
         release["upload_url"].split("{")[0]
@@ -3649,54 +3838,80 @@ def release_video(video):
     )
 
     with video.open("rb") as stream:
-        asset = api_json(
+        asset = api(
             "POST",
             upload_url,
             token=os.environ["GH_TOKEN"],
             timeout=(30, 900),
             headers={
-                "Content-Type": "video/mp4",
-                "Accept": "application/vnd.github+json"
+                "Accept": (
+                    "application/vnd.github+json"
+                ),
+                "Content-Type": "video/mp4"
             },
             data=stream
         )
 
-    public_url = asset.get(
+    url = asset.get(
         "browser_download_url"
     )
 
-    if not public_url:
+    if (
+        not url
+        or not url.startswith(
+            "https://github.com/"
+        )
+    ):
         raise RuntimeError(
-            "GitHub Release no devolvió "
-            "URL pública del video."
+            "GitHub no devolvió URL pública "
+            "de Release."
         )
 
-    return public_url, str(release["id"])
+    target["video_url"] = url
+
+    persist()
+
+    return url
 
 
 # ============================================================
-# 22. PUBLICAR INSTAGRAM
+# PUBLICAR REEL EN INSTAGRAM
 # ============================================================
 
-def publish_instagram(reel, caption, target, persist):
+def publish_instagram(
+    reel,
+    caption,
+    target,
+    persist
+):
     token = os.environ[
         "INSTAGRAM_TOKEN"
     ]
 
-    user = os.environ[
+    uid = os.environ[
         "INSTAGRAM_USER_ID"
     ]
 
-    graph = (
+    base = (
         f"{IG_BASE}/{GRAPH_VERSION}"
     )
 
-    target["status"] = "uncertain"
-    persist()
-
     mode = os.getenv(
-        "IG_UPLOAD_MODE", "url"
+        "IG_UPLOAD_MODE",
+        "url"
     ).lower()
+
+    if mode not in (
+        "url",
+        "resumable"
+    ):
+        raise RuntimeError(
+            "IG_UPLOAD_MODE inválido."
+        )
+
+    target["status"] = "uncertain"
+
+    persist()
 
     data = {
         "media_type": "REELS",
@@ -3705,42 +3920,30 @@ def publish_instagram(reel, caption, target, persist):
     }
 
     if mode == "url":
-        public_url, release_id = release_video(reel)
-
-        target["release_id"] = release_id
-        target["video_url"] = public_url
-
-        persist()
-
-        data["video_url"] = public_url
-
-        container = api_json(
-            "POST",
-            f"{graph}/{user}/media",
-            token=token,
-            data=data
-        )
-
-    elif mode == "resumable":
-        data["upload_type"] = "resumable"
-
-        container = api_json(
-            "POST",
-            f"{graph}/{user}/media",
-            token=token,
-            data=data
+        data["video_url"] = release_video(
+            reel,
+            persist,
+            target
         )
 
     else:
-        raise RuntimeError(
-            "IG_UPLOAD_MODE debe ser url o resumable."
-        )
+        data["upload_type"] = "resumable"
+
+    container = api(
+        "POST",
+        f"{base}/{uid}/media",
+        token=token,
+        data=data
+    )
 
     container_id = str(
         container["id"]
     )
 
-    target["container_id"] = container_id
+    target["container_id"] = (
+        container_id
+    )
+
     persist()
 
     if mode == "resumable":
@@ -3753,23 +3956,31 @@ def publish_instagram(reel, caption, target, persist):
             )
         )
 
-        if not upload_url.startswith(
-            "https://rupload.facebook.com/"
+        parsed = urlparse(upload_url)
+
+        if (
+            parsed.scheme != "https"
+            or parsed.hostname
+            != "rupload.facebook.com"
         ):
             raise RuntimeError(
-                "URL de carga Instagram no reconocida."
+                "URL de subida Instagram no confiable."
             )
 
         with reel.open("rb") as stream:
-            response = SESSION.post(
+            response = HTTP.post(
                 upload_url,
                 headers={
-                    "Authorization": "OAuth " + token,
+                    "Authorization": (
+                        "OAuth " + token
+                    ),
                     "offset": "0",
                     "file_size": str(
                         reel.stat().st_size
                     ),
-                    "Content-Type": "application/octet-stream"
+                    "Content-Type": (
+                        "application/octet-stream"
+                    )
                 },
                 data=stream,
                 timeout=(30, 900)
@@ -3778,46 +3989,50 @@ def publish_instagram(reel, caption, target, persist):
             response.raise_for_status()
 
     for attempt in range(30):
-        state = api_json(
+        status = api(
             "GET",
-            f"{graph}/{container_id}",
+            f"{base}/{container_id}",
             token=token,
             params={
-                "fields": "status_code,status"
+                "fields": (
+                    "status_code,status"
+                )
             }
         )
 
-        status = state.get(
+        code = status.get(
             "status_code"
         )
 
         log(
             "Instagram procesamiento:",
-            status,
+            code,
             f"{attempt+1}/30"
         )
 
-        if status == "FINISHED":
+        if code == "FINISHED":
             break
 
-        if status in (
+        if code in (
             "ERROR",
             "EXPIRED"
         ):
             raise RuntimeError(
-                "Instagram no pudo procesar el Reel."
+                "Instagram no procesó video: "
+                + str(status)[:160]
             )
 
         time.sleep(20)
 
     else:
         raise RuntimeError(
-            "Instagram no confirmó el procesamiento."
+            "Instagram no confirmó procesamiento. "
+            "Revisar Meta antes de reintentar."
         )
 
-    published = api_json(
+    published = api(
         "POST",
-        f"{graph}/{user}/media_publish",
+        f"{base}/{uid}/media_publish",
         token=token,
         data={
             "creation_id": container_id
@@ -3828,9 +4043,9 @@ def publish_instagram(reel, caption, target, persist):
         published.get("id") or ""
     )
 
-    if not media_id:
+    if not media_id.isdigit():
         raise RuntimeError(
-            "Instagram no devolvió ID de publicación."
+            "Instagram no devolvió ID válido."
         )
 
     target.update({
@@ -3847,11 +4062,19 @@ def publish_instagram(reel, caption, target, persist):
 
 
 # ============================================================
-# 23. PUBLICAR FACEBOOK
+# PUBLICAR VIDEO EN FACEBOOK
 # ============================================================
 
-def publish_facebook(video, caption, target, persist):
-    page = os.environ[
+def publish_facebook(
+    video,
+    caption,
+    target,
+    persist
+):
+    target["status"] = "uncertain"
+    persist()
+
+    page_id = os.environ[
         "FACEBOOK_PAGE_ID"
     ]
 
@@ -3859,19 +4082,17 @@ def publish_facebook(video, caption, target, persist):
         "FACEBOOK_PAGE_TOKEN"
     ]
 
-    target["status"] = "uncertain"
-    persist()
-
     with video.open("rb") as stream:
-        posted = api_json(
+        result = api(
             "POST",
-            f"{FB_BASE}/{page}/videos",
+            f"{FB_BASE}/{page_id}/videos",
             token=token,
             timeout=(30, 900),
             data={
                 "description": caption[:5000],
                 "title": (
-                    "SISMONAUTA | ETAS Chile experimental"
+                    "SISMONAUTA | "
+                    "ETAS Chile experimental"
                 ),
                 "published": "true"
             },
@@ -3885,12 +4106,12 @@ def publish_facebook(video, caption, target, persist):
         )
 
     media_id = str(
-        posted.get("id") or ""
+        result.get("id") or ""
     )
 
-    if not media_id:
+    if not media_id.isdigit():
         raise RuntimeError(
-            "Facebook no devolvió ID del video."
+            "Facebook no devolvió ID válido."
         )
 
     target.update({
@@ -3907,32 +4128,37 @@ def publish_facebook(video, caption, target, persist):
 
 
 # ============================================================
-# 24. DESCRIPCIÓN CIENTÍFICA
+# TEXTO DE PUBLICACIÓN
 # ============================================================
 
-def publication_caption():
+def caption(metadata):
     return (
         "🌎 SISMONAUTA | ETAS CHILE\n\n"
 
-        "25 mapas horarios que muestran la evolución "
-        "de estimaciones de un modelo ETAS experimental.\n\n"
+        "25 instantáneas horarias basadas en "
+        "datos sísmicos históricos del USGS. "
 
-        "El mapa izquierdo presenta la probabilidad "
-        "modelada por celda para las siguientes 24 horas. "
-        "El derecho muestra su variación respecto "
-        "al inicio del período observado.\n\n"
+        "Dos mapas muestran los valores de un "
+        "modelo ETAS experimental para las "
+        "siguientes 24 horas y el cambio desde "
+        "el comienzo del período observado.\n\n"
 
-        "Los marcadores destacan hasta tres zonas "
-        "con mayores incrementos positivos "
-        "espacialmente separados.\n\n"
+        f"Umbral de magnitud de esta ejecución: "
+        f"M≥{metadata['magnitude_target']:.2f}.\n\n"
 
-        "⚠️ MODELO EXPERIMENTAL: estos resultados "
-        "no están calibrados ni validados "
-        "prospectivamente, y NO constituyen "
-        "predicción ni alerta sísmica oficial.\n\n"
+        "Los marcadores señalan hasta tres "
+        "aumentos espaciales. Los valores son "
+        "por celda, no probabilidades oficiales "
+        "para ciudades o comunas.\n\n"
 
-        "Datos: USGS. Cartografía: Natural Earth. "
-        "Ciudades: GeoNames / OpenStreetMap.\n\n"
+        "⚠️ Modelo experimental, no calibrado "
+        "ni validado prospectivamente. "
+
+        "NO predice terremotos específicos y "
+        "NO constituye alerta sísmica oficial.\n\n"
+
+        "Datos USGS · Cartografía Natural Earth · "
+        "Ciudades GeoNames / OpenStreetMap.\n\n"
 
         "#Sismonauta #Chile #Sismologia "
         "#ETAS #Terremotos #Ciencia "
@@ -3941,20 +4167,24 @@ def publication_caption():
 
 
 # ============================================================
-# 25. PROGRAMA PRINCIPAL
+# PROGRAMA PRINCIPAL
 # ============================================================
 
 def main():
+    global OUT
+
     parser = argparse.ArgumentParser(
         description=(
-            "SISMONAUTA ETAS Chile: modelo "
-            "científico y publicación en un archivo"
+            "SISMONAUTA ETAS Chile unificado"
         )
     )
 
     parser.add_argument(
         "--out",
-        default="output_etas"
+        default=os.getenv(
+            "ETAS_OUTPUT_DIR",
+            "output_etas"
+        )
     )
 
     parser.add_argument(
@@ -3962,8 +4192,8 @@ def main():
         action="store_true"
     )
 
-    # Compatibilidad con YAML anterior:
-    # la opción --original ya no se necesita.
+    # Compatibilidad con YAML antiguo.
+    # No se utiliza otro Python.
     parser.add_argument(
         "--original",
         default="",
@@ -3972,30 +4202,26 @@ def main():
 
     args = parser.parse_args()
 
-    global OUTPUT_DIR, OUTPUT_MP4
-
-    OUTPUT_DIR = Path(
+    OUT = Path(
         args.out
     ).resolve()
 
-    OUTPUT_MP4 = (
-        OUTPUT_DIR / OUTPUT_NAME
+    OUT.mkdir(
+        parents=True,
+        exist_ok=True
     )
 
-    ensure_output()
-
-    state_path = (
-        "sismonauta_etas/state_"
-        + hashlib.sha256(
-            COUNTRY_NAME.casefold().encode()
-        ).hexdigest()[:12]
-        + ".json"
-    )
+    binary("ffmpeg")
+    binary("ffprobe")
 
     receipt = {
-        "country": COUNTRY_NAME,
         "status": "starting",
+        "country": COUNTRY_NAME,
         "created_at": utcnow(),
+        "run_id": (
+            os.getenv("GITHUB_RUN_ID")
+            or utcnow()
+        ),
         "targets": {
             "instagram": {
                 "status": "pending"
@@ -4008,130 +4234,119 @@ def main():
 
     def persist():
         atomic_json(
-            OUTPUT_DIR / "estado_publicacion.json",
+            OUT / "estado_publicacion.json",
             receipt
         )
 
         if args.publish:
-            github_state_save(
-                state_path,
+            state_save(
+                state_path(),
                 receipt
             )
 
     try:
-        check_binary("ffmpeg")
-        check_binary("ffprobe")
-
-        # ----------------------------------------------------
-        # MODO DE PUBLICACIÓN
-        # ----------------------------------------------------
+        # ------------------------------------
+        # VALIDAR CUENTAS Y DUPLICADOS
+        # ------------------------------------
 
         if args.publish:
-            validate_accounts()
+            verify_accounts()
 
-            previous, _ = github_state_read(
-                state_path
+            old, _ = state_read(
+                state_path()
             )
 
             same_day = (
                 str(
-                    previous.get("created_at", "")
+                    old.get("created_at", "")
                 )[:10]
                 == receipt["created_at"][:10]
             )
 
-            if same_day and previous.get("status") in (
-                "published",
-                "partial_or_uncertain",
-                "publishing"
+            if (
+                same_day
+                and old.get("status") in (
+                    "published",
+                    "partial_or_uncertain",
+                    "publishing"
+                )
             ):
                 raise RuntimeError(
-                    "Ya existe una publicación o "
-                    "un envío incierto de ETAS Chile "
-                    "para esta fecha UTC. "
-                    "Se bloquea para evitar duplicados."
+                    "Publicación del día ya realizada "
+                    "o incierta. No duplicar."
                 )
 
-        # ----------------------------------------------------
-        # CÁLCULO CIENTÍFICO
-        # ----------------------------------------------------
+        # ------------------------------------
+        # GENERAR MODELO CIENTÍFICO
+        # ------------------------------------
 
         receipt["status"] = "generating"
         persist()
 
         video, metadata = run_scientific_etas()
 
-        original_probe = ffprobe(video)
-
         duration = float(
-            original_probe["format"]["duration"]
+            probe(video)["format"]["duration"]
         )
 
-        if duration < 3 or duration > 900:
+        if not 3 <= duration <= 900:
             raise RuntimeError(
-                f"Duración del MP4 no compatible: "
-                f"{duration:.1f} segundos."
+                "Duración no compatible con Reel: "
+                f"{duration:.1f}s"
             )
 
-        receipt["duration_seconds"] = duration
-
-        receipt["video_file"] = str(video)
-
-        receipt["scientific"] = {
-            "snapshots": metadata["snapshots"],
-            "mc": metadata["mc"],
-            "b": metadata["b"],
-            "magnitude_target": (
-                metadata["magnitude_target"]
-            )
-        }
+        receipt.update({
+            "duration_seconds": duration,
+            "video_file": str(video),
+            "scientific": {
+                key: metadata[key]
+                for key in (
+                    "snapshots",
+                    "mc",
+                    "b",
+                    "magnitude_target"
+                )
+            }
+        })
 
         persist()
 
-        # ----------------------------------------------------
-        # REEL INSTAGRAM
-        # ----------------------------------------------------
+        # ------------------------------------
+        # CONVERTIR A REEL VERTICAL
+        # ------------------------------------
 
         reel = make_reel(
             video
         )
 
-        receipt["reel_file"] = str(reel)
+        receipt["reel_file"] = (
+            str(reel)
+        )
+
+        # ------------------------------------
+        # VISTA PREVIA
+        # ------------------------------------
 
         if not args.publish:
             receipt["status"] = "preview_only"
             persist()
 
             log(
-                "==================================="
-            )
-
-            log(
-                "ETAS CHILE GENERADO SIN PUBLICAR"
-            )
-
-            log(
-                "Video original:", video
-            )
-
-            log(
-                "Reel Instagram:", reel
-            )
-
-            log(
-                "==================================="
+                "VISTA PREVIA:",
+                "video original",
+                video,
+                "| reel",
+                reel
             )
 
             return
 
-        # ----------------------------------------------------
+        # ------------------------------------
         # PUBLICACIÓN REAL
-        # ----------------------------------------------------
+        # ------------------------------------
 
         receipt["status"] = "publishing"
         persist()
-
-        caption = publication_caption()
 
         errors = []
 
@@ -4148,19 +4363,23 @@ def main():
             )
         ]
 
-        for name, function, file in destinations:
-            target = receipt["targets"][name]
+        for name, callback, filepath in destinations:
+            target = receipt[
+                "targets"
+            ][name]
 
             try:
-                function(
-                    file,
-                    caption,
+                callback(
+                    filepath,
+                    caption(metadata),
                     target,
                     persist
                 )
 
             except Exception as exc:
-                target["error"] = str(exc)[:400]
+                target["error"] = (
+                    str(exc)[:400]
+                )
 
                 if target.get("status") != "published":
                     target["status"] = "uncertain"
@@ -4168,11 +4387,14 @@ def main():
                 persist()
 
                 errors.append(
-                    f"{name}: {exc}"
+                    name + ": " + str(exc)
                 )
 
         if errors:
-            receipt["status"] = "partial_or_uncertain"
+            receipt["status"] = (
+                "partial_or_uncertain"
+            )
+
             persist()
 
             raise RuntimeError(
@@ -4183,29 +4405,11 @@ def main():
         persist()
 
         log(
-            "==================================="
-        )
-
-        log(
-            "SISMONAUTA ETAS CHILE"
-        )
-
-        log(
-            "PUBLICACIONES ACEPTADAS POR META"
-        )
-
-        log(
-            "INSTAGRAM:",
-            receipt["targets"]["instagram"].get("id")
-        )
-
-        log(
-            "FACEBOOK:",
-            receipt["targets"]["facebook"].get("id")
-        )
-
-        log(
-            "==================================="
+            "PUBLICACIONES ACEPTADAS POR META:",
+            "Instagram",
+            receipt["targets"]["instagram"]["id"],
+            "| Facebook",
+            receipt["targets"]["facebook"]["id"]
         )
 
     except Exception as exc:
@@ -4214,7 +4418,9 @@ def main():
                 "published",
                 "uncertain"
             )
-            for target in receipt["targets"].values()
+            for target in receipt[
+                "targets"
+            ].values()
         )
 
         if receipt["status"] != "published":
@@ -4224,10 +4430,12 @@ def main():
                 else "error"
             )
 
-        receipt["error"] = str(exc)[:500]
+        receipt["error"] = (
+            str(exc)[:500]
+        )
 
         atomic_json(
-            OUTPUT_DIR / "estado_publicacion.json",
+            OUT / "estado_publicacion.json",
             receipt
         )
 
@@ -4240,7 +4448,7 @@ def main():
 
 
 # ============================================================
-# 26. INICIO
+# INICIO
 # ============================================================
 
 if __name__ == "__main__":
