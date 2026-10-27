@@ -139,14 +139,15 @@
     "sismos-4bc64aac12fc": {
       "topic": "transformante",
       "reel": "publicado",
-      "updated_at": "2026-10-27T00:12:09.437659+00:00",
+      "updated_at": "2026-10-27T00:12:10.505439+00:00",
       "reel_id": "18046491638640011",
       "story": "publicado",
       "story_id": "18098595665118356",
       "facebook_reel": "publicado",
       "facebook_reel_id": "1304503195093704",
       "facebook_story": "publicado",
-      "facebook_story_id": "1814057916406911"
+      "facebook_story_id": "1814057916406911",
+      "facebook_feed": "enviando"
     }
   }
 }
