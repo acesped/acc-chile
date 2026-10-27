@@ -10,5 +10,13 @@
     "facebook": {
       "status": "pending"
     }
+  },
+  "duration_seconds": 63.375,
+  "video_file": "/home/runner/work/acc-chile/acc-chile/output_etas/ETAS_DOBLE_HEATMAP_CON_LIKE.mp4",
+  "scientific": {
+    "snapshots": 25,
+    "mc": 4.2,
+    "b": 1.2909835492554163,
+    "magnitude_target": 4.2
   }
 }
