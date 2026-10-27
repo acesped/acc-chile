@@ -2,6 +2,9 @@
 name: SISMONAUTA - Noticias cientificas diarias
 
 on:
+  # ==========================================
+  # EJECUCION MANUAL
+  # ==========================================
   workflow_dispatch:
     inputs:
       publish:
@@ -10,19 +13,23 @@ on:
         type: boolean
         default: false
 
-  # Todos los dias a las 07:00 y 19:00 Horas, hora de Chile
+  # ==========================================
+  # PROGRAMACION AUTOMATICA - HORA DE CHILE
+  # ==========================================
   schedule:
-    # Primera ejecución: 07:30 AM, hora de Chile
+    # Primera ejecucion: 07:30 AM
     - cron: '30 7 * * *'
       timezone: 'America/Santiago'
 
-    # Segunda ejecución: 19:30 PM, hora de Chile
+    # Segunda ejecucion: 19:30 PM
     - cron: '30 19 * * *'
       timezone: 'America/Santiago'
 
 permissions:
   contents: write
 
+# Evita ejecuciones simultaneas de este
+# workflow, sin afectar los otros proyectos.
 concurrency:
   group: sismonauta-noticias
   cancel-in-progress: false
@@ -36,35 +43,46 @@ jobs:
     env:
       PYTHONUNBUFFERED: '1'
 
-      # GitHub
+      # ======================================
+      # GITHUB
+      # ======================================
       GH_TOKEN: ${{ github.token }}
       GITHUB_REPOSITORY: ${{ github.repository }}
       GITHUB_REF_NAME: ${{ github.event.repository.default_branch }}
 
-      # Instagram
+      # ======================================
+      # INSTAGRAM
+      # ======================================
       INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
       INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
 
-      # Facebook
+      # ======================================
+      # FACEBOOK
+      # ======================================
       FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
       FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
 
-      # Inteligencia artificial: tres proveedores
+      # ======================================
+      # INTELIGENCIA ARTIFICIAL
+      # ======================================
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
-      # Modelos configurables
+      # Modelos
       GEMINI_NEWS_MODEL: 'gemini-2.5-flash'
       OPENROUTER_NEWS_MODEL: 'openai/gpt-4o-mini'
       GROQ_NEWS_MODEL: 'llama-3.3-70b-versatile'
 
-      # Meta Graph API
+      # ======================================
+      # META GRAPH API
+      # ======================================
       IG_GRAPH_VERSION: 'v25.0'
       IG_EXPECTED_USERNAME: 'sismonauta'
       FACEBOOK_EXPECTED_USERNAME: 'sismonauta'
 
     steps:
+
       # ==========================================
       # 1. DESCARGAR REPOSITORIO
       # ==========================================
@@ -99,6 +117,8 @@ jobs:
             --timeout 45 \
             'requests>=2.31,<3' \
             'Pillow>=10,<13'
+
+          echo "Dependencias instaladas correctamente"
 
       # ==========================================
       # 4. VALIDAR ARCHIVO PYTHON
@@ -149,6 +169,10 @@ jobs:
           echo "Instagram: @sismonauta"
           echo "Facebook: Sismonauta"
           echo "==================================="
+
+          echo "Horarios automaticos:"
+          echo "07:30 AM - America/Santiago"
+          echo "19:30 PM - America/Santiago"
 
       # ==========================================
       # 6. COMPROBAR CREDENCIALES
@@ -201,7 +225,7 @@ jobs:
           echo "Credenciales disponibles para ejecutar noticias"
 
       # ==========================================
-      # 7. BUSCAR NOTICIAS, REDACTAR Y PUBLICAR
+      # 7. BUSCAR, REDACTAR Y PUBLICAR
       # ==========================================
 
       - name: Procesar noticia del dia
@@ -237,8 +261,7 @@ jobs:
           echo "exit_code=$CODE" >> "$GITHUB_OUTPUT"
           echo "Codigo Python: $CODE"
 
-          # El siguiente paso analiza el recibo
-          # y distingue errores de dias sin noticias.
+          # El siguiente paso verifica el resultado.
           exit 0
 
       # ==========================================
@@ -286,11 +309,18 @@ jobs:
           print("Codigo Python:", exit_code)
           print("Estado real:", status)
 
-          # Errores tecnicos o publicaciones inciertas
+          # --------------------------------------
+          # VALIDAR CODIGO DE SALIDA
+          # --------------------------------------
+
           if exit_code not in (0, 2, 3):
               raise SystemExit(
                   "::error::El programa termino con error"
               )
+
+          # --------------------------------------
+          # PUBLICACION PARCIAL O INCIERTA
+          # --------------------------------------
 
           if status == "partial_or_uncertain":
               raise SystemExit(
@@ -298,7 +328,10 @@ jobs:
                   "Revisar Meta antes de reintentar."
               )
 
-          # Ausencia de noticia o imagen valida
+          # --------------------------------------
+          # NO SE ENCONTRO NOTICIA PUBLICABLE
+          # --------------------------------------
+
           no_news = {
               "no_eligible_news",
               "no_licensed_relevant_photo",
@@ -306,12 +339,16 @@ jobs:
 
           if status in no_news:
               print(
-                  "::notice::SIN PUBLICACION HOY: "
+                  "::notice::SIN PUBLICACION "
+                  "EN ESTA EJECUCION: "
                   + status
               )
               raise SystemExit(0)
 
-          # Vista previa manual
+          # --------------------------------------
+          # MODO VISTA PREVIA
+          # --------------------------------------
+
           if not publish:
               if status != "preview_only":
                   raise SystemExit(
@@ -325,7 +362,10 @@ jobs:
               )
               raise SystemExit(0)
 
-          # Confirmar publicaciones reales
+          # --------------------------------------
+          # CONFIRMACION DE PUBLICACION
+          # --------------------------------------
+
           if exit_code != 0 or status != "published":
               raise SystemExit(
                   "::error::Publicacion no confirmada"
