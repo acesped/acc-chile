@@ -223,14 +223,15 @@
     "sismos-0cc6241d5111": {
       "topic": "falla_inversa",
       "reel": "publicado",
-      "updated_at": "2026-10-27T15:25:37.286959+00:00",
+      "updated_at": "2026-10-27T15:25:38.274296+00:00",
       "reel_id": "18109715021264771",
       "story": "publicado",
       "story_id": "17938874985126605",
       "facebook_reel": "publicado",
       "facebook_reel_id": "1011664941966552",
       "facebook_story": "publicado",
-      "facebook_story_id": "1764837541273325"
+      "facebook_story_id": "1764837541273325",
+      "facebook_feed": "enviando"
     }
   }
 }
