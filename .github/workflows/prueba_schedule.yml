@@ -28,4 +28,3 @@ jobs:
           TZ=America/Santiago date
           echo "================================="
           echo "PROGRAMADOR ACTIVADO CORRECTAMENTE"
-``
