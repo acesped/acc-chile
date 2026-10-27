@@ -151,6 +151,14 @@
       "angle": "Lo que no debemos confundir",
       "time": "2026-10-27T03:04:15.829868+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-6c0a7ae01428",
+      "topic": "falla_normal",
+      "style": "mapa_explicado",
+      "angle": "Lo que muestran los datos",
+      "time": "2026-10-27T07:00:58.840583+00:00",
+      "status": "publicado"
     }
   ]
 }
