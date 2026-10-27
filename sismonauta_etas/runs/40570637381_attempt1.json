@@ -5,10 +5,11 @@
   "run_id": "40570637381",
   "targets": {
     "instagram": {
-      "status": "uncertain",
+      "status": "published",
       "release_id": "425902326",
       "video_url": "https://github.com/acesped/acc-chile/releases/download/sismonauta-etas-20261027-193846-40570637381/sismonauta_etas_reel_9x16.mp4",
-      "container_id": "18493957261107377"
+      "container_id": "18493957261107377",
+      "id": "18106007654198089"
     },
     "facebook": {
       "status": "pending"
