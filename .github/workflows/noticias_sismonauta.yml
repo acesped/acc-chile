@@ -18,7 +18,7 @@ on:
   # ==========================================
   schedule:
     # Primera ejecucion: 07:30 AM
-    - cron: '30 7 * * *'
+    - cron: '0 8 * * *'
       timezone: 'America/Santiago'
 
     # Segunda ejecucion: 19:30 PM
