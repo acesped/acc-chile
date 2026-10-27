@@ -167,14 +167,15 @@
     "sismos-4e18559cc7ad": {
       "topic": "ruptura",
       "reel": "publicado",
-      "updated_at": "2026-10-27T03:05:56.987172+00:00",
+      "updated_at": "2026-10-27T03:05:57.977872+00:00",
       "reel_id": "17908943367586198",
       "story": "publicado",
       "story_id": "18646966363005350",
       "facebook_reel": "publicado",
       "facebook_reel_id": "2348487415946573",
       "facebook_story": "publicado",
-      "facebook_story_id": "1681050190210165"
+      "facebook_story_id": "1681050190210165",
+      "facebook_feed": "enviando"
     }
   }
 }
