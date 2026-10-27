@@ -6,7 +6,8 @@
   "targets": {
     "instagram": {
       "status": "uncertain",
-      "release_id": "425842664"
+      "release_id": "425842664",
+      "video_url": "https://github.com/acesped/acc-chile/releases/download/sismonauta-etas-20261027-183511-40560942238/sismonauta_etas_reel_9x16.mp4"
     },
     "facebook": {
       "status": "pending"
