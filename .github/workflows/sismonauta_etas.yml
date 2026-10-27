@@ -1,0 +1,523 @@
+
+name: SISMONAUTA - ETAS Chile (cron-job.org)
+
+# ==================================================
+# ACTIVACION EXTERNA POR CRON-JOB.ORG
+# ==================================================
+#
+# cron-job.org envia un POST a la API de GitHub.
+# GitHub recibe workflow_dispatch.
+#
+# publish=true  -> Generar y publicar video.
+# publish=false -> Generar sin publicar.
+#
+# Pais fijo: Chile.
+#
+# No requiere el schedule interno de GitHub.
+# ==================================================
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publicar video en Instagram y Facebook'
+        required: true
+        type: boolean
+        default: false
+
+# ==================================================
+# PERMISOS DEL WORKFLOW
+# ==================================================
+
+permissions:
+  contents: write
+
+# ==================================================
+# EVITAR EJECUCIONES SIMULTANEAS
+# ==================================================
+
+concurrency:
+  group: sismonauta-etas-chile
+  cancel-in-progress: false
+
+# ==================================================
+# TRABAJO PRINCIPAL
+# ==================================================
+
+jobs:
+  generar_y_publicar:
+
+    name: Calcular ETAS Chile y publicar video
+
+    runs-on: ubuntu-24.04
+
+    timeout-minutes: 360
+
+    env:
+
+      # ==========================================
+      # CONFIGURACION PYTHON
+      # ==========================================
+
+      PYTHONUNBUFFERED: '1'
+      MPLBACKEND: 'Agg'
+
+      OPENBLAS_NUM_THREADS: '2'
+      OMP_NUM_THREADS: '2'
+      NUMBA_NUM_THREADS: '2'
+
+      # ==========================================
+      # GITHUB
+      # ==========================================
+
+      GH_TOKEN: ${{ github.token }}
+
+      GITHUB_REPOSITORY: ${{ github.repository }}
+
+      GITHUB_REF_NAME: ${{ github.event.repository.default_branch }}
+
+      # ==========================================
+      # INSTAGRAM
+      # ==========================================
+
+      INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
+
+      INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
+
+      # ==========================================
+      # FACEBOOK
+      # ==========================================
+
+      FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+
+      FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
+
+      # ==========================================
+      # META GRAPH API
+      # ==========================================
+
+      IG_GRAPH_BASE: 'https://graph.instagram.com'
+
+      META_GRAPH_VERSION: 'v25.0'
+
+      IG_UPLOAD_MODE: 'url'
+
+      # ==========================================
+      # TIEMPO MAXIMO DEL MODELO ETAS
+      # ==========================================
+
+      ETAS_TIMEOUT_SECONDS: '16500'
+
+    steps:
+
+      # ==========================================
+      # 1. DESCARGAR REPOSITORIO
+      # ==========================================
+
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      # ==========================================
+      # 2. CONFIGURAR PYTHON
+      # ==========================================
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # ==========================================
+      # 3. INSTALAR FFMPEG Y FUENTES
+      # ==========================================
+
+      - name: Instalar FFmpeg y fuentes
+        shell: bash
+        timeout-minutes: 15
+        run: |
+          set -euo pipefail
+
+          sudo apt-get update -qq
+
+          sudo apt-get install -y -qq \
+            ffmpeg \
+            fonts-dejavu-core
+
+          mkdir -p /mnt/data
+          mkdir -p output_etas
+
+          echo "FFmpeg instalado correctamente"
+
+      # ==========================================
+      # 4. INSTALAR DEPENDENCIAS CIENTIFICAS
+      # ==========================================
+
+      - name: Instalar dependencias cientificas
+        shell: bash
+        timeout-minutes: 15
+        run: |
+          set -euo pipefail
+
+          python -m pip install \
+            --disable-pip-version-check \
+            --prefer-binary \
+            'numpy>=1.26,<3' \
+            'pandas>=2.1,<3' \
+            'scipy>=1.11,<2' \
+            'matplotlib>=3.8,<4' \
+            'requests>=2.31,<3' \
+            'cartopy>=0.22,<1' \
+            'numba>=0.59,<1' \
+            'Pillow>=10,<13' \
+            'edge-tts>=6,<8' \
+            'gTTS>=2.5,<3' \
+            'pycountry>=23,<30' \
+            'geopy>=2,<3' \
+            'shapely>=2,<3'
+
+          echo "Dependencias instaladas"
+
+      # ==========================================
+      # 5. VERIFICAR ARCHIVOS Y SINTAXIS
+      # ==========================================
+
+      - name: Verificar archivos y sintaxis
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test -f sismonauta_etas_publicar.py || {
+            echo "::error::Falta sismonauta_etas_publicar.py"
+            exit 1
+          }
+
+          test -f etas_multipaís_24h_animado.py || {
+            echo "::error::Falta etas_multipaís_24h_animado.py"
+            exit 1
+          }
+
+          python -m py_compile \
+            sismonauta_etas_publicar.py \
+            etas_multipaís_24h_animado.py
+
+          echo "Ambos programas Python verificados"
+
+      # ==========================================
+      # 6. IDENTIFICAR MODO DE EJECUCION
+      # ==========================================
+
+      - name: Determinar modo de ejecucion
+        id: modo
+        shell: bash
+
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REQUESTED_PUBLISH: ${{ inputs.publish }}
+
+        run: |
+          set -euo pipefail
+
+          if [[ "$EVENT_NAME" != "workflow_dispatch" ]]; then
+            echo "::error::Evento no autorizado"
+            exit 1
+          fi
+
+          if [[ "$REQUESTED_PUBLISH" == "true" ]]; then
+            PUBLISH=true
+          else
+            PUBLISH=false
+          fi
+
+          echo "publish=$PUBLISH" >> "$GITHUB_OUTPUT"
+
+          echo "==================================="
+          echo "SISMONAUTA - ETAS CHILE"
+          echo "==================================="
+          echo "Pais: Chile"
+          echo "Evento: $EVENT_NAME"
+          echo "Publicar: $PUBLISH"
+          echo "Instagram: @sismonauta"
+          echo "Facebook: Sismonauta"
+          echo "==================================="
+
+          echo "Fecha y hora de Chile:"
+          TZ=America/Santiago date
+
+      # ==========================================
+      # 7. VALIDAR CREDENCIALES
+      # ==========================================
+
+      - name: Verificar secretos de Meta
+        shell: bash
+
+        env:
+          PUBLISH: ${{ steps.modo.outputs.publish }}
+
+        run: |
+          set -euo pipefail
+
+          if [[ "$PUBLISH" == "true" ]]; then
+
+            for name in \
+              INSTAGRAM_TOKEN \
+              INSTAGRAM_USER_ID \
+              FACEBOOK_PAGE_ID \
+              FACEBOOK_PAGE_TOKEN
+            do
+
+              if [[ -z "${!name:-}" ]]; then
+                echo "::error::Falta secreto $name"
+                exit 1
+              fi
+
+            done
+
+            echo "Credenciales disponibles"
+
+          else
+
+            echo "Modo vista previa"
+            echo "No se requieren secretos Meta"
+
+          fi
+
+      # ==========================================
+      # 8. EJECUTAR ETAS PARA CHILE
+      # ==========================================
+
+      - name: Generar y publicar video ETAS
+        id: ejecutar
+
+        shell: bash
+        timeout-minutes: 335
+
+        env:
+          PUBLISH: ${{ steps.modo.outputs.publish }}
+
+        run: |
+          set -uo pipefail
+
+          args=(
+            --out output_etas
+            --original 'etas_multipaís_24h_animado.py'
+          )
+
+          if [[ "$PUBLISH" == "true" ]]; then
+            args+=(--publish)
+          fi
+
+          echo "==================================="
+          echo "GENERACION ETAS CHILE"
+          echo "==================================="
+          echo "Pais: Chile"
+          echo "Modelo: ETAS experimental"
+          echo "25 mapas horarios"
+          echo "2 heatmaps simultaneos"
+          echo "Video vertical para Instagram"
+          echo "Video original para Facebook"
+          echo "Publicar: $PUBLISH"
+          echo "==================================="
+
+          python sismonauta_etas_publicar.py "${args[@]}"
+
+          CODE=$?
+
+          echo "exit_code=$CODE" >> "$GITHUB_OUTPUT"
+
+          echo "Codigo de salida: $CODE"
+
+          # La siguiente etapa verifica el recibo.
+          exit 0
+
+      # ==========================================
+      # 9. VERIFICAR RESULTADOS
+      # ==========================================
+
+      - name: Evaluar recibo de publicacion
+        shell: bash
+
+        env:
+          PUBLISH: ${{ steps.modo.outputs.publish }}
+          EXIT_CODE: ${{ steps.ejecutar.outputs.exit_code }}
+
+        run: |
+          set -euo pipefail
+
+          python - <<'PYVERIFY'
+          import os
+          import json
+          from pathlib import Path
+
+          path = Path(
+              "output_etas/estado_publicacion.json"
+          )
+
+          if not path.exists():
+              raise SystemExit(
+                  "::error::No existe recibo ETAS"
+              )
+
+          data = json.loads(
+              path.read_text(encoding="utf-8")
+          )
+
+          exit_code = int(
+              os.environ.get("EXIT_CODE") or "1"
+          )
+
+          status = data.get("status")
+          country = data.get("country")
+
+          print("===================================")
+          print("VERIFICACION ETAS SISMONAUTA")
+          print("===================================")
+          print("Pais:", country)
+          print("Estado:", status)
+          print("Codigo Python:", exit_code)
+
+          # --------------------------------------
+          # PAIS OBLIGATORIO
+          # --------------------------------------
+
+          if country != "Chile":
+              raise SystemExit(
+                  "::error::El pais no es Chile"
+              )
+
+          # --------------------------------------
+          # ERRORES DE EJECUCION
+          # --------------------------------------
+
+          if exit_code != 0:
+              raise SystemExit(
+                  "::error::Error durante generacion "
+                  "o publicacion de video"
+              )
+
+          if status == "partial_or_uncertain":
+              raise SystemExit(
+                  "::error::Publicacion parcial o "
+                  "incierta. Revisar Meta."
+              )
+
+          # --------------------------------------
+          # PUBLICACION REAL
+          # --------------------------------------
+
+          if os.environ.get("PUBLISH") == "true":
+
+              if status != "published":
+                  raise SystemExit(
+                      "::error::Publicacion no confirmada"
+                  )
+
+              for platform in (
+                  "instagram",
+                  "facebook"
+              ):
+
+                  item = (
+                      data.get("targets", {})
+                      .get(platform, {})
+                  )
+
+                  if (
+                      item.get("status") != "published"
+                      or not item.get("id")
+                  ):
+
+                      raise SystemExit(
+                          "::error::Falta confirmacion "
+                          "de " + platform
+                      )
+
+                  print(
+                      "PUBLICACION REGISTRADA:",
+                      platform,
+                      "ID:",
+                      item["id"]
+                  )
+
+          # --------------------------------------
+          # VISTA PREVIA
+          # --------------------------------------
+
+          else:
+
+              if status != "preview_only":
+                  raise SystemExit(
+                      "::error::Vista previa "
+                      "no confirmada"
+                  )
+
+              print(
+                  "VIDEO GENERADO SIN PUBLICAR"
+              )
+
+          print("===================================")
+          print("VERIFICACION COMPLETADA")
+          print("===================================")
+          PYVERIFY
+
+      # ==========================================
+      # 10. RESUMEN EN GITHUB ACTIONS
+      # ==========================================
+
+      - name: Registrar resumen de ejecucion
+        if: always()
+        shell: bash
+
+        env:
+          PUBLISH: ${{ steps.modo.outputs.publish }}
+          EXIT_CODE: ${{ steps.ejecutar.outputs.exit_code }}
+
+        run: |
+          {
+            echo "## SISMONAUTA ETAS CHILE"
+            echo ""
+            echo "- Pais: Chile"
+            echo "- Evento: $GITHUB_EVENT_NAME"
+            echo "- Publicar: ${PUBLISH:-desconocido}"
+            echo "- Codigo Python: ${EXIT_CODE:-no ejecutado}"
+            echo "- Fecha UTC: $(date -u '+%Y-%m-%d %H:%M:%S')"
+            echo "- Hora Chile: $(TZ=America/Santiago date '+%Y-%m-%d %H:%M:%S %Z')"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ -f output_etas/estado_publicacion.json ]]; then
+
+            {
+              echo "### Resultado de ejecucion"
+              echo ""
+              echo '```json'
+
+              python -m json.tool \
+                output_etas/estado_publicacion.json \
+                2>/dev/null || echo "Recibo no legible"
+
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+
+          fi
+
+      # ==========================================
+      # 11. GUARDAR VIDEOS Y REGISTROS
+      # ==========================================
+
+      - name: Guardar archivos generados
+        if: always()
+
+        uses: actions/upload-artifact@v4
+
+        with:
+          name: sismonauta-etas-${{ github.run_id }}-${{ github.run_attempt }}
+
+          path: |
+            output_etas/estado_publicacion.json
+            output_etas/sismonauta_etas_reel_9x16.mp4
+            /mnt/data/ETAS_DOBLE_HEATMAP_CON_LIKE.mp4
+
+          if-no-files-found: warn
+
+          retention-days: 7
