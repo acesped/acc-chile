@@ -1,0 +1,14 @@
+{
+  "status": "generating",
+  "country": "Chile",
+  "created_at": "2026-10-27T18:43:40.097078+00:00",
+  "run_id": "40562537510",
+  "targets": {
+    "instagram": {
+      "status": "pending"
+    },
+    "facebook": {
+      "status": "pending"
+    }
+  }
+}
