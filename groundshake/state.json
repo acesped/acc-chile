@@ -251,7 +251,7 @@
     "sismos-96a39cf40ea0": {
       "topic": "colision",
       "reel": "publicado",
-      "updated_at": "2026-10-27T23:02:29.845480+00:00",
+      "updated_at": "2026-10-27T23:02:35.289906+00:00",
       "reel_id": "17975153259157661",
       "story": "publicado",
       "story_id": "18113872778170704",
@@ -259,7 +259,8 @@
       "facebook_reel_id": "1125837223173000",
       "facebook_story": "publicado",
       "facebook_story_id": "1812891413083152",
-      "facebook_feed": "enviando"
+      "facebook_feed": "publicado",
+      "facebook_feed_id": "973972792429544"
     }
   }
 }
