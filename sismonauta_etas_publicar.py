@@ -2194,9 +2194,9 @@ def narration(final_info):
         )
 
     return (
-        "Te invitamos a revisar la actualización "
-        "del modelo sísmico experimental ETAS en Chile "
-        "durante las últimas 24 horas. "
+        "Te invitamos a revisar una actualización "
+        "del riesgo sísmico en Chile "
+        "para las últimas 24 horas. "
 
         "En el mapa de la izquierda se observa "
         "que el valor de probabilidad modelada "
@@ -2211,19 +2211,19 @@ def narration(final_info):
         + (
             f" para al menos un sismo de magnitud "
             f"{final_info['mag']:.1f} o superior "
-            "en las próximas 24 horas, según este modelo. "
+            "para las próximas 24 horas. "
 
             "En el gráfico de la derecha en tanto, "
             "observamos las zonas donde la probabilidad "
-            "modelada aumentó más durante el período. "
+            "modelada aumentó con mayor rapidez "
+            "durante las últimas horas. "
         )
 
         + delta_text
 
         + (
-            " IMPORTANTE: los resultados son experimentales "
-            "y no están calibrados ni validados "
-            "prospectivamente. No constituyen una alerta "
+            " IMPORTANTE: los resultados de este modelo son experimentales "
+            "y no constituyen una alerta "
             "sísmica ni una predicción oficial."
         )
     )
@@ -4004,33 +4004,20 @@ def caption(metadata):
         f"{day}, {clock} h (Chile)\n\n"
 
         "ETAS (Epidemic-Type Aftershock Sequence) "
-        "es un modelo estadístico que combina "
-        "una tasa sísmica de fondo con la "
-        "influencia temporal de terremotos "
-        "anteriores sobre la actividad posterior.\n\n"
+        "es un modelo estadístico que evalúa "
+        "la tasa sísmica de fondo y la "
+        "influencia temporal de los terremotos "
+        "detectando patrones probabilísticos.\n\n"
 
-        "Esta visualización presenta 25 mapas "
-        "horarios basados en datos USGS. "
-        "El mapa izquierdo muestra probabilidades "
-        "estimadas por celda para las 24 horas "
-        "posteriores a cada instante; el derecho "
-        "muestra el cambio respecto del comienzo "
-        "de la secuencia. "
+        "El mapa izquierdo muestra el riesgo sísmico "
+        "acumulado para las próximas 24 horas. "
+        "El mapa derecho en tanto, muestra las zonas"
+        "donde la probabilidad de riesgo aumentó "
+        "con mayor rapidez en las últimas horas. "
 
-        f"Umbral analizado: magnitud "
-        f"M≥{magnitude:.2f}.\n\n"
-
-        "Los valores son estimaciones locales "
-        "de esta implementación, no probabilidades "
-        "oficiales para ciudades ni comunas.\n\n"
-
-        "⚠️ Modelo experimental, no calibrado "
-        "ni validado prospectivamente. "
-        "No predice un terremoto específico y "
-        "NO constituye alerta sísmica oficial.\n\n"
-
-        "Datos: USGS · Mapas: Natural Earth · "
-        "Localidades: GeoNames/OpenStreetMap.\n\n"
+        "⚠️ IMPORTANTE: ETAS es un modelo experimental, "
+        "no constituye una predicción operativa de terremotos "
+        "ni una alerta sísmica oficial.\n\n"
 
         "#Sismonauta #Chile #Sismologia "
         "#ETAS #Terremotos #Ciencia"
