@@ -181,14 +181,15 @@
     "sismos-6c0a7ae01428": {
       "topic": "falla_normal",
       "reel": "publicado",
-      "updated_at": "2026-10-27T07:02:35.279706+00:00",
+      "updated_at": "2026-10-27T07:02:36.359441+00:00",
       "reel_id": "17979964733915633",
       "story": "publicado",
       "story_id": "18128761639867047",
       "facebook_reel": "publicado",
       "facebook_reel_id": "4732601950344917",
       "facebook_story": "publicado",
-      "facebook_story_id": "1795447658173337"
+      "facebook_story_id": "1795447658173337",
+      "facebook_feed": "enviando"
     }
   }
 }
