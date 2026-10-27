@@ -153,7 +153,7 @@
     "sismos-fd93ed98926c": {
       "topic": "deslizamientos",
       "reel": "publicado",
-      "updated_at": "2026-10-27T03:03:18.889327+00:00",
+      "updated_at": "2026-10-27T03:03:24.958454+00:00",
       "reel_id": "17911696029488766",
       "story": "publicado",
       "story_id": "17875717407638892",
@@ -161,7 +161,8 @@
       "facebook_reel_id": "4093749407594061",
       "facebook_story": "publicado",
       "facebook_story_id": "1669005554799229",
-      "facebook_feed": "enviando"
+      "facebook_feed": "publicado",
+      "facebook_feed_id": "1171610761861805"
     }
   }
 }
