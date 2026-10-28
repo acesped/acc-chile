@@ -3,43 +3,47 @@
 # -*- coding: utf-8 -*-
 
 """
-SISMONAUTA - NOTICIAS CIENTIFICAS Y NATURALES
-=============================================
+SISMONAUTA - NOTICIAS CIENTIFICAS
+=================================
 
 Python 3.11+
 
 TEMATICAS:
-- Sismos, terremotos y sismologia
+- Investigaciones sismologicas
+- Fallas tectonicas y geofisica
 - Volcanes y erupciones
-- Geologia, tectonica y geofisica
-- Tsunamis y oceanografia
-- Meteorologia y tormentas
-- Huracanes y ciclones
-- Climatologia y cambio climatico
-- Glaciares y criosfera
-- Desastres naturales
-- Satelites y observacion terrestre
-- Astronomia y exploracion espacial
-- Investigaciones y descubrimientos cientificos
+- Meteorologia y fenomenos atmosfericos
+- Climatologia y glaciares
+- Oceanos, tsunamis y oceanografia
+- Espacio, astronomia y satelites
+- Desastres naturales y geologia
 
-PUBLICACION:
+REGLA EDITORIAL OBLIGATORIA:
+- NO publicar reportes de ocurrencia de sismos.
+- NO publicar avisos de magnitud y epicentro.
+- SI permitir estudios y descubrimientos
+  relacionados con terremotos.
+- Los sismos recientes son responsabilidad
+  del sistema separado de alertas sismicas.
+
+REDES:
 - Instagram @sismonauta
-- Facebook Page SISMONAUTA
+- Fanpage Facebook SISMONAUTA
 
 CARACTERISTICAS:
-- Noticias de las ultimas 24 horas
-- Busqueda RSS en espanol e ingles
-- Seleccion editorial flexible
-- Traduccion al espanol
+- Noticias publicadas en las ultimas 24 horas
+- RSS en espanol e ingles
+- Filtros cientificos mas flexibles
+- Traduccion automatica al espanol
 - Gemini, OpenRouter o Groq opcionales
-- Redaccion basada en informacion disponible
+- Explicaciones sin datos inventados
 - Fotografias Wikimedia Commons CC0/PD
-- Fondos graficos originales de respaldo
+- Fondo grafico original de respaldo
 - Imagen vertical 1080 x 1350
-- Banner azul y tipografia blanca
-- Historial GitHub antduplicados
-- Control de publicaciones inciertas
-- Publicacion automatica o vista previa
+- Banner azul y letras blancas
+- Historial GitHub antiduplicados
+- Publicacion independiente por plataforma
+- Proteccion ante envios inciertos
 
 DEPENDENCIAS:
     pip install requests pillow
@@ -47,31 +51,8 @@ DEPENDENCIAS:
 VISTA PREVIA:
     python noticias_sismonauta.py --out output_noticias
 
-PUBLICACION:
+PUBLICAR:
     python noticias_sismonauta.py --publish --out output_noticias
-
-VARIABLES OBLIGATORIAS PARA PUBLICAR:
-    GH_TOKEN
-    GITHUB_REPOSITORY
-    GITHUB_REF_NAME
-    INSTAGRAM_TOKEN
-    INSTAGRAM_USER_ID
-    FACEBOOK_PAGE_ID
-    FACEBOOK_PAGE_TOKEN
-
-OPCIONALES:
-    GEMINI_API_KEY
-    OPENROUTER_API_KEY
-    GROQ_API_KEY
-    IG_GRAPH_VERSION
-    IG_GRAPH_BASE
-    NEWS_LOOKBACK_HOURS
-    NEWS_MAX_ARTICLES
-
-NOTA:
-El programa no inventa noticias ni hechos cientificos.
-Una respuesta de Meta confirma la solicitud aceptada;
-no garantiza la visibilidad posterior del contenido.
 """
 
 from __future__ import annotations
@@ -98,19 +79,14 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 import requests
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 
-from PIL import (
-    Image,
-    ImageDraw,
-    ImageFont,
-    ImageOps,
-)
 
 # ============================================================
 # 1. CONFIGURACION GENERAL
 # ============================================================
 
-UA = "SismonautaNews/4.0"
+UA = "SismonautaNews/4.1"
 
 HTTP = requests.Session()
 
@@ -133,13 +109,10 @@ FB_BASE = "https://graph.facebook.com"
 
 ACCOUNT = "sismonauta"
 
-# IMPORTANTE:
-# Mantener el archivo historico original.
+# NO cambiar: contiene el historial anterior.
 STATE_FILE = "sismonauta_noticias/state.json"
 
-LOOKBACK_HOURS = int(
-    os.getenv("NEWS_LOOKBACK_HOURS", "24")
-)
+LOOKBACK_HOURS = 24
 
 MAX_ARTICLES = int(
     os.getenv("NEWS_MAX_ARTICLES", "100")
@@ -158,26 +131,21 @@ HASHTAGS_BASE = (
     "#PlanetaTierra #DivulgacionCientifica"
 )
 
-# ============================================================
-# 2. CATEGORIAS Y BUSQUEDAS
-# ============================================================
 
-# Las consultas se mantienen relativamente amplias
-# para no depender de la aparicion de estudios nuevos.
-#
-# Google News RSS devuelve enlaces a medios.
-# Los contenidos se vuelven a filtrar localmente.
+# ============================================================
+# 2. BUSQUEDAS RSS POR CATEGORIA
+# ============================================================
 
 SEARCH_GROUPS = {
     "sismos": [
-        ("es", "sismos terremotos"),
-        ("es", "sismología"),
+        ("es", "sismología investigación"),
         ("es", "fallas tectónicas"),
-        ("es", "alerta sísmica"),
-        ("en", "earthquake seismology"),
-        ("en", "earthquake research"),
-        ("en", "tectonic plates earthquake"),
-        ("en", "seismic monitoring"),
+        ("es", "alerta sísmica tecnología"),
+        ("es", "geofísica terremotos"),
+        ("en", "earthquake seismology research"),
+        ("en", "tectonic fault science"),
+        ("en", "seismic early warning"),
+        ("en", "earthquake monitoring technology"),
     ],
 
     "volcanes": [
@@ -195,7 +163,7 @@ SEARCH_GROUPS = {
         ("es", "meteorología tormentas"),
         ("es", "huracanes ciclones"),
         ("es", "fenómenos meteorológicos"),
-        ("es", "pronóstico meteorológico científico"),
+        ("es", "pronóstico meteorológico"),
         ("en", "meteorology weather research"),
         ("en", "hurricane cyclone"),
         ("en", "extreme weather"),
@@ -257,8 +225,9 @@ SEARCH_GROUPS = {
     ],
 }
 
+
 # ============================================================
-# 3. PALABRAS CIENTIFICAS POR CATEGORIA
+# 3. FILTROS TEMATICOS
 # ============================================================
 
 CATEGORY_PATTERNS = {
@@ -266,8 +235,8 @@ CATEGORY_PATTERNS = {
         r"sism\w*|s[ií]smic\w*|seism\w*|"
         r"earthquak\w*|terremot\w*|"
         r"tect[oó]nic\w*|tectoni\w*|"
-        r"falla geol[oó]gica|"
-        r"fault zone|subduction|subducci[oó]n",
+        r"falla geol[oó]gica|fault zone|"
+        r"subduction|subducci[oó]n",
         re.I,
     ),
 
@@ -293,12 +262,10 @@ CATEGORY_PATTERNS = {
 
     "climatologia": re.compile(
         r"climat\w*|climate\w*|"
-        r"calentamiento global|"
-        r"global warming|"
+        r"calentamiento global|global warming|"
         r"glaciar\w*|glacier\w*|"
         r"criosfera|cryosphere|"
-        r"temperatura global|"
-        r"global temperature|"
+        r"temperatura global|global temperature|"
         r"deshielo|ice melt",
         re.I,
     ),
@@ -307,8 +274,7 @@ CATEGORY_PATTERNS = {
         r"oc[eé]an\w*|ocean\w*|"
         r"oceanograf\w*|oceanograph\w*|"
         r"tsunami\w*|maremot\w*|"
-        r"corrientes marinas|"
-        r"ocean currents|"
+        r"corrientes marinas|ocean currents|"
         r"nivel del mar|sea level|"
         r"fondo marino|seafloor|"
         r"arrecife\w*|coral reef",
@@ -319,12 +285,10 @@ CATEGORY_PATTERNS = {
         r"astronom\w*|astronomy|"
         r"espacio exterior|outer space|"
         r"exploraci[oó]n espacial|"
-        r"space exploration|"
-        r"NASA\b|ESA\b|"
+        r"space exploration|NASA\b|ESA\b|"
         r"sat[eé]lit\w*|satellite\w*|"
         r"planet\w*|planeta\w*|"
-        r"galaxi\w*|galaxy|"
-        r"telescop\w*|"
+        r"galaxi\w*|galaxy|telescop\w*|"
         r"asteroid\w*|asteroide\w*|"
         r"solar system|sistema solar|"
         r"cosmic\w*|c[oó]smic\w*",
@@ -338,8 +302,8 @@ CATEGORY_PATTERNS = {
         r"inundaci[oó]n\w*|flood\w*|"
         r"alud\w*|avalanche\w*|"
         r"incendio\w* forestal\w*|"
-        r"wildfire\w*|"
-        r"riesgo natural|natural hazard\w*|"
+        r"wildfire\w*|riesgo natural|"
+        r"natural hazard\w*|"
         r"emergencia clim[aá]tica|"
         r"extreme weather",
         re.I,
@@ -351,11 +315,8 @@ CATEGORY_PATTERNS = {
         r"corteza terrestre|earth crust|"
         r"rock formation\w*|"
         r"formaci[oó]n rocosa|"
-        r"geological\w*|"
-        r"geographic\w*|"
-        r"geomorfolog\w*|"
-        r"tectonic\w*|"
-        r"continental drift",
+        r"geological\w*|geomorfolog\w*|"
+        r"tectonic\w*|continental drift",
         re.I,
     ),
 }
@@ -367,8 +328,8 @@ ADVANCE = re.compile(
     r"descubr\w*|hallazgo\w*|"
     r"an[aá]lis\w*|analys\w*|"
     r"tecnolog\w*|technolog\w*|"
-    r"monitor\w*|observ\w*|"
-    r"detect\w*|sistema\w*|system\w*|"
+    r"monitor\w*|observ\w*|detect\w*|"
+    r"sistema\w*|system\w*|"
     r"sat[eé]lit\w*|satellite\w*|"
     r"medici[oó]n\w*|measurement\w*|"
     r"alerta\w*|warning\w*|"
@@ -383,16 +344,12 @@ SPAM = re.compile(
     r"hor[oó]scop\w*|horoscop\w*|"
     r"astrolog\w*|conspiracy|"
     r"conspiraci[oó]n\w*|"
-    r"apocalipsis|"
-    r"loter[ií]a|lottery|"
+    r"apocalipsis|loter[ií]a|lottery|"
     r"apuesta\w*|betting|"
     r"descuentos?|oferta comercial|"
     r"promoci[oó]n comercial",
     re.I,
 )
-
-# Publicaciones puramente especulativas o
-# predicciones de terremotos no verificadas.
 
 MISLEADING = re.compile(
     r"predicen el pr[oó]ximo terremoto|"
@@ -402,8 +359,180 @@ MISLEADING = re.compile(
     re.I,
 )
 
+
 # ============================================================
-# 4. UTILIDADES
+# 4. FILTRO OBLIGATORIO DE OCURRENCIA SISMICA
+# ============================================================
+
+# Este filtro solo afecta a noticias de
+# terremotos y temblores.
+#
+# Las noticias sobre volcanes, huracanes,
+# tsunamis, oceanos y otros fenomenos
+# permanecen elegibles.
+
+EARTHQUAKE_WORDS = re.compile(
+    r"\b("
+    r"sismos?|temblores?|terremotos?|"
+    r"earthquakes?|quakes?|"
+    r"seismic event|seismic tremor"
+    r")\b",
+    re.I,
+)
+
+# Indicadores de que el titular informa
+# un terremoto ocurrido y no un estudio.
+
+EARTHQUAKE_EVENT = re.compile(
+    r"\b("
+    r"magnitud\s*(?:de\s*)?\d|"
+    r"magnitude\s*(?:of\s*)?\d|"
+    r"magnitude\s+[3-9](?:[.,]\d)?|"
+    r"sacude|sacudi[oó]|sacuden|"
+    r"remece|remeci[oó]|remecen|"
+    r"se\s+registr[oó]|"
+    r"se\s+report[oó]|"
+    r"se\s+produjo|"
+    r"se\s+detect[oó]|"
+    r"se\s+sinti[oó]|"
+    r"reportan|registran|"
+    r"epicentro|"
+    r"strikes?|struck|"
+    r"hits?|shakes?|"
+    r"felt|reported|recorded|"
+    r"occurred|"
+    r"tembl[oó]\s+la\s+tierra"
+    r")\b",
+    re.I,
+)
+
+# Titulares tipicos de reportes:
+# "Sismo en Chile", "Nuevo terremoto",
+# "Earthquake near Japan", etc.
+
+EARTHQUAKE_HEADLINE = re.compile(
+    r"\b("
+    r"nuevo\s+sismo|fuerte\s+sismo|"
+    r"nuevo\s+temblor|fuerte\s+temblor|"
+    r"nuevo\s+terremoto|"
+    r"strong\s+earthquake|"
+    r"powerful\s+earthquake|"
+    r"major\s+earthquake|"
+    r"earthquake\s+(?:in|near|off)\b|"
+    r"terremoto\s+(?:en|cerca|frente)\b|"
+    r"sismo\s+(?:en|cerca|frente)\b|"
+    r"temblor\s+(?:en|cerca|frente)\b"
+    r")",
+    re.I,
+)
+
+# Indicadores claros de una nota cientifica.
+# Su presencia permite investigar noticias
+# sobre terremotos historicos o actuales,
+# pero no anula titulares de ocurrencia directa.
+
+EARTHQUAKE_RESEARCH = re.compile(
+    r"\b("
+    r"investigaci[oó]n|investigadores?|"
+    r"estudio|estudios|estudian|"
+    r"cient[ií]ficos?|"
+    r"descubrimiento|descubren|hallazgo|"
+    r"an[aá]lisis|analizan|"
+    r"nueva\s+tecnolog[ií]a|"
+    r"alerta\s+temprana|"
+    r"research|study|studies|"
+    r"scientists?|researchers?|"
+    r"discovery|findings?|"
+    r"new\s+technology|"
+    r"early\s+warning|new\s+model|"
+    r"new\s+research"
+    r")\b",
+    re.I,
+)
+
+# Formas de ocurrencia que requieren
+# que el titular realmente trate un sismo.
+
+EARTHQUAKE_DIRECT_REPORT = re.compile(
+    r"("
+    r"(?:sismo|temblor|terremoto|earthquake|quake)"
+    r"[^.!?]{0,85}"
+    r"(?:sacude|remece|registrado|reportado|"
+    r"ocurre|ocurri[oó]|se\s+registr[oó]|"
+    r"se\s+report[oó]|strikes?|hits?|"
+    r"struck|shakes?|reported|occurred)"
+    r"|"
+    r"(?:sacude|remece|se\s+registr[oó]|"
+    r"reportan|strikes?|hits?|shakes?)"
+    r"[^.!?]{0,85}"
+    r"(?:sismo|temblor|terremoto|earthquake|quake)"
+    r")",
+    re.I,
+)
+
+
+def is_earthquake_occurrence(title, description=""):
+    """
+    True: noticia que informa una ocurrencia.
+
+    False: noticia cientifica o de otra tematica.
+
+    Se analiza especialmente el TITULAR para
+    evitar confundir un estudio retrospectivo
+    con un reporte sismico reciente.
+    """
+
+    title = clean(title)
+    description = clean(description)
+
+    if not EARTHQUAKE_WORDS.search(
+        title + " " + description
+    ):
+        return False
+
+    # 1. Reportes explicitos de ocurrencia.
+    if EARTHQUAKE_DIRECT_REPORT.search(title):
+        return True
+
+    # 2. Titulares que anuncian un sismo
+    # en una localidad determinada.
+    if EARTHQUAKE_HEADLINE.search(title):
+        if not EARTHQUAKE_RESEARCH.search(title):
+            return True
+
+    # 3. Titulares de magnitud y epicentro.
+    if (
+        EARTHQUAKE_WORDS.search(title)
+        and EARTHQUAKE_EVENT.search(title)
+        and not EARTHQUAKE_RESEARCH.search(title)
+    ):
+        return True
+
+    # 4. Investigación claramente identificada.
+    if EARTHQUAKE_RESEARCH.search(title):
+        return False
+
+    # 5. Si el titulo solo anuncia un sismo,
+    # examinar el resumen.
+    if (
+        EARTHQUAKE_WORDS.search(title)
+        and EARTHQUAKE_EVENT.search(description)
+        and not EARTHQUAKE_RESEARCH.search(
+            title + " " + description
+        )
+    ):
+        return True
+
+    # 6. Otros titulares de ocurrencia sin
+    # magnitud, como "Fuerte temblor en...".
+    if EARTHQUAKE_HEADLINE.search(title):
+        return True
+
+    return False
+
+
+# ============================================================
+# 5. UTILIDADES
 # ============================================================
 
 def log(*values):
@@ -440,11 +569,15 @@ def normalized(value):
 
 
 def word_count(value):
-    return len(clean(value).split())
+    return len(
+        clean(value).split()
+    )
 
 
 def utcnow():
-    return datetime.now(timezone.utc)
+    return datetime.now(
+        timezone.utc
+    )
 
 
 def iso_now():
@@ -471,9 +604,9 @@ def write_json(path, data):
 
 
 def safe_error(exc):
-    result = str(exc)
+    message = str(exc)
 
-    for name in (
+    for key in (
         "GH_TOKEN",
         "INSTAGRAM_TOKEN",
         "FACEBOOK_PAGE_TOKEN",
@@ -481,15 +614,17 @@ def safe_error(exc):
         "OPENROUTER_API_KEY",
         "GROQ_API_KEY",
     ):
-        secret = os.getenv(name, "")
+        secret = os.getenv(
+            key, ""
+        )
 
         if secret:
-            result = result.replace(
+            message = message.replace(
                 secret,
                 "***",
             )
 
-    return result[:300]
+    return message[:300]
 
 
 def get(url, **kwargs):
@@ -524,10 +659,17 @@ def article_fingerprint(title):
 
 
 # ============================================================
-# 5. CLASIFICACION EDITORIAL
+# 6. CLASIFICACION EDITORIAL
 # ============================================================
 
 def classify_article(title, description):
+
+    # REGLA INVIOLABLE DE SISMONAUTA NOTICIAS.
+    if is_earthquake_occurrence(
+        title, description
+    ):
+        return None
+
     content = (
         clean(title)
         + " "
@@ -542,18 +684,14 @@ def classify_article(title, description):
 
     matches = []
 
-    for category, pattern in CATEGORY_PATTERNS.items():
+    for category, pattern in (
+        CATEGORY_PATTERNS.items()
+    ):
         if pattern.search(content):
             matches.append(category)
 
     if not matches:
         return None
-
-    # No se exige una palabra como
-    # "investigacion" para aceptar la noticia.
-    #
-    # Tambien se aceptan observaciones,
-    # eventos naturales y avances relevantes.
 
     priorities = (
         "sismos",
@@ -583,9 +721,6 @@ def is_low_information(title, description):
     if not description:
         return False
 
-    # El resumen no puede limitarse
-    # a repetir exactamente el titular.
-
     return (
         normalized(description)
         == normalized(title)
@@ -593,26 +728,31 @@ def is_low_information(title, description):
 
 
 # ============================================================
-# 6. CONSULTA RSS
+# 7. NOTICIAS RSS - ULTIMAS 24 HORAS
 # ============================================================
 
 def feed_items():
+
     now = utcnow()
 
-    result = {}
+    output = {}
 
     audit = {
         "feeds_ok": 0,
         "feeds_failed": 0,
         "rss_items": 0,
-        "outside_window": 0,
+        "outside_24h": 0,
         "missing_date": 0,
+        "earthquake_occurrence": 0,
         "not_relevant": 0,
-        "spam_or_invalid": 0,
+        "invalid": 0,
         "accepted": 0,
     }
 
-    for search_category, searches in SEARCH_GROUPS.items():
+    for search_category, searches in (
+        SEARCH_GROUPS.items()
+    ):
+
         for lang, query in searches:
 
             region = (
@@ -621,17 +761,14 @@ def feed_items():
                 else ("en-US", "US", "US:en")
             )
 
-            # El RSS se limita al periodo
-            # establecido por el workflow.
-            complete_query = (
-                query
-                + f" when:{LOOKBACK_HOURS}h"
+            full_query = (
+                query + " when:1d"
             )
 
             url = (
                 "https://news.google.com/rss/search?"
                 + urllib.parse.urlencode({
-                    "q": complete_query,
+                    "q": full_query,
                     "hl": region[0],
                     "gl": region[1],
                     "ceid": region[2],
@@ -675,6 +812,7 @@ def feed_items():
             )
 
             for node in entries:
+
                 audit["rss_items"] += 1
 
                 title = clean(
@@ -708,13 +846,11 @@ def feed_items():
                     continue
 
                 if not (
-                    now - timedelta(
-                        hours=LOOKBACK_HOURS
-                    )
+                    now - timedelta(hours=24)
                     <= date
                     <= now + timedelta(minutes=5)
                 ):
-                    audit["outside_window"] += 1
+                    audit["outside_24h"] += 1
                     continue
 
                 provider = clean(
@@ -734,11 +870,29 @@ def feed_items():
                     ):
                         title = prefix.strip()
 
+                # PRIMER BLOQUEO.
+                # Los reportes sismicos no son
+                # noticias cientificas publicables.
+                if is_earthquake_occurrence(
+                    title,
+                    description,
+                ):
+                    audit[
+                        "earthquake_occurrence"
+                    ] += 1
+
+                    log(
+                        "DESCARTADO - OCURRENCIA:",
+                        title[:105],
+                    )
+
+                    continue
+
                 if is_low_information(
                     title,
                     description,
                 ):
-                    audit["spam_or_invalid"] += 1
+                    audit["invalid"] += 1
                     continue
 
                 category = classify_article(
@@ -754,10 +908,10 @@ def feed_items():
                     title
                 )
 
-                if identifier in result:
+                if identifier in output:
                     continue
 
-                result[identifier] = {
+                output[identifier] = {
                     "id": identifier,
                     "title": title,
                     "description": description,
@@ -786,15 +940,15 @@ def feed_items():
 
     if audit["feeds_ok"] == 0:
         raise RuntimeError(
-            "No fue posible consultar ninguna "
-            "fuente RSS"
+            "No fue posible consultar "
+            "ninguna fuente RSS"
         )
 
-    return list(result.values())
+    return list(output.values())
 
 
 # ============================================================
-# 7. PRIORIDAD EDITORIAL
+# 8. PRIORIDAD EDITORIAL
 # ============================================================
 
 def priority(article):
@@ -842,22 +996,22 @@ def priority(article):
         ("ocean", 2),
         ("satellite", 2),
         ("satelite", 2),
-        ("scientists", 2),
-        ("cientificos", 2),
     ]
 
     for term, weight in weights:
         if term in text:
             score += weight
 
-    if article.get("scientific_advance"):
+    if article.get(
+        "scientific_advance"
+    ):
         score += 3
 
     date = datetime.fromisoformat(
         article["date"]
     )
 
-    age_hours = max(
+    age = max(
         0,
         (
             utcnow() - date
@@ -866,11 +1020,9 @@ def priority(article):
 
     score += max(
         0,
-        LOOKBACK_HOURS - age_hours,
+        24 - age,
     ) * 0.18
 
-    # Preferir noticias que aportan
-    # contexto o informacion verificable.
     score += min(
         5,
         word_count(
@@ -882,18 +1034,13 @@ def priority(article):
 
 
 # ============================================================
-# 8. MODELOS DE IA
+# 9. IA - GEMINI, OPENROUTER, GROQ
 # ============================================================
 
 def ai_text(prompt, max_tokens=1100):
 
-    # ----------------------------
-    # GEMINI
-    # ----------------------------
-
     key = os.getenv(
-        "GEMINI_API_KEY",
-        "",
+        "GEMINI_API_KEY", ""
     ).strip()
 
     if key:
@@ -911,12 +1058,12 @@ def ai_text(prompt, max_tokens=1100):
                     + ":generateContent"
                 ),
                 headers={
-                    "x-goog-api-key": key
+                    "x-goog-api-key": key,
                 },
                 json={
                     "contents": [{
                         "parts": [{
-                            "text": prompt
+                            "text": prompt,
                         }]
                     }],
                     "generationConfig": {
@@ -948,13 +1095,8 @@ def ai_text(prompt, max_tokens=1100):
                 safe_error(exc)[:120],
             )
 
-    # ----------------------------
-    # OPENROUTER
-    # ----------------------------
-
     key = os.getenv(
-        "OPENROUTER_API_KEY",
-        "",
+        "OPENROUTER_API_KEY", ""
     ).strip()
 
     if key:
@@ -970,7 +1112,7 @@ def ai_text(prompt, max_tokens=1100):
                     "api/v1/chat/completions"
                 ),
                 headers={
-                    "Authorization": "Bearer " + key
+                    "Authorization": "Bearer " + key,
                 },
                 json={
                     "model": model,
@@ -1003,13 +1145,8 @@ def ai_text(prompt, max_tokens=1100):
                 safe_error(exc)[:120],
             )
 
-    # ----------------------------
-    # GROQ
-    # ----------------------------
-
     key = os.getenv(
-        "GROQ_API_KEY",
-        "",
+        "GROQ_API_KEY", ""
     ).strip()
 
     if key:
@@ -1025,7 +1162,7 @@ def ai_text(prompt, max_tokens=1100):
                     "openai/v1/chat/completions"
                 ),
                 headers={
-                    "Authorization": "Bearer " + key
+                    "Authorization": "Bearer " + key,
                 },
                 json={
                     "model": model,
@@ -1059,7 +1196,7 @@ def ai_text(prompt, max_tokens=1100):
 
 
 # ============================================================
-# 9. TRADUCCION
+# 10. TRADUCCION AL ESPANOL
 # ============================================================
 
 def translate_es(value):
@@ -1070,8 +1207,9 @@ def translate_es(value):
 
     prompt = (
         "Traduce fielmente al español de Chile. "
-        "No agregues datos ni cambies nombres "
-        "o cifras. Devuelve solo la traducción:\n\n"
+        "No agregues datos ni cambies nombres, "
+        "fechas ni cifras. Devuelve solamente "
+        "la traducción:\n\n"
         + value
     )
 
@@ -1083,7 +1221,6 @@ def translate_es(value):
     if result and len(result) >= 10:
         return clean(result)
 
-    # Traduccion automatica de respaldo.
     try:
         response = get(
             (
@@ -1111,11 +1248,8 @@ def translate_es(value):
         if len(result) >= 10:
             return result
 
-    except Exception as exc:
-        log(
-            "Traduccion no disponible:",
-            type(exc).__name__,
-        )
+    except Exception:
+        pass
 
     return None
 
@@ -1154,7 +1288,7 @@ def spanish_article(article):
 
 
 # ============================================================
-# 10. EXTRACCION DEL ARTICULO
+# 11. EXTRAER ARTICULO COMPLETO
 # ============================================================
 
 class ArticleParser(HTMLParser):
@@ -1220,9 +1354,7 @@ class ArticleParser(HTMLParser):
 
 
 def full_article_text(article):
-    url = article.get(
-        "url", ""
-    )
+    url = article.get("url", "")
 
     if not url.startswith("https://"):
         return ""
@@ -1232,7 +1364,7 @@ def full_article_text(article):
             url,
             timeout=20,
             headers={
-                "Accept": "text/html"
+                "Accept": "text/html",
             },
         )
 
@@ -1245,10 +1377,7 @@ def full_article_text(article):
             return ""
 
         parser = ArticleParser()
-
-        parser.feed(
-            response.text
-        )
+        parser.feed(response.text)
 
         paragraphs = []
         seen = set()
@@ -1279,8 +1408,6 @@ def full_article_text(article):
             paragraphs
         )
 
-        # Mas flexible que antes:
-        # 60 palabras en vez de 100.
         if word_count(content) < 60:
             return ""
 
@@ -1296,7 +1423,7 @@ def full_article_text(article):
 
 
 # ============================================================
-# 11. EXPLICACION DETALLADA
+# 12. EXPLICACION DETALLADA
 # ============================================================
 
 def detailed_explanation(article):
@@ -1309,29 +1436,34 @@ def detailed_explanation(article):
 
     prompt = (
         "Eres periodista científico de SISMONAUTA. "
-        "Redacta una explicación original y clara, "
-        "en español de Chile, sobre esta noticia.\n\n"
+        "Redacta una explicación original y clara "
+        "en español de Chile.\n\n"
 
-        "Extensión orientativa: entre 80 y 190 palabras, "
-        "según la información que exista.\n\n"
+        "Extensión orientativa: 80 a 190 palabras, "
+        "según los datos disponibles.\n\n"
 
-        "Incluye solamente hechos demostrables "
-        "dentro del texto proporcionado.\n"
+        "Explica qué se descubrió, observó o "
+        "investigó y su importancia.\n"
 
-        "Explica qué ocurrió, qué se observó o "
-        "qué se investigó. Menciona resultados, "
-        "instituciones o fechas solo si aparecen "
-        "en la fuente.\n\n"
+        "Incluye solamente datos que aparezcan "
+        "en el material proporcionado.\n"
 
-        "No inventes cifras, autores, conclusiones "
-        "ni causas. No agregues predicciones.\n"
+        "No inventes cifras, instituciones, "
+        "fechas ni conclusiones.\n"
 
-        "No copies párrafos extensos.\n"
-        "No agregues hashtags ni enlaces.\n"
-        "No incluyas frases genéricas de relleno.\n"
+        "No agregues predicciones sísmicas.\n"
 
-        "Si el texto no permite describir siquiera "
-        "un hecho verificable, responde INSUFICIENTE.\n\n"
+        "No conviertas investigaciones sobre "
+        "terremotos en avisos de sismos recientes.\n"
+
+        "No copies extensos párrafos del artículo.\n"
+
+        "No añadas hashtags ni enlaces.\n"
+
+        "Evita frases genéricas de relleno.\n\n"
+
+        "Si falta información verificable, "
+        "responde INSUFICIENTE.\n\n"
 
         f"TITULAR: {article['title']}\n"
         f"MEDIO: {article.get('source', '')}\n"
@@ -1357,7 +1489,7 @@ def detailed_explanation(article):
 
 
 # ============================================================
-# 12. EXPLICACION DESDE EL RESUMEN
+# 13. EXPLICACION DESDE EL RESUMEN RSS
 # ============================================================
 
 def evidence_brief(article):
@@ -1375,36 +1507,34 @@ def evidence_brief(article):
     if normalized(summary) == normalized(title):
         return None
 
-    if (
-        word_count(summary)
-        < MIN_DESCRIPTION_WORDS
-    ):
+    if word_count(summary) < MIN_DESCRIPTION_WORDS:
         return None
 
     prompt = (
         "Redacta una nota informativa para "
-        "SISMONAUTA en español de Chile.\n\n"
+        "SISMONAUTA, en español de Chile.\n\n"
 
-        "Utiliza exclusivamente el titular y "
-        "el resumen de esta noticia.\n"
+        "Puede tratar de sismología científica, "
+        "volcanes, océanos, meteorología, "
+        "climatología, geología, desastres "
+        "naturales o espacio.\n\n"
 
-        "Puede tratar sobre sismos, volcanes, "
-        "meteorología, clima, océanos, espacio, "
-        "geología o desastres naturales.\n\n"
+        "Utiliza exclusivamente los datos del "
+        "titular y el resumen.\n"
 
-        "Redacta entre 35 y 100 palabras "
-        "cuando los datos lo permitan.\n"
+        "No inventes resultados, causas, "
+        "instituciones ni cifras.\n"
 
-        "Si hay pocos datos, utiliza menos "
-        "palabras. No inventes información.\n"
+        "No transformes un estudio sobre "
+        "terremotos en una alerta sísmica.\n"
 
-        "No agregues resultados, cifras ni "
-        "instituciones ausentes de los datos.\n"
+        "Si hay pocos datos, escribe menos "
+        "en lugar de inventar.\n"
 
-        "No copies el titular como explicación.\n"
+        "No repitas el titular como explicación.\n"
         "No agregues hashtags ni enlaces.\n"
 
-        "Si no puedes explicar el hecho concreto, "
+        "Si no puedes explicar un hecho concreto, "
         "responde INSUFICIENTE.\n\n"
 
         f"TITULAR: {title}\n\n"
@@ -1423,12 +1553,6 @@ def evidence_brief(article):
     ):
         return result.strip()
 
-    # Respaldo determinista.
-    # El resumen ya constituye información
-    # publicada por la fuente original.
-    #
-    # No generar contenido inventado.
-
     if word_count(summary) >= 18:
         return summary.rstrip(".") + "."
 
@@ -1436,23 +1560,20 @@ def evidence_brief(article):
 
 
 def obtain_explanation(article):
-    explanation = detailed_explanation(
+    result = detailed_explanation(
         article
     )
 
-    if explanation:
-        return explanation
+    if result:
+        return result
 
-    explanation = evidence_brief(
+    result = evidence_brief(
         article
     )
 
-    if explanation:
-        return explanation
+    if result:
+        return result
 
-    # Si hay suficiente informacion en
-    # el resumen, permitir una nota breve
-    # sin necesidad de un modelo de IA.
     summary = clean(
         article.get("description", "")
     )
@@ -1468,7 +1589,7 @@ def obtain_explanation(article):
 
 
 # ============================================================
-# 13. FOTOGRAFIAS DE WIKIMEDIA COMMONS
+# 14. FOTOGRAFIAS DE WIKIMEDIA COMMONS
 # ============================================================
 
 PHOTO_QUERIES = {
@@ -1521,31 +1642,27 @@ PHOTO_QUERIES = {
     ],
 }
 
-PHOTO_ALLOWED = (
-    "cc0",
-    "public domain",
-    "publicdomain",
-    "pdm",
-    "pd-old",
-    "pd-us",
-    "pd-self",
-)
-
 
 def commons_license_accepted(metadata):
     short = clean(
-        (metadata.get("LicenseShortName") or {})
-        .get("value", "")
+        (
+            metadata.get("LicenseShortName")
+            or {}
+        ).get("value", "")
     ).lower()
 
     code = clean(
-        (metadata.get("License") or {})
-        .get("value", "")
+        (
+            metadata.get("License")
+            or {}
+        ).get("value", "")
     ).lower()
 
     usage = clean(
-        (metadata.get("UsageTerms") or {})
-        .get("value", "")
+        (
+            metadata.get("UsageTerms")
+            or {}
+        ).get("value", "")
     ).lower()
 
     combined = " ".join((
@@ -1554,9 +1671,19 @@ def commons_license_accepted(metadata):
         usage,
     ))
 
+    allowed = (
+        "cc0",
+        "public domain",
+        "publicdomain",
+        "pdm",
+        "pd-old",
+        "pd-us",
+        "pd-self",
+    )
+
     return any(
         marker in combined
-        for marker in PHOTO_ALLOWED
+        for marker in allowed
     )
 
 
@@ -1583,9 +1710,7 @@ def commons_photo(article):
             "gsrnamespace": 6,
             "gsrlimit": 40,
             "prop": "imageinfo",
-            "iiprop": (
-                "url|extmetadata|mime|size"
-            ),
+            "iiprop": "url|extmetadata|mime|size",
             "iiurlwidth": 1500,
         }
 
@@ -1620,10 +1745,9 @@ def commons_photo(article):
                 )
 
             for page in pages:
-                infos = (
-                    page.get("imageinfo")
-                    or []
-                )
+                infos = page.get(
+                    "imageinfo"
+                ) or []
 
                 if not infos:
                     continue
@@ -1663,14 +1787,12 @@ def commons_photo(article):
                 ):
                     continue
 
-                # Evitar infografias, mapas
-                # y documentos en lugar de fotos.
                 if re.search(
                     r"diagram|infographic|"
                     r"schematic|drawing|"
                     r"illustration|logo|"
-                    r"poster|chart|"
-                    r"presentation|screenshot",
+                    r"poster|chart|presentation|"
+                    r"screenshot",
                     title,
                     re.I,
                 ):
@@ -1726,7 +1848,9 @@ def commons_photo(article):
             with Image.open(
                 io.BytesIO(response.content)
             ) as original:
-                image = original.convert("RGB")
+                image = original.convert(
+                    "RGB"
+                )
 
             if min(image.size) < 450:
                 continue
@@ -1745,7 +1869,7 @@ def commons_photo(article):
 
 
 # ============================================================
-# 14. FONDO GRAFICO ORIGINAL
+# 15. FONDO GRAFICO ORIGINAL
 # ============================================================
 
 def original_science_background(article):
@@ -1756,7 +1880,9 @@ def original_science_background(article):
         16,
     )
 
-    rng = random.Random(seed)
+    rng = random.Random(
+        seed
+    )
 
     image = Image.new(
         "RGB",
@@ -1764,15 +1890,17 @@ def original_science_background(article):
         (5, 27, 53),
     )
 
-    draw = ImageDraw.Draw(image)
+    draw = ImageDraw.Draw(
+        image
+    )
 
     for y in range(HEIGHT):
         t = y / HEIGHT
 
         color = (
-            int(8 + 17 * t),
-            int(42 + 32 * t),
-            int(83 + 30 * t),
+            int(8 + 17*t),
+            int(42 + 32*t),
+            int(83 + 30*t),
         )
 
         draw.line(
@@ -1780,12 +1908,6 @@ def original_science_background(article):
             fill=color,
         )
 
-    category = article.get(
-        "category", ""
-    )
-
-    # Dibujos abstractos para cualquier
-    # categoria cientifica.
     for layer in range(7):
         points = []
 
@@ -1795,15 +1917,17 @@ def original_science_background(article):
         )
 
         for x in range(
-            -20, WIDTH + 40, 16
+            -20,
+            WIDTH + 40,
+            16,
         ):
             y = (
                 base
                 + 65 * math.sin(
-                    x / 160 + phase
+                    x/160 + phase
                 )
                 + 22 * math.sin(
-                    x / 37 + phase / 2
+                    x/37 + phase/2
                 )
             )
 
@@ -1817,9 +1941,9 @@ def original_science_background(article):
         ])
 
         color = (
-            10 + layer * 8,
-            55 + layer * 8,
-            87 + layer * 4,
+            10 + layer*8,
+            55 + layer*8,
+            87 + layer*4,
         )
 
         draw.polygon(
@@ -1827,21 +1951,23 @@ def original_science_background(article):
             fill=color,
         )
 
-    if category in (
+    if article.get("category") in (
         "espacio",
         "meteorologia",
         "climatologia",
     ):
         for _ in range(75):
             x = rng.randint(
-                0, WIDTH - 1
+                0, WIDTH-1
             )
 
             y = rng.randint(
-                100, HEIGHT - 150
+                100, HEIGHT-150
             )
 
-            radius = rng.randint(1, 4)
+            radius = rng.randint(
+                1, 4
+            )
 
             draw.ellipse(
                 (
@@ -1880,7 +2006,7 @@ def original_science_background(article):
 
 
 # ============================================================
-# 15. TIPOGRAFIA
+# 16. TIPOGRAFIA Y DISENO
 # ============================================================
 
 def font(size, bold=False):
@@ -1896,6 +2022,7 @@ def font(size, bold=False):
                 "LiberationSans-Bold.ttf"
             ),
         ]
+
     else:
         paths = [
             (
@@ -1923,11 +2050,13 @@ def wrap_text(draw, text, selected_font, width):
             current + " " + word
         ).strip()
 
-        if draw.textbbox(
+        measured = draw.textbbox(
             (0, 0),
             proposed,
             font=selected_font,
-        )[2] <= width:
+        )[2]
+
+        if measured <= width:
             current = proposed
 
         else:
@@ -1943,7 +2072,7 @@ def wrap_text(draw, text, selected_font, width):
 
 
 # ============================================================
-# 16. CREACION DE IMAGEN
+# 17. CREACION DE IMAGEN
 # ============================================================
 
 def make_card(image, article, path):
@@ -1960,7 +2089,9 @@ def make_card(image, article, path):
         (0, 0, 0, 0),
     )
 
-    draw = ImageDraw.Draw(overlay)
+    draw = ImageDraw.Draw(
+        overlay
+    )
 
     draw.rectangle(
         (0, 0, WIDTH, 100),
@@ -1987,8 +2118,7 @@ def make_card(image, article, path):
         70, 21, -2
     ):
         candidate = font(
-            size,
-            True,
+            size, True
         )
 
         candidate_lines = wrap_text(
@@ -2005,8 +2135,7 @@ def make_card(image, article, path):
         band = max(
             210,
             len(candidate_lines)
-            * leading
-            + 100,
+            * leading + 100,
         )
 
         if (
@@ -2075,14 +2204,14 @@ def make_card(image, article, path):
     draw.rectangle(
         (
             0,
-            HEIGHT - 94,
+            HEIGHT-94,
             WIDTH,
             HEIGHT,
         ),
         fill=(3, 24, 49, 245),
     )
 
-    category_labels = {
+    labels = {
         "sismos": "SISMOS",
         "volcanes": "VOLCANES",
         "meteorologia": "METEOROLOGÍA",
@@ -2093,7 +2222,7 @@ def make_card(image, article, path):
         "geologia": "GEOLOGÍA",
     }
 
-    category = category_labels.get(
+    category = labels.get(
         article.get("category"),
         "CIENCIA",
     )
@@ -2115,7 +2244,6 @@ def make_card(image, article, path):
     ).convert("RGB")
 
     path = Path(path)
-
     path.parent.mkdir(
         parents=True,
         exist_ok=True,
@@ -2130,7 +2258,7 @@ def make_card(image, article, path):
 
 
 # ============================================================
-# 17. HASHTAGS POR TEMATICA
+# 18. DESCRIPCION Y HASHTAGS
 # ============================================================
 
 CATEGORY_HASHTAGS = {
@@ -2183,17 +2311,12 @@ def caption(article, credit):
 
     if word_count(explanation) < 12:
         raise ValueError(
-            "La noticia no contiene "
-            "informacion suficiente"
+            "Información insuficiente "
+            "para el texto de publicación"
         )
 
-    category = article.get(
-        "category",
-        "sismos",
-    )
-
-    category_label = {
-        "sismos": "ACTUALIDAD SÍSMICA",
+    labels = {
+        "sismos": "CIENCIA SÍSMICA",
         "volcanes": "ACTUALIDAD VOLCÁNICA",
         "meteorologia": "METEOROLOGÍA",
         "climatologia": "CLIMATOLOGÍA",
@@ -2201,7 +2324,17 @@ def caption(article, credit):
         "espacio": "CIENCIA ESPACIAL",
         "desastres": "RIESGOS NATURALES",
         "geologia": "CIENCIAS DE LA TIERRA",
-    }.get(category, "ACTUALIDAD CIENTÍFICA")
+    }
+
+    category = article.get(
+        "category",
+        "sismos",
+    )
+
+    category_label = labels.get(
+        category,
+        "ACTUALIDAD CIENTÍFICA",
+    )
 
     source = clean(
         article.get("source", "")
@@ -2239,54 +2372,36 @@ def caption(article, credit):
     )
 
     if len(result) > 2200:
-        # Recortar exclusivamente el cuerpo,
-        # conservando titulo y hashtags.
         overflow = len(result) - 2200
 
-        if overflow > 0:
-            explanation = explanation[
-                :max(100, len(explanation) - overflow - 10)
-            ].rsplit(" ", 1)[0].rstrip(
-                ",;:"
-            ) + "."
+        explanation = explanation[
+            :max(
+                100,
+                len(explanation) - overflow - 20
+            )
+        ].rsplit(" ", 1)[0].rstrip(",;:") + "."
 
-            article = dict(article)
-            article["explanation"] = explanation
-
-            result = "\n".join([
-                "🌎 SISMONAUTA | " + category_label,
-                "",
-                clean(article["title"]),
-                "",
-                explanation,
-                "",
-                "💬 ¿Qué opinas? Te leemos en los comentarios.",
-                "",
-                HASHTAGS_BASE,
-                CATEGORY_HASHTAGS.get(category, ""),
-            ])
+        parts[4] = explanation
+        result = "\n".join(parts)
 
     if len(result) > 2200:
         raise ValueError(
-            "La descripción supera "
-            "el límite de Instagram"
+            "Descripción demasiado larga"
         )
 
     return result
 
 
 # ============================================================
-# 18. GITHUB - IMAGENES E HISTORIAL
+# 19. GITHUB - IMAGENES E HISTORIAL
 # ============================================================
 
 class Github:
 
     def __init__(self):
-        repo = os.environ[
+        self.repo = os.environ[
             "GITHUB_REPOSITORY"
         ]
-
-        self.repo = repo
 
         self.branch = (
             os.getenv("GITHUB_REF_NAME")
@@ -2295,7 +2410,7 @@ class Github:
 
         self.base = (
             "https://api.github.com/repos/"
-            + repo
+            + self.repo
         )
 
         token = os.environ[
@@ -2307,7 +2422,9 @@ class Github:
         self.session.headers.update({
             "Authorization": "Bearer " + token,
             "Accept": "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
+            "X-GitHub-Api-Version": (
+                "2022-11-28"
+            ),
         })
 
         response = self.session.get(
@@ -2319,7 +2436,7 @@ class Github:
 
         if response.json().get("private"):
             raise RuntimeError(
-                "Se necesita un repositorio público "
+                "El repositorio debe ser público "
                 "para alojar la imagen"
             )
 
@@ -2362,9 +2479,7 @@ class Github:
         )
 
         for attempt in range(4):
-            old, sha = self.read(
-                path
-            )
+            old, sha = self.read(path)
 
             body = {
                 "message": (
@@ -2387,16 +2502,14 @@ class Github:
             )
 
             if (
-                response.status_code
-                in (409, 422)
+                response.status_code in (409, 422)
                 and attempt < 3
             ):
-                time.sleep(
-                    2 + attempt
-                )
+                time.sleep(2 + attempt)
                 continue
 
             response.raise_for_status()
+
             return response.json()
 
     def image_url(self, path):
@@ -2417,7 +2530,7 @@ class Github:
 
 
 # ============================================================
-# 19. META GRAPH API
+# 20. META GRAPH API
 # ============================================================
 
 def graph(
@@ -2433,10 +2546,7 @@ def graph(
         f"{base}/{VERSION}/{path}"
     )
 
-    payload = dict(
-        params or {}
-    )
-
+    payload = dict(params or {})
     payload["access_token"] = token
 
     if method == "GET":
@@ -2445,6 +2555,7 @@ def graph(
             params=payload,
             timeout=55,
         )
+
     else:
         response = requests.post(
             endpoint,
@@ -2457,18 +2568,16 @@ def graph(
 
     except ValueError:
         raise RuntimeError(
-            "Meta devolvió una respuesta "
-            "no JSON"
+            "Meta devolvió respuesta no JSON"
         )
 
     if (
         not response.ok
         or data.get("error")
     ):
-        error = (
-            data.get("error")
-            or {}
-        )
+        error = data.get(
+            "error"
+        ) or {}
 
         raise RuntimeError(
             "Meta HTTP "
@@ -2477,7 +2586,7 @@ def graph(
             + str(
                 error.get(
                     "message",
-                    data,
+                    data
                 )
             )[:240]
         )
@@ -2486,7 +2595,7 @@ def graph(
 
 
 # ============================================================
-# 20. VALIDAR INSTAGRAM
+# 21. VERIFICAR INSTAGRAM Y FACEBOOK
 # ============================================================
 
 def ig_check():
@@ -2514,7 +2623,7 @@ def ig_check():
         ).lower() != ACCOUNT
     ):
         raise RuntimeError(
-            "Cuenta de Instagram incorrecta"
+            "Cuenta Instagram incorrecta"
         )
 
     log(
@@ -2523,10 +2632,6 @@ def ig_check():
 
     return user_id, token
 
-
-# ============================================================
-# 21. VALIDAR FACEBOOK
-# ============================================================
 
 def fb_check():
     page_id = os.environ[
@@ -2572,7 +2677,7 @@ def fb_check():
 
 
 # ============================================================
-# 22. PUBLICACION INSTAGRAM
+# 22. PUBLICAR INSTAGRAM
 # ============================================================
 
 def publish_ig(
@@ -2621,8 +2726,7 @@ def publish_ig(
 
     else:
         raise RuntimeError(
-            "Instagram no confirmó "
-            "el contenedor"
+            "Instagram no confirmó el contenedor"
         )
 
     result = graph(
@@ -2634,9 +2738,7 @@ def publish_ig(
         },
     )
 
-    identifier = result.get(
-        "id"
-    )
+    identifier = result.get("id")
 
     if not identifier:
         raise RuntimeError(
@@ -2647,7 +2749,7 @@ def publish_ig(
 
 
 # ============================================================
-# 23. PUBLICACION FACEBOOK
+# 23. PUBLICAR FACEBOOK
 # ============================================================
 
 def publish_fb(
@@ -2686,20 +2788,15 @@ def publish_fb(
 # ============================================================
 
 def load_state(github):
-    raw, sha = github.read(
+    raw, _ = github.read(
         STATE_FILE
     )
 
     if raw:
-        state = json.loads(
-            raw
-        )
-
+        state = json.loads(raw)
         state.setdefault(
-            "stories",
-            {},
+            "stories", {}
         )
-
         return state
 
     return {
@@ -2721,14 +2818,12 @@ def save_state(github, state):
 
 def is_confirmed(entry):
     targets = entry.get(
-        "targets",
-        {},
+        "targets", {}
     )
 
     return all(
         targets.get(
-            platform,
-            {},
+            platform, {}
         ).get("status") == "published"
         for platform in (
             "instagram",
@@ -2739,14 +2834,12 @@ def is_confirmed(entry):
 
 def has_uncertain(entry):
     targets = entry.get(
-        "targets",
-        {},
+        "targets", {}
     )
 
     return any(
         targets.get(
-            platform,
-            {},
+            platform, {}
         ).get("status") == "uncertain"
         for platform in (
             "instagram",
@@ -2757,16 +2850,15 @@ def has_uncertain(entry):
 
 def publication_targets(entry):
     targets = entry.setdefault(
-        "targets",
-        {},
+        "targets", {}
     )
 
-    for name in (
+    for platform in (
         "instagram",
         "facebook",
     ):
         targets.setdefault(
-            name,
+            platform,
             {
                 "status": "pending"
             },
@@ -2776,7 +2868,7 @@ def publication_targets(entry):
 
 
 # ============================================================
-# 25. BUSCAR NOTICIA ELEGIBLE
+# 25. SELECCIONAR NOTICIA ELEGIBLE
 # ============================================================
 
 def select_news(
@@ -2785,6 +2877,7 @@ def select_news(
     output,
 ):
     reasons = {
+        "earthquake_occurrence": 0,
         "already_published": 0,
         "uncertain_previous": 0,
         "translation_failed": 0,
@@ -2794,26 +2887,46 @@ def select_news(
     }
 
     for original in articles[:MAX_ARTICLES]:
-        existing = state.get(
-            "stories",
-            {},
-        ).get(
-            original["id"]
-        )
 
-        # No repetir noticias confirmadas.
-        if existing and is_confirmed(
-            existing
+        # SEGUNDO BLOQUEO.
+        # Nunca seleccionar ocurrencias.
+        if is_earthquake_occurrence(
+            original["title"],
+            original.get(
+                "description", ""
+            ),
         ):
-            reasons["already_published"] += 1
+            reasons[
+                "earthquake_occurrence"
+            ] += 1
+
+            log(
+                "OMITIDA OCURRENCIA SISMICA:",
+                original["title"][:110],
+            )
+
             continue
 
-        # Evitar publicar una noticia
-        # cuyo envío anterior sea incierto.
-        if existing and has_uncertain(
+        existing = state.get(
+            "stories", {}
+        ).get(original["id"])
+
+        if (
             existing
+            and is_confirmed(existing)
         ):
-            reasons["uncertain_previous"] += 1
+            reasons[
+                "already_published"
+            ] += 1
+            continue
+
+        if (
+            existing
+            and has_uncertain(existing)
+        ):
+            reasons[
+                "uncertain_previous"
+            ] += 1
             continue
 
         log(
@@ -2828,7 +2941,26 @@ def select_news(
         )
 
         if article is None:
-            reasons["translation_failed"] += 1
+            reasons[
+                "translation_failed"
+            ] += 1
+            continue
+
+        # Verificacion de la traduccion.
+        if is_earthquake_occurrence(
+            article["title"],
+            article.get(
+                "description", ""
+            ),
+        ):
+            reasons[
+                "earthquake_occurrence"
+            ] += 1
+
+            log(
+                "OMITIDA TRADUCCION DE OCURRENCIA:",
+                article["title"][:100],
+            )
             continue
 
         explanation = obtain_explanation(
@@ -2837,11 +2969,6 @@ def select_news(
 
         if not explanation:
             reasons["no_information"] += 1
-
-            log(
-                "OMITIDA: información insuficiente"
-            )
-
             continue
 
         article["explanation"] = explanation
@@ -2857,7 +2984,9 @@ def select_news(
                 )
             )
 
-            reasons["generated_backgrounds"] += 1
+            reasons[
+                "generated_backgrounds"
+            ] += 1
 
             log(
                 "FONDO GRAFICO ORIGINAL GENERADO"
@@ -2865,8 +2994,7 @@ def select_news(
 
         try:
             description = caption(
-                article,
-                metadata,
+                article, metadata
             )
 
         except ValueError as exc:
@@ -2879,14 +3007,6 @@ def select_news(
 
             continue
 
-        log(
-            "AUDITORIA SELECCION:",
-            json.dumps(
-                reasons,
-                ensure_ascii=False,
-            ),
-        )
-
         return (
             article,
             photo,
@@ -2894,14 +3014,6 @@ def select_news(
             description,
             reasons,
         )
-
-    log(
-        "AUDITORIA SELECCION:",
-        json.dumps(
-            reasons,
-            ensure_ascii=False,
-        ),
-    )
 
     return (
         None,
@@ -2913,7 +3025,7 @@ def select_news(
 
 
 # ============================================================
-# 26. PUBLICAR EN META
+# 26. PUBLICACION SEGURA EN META
 # ============================================================
 
 def publish_article(
@@ -2925,13 +3037,34 @@ def publish_article(
     description,
     output,
 ):
+
+    # TERCER BLOQUEO.
+    # Se comprueba de nuevo inmediatamente
+    # antes de cualquier accion de publicacion.
+    if is_earthquake_occurrence(
+        article.get("original_title")
+        or article["title"],
+        article.get("description", ""),
+    ):
+        raise RuntimeError(
+            "PUBLICACION BLOQUEADA: "
+            "noticia sobre ocurrencia de sismo"
+        )
+
+    if is_earthquake_occurrence(
+        article["title"],
+        article.get("description", ""),
+    ):
+        raise RuntimeError(
+            "PUBLICACION BLOQUEADA: "
+            "ocurrencia sismica"
+        )
+
     instagram_id, instagram_token = ig_check()
     facebook_id, facebook_token = fb_check()
 
     article_id = article["id"]
 
-    # Evitar sobreescribir el historial
-    # de una publicacion parcial.
     entry = state["stories"].setdefault(
         article_id,
         {
@@ -2946,11 +3079,6 @@ def publish_article(
     )
 
     if is_confirmed(entry):
-        log(
-            "NOTICIA YA PUBLICADA:",
-            article_id,
-        )
-
         return {
             "status": "already_published",
             "article_id": article_id,
@@ -2959,11 +3087,10 @@ def publish_article(
 
     if has_uncertain(entry):
         raise RuntimeError(
-            "La noticia tiene una publicación "
-            "anterior incierta. Revisar Meta."
+            "Publicacion anterior incierta: "
+            "revisar Meta antes de reintentar"
         )
 
-    # Imagen alojada en GitHub.
     remote_path = (
         "sismonauta_noticias/images/"
         + article_id
@@ -2979,7 +3106,6 @@ def publish_article(
         remote_path
     )
 
-    # Comprobar disponibilidad pública.
     accessible = False
 
     for attempt in range(8):
@@ -3005,8 +3131,7 @@ def publish_article(
 
     if not accessible:
         raise RuntimeError(
-            "La imagen no está accesible "
-            "para Meta"
+            "Imagen no accesible para Meta"
         )
 
     entry["article"] = article
@@ -3020,25 +3145,26 @@ def publish_article(
 
     failures = []
 
-    for target in (
+    for platform in (
         "instagram",
         "facebook",
     ):
-        row = targets[target]
+        target = targets[platform]
 
-        if row.get("status") == "published":
+        if target.get(
+            "status"
+        ) == "published":
             log(
                 "OMITIDO:",
-                target,
+                platform,
                 "ya publicado",
             )
             continue
 
-        # Registrar resultado incierto antes
-        # de llamar a Meta para evitar
-        # reintentos automáticos duplicados.
-        row["status"] = "uncertain"
-        row.pop("error", None)
+        # Se guarda el bloqueo antes de
+        # enviar la solicitud a Meta.
+        target["status"] = "uncertain"
+        target.pop("error", None)
 
         save_state(
             github,
@@ -3046,7 +3172,7 @@ def publish_article(
         )
 
         try:
-            if target == "instagram":
+            if platform == "instagram":
                 identifier = publish_ig(
                     instagram_id,
                     instagram_token,
@@ -3062,7 +3188,7 @@ def publish_article(
                     description,
                 )
 
-            row.update({
+            target.update({
                 "status": "published",
                 "id": str(identifier),
             })
@@ -3074,14 +3200,14 @@ def publish_article(
 
             log(
                 "PUBLICADO:",
-                target,
+                platform,
                 "ID:",
                 identifier,
             )
 
         except Exception as exc:
-            row["error"] = safe_error(
-                exc
+            target["error"] = (
+                safe_error(exc)
             )
 
             save_state(
@@ -3090,12 +3216,14 @@ def publish_article(
             )
 
             failures.append(
-                target + ": " + safe_error(exc)
+                platform
+                + ": "
+                + safe_error(exc)
             )
 
             log(
                 "ERROR META:",
-                target,
+                platform,
                 safe_error(exc),
             )
 
@@ -3121,9 +3249,8 @@ def publish_article(
 
     if failures:
         raise RuntimeError(
-            "Publicación parcial o incierta. "
-            "Revisar Meta y el historial antes "
-            "de reintentar: "
+            "Publicacion parcial o incierta. "
+            "Revisar Meta antes de reintentar: "
             + " / ".join(failures)
         )
 
@@ -3137,8 +3264,8 @@ def publish_article(
 def main():
     parser = argparse.ArgumentParser(
         description=(
-            "SISMONAUTA: noticias científicas "
-            "de la Tierra, océanos y espacio"
+            "SISMONAUTA - Noticias cientificas "
+            "sin reportes de ocurrencia de sismos"
         )
     )
 
@@ -3163,7 +3290,6 @@ def main():
         exist_ok=True,
     )
 
-    # Eliminar recibo local previo.
     (
         output / "estado_publicacion.json"
     ).unlink(
@@ -3172,15 +3298,8 @@ def main():
 
     log("=" * 55)
     log("SISMONAUTA - NOTICIAS CIENTIFICAS")
-    log(
-        "VENTANA:",
-        LOOKBACK_HOURS,
-        "HORAS",
-    )
-    log(
-        "CATEGORIAS:",
-        len(SEARCH_GROUPS),
-    )
+    log("VENTANA: 24 HORAS")
+    log("CATEGORIAS:", len(SEARCH_GROUPS))
     log(
         "BUSQUEDAS:",
         sum(
@@ -3189,9 +3308,9 @@ def main():
         ),
     )
     log(
-        "PUBLICAR:",
-        args.publish,
+        "OCURRENCIAS SISMICAS: PROHIBIDAS"
     )
+    log("PUBLICAR:", args.publish)
     log("=" * 55)
 
     github = (
@@ -3203,9 +3322,7 @@ def main():
     state = (
         load_state(github)
         if github
-        else {
-            "stories": {}
-        }
+        else {"stories": {}}
     )
 
     articles = feed_items()
@@ -3226,7 +3343,7 @@ def main():
             {
                 "status": "no_eligible_news",
                 "published": False,
-                "lookback_hours": LOOKBACK_HOURS,
+                "lookback_hours": 24,
                 "checked_at": iso_now(),
             },
         )
@@ -3249,13 +3366,21 @@ def main():
         output,
     )
 
+    log(
+        "AUDITORIA SELECCION:",
+        json.dumps(
+            reasons,
+            ensure_ascii=False,
+        ),
+    )
+
     if chosen is None:
         write_json(
             output / "estado_publicacion.json",
             {
                 "status": "no_eligible_news",
                 "published": False,
-                "lookback_hours": LOOKBACK_HOURS,
+                "lookback_hours": 24,
                 "articles_reviewed": min(
                     len(articles),
                     MAX_ARTICLES,
@@ -3271,15 +3396,21 @@ def main():
 
         return 0
 
-    # ----------------------------
-    # GENERAR IMAGEN
-    # ----------------------------
+    # BLOQUEO ADICIONAL ANTES DE
+    # GENERAR LOS ARCHIVOS.
+    if is_earthquake_occurrence(
+        chosen["title"],
+        chosen.get("description", ""),
+    ):
+        raise RuntimeError(
+            "Se detecto una ocurrencia sismica "
+            "en la noticia seleccionada"
+        )
 
     image_file = (
         output
         / (
-            chosen["id"]
-            + ".jpg"
+            chosen["id"] + ".jpg"
         )
     )
 
@@ -3316,10 +3447,6 @@ def main():
         "palabras",
     )
 
-    # ----------------------------
-    # VISTA PREVIA
-    # ----------------------------
-
     if not args.publish:
         write_json(
             output / "estado_publicacion.json",
@@ -3329,7 +3456,7 @@ def main():
                 "article_id": chosen["id"],
                 "category": chosen["category"],
                 "image": str(image_file),
-                "lookback_hours": LOOKBACK_HOURS,
+                "lookback_hours": 24,
             },
         )
 
@@ -3338,10 +3465,6 @@ def main():
         )
 
         return 0
-
-    # ----------------------------
-    # PUBLICACION
-    # ----------------------------
 
     receipt = publish_article(
         github,
