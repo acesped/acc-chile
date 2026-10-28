@@ -200,6 +200,38 @@
           "status": "published"
         }
       }
+    },
+    "e8f5dea1fe3203bd2e92": {
+      "article": {
+        "category": "sismos",
+        "date": "2026-10-28T21:13:29+00:00",
+        "description": "Terremoto moderado mag. 4.1 - Océano Pacífico Norte, 56 km al suroeste de Pinotepa, Oaxaca, México, Wednesday 28 Oct 2026 a las 14:06 (GMT -7) Volcano Discovery",
+        "explanation": "Se registró un terremoto moderado de magnitud 4.1 en el Océano Pacífico Norte, a 56 km al suroeste de Pinotepa, Oaxaca, México. El evento sísmico ocurrió el miércoles 28 de octubre de 2026 a las 14:06 hora local (GMT -7). Este tipo de actividad sísmica es común en regiones cercanas a placas tectónicas.",
+        "id": "e8f5dea1fe3203bd2e92",
+        "lang": "es",
+        "scientific_advance": true,
+        "search_category": "sismos",
+        "source": "Volcano Discovery",
+        "title": "Terremoto moderado mag. 4.1 - Océano Pacífico Norte, 56 km al suroeste de Pinotepa, Oaxaca, México, Wednesday 28 Oct 2026 a las 14:06 (GMT -7)",
+        "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxPTUlpTGZFcnVwM19OSUF4bWZhMkJGWWJPZ0NfbzZFTTBNdVlsc1FlVXRvWmRyVFdFeExrVXp6UkMzazN0eEtsWjJSaG9nZ3V1ZThoTDdJelRYdWc1aS1aZ2JjUXdhN0YwZ0xRZlVLTGo0eW9iS3ZrMW9Zby1sTVQ2UWs2WUppbEZhRFRLQ2hBQkxxcEN2djVaX3FQb1RXN2Z3SzVPQXhoWFRLR1ZKRjQ4N0tBZWh5UQ?oc=5"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "earthquake fault landscape",
+        "source": "https://commons.wikimedia.org/wiki/File:San_Francisco_STS058-083-023.jpg",
+        "title": "File:San Francisco STS058-083-023.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3a/San_Francisco_STS058-083-023.jpg/1920px-San_Francisco_STS058-083-023.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/e8f5dea1fe3203bd2e92.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
     }
   }
 }
