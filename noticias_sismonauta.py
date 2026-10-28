@@ -38,16 +38,16 @@ import requests
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 HTTP = requests.Session()
-HTTP.headers.update({'User-Agent': 'SismonautaNews/5.0 (+educational)', 'Accept': '*/*'})
+HTTP.headers.update({'User-Agent': 'SismonautaNews/5.2 (educational; https://www.nasa.gov/)' , 'Accept': '*/*'})
 VERSION = os.getenv('IG_GRAPH_VERSION', 'v25.0')
 IG_BASE = os.getenv('IG_GRAPH_BASE', 'https://graph.instagram.com').rstrip('/')
 FB_BASE = 'https://graph.facebook.com'
 STATE_FILE = 'sismonauta_noticias/state.json'
 ACCOUNT = 'sismonauta'
 LOOKBACK_HOURS = 60
-MAX_ARTICLES = max(1, int(os.getenv('NEWS_MAX_ARTICLES', '100')))
+MAX_ARTICLES = max(1, int(os.getenv('NEWS_MAX_ARTICLES', '350')))
 W, H = 1080, 1350
-MIN_SOURCE_WORDS = 100
+MIN_SOURCE_WORDS = 85
 MIN_DEVELOPMENT_WORDS = 80
 HASHTAGS = '#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica'
 
@@ -199,6 +199,73 @@ def classify(title, description, source=''):
     return None
 
 
+# Fuentes directas que permiten recuperar el artículo sin el enlace
+# intermedio de Google News. Los errores son independientes por feed.
+DIRECT_FEEDS = (
+    ('NASA publicaciones', 'https://www.nasa.gov/feed/'),
+    ('NASA comunicados', 'https://www.nasa.gov/news-release/feed/'),
+    ('NASA Tierra', 'https://www.nasa.gov/earth/feed/'),
+    ('NASA ciencia', 'https://science.nasa.gov/feed/'),
+    ('NASA tecnología', 'https://www.nasa.gov/technology/feed/'),
+)
+
+
+def direct_feed_items(cutoff, current):
+    """Documentos directos con fecha y contenido del RSS, sin inventar."""
+    results = []
+    seen = set()
+    for publisher, url in DIRECT_FEEDS:
+        try:
+            xml = ET.fromstring(get(url, timeout=20).content)
+        except Exception as exc:
+            log('RSS DIRECTO ERROR:', publisher, safe_error(exc)[:90])
+            continue
+        nodes = xml.findall('.//channel/item')
+        if not nodes:
+            nodes = xml.findall('.//{http://www.w3.org/2005/Atom}entry')
+        for node in nodes[:70]:
+            def node_text(*tags):
+                for tag in tags:
+                    value = node.findtext(tag)
+                    if value:
+                        return value.strip()
+                return ''
+            title = clean(node_text('title', '{http://www.w3.org/2005/Atom}title'))
+            link = node_text('link')
+            if not link:
+                atom_link = node.find('{http://www.w3.org/2005/Atom}link')
+                link = atom_link.get('href', '') if atom_link is not None else ''
+            rawdate = node_text('pubDate', '{http://www.w3.org/2005/Atom}updated', '{http://www.w3.org/2005/Atom}published')
+            try:
+                date = parsedate_to_datetime(rawdate)
+            except Exception:
+                try:
+                    date = datetime.fromisoformat(rawdate.replace('Z','+00:00'))
+                except Exception:
+                    continue
+            if date.tzinfo is None:
+                date = date.replace(tzinfo=timezone.utc)
+            date = date.astimezone(timezone.utc)
+            if not cutoff <= date <= current + timedelta(minutes=5):
+                continue
+            summary = clean(node_text('description', '{http://www.w3.org/2005/Atom}summary'))
+            rawbody = node_text('{http://purl.org/rss/1.0/modules/content/}encoded', '{http://www.w3.org/2005/Atom}content')
+            body = clean(rawbody)
+            if not title or not link.startswith('https://'):
+                continue
+            category = classify(title, summary + ' ' + body[:650], publisher)
+            if not category or is_earthquake_occurrence(title, summary, publisher):
+                continue
+            identifier = hashlib.sha256(re.sub(r'[^a-z0-9]','',normalized(title)).encode()).hexdigest()[:20]
+            if identifier in seen:
+                continue
+            seen.add(identifier)
+            results.append(dict(id=identifier,title=title,description=summary,url=link,source=publisher,
+                date=date.isoformat(),lang='en',category=category,search_category='direct',source_body=body))
+    log('FUENTES DIRECTAS: noticias elegibles:', len(results))
+    return results
+
+
 def feed_items():
     cutoff, current = now()-timedelta(hours=LOOKBACK_HOURS), now()
     output = {}
@@ -247,8 +314,12 @@ def feed_items():
                     continue
                 output[identifier] = dict(id=identifier,title=title,description=description,url=url,source=provider,date=date.isoformat(),lang=lang,category=category,search_category=search_category)
                 audit['accepted'] += 1
+    for entry in direct_feed_items(cutoff, current):
+        old = output.get(entry['id'])
+        if not old or len(entry.get('source_body','')) > len(old.get('source_body','')):
+            output[entry['id']] = entry
     log('AUDITORIA RSS:',json.dumps(audit,ensure_ascii=False))
-    if audit['feeds_ok']==0:
+    if audit['feeds_ok']==0 and not output:
         raise RuntimeError('No fue posible consultar ninguna fuente RSS')
     return list(output.values())
 
@@ -261,7 +332,7 @@ def priority(article):
         if term in text:
             score += value
     age = max(0,(now()-datetime.fromisoformat(article['date'])).total_seconds()/3600)
-    return score + max(0,LOOKBACK_HOURS-age)*0.18 + min(5,words(article['description'])/12)
+    return score + max(0,LOOKBACK_HOURS-age)*0.18 + min(5,words(article['description'])/12) + (18 if source_text_sufficient(article.get('source_body','')) else 0)
 
 
 def ai_text(prompt,max_tokens=1300):
@@ -329,6 +400,9 @@ class ArticleParser(HTMLParser):
 
 
 def full_article_text(article):
+    direct = article.get('source_body', '')
+    if source_text_sufficient(direct):
+        return direct[:18000]
     url=article.get('url','')
     if not url.startswith('https://'): return ''
     try:
@@ -798,6 +872,7 @@ def main():
     output=Path(args.out); output.mkdir(parents=True,exist_ok=True)
     (output/'estado_publicacion.json').unlink(missing_ok=True)
     log('SISMONAUTA | NOTICIAS CON DESARROLLO | 60 HORAS | PUBLICAR:',args.publish)
+    log('MAX_ARTICLES:',MAX_ARTICLES,'| FUENTES DIRECTAS:',len(DIRECT_FEEDS))
     gh=Github() if args.publish else None
     state=load_state(gh) if gh else {'stories':{}}
     articles=feed_items(); articles.sort(key=priority,reverse=True)
@@ -806,7 +881,7 @@ def main():
     log('AUDITORIA SELECCION:',json.dumps(reasons,ensure_ascii=False))
     if article is None:
         write_json(output/'estado_publicacion.json',{'status':'no_eligible_news','published':False,'lookback_hours':LOOKBACK_HOURS,'articles_reviewed':min(len(articles),MAX_ARTICLES),'reasons':reasons,'checked_at':now().isoformat()})
-        log('SIN NOTICIAS CON DESARROLLO SUFICIENTE'); return 0
+        log('SIN NOTICIAS CON DESARROLLO SUFICIENTE: no es posible garantizar una noticia verificable; no se publicará contenido inventado'); return 0
     image_file=output/(article['id']+'.jpg')
     make_card(photo,article,image_file)
     # La fuente se guarda solamente en los metadatos, nunca en pie ni caption.
