@@ -3,30 +3,26 @@
 # -*- coding: utf-8 -*-
 
 """
-SISMONAUTA - ALERTAS SISMICAS POR CIUDAD
-Version: EMSC + mapa satelital + banners mejorados
+SISMONAUTA | ALERTAS SISMICAS POR CIUDADES
+Version EMSC-CSEM / 4 horas / mapa mejorado
 
-Fuente sismica: EMSC-CSEM
-Ventana: 3 horas exactas
-Magnitud: M4.0 <= M < M7.0
-Radio: 100 km alrededor de 15 ciudades
-Imagen: 1080 x 1350 JPG
-Redes: Instagram y Facebook
-Estado: GitHub Contents API
+- Ultimas 4 horas (240 minutos)
+- Magnitudes M4.0 <= M < M7.0
+- 100 km alrededor de 15 ciudades
+- Mapa satelital con respaldo cartografico
+- Imagen JPEG 1080 x 1350
+- Instagram y Facebook
+- Historial en GitHub Contents API
+- Sin publicaciones duplicadas confirmadas
+- Sin monitoreo de tsunami
 
-Requisitos:
-  requests
-  Pillow
-  matplotlib
-  cartopy
+Uso:
+    python sismonauta_ciudades.py
+    python sismonauta_ciudades.py --publish
+    python sismonauta_ciudades.py --lookback-hours 4
 
-Ejecucion:
-  python sismonauta_ciudades.py
-  python sismonauta_ciudades.py --publish
-  python sismonauta_ciudades.py --lookback-hours 3
-
-La magnitud y localizacion pueden revisarse.
-No constituye una alerta sismica oficial.
+El registro sismico puede ser revisado por EMSC.
+No constituye una alerta oficial.
 """
 
 from __future__ import annotations
@@ -47,6 +43,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import requests
+
 from PIL import (
     Image,
     ImageDraw,
@@ -65,31 +62,26 @@ EMSC_API = (
     "fdsnws/event/1/query"
 )
 
-EMSC_SITE = (
-    "https://www.emsc-csem.org/"
-    "Earthquake_information/"
-)
-
 SATELLITE_API = (
     "https://server.arcgisonline.com/"
-    "ArcGIS/rest/services/"
-    "World_Imagery/MapServer/export"
+    "ArcGIS/rest/services/World_Imagery/"
+    "MapServer/export"
 )
 
 MIN_MAG = 4.0
 MAX_MAG = 7.0
+
 RADIUS_KM = 100.0
 
-LOOKBACK_HOURS = 3
-LOOKBACK_MINUTES = 180
+# CAMBIO PRINCIPAL: CUATRO HORAS
+LOOKBACK_HOURS = 4
+LOOKBACK_MINUTES = 240
 
 MAX_EVENTS_PER_RUN = 30
 
 WIDTH = 1080
 HEIGHT = 1350
 
-# Ancho aproximado de la vista geográfica
-# en coordenadas Web Mercator.
 MAP_HALF_WIDTH_M = 135000
 
 OUT = Path("output_ciudades")
@@ -112,31 +104,26 @@ IG_BASE = os.getenv(
     "https://graph.instagram.com",
 ).rstrip("/")
 
-FB_BASE = (
-    "https://graph.facebook.com"
-)
+FB_BASE = "https://graph.facebook.com"
 
 PLATFORMS = (
     "instagram",
     "facebook",
 )
 
-# El banner y texto de percepción utilizan
-# el wording editorial solicitado.
-# No supone confirmación observacional.
-FELT_EDITORIAL_WORDING = True
-
 HTTP = requests.Session()
+
 HTTP.headers.update({
-    "User-Agent": "Sismonauta-EMSC/4.0",
+    "User-Agent": "Sismonauta-EMSC/5.0",
     "Accept": "application/json",
 })
 
 # ============================================================
-# CIUDADES
+# CIUDADES MONITOREADAS
 # ============================================================
 
-# (nombre, pais, emoji, lat, lon, zona_horaria)
+# nombre, pais, bandera, latitud,
+# longitud, zona horaria
 
 CITIES = [
     (
@@ -232,15 +219,25 @@ def iso(value):
     return value.astimezone(UTC).isoformat()
 
 
-def save_json(path, value):
+def safe_name(value):
+    return re.sub(
+        r"[^a-zA-Z0-9_-]",
+        "_",
+        str(value),
+    )[:100]
+
+
+def save_json(path, data):
     path = Path(path)
+
     path.parent.mkdir(
         parents=True,
         exist_ok=True,
     )
+
     path.write_text(
         json.dumps(
-            value,
+            data,
             ensure_ascii=False,
             indent=2,
             default=str,
@@ -249,42 +246,41 @@ def save_json(path, value):
     )
 
 
-def safe_name(value):
-    return re.sub(
-        r"[^A-Za-z0-9_-]",
-        "_",
-        str(value),
-    )[:110]
-
-
 def short_error(exc):
     message = str(exc)
+
     for key in (
         "GH_TOKEN",
         "INSTAGRAM_TOKEN",
         "FACEBOOK_PAGE_TOKEN",
     ):
         secret = os.getenv(key, "")
+
         if secret:
             message = message.replace(
-                secret, "***"
+                secret,
+                "***",
             )
+
     return message[:350]
 
 
 def parse_time(value):
-    if value is None:
-        raise ValueError("Fecha vacía")
-
-    text = str(value).strip()
+    if not value:
+        raise ValueError(
+            "Hora de origen no disponible"
+        )
 
     result = datetime.fromisoformat(
-        text.replace("Z", "+00:00")
+        str(value).strip().replace(
+            "Z",
+            "+00:00",
+        )
     )
 
     if result.tzinfo is None:
         result = result.replace(
-            tzinfo=UTC
+            tzinfo=UTC,
         )
 
     return result.astimezone(UTC)
@@ -293,11 +289,12 @@ def parse_time(value):
 def depth_text(value):
     if value is None:
         return "No disponible"
+
     return f"{value:.1f} km"
 
 
 # ============================================================
-# DISTANCIAS
+# DISTANCIA HAVERSINE
 # ============================================================
 
 def haversine(lat1, lon1, lat2, lon2):
@@ -306,14 +303,17 @@ def haversine(lat1, lon1, lat2, lon2):
         (lat1, lon1, lat2, lon2),
     )
 
+    delta_lat = lat2 - lat1
+    delta_lon = lon2 - lon1
+
     a = (
-        math.sin((lat2 - lat1) / 2) ** 2
+        math.sin(delta_lat / 2) ** 2
         + math.cos(lat1)
         * math.cos(lat2)
-        * math.sin((lon2 - lon1) / 2) ** 2
+        * math.sin(delta_lon / 2) ** 2
     )
 
-    a = max(0.0, min(1.0, a))
+    a = min(1.0, max(0.0, a))
 
     return (
         6371.0088
@@ -323,15 +323,20 @@ def haversine(lat1, lon1, lat2, lon2):
 
 
 def nearest_cities(lat, lon):
-    result = [
-        (
-            haversine(
-                lat, lon, city[3], city[4]
-            ),
-            city,
+    result = []
+
+    for city in CITIES:
+        distance = haversine(
+            lat,
+            lon,
+            city[3],
+            city[4],
         )
-        for city in CITIES
-    ]
+
+        result.append(
+            (distance, city)
+        )
+
     return sorted(
         result,
         key=lambda item: item[0],
@@ -340,37 +345,48 @@ def nearest_cities(lat, lon):
 
 def matching_cities(lat, lon):
     return [
-        item
-        for item in nearest_cities(lat, lon)
-        if item[0] <= RADIUS_KM
+        (distance, city)
+        for distance, city in nearest_cities(
+            lat, lon
+        )
+        if distance <= RADIUS_KM
     ]
 
 
 # ============================================================
-# EMSC-CSEM | CONSULTA DE 3 HORAS
+# CONSULTA EMSC - ULTIMAS 4 HORAS
 # ============================================================
 
 def fetch_events():
-    end = now_utc()
-    start = end - timedelta(hours=3)
 
-    elapsed = (
+    end = now_utc()
+
+    start = end - timedelta(
+        hours=LOOKBACK_HOURS
+    )
+
+    duration = (
         end - start
     ).total_seconds()
 
-    if elapsed != 10800:
+    if duration != 14400:
         raise RuntimeError(
-            "Ventana distinta de 180 minutos"
+            "La consulta no comprende "
+            "exactamente cuatro horas"
         )
 
     log("=" * 52)
-    log("DIAGNOSTICO EMSC-CSEM")
+    log("CONSULTA SISMICA EMSC-CSEM")
     log("INICIO UTC:", iso(start))
     log("FIN UTC:", iso(end))
-    log("DURACION REAL:", elapsed / 60, "min")
+    log(
+        "DURACION:",
+        duration / 60,
+        "minutos",
+    )
     log("=" * 52)
 
-    params = {
+    parameters = {
         "format": "json",
         "starttime": start.strftime(
             "%Y-%m-%dT%H:%M:%S"
@@ -386,15 +402,25 @@ def fetch_events():
 
     response = HTTP.get(
         EMSC_API,
-        params=params,
+        params=parameters,
         timeout=75,
     )
 
-    log("URL CONSULTADA:", response.url)
-    log("HTTP STATUS:", response.status_code)
+    log(
+        "URL CONSULTADA:",
+        response.url,
+    )
+
+    log(
+        "HTTP:",
+        response.status_code,
+    )
 
     if response.status_code == 204:
-        log("EMSC: ningún evento en la consulta")
+        log(
+            "EMSC: sin registros en "
+            "la ventana consultada"
+        )
         return []
 
     response.raise_for_status()
@@ -403,25 +429,26 @@ def fetch_events():
 
     if not isinstance(payload, dict):
         raise RuntimeError(
-            "Respuesta EMSC inválida"
+            "Respuesta EMSC invalida"
         )
 
     if payload.get("type") == "Feature":
         features = [payload]
     else:
-        features = payload.get("features", [])
+        features = payload.get(
+            "features",
+            [],
+        )
 
     if not isinstance(features, list):
         raise RuntimeError(
-            "EMSC no entregó una lista"
+            "Respuesta sin lista de eventos"
         )
 
     if len(features) >= 20000:
         raise RuntimeError(
-            "Consulta EMSC posiblemente truncada"
+            "Resultados EMSC truncados"
         )
-
-    log("EVENTOS RECIBIDOS:", len(features))
 
     counters = {
         "received": len(features),
@@ -436,7 +463,12 @@ def fetch_events():
     accepted = []
     seen = set()
 
-    for position, feature in enumerate(
+    log(
+        "EVENTOS RECIBIDOS:",
+        len(features),
+    )
+
+    for number, feature in enumerate(
         features,
         start=1,
     ):
@@ -449,7 +481,7 @@ def fetch_events():
                 "geometry"
             ) or {}
 
-            coordinates = geometry.get(
+            coords = geometry.get(
                 "coordinates"
             ) or []
 
@@ -461,10 +493,10 @@ def fetch_events():
             lon_value = props.get("lon")
 
             if lat_value is None:
-                lat_value = coordinates[1]
+                lat_value = coords[1]
 
             if lon_value is None:
-                lon_value = coordinates[0]
+                lon_value = coords[0]
 
             latitude = float(lat_value)
             longitude = float(lon_value)
@@ -473,7 +505,6 @@ def fetch_events():
                 props["time"]
             )
 
-            # Priorizar identificador unificado.
             raw_id = str(
                 props.get("unid")
                 or feature.get("id")
@@ -483,20 +514,25 @@ def fetch_events():
 
             if not raw_id:
                 raise ValueError(
-                    "Evento sin identificador"
+                    "Evento sin ID EMSC"
                 )
 
-            event_id = "emsc_" + raw_id
+            unique_id = (
+                "emsc_" + raw_id
+            )
 
             depth = None
-            depth_value = props.get("depth")
+            depth_value = props.get(
+                "depth"
+            )
 
             if depth_value is not None:
                 value = float(depth_value)
+
                 if math.isfinite(value):
                     depth = value
 
-            region = str(
+            place = str(
                 props.get("flynn_region")
                 or "Región no especificada"
             )
@@ -510,7 +546,7 @@ def fetch_events():
                 )
             ):
                 raise ValueError(
-                    "Valores numéricos no finitos"
+                    "Valor numerico no finito"
                 )
 
             if not (
@@ -518,20 +554,21 @@ def fetch_events():
                 and -180 <= longitude <= 180
             ):
                 raise ValueError(
-                    "Coordenadas incorrectas"
+                    "Coordenadas invalidas"
                 )
 
         except (
             KeyError,
-            TypeError,
             ValueError,
+            TypeError,
             IndexError,
             AttributeError,
         ) as exc:
             counters["invalid"] += 1
+
             log(
                 "EVENTO INVALIDO:",
-                position,
+                number,
                 short_error(exc),
             )
             continue
@@ -551,7 +588,7 @@ def fetch_events():
             start <= event_time <= end
         )
 
-        within_mag = (
+        within_magnitude = (
             MIN_MAG <= magnitude < MAX_MAG
         )
 
@@ -560,24 +597,49 @@ def fetch_events():
         )
 
         log("-" * 45)
-        log("EVENTO:", raw_id)
+        log("ID:", raw_id)
         log("MAGNITUD:", magnitude)
         log("HORA UTC:", iso(event_time))
-        log("ANTIGUEDAD:", round(age_minutes, 2))
-        log("COORDENADAS:", latitude, longitude)
-        log("REGION:", region)
-        log("CIUDAD:", city[0], city[1])
-        log("DISTANCIA:", round(distance, 2), "km")
-        log("DENTRO DE 180 MIN:", within_time)
-        log("MAGNITUD PERMITIDA:", within_mag)
-        log("DENTRO DE 100 KM:", within_radius)
+        log(
+            "ANTIGUEDAD:",
+            round(age_minutes, 1),
+            "minutos",
+        )
+        log(
+            "COORDENADAS:",
+            latitude,
+            longitude,
+        )
+        log("REGION:", place)
+        log(
+            "CIUDAD MAS CERCANA:",
+            city[0],
+            city[1],
+        )
+        log(
+            "DISTANCIA:",
+            round(distance, 1),
+            "km",
+        )
+        log(
+            "DENTRO DE 240 MIN:",
+            within_time,
+        )
+        log(
+            "MAGNITUD PERMITIDA:",
+            within_magnitude,
+        )
+        log(
+            "DENTRO DE 100 KM:",
+            within_radius,
+        )
 
         if not within_time:
             counters["outside_time"] += 1
-            log("DESCARTADO: fecha")
+            log("DESCARTADO: tiempo")
             continue
 
-        if not within_mag:
+        if not within_magnitude:
             counters["outside_magnitude"] += 1
             log("DESCARTADO: magnitud")
             continue
@@ -587,31 +649,36 @@ def fetch_events():
             log("DESCARTADO: distancia")
             continue
 
-        if event_id in seen:
+        if unique_id in seen:
             counters["duplicate"] += 1
-            log("DESCARTADO: ID repetido")
+            log("DESCARTADO: duplicado")
             continue
 
-        seen.add(event_id)
+        seen.add(unique_id)
 
         matches = matching_cities(
             latitude,
             longitude,
         )
 
-        event = {
-            "id": event_id,
+        distance, city = matches[0]
+
+        accepted.append({
+            "id": unique_id,
             "emsc_id": raw_id,
             "source": "EMSC-CSEM",
             "mag": magnitude,
             "magtype": str(
-                props.get("magtype") or ""
+                props.get("magtype")
+                or ""
             ),
             "lat": latitude,
             "lon": longitude,
             "depth": depth,
-            "place": region,
+            "place": place,
             "time": event_time,
+            "city": city,
+            "distance_km": distance,
             "url": (
                 EMSC_API
                 + "?"
@@ -620,31 +687,31 @@ def fetch_events():
                     "eventid": raw_id,
                 })
             ),
-            "city": city,
-            "distance_km": distance,
             "all_cities": [
                 {
-                    "city": entry[0],
-                    "country": entry[1],
+                    "city": match_city[0],
+                    "country": match_city[1],
                     "distance_km": round(
                         km, 1
                     ),
                 }
-                for km, entry in matches
+                for km, match_city in matches
             ],
-        }
+        })
 
-        accepted.append(event)
         counters["accepted"] += 1
 
-        log("ACEPTADO:", event_id)
+        log(
+            "EVENTO ACEPTADO:",
+            unique_id,
+        )
 
     accepted.sort(
         key=lambda event: event["time"]
     )
 
     log("=" * 52)
-    log("RESUMEN EMSC")
+    log("RESUMEN DE FILTROS")
     log(
         json.dumps(
             counters,
@@ -658,10 +725,11 @@ def fetch_events():
 
 
 # ============================================================
-# COLORES
+# COLORES DE LOS BANNERS
 # ============================================================
 
 def magnitude_colors(magnitude):
+
     if 4.0 <= magnitude < 5.0:
         return (
             "#168A45",
@@ -684,7 +752,7 @@ def magnitude_colors(magnitude):
         )
 
     raise ValueError(
-        "Magnitud fuera de rango"
+        "Magnitud fuera del rango"
     )
 
 
@@ -706,9 +774,10 @@ def get_font(size):
     ]
 
     for path in paths:
-        if os.path.isfile(path):
+        if Path(path).exists():
             return ImageFont.truetype(
-                path, size
+                path,
+                size,
             )
 
     return ImageFont.load_default()
@@ -726,18 +795,20 @@ def draw_centered(
     selected = get_font(20)
 
     for size in range(
-        max_size, 19, -2
+        max_size,
+        19,
+        -2,
     ):
         candidate = get_font(size)
 
-        bounds = draw.textbbox(
+        box = draw.textbbox(
             (0, 0),
             text,
             font=candidate,
         )
 
-        width = bounds[2] - bounds[0]
-        height = bounds[3] - bounds[1]
+        width = box[2] - box[0]
+        height = box[3] - box[1]
 
         if (
             width <= max_width
@@ -746,24 +817,24 @@ def draw_centered(
             selected = candidate
             break
 
-    bounds = draw.textbbox(
+    box = draw.textbbox(
         (0, 0),
         text,
         font=selected,
     )
 
-    width = bounds[2] - bounds[0]
-    height = bounds[3] - bounds[1]
+    width = box[2] - box[0]
+    height = box[3] - box[1]
 
     x = (
         (WIDTH - width) / 2
-        - bounds[0]
+        - box[0]
     )
 
     y = (
         center_y
         - height / 2
-        - bounds[1]
+        - box[1]
     )
 
     draw.text(
@@ -775,20 +846,18 @@ def draw_centered(
 
 
 # ============================================================
-# PROYECCION WEB MERCATOR
+# MAPA - PROYECCION WEB MERCATOR
 # ============================================================
 
 def mercator_xy(lat, lon):
     radius = 6378137.0
 
-    lat = max(
-        -85.0,
-        min(85.0, lat),
+    lat = min(
+        85.0,
+        max(-85.0, lat),
     )
 
-    x = (
-        radius * math.radians(lon)
-    )
+    x = radius * math.radians(lon)
 
     y = radius * math.log(
         math.tan(
@@ -849,10 +918,10 @@ def pixel_location(lat, lon, bounds):
 def load_satellite(event):
     bounds = map_bounds(event)
 
-    params = {
+    parameters = {
         "bbox": ",".join(
-            str(item)
-            for item in bounds
+            str(value)
+            for value in bounds
         ),
         "bboxSR": 3857,
         "imageSR": 3857,
@@ -864,26 +933,23 @@ def load_satellite(event):
 
     response = requests.get(
         SATELLITE_API,
-        params=params,
+        params=parameters,
         timeout=45,
         headers={
-            "User-Agent": (
-                "Sismonauta-EMSC/4.0"
-            )
+            "User-Agent": "Sismonauta-EMSC/5.0",
         },
     )
 
     response.raise_for_status()
 
-    content_type = (
-        response.headers.get(
-            "Content-Type", ""
-        )
+    content_type = response.headers.get(
+        "Content-Type",
+        "",
     ).lower()
 
     if not content_type.startswith("image/"):
         raise RuntimeError(
-            "Servidor satelital no devolvió JPG"
+            "No se recibio imagen satelital"
         )
 
     with Image.open(
@@ -893,7 +959,7 @@ def load_satellite(event):
 
     if image.size != (WIDTH, HEIGHT):
         raise RuntimeError(
-            "Tamaño de mapa inesperado"
+            "Dimensiones satelitales inesperadas"
         )
 
     image = ImageEnhance.Contrast(
@@ -908,7 +974,7 @@ def load_satellite(event):
 
 
 # ============================================================
-# MAPA DE RESPALDO
+# CARTOGRAFIA DE RESPALDO
 # ============================================================
 
 def fallback_map(event):
@@ -958,7 +1024,7 @@ def fallback_map(event):
     ax.add_feature(
         cf.COASTLINE.with_scale("10m"),
         edgecolor="#E7EBE4",
-        linewidth=1.1,
+        linewidth=1.2,
         zorder=2,
     )
 
@@ -983,6 +1049,7 @@ def fallback_map(event):
 
     with Image.open(buffer) as source:
         image = source.convert("RGB")
+
         if image.size != (WIDTH, HEIGHT):
             image = image.resize(
                 (WIDTH, HEIGHT),
@@ -993,11 +1060,14 @@ def fallback_map(event):
 
 
 # ============================================================
-# DIBUJAR MARCADORES
+# EPICENTRO
 # ============================================================
 
 def draw_epicenter(draw, x, y):
-    for radius, color, line_width in (
+    # Anillos decorativos; no son ondas
+    # sismicas ni areas de intensidad.
+
+    for radius, color, width in (
         (95, "#FF4141", 5),
         (65, "#FF8A8A", 4),
         (36, "#FFFFFF", 3),
@@ -1010,7 +1080,7 @@ def draw_epicenter(draw, x, y):
                 y + radius,
             ),
             outline=color,
-            width=line_width,
+            width=width,
         )
 
     draw.ellipse(
@@ -1026,11 +1096,16 @@ def draw_epicenter(draw, x, y):
     )
 
 
+# ============================================================
+# COMPONER MAPA
+# ============================================================
+
 def build_map(event):
     try:
         image, bounds, map_kind = (
             load_satellite(event)
         )
+
         log("MAPA: satelital")
 
     except Exception as exc:
@@ -1043,7 +1118,9 @@ def build_map(event):
             fallback_map(event)
         )
 
-        log("MAPA: cartografía de respaldo")
+        log(
+            "MAPA: cartografia de respaldo"
+        )
 
     draw = ImageDraw.Draw(image)
 
@@ -1054,7 +1131,9 @@ def build_map(event):
     )
 
     draw_epicenter(
-        draw, ex, ey
+        draw,
+        ex,
+        ey,
     )
 
     city = event["city"]
@@ -1084,13 +1163,15 @@ def build_map(event):
         label = city[0].upper()
         selected = get_font(30)
 
-        box = draw.textbbox(
+        bounds_text = draw.textbbox(
             (0, 0),
             label,
             font=selected,
         )
 
-        label_width = box[2] - box[0]
+        label_width = (
+            bounds_text[2] - bounds_text[0]
+        )
 
         tx = max(
             15,
@@ -1100,8 +1181,6 @@ def build_map(event):
             ),
         )
 
-        # Mantener el texto fuera de
-        # los banners superior e inferior.
         ty = max(
             300,
             min(
@@ -1123,20 +1202,21 @@ def build_map(event):
 
 
 # ============================================================
-# IMAGEN FINAL 1080 X 1350
+# GENERAR IMAGEN FINAL
 # ============================================================
 
 def make_image(event, path):
     image, map_kind = build_map(event)
 
     draw = ImageDraw.Draw(image)
+
     city = event["city"]
 
     banner, foreground, category = (
         magnitude_colors(event["mag"])
     )
 
-    # BANNER SUPERIOR
+    # Banner superior
     draw.rounded_rectangle(
         (22, 24, 1058, 268),
         radius=25,
@@ -1171,7 +1251,7 @@ def make_image(event, path):
         color=foreground,
     )
 
-    # BANNER INFERIOR
+    # Banner inferior
     draw.rounded_rectangle(
         (18, 1000, 1062, 1328),
         radius=25,
@@ -1193,20 +1273,22 @@ def make_image(event, path):
         color=foreground,
     )
 
-    if FELT_EDITORIAL_WORDING:
-        second_line = (
+    # La percepcion no se infiere
+    # exclusivamente de la distancia.
+    if event.get("felt_confirmed", False):
+        line_two = (
             "SE HA PERCIBIDO EN "
             + city[0].upper()
         )
     else:
-        second_line = (
+        line_two = (
             "SISMO REGISTRADO CERCA DE "
             + city[0].upper()
         )
 
     draw_centered(
         draw,
-        second_line,
+        line_two,
         center_y=1160,
         max_width=985,
         max_height=72,
@@ -1224,9 +1306,8 @@ def make_image(event, path):
         color=foreground,
     )
 
-    # Atribución breve de la base cartográfica.
     attribution = (
-        "Imagen: Esri y proveedores"
+        "Imagen: Esri / proveedores"
         if map_kind == "satellite"
         else "Mapa: Natural Earth"
     )
@@ -1234,7 +1315,7 @@ def make_image(event, path):
     selected = get_font(17)
 
     draw.rounded_rectangle(
-        (15, 965, 390, 995),
+        (15, 965, 410, 995),
         radius=5,
         fill="#102030",
     )
@@ -1261,7 +1342,7 @@ def make_image(event, path):
     )
 
     log(
-        "IMAGEN:",
+        "IMAGEN CREADA:",
         path,
         "| BANNER:",
         category,
@@ -1271,7 +1352,7 @@ def make_image(event, path):
 
 
 # ============================================================
-# PIE DE PUBLICACION ACTUALIZADO
+# PIE DE PUBLICACION
 # ============================================================
 
 def make_caption(event):
@@ -1280,6 +1361,29 @@ def make_caption(event):
     local_time = event["time"].astimezone(
         ZoneInfo(city[5])
     )
+
+    age_minutes = (
+        now_utc() - event["time"]
+    ).total_seconds() / 60
+
+    # Diferenciar ocurrencia y percepcion.
+    if event.get("felt_confirmed", False):
+        description = (
+            f"Un sismo de magnitud "
+            f"{event['mag']:.1f} se ha percibido "
+            f"en las cercanías de "
+            f"{city[0]}, {city[1]}."
+        )
+    else:
+        description = (
+            f"Un sismo de magnitud "
+            f"{event['mag']:.1f} se ha registrado "
+            f"en las cercanías de "
+            f"{city[0]}, {city[1]}."
+        )
+
+    if 0 <= age_minutes <= 30:
+        description += " Hace instantes."
 
     city_tag = re.sub(
         r"[^A-Za-z]",
@@ -1293,25 +1397,6 @@ def make_caption(event):
         city[1],
     )
 
-    # Titular y descripcion solicitados.
-    # Son wording editorial, no evidencia
-    # independiente de percepción.
-    if FELT_EDITORIAL_WORDING:
-        opening = (
-            f"Un sismo de magnitud "
-            f"{event['mag']:.1f} se ha percibido "
-            f"en las cercanías de "
-            f"{city[0]}, {city[1]} "
-            f"hace instantes."
-        )
-    else:
-        opening = (
-            f"Un sismo de magnitud "
-            f"{event['mag']:.1f} se ha registrado "
-            f"en las cercanías de "
-            f"{city[0]}, {city[1]}."
-        )
-
     caption = (
         f"🚨 ¡ÚLTIMO MINUTO! | "
         f"SISMO DE MAGNITUD "
@@ -1320,7 +1405,7 @@ def make_caption(event):
         f"{city[1].upper()} "
         f"{city[2]}\n\n"
 
-        f"{opening}\n\n"
+        f"{description}\n\n"
 
         f"📍 Epicentro: {event['place']}\n"
 
@@ -1374,17 +1459,21 @@ class Github:
             "main",
         )
 
-        token = os.environ["GH_TOKEN"]
-
         self.base = (
             "https://api.github.com/repos/"
             + self.repo
         )
 
+        token = os.environ[
+            "GH_TOKEN"
+        ]
+
         self.session = requests.Session()
 
         self.session.headers.update({
-            "Authorization": "Bearer " + token,
+            "Authorization": (
+                "Bearer " + token
+            ),
             "Accept": (
                 "application/vnd.github+json"
             ),
@@ -1400,12 +1489,11 @@ class Github:
 
         response.raise_for_status()
 
-        info = response.json()
-
-        if info.get("private"):
+        if response.json().get("private"):
             raise RuntimeError(
-                "El repositorio debe ser público "
-                "para alojar imágenes de Meta"
+                "Se necesita un repositorio "
+                "publico para servir imagenes "
+                "a Meta"
             )
 
     def endpoint(self, path):
@@ -1492,17 +1580,15 @@ class Github:
 
             response.raise_for_status()
 
-    def write_json(self, path, value):
+    def write_json(self, path, data):
         raw = json.dumps(
-            value,
+            data,
             ensure_ascii=False,
             indent=2,
             default=str,
         ).encode("utf-8")
 
-        self.write_bytes(
-            path, raw
-        )
+        self.write_bytes(path, raw)
 
     def public_url(self, path):
         return (
@@ -1532,28 +1618,28 @@ def graph(
     parameters=None,
     base=None,
 ):
-    root = base or IG_BASE
+    base = base or IG_BASE
 
     endpoint = (
-        f"{root}/{GRAPH_VERSION}/{path}"
+        f"{base}/{GRAPH_VERSION}/{path}"
     )
 
-    params = dict(
+    values = dict(
         parameters or {}
     )
 
-    params["access_token"] = token
+    values["access_token"] = token
 
     if method == "GET":
         response = requests.get(
             endpoint,
-            params=params,
+            params=values,
             timeout=60,
         )
     else:
         response = requests.post(
             endpoint,
-            data=params,
+            data=values,
             timeout=80,
         )
 
@@ -1561,7 +1647,7 @@ def graph(
         data = response.json()
     except ValueError:
         raise RuntimeError(
-            "Meta respondió sin JSON"
+            "Meta no devolvio JSON"
         )
 
     if (
@@ -1573,9 +1659,7 @@ def graph(
         raise RuntimeError(
             "Meta API: "
             + str(
-                error.get(
-                    "message", data
-                )
+                error.get("message", data)
             )[:250]
         )
 
@@ -1583,7 +1667,7 @@ def graph(
 
 
 # ============================================================
-# VALIDAR DESTINOS
+# VALIDAR CUENTAS META
 # ============================================================
 
 def validate_accounts():
@@ -1613,13 +1697,17 @@ def validate_accounts():
     )
 
     if (
-        str(instagram.get("id")) != str(ig_id)
+        str(instagram.get("id"))
+        != str(ig_id)
         or str(
-            instagram.get("username", "")
+            instagram.get(
+                "username", ""
+            )
         ).lower() != "sismonauta"
     ):
         raise RuntimeError(
-            "Cuenta Instagram incorrecta"
+            "La cuenta Instagram no es "
+            "@sismonauta"
         )
 
     facebook = graph(
@@ -1633,13 +1721,14 @@ def validate_accounts():
     )
 
     if (
-        str(facebook.get("id")) != str(fb_id)
+        str(facebook.get("id"))
+        != str(fb_id)
         or "sismonauta" not in str(
             facebook.get("name", "")
         ).lower()
     ):
         raise RuntimeError(
-            "Fanpage Facebook incorrecta"
+            "La fanpage no es SISMONAUTA"
         )
 
     log(
@@ -1661,7 +1750,7 @@ def validate_accounts():
 
 
 # ============================================================
-# PUBLICAR INSTAGRAM
+# PUBLICACION INSTAGRAM
 # ============================================================
 
 def publish_instagram(
@@ -1684,7 +1773,7 @@ def publish_instagram(
 
     if not container_id:
         raise RuntimeError(
-            "Instagram no creó el contenedor"
+            "Instagram no creo contenedor"
         )
 
     finished = False
@@ -1692,7 +1781,7 @@ def publish_instagram(
     for attempt in range(25):
         time.sleep(5)
 
-        status_data = graph(
+        result = graph(
             "GET",
             container_id,
             token,
@@ -1701,7 +1790,7 @@ def publish_instagram(
             },
         )
 
-        status = status_data.get(
+        status = result.get(
             "status_code"
         )
 
@@ -1709,7 +1798,10 @@ def publish_instagram(
             finished = True
             break
 
-        if status in ("ERROR", "EXPIRED"):
+        if status in (
+            "ERROR",
+            "EXPIRED",
+        ):
             raise RuntimeError(
                 "Contenedor Instagram: "
                 + str(status)
@@ -1717,11 +1809,11 @@ def publish_instagram(
 
     if not finished:
         raise RuntimeError(
-            "Instagram no terminó "
+            "Instagram no termino "
             "de procesar la imagen"
         )
 
-    result = graph(
+    published = graph(
         "POST",
         f"{user_id}/media_publish",
         token,
@@ -1730,18 +1822,18 @@ def publish_instagram(
         },
     )
 
-    identifier = result.get("id")
+    identifier = published.get("id")
 
     if not identifier:
         raise RuntimeError(
-            "Instagram no confirmó el post"
+            "Instagram no confirmo el post"
         )
 
     return str(identifier)
 
 
 # ============================================================
-# PUBLICAR FACEBOOK
+# PUBLICACION FACEBOOK
 # ============================================================
 
 def publish_facebook(
@@ -1769,14 +1861,14 @@ def publish_facebook(
 
     if not identifier:
         raise RuntimeError(
-            "Facebook no confirmó la foto"
+            "Facebook no confirmo la foto"
         )
 
     return str(identifier)
 
 
 # ============================================================
-# COMPROBAR IMAGEN PUBLICA
+# VERIFICACION IMAGEN PUBLICA
 # ============================================================
 
 def wait_public_image(url):
@@ -1789,7 +1881,8 @@ def wait_public_image(url):
 
             content_type = (
                 response.headers.get(
-                    "Content-Type", ""
+                    "Content-Type",
+                    "",
                 )
             )
 
@@ -1807,16 +1900,18 @@ def wait_public_image(url):
         time.sleep(5)
 
     raise RuntimeError(
-        "Imagen pública no disponible"
+        "Imagen publica no disponible"
     )
 
 
 # ============================================================
-# HISTORIAL Y CONTROL DE DUPLICADOS
+# HISTORIAL Y DEDUPLICACION
 # ============================================================
 
 def new_state():
-    return {"events": {}}
+    return {
+        "events": {}
+    }
 
 
 def ensure_entry(state, event):
@@ -1827,20 +1922,25 @@ def ensure_entry(state, event):
         {
             "magnitude": event["mag"],
             "place": event["place"],
-            "time": iso(event["time"]),
+            "time": iso(
+                event["time"]
+            ),
             "source": "EMSC-CSEM",
             "targets": {},
         },
     )
 
     targets = entry.setdefault(
-        "targets", {}
+        "targets",
+        {},
     )
 
     for platform in PLATFORMS:
         targets.setdefault(
             platform,
-            {"status": "pending"},
+            {
+                "status": "pending"
+            },
         )
 
     return entry
@@ -1848,12 +1948,14 @@ def ensure_entry(state, event):
 
 def is_finished(entry):
     targets = entry.get(
-        "targets", {}
+        "targets",
+        {},
     )
 
     return all(
         targets.get(
-            platform, {}
+            platform,
+            {},
         ).get("status") == "published"
         for platform in PLATFORMS
     )
@@ -1861,19 +1963,21 @@ def is_finished(entry):
 
 def has_uncertain(entry):
     targets = entry.get(
-        "targets", {}
+        "targets",
+        {},
     )
 
     return any(
         targets.get(
-            platform, {}
+            platform,
+            {},
         ).get("status") == "uncertain"
         for platform in PLATFORMS
     )
 
 
 # ============================================================
-# PROCESAR Y PUBLICAR EVENTO
+# PROCESAR EVENTO
 # ============================================================
 
 def process_event(
@@ -1886,10 +1990,15 @@ def process_event(
     event_id = event["id"]
 
     entry = ensure_entry(
-        state, event
+        state,
+        event,
     )
 
     if is_finished(entry):
+        log(
+            "YA PUBLICADO:",
+            event_id,
+        )
         return "already_published"
 
     if has_uncertain(entry):
@@ -1926,13 +2035,16 @@ def process_event(
 
     if not publish:
         log(
-            "PREVIEW:",
+            "VISTA PREVIA:",
             image_path,
         )
+
         return "preview_only"
 
     remote_path = (
-        IMAGE_DIR + "/" + filename
+        IMAGE_DIR
+        + "/"
+        + filename
     )
 
     github.write_json(
@@ -1949,7 +2061,9 @@ def process_event(
         remote_path
     )
 
-    wait_public_image(image_url)
+    wait_public_image(
+        image_url
+    )
 
     entry["image_url"] = image_url
 
@@ -1970,8 +2084,8 @@ def process_event(
         if target.get("status") == "published":
             continue
 
-        # Guardar el estado antes de llamar a Meta.
-        # Así un timeout no provoca un duplicado.
+        # Bloquear duplicaciones ante un
+        # resultado ambiguo de Meta.
         target["status"] = "uncertain"
         target.pop("error", None)
 
@@ -2034,13 +2148,13 @@ def process_event(
 
 
 # ============================================================
-# MAIN
+# PROGRAMA PRINCIPAL
 # ============================================================
 
 def main():
     parser = argparse.ArgumentParser(
         description=(
-            "SISMONAUTA EMSC - 3 HORAS"
+            "SISMONAUTA EMSC - 4 HORAS"
         )
     )
 
@@ -2057,8 +2171,8 @@ def main():
     parser.add_argument(
         "--lookback-hours",
         type=int,
-        choices=[3],
-        default=3,
+        choices=[4],
+        default=4,
     )
 
     args = parser.parse_args()
@@ -2072,7 +2186,8 @@ def main():
     )
 
     receipt_path = (
-        OUT / "estado_publicacion.json"
+        OUT
+        / "estado_publicacion.json"
     )
 
     receipt = {
@@ -2080,8 +2195,8 @@ def main():
         "source": "EMSC-CSEM",
         "checked_at": iso(now_utc()),
         "publish_requested": args.publish,
-        "lookback_hours": 3,
-        "lookback_minutes": 180,
+        "lookback_hours": 4,
+        "lookback_minutes": 240,
         "radius_km": RADIUS_KM,
         "min_magnitude": MIN_MAG,
         "max_magnitude_exclusive": MAX_MAG,
@@ -2092,7 +2207,7 @@ def main():
         log("=" * 52)
         log("SISMONAUTA - EMSC-CSEM")
         log("CIUDADES:", len(CITIES))
-        log("VENTANA:", LOOKBACK_MINUTES, "MIN")
+        log("VENTANA: 240 MINUTOS")
         log("RADIO:", RADIUS_KM, "KM")
         log("MAGNITUDES: M4.0 A M6.9")
         log("PUBLICAR:", args.publish)
@@ -2110,7 +2225,10 @@ def main():
             else None
         ) or new_state()
 
-        state.setdefault("events", {})
+        state.setdefault(
+            "events",
+            {},
+        )
 
         events = fetch_events()
 
@@ -2119,7 +2237,8 @@ def main():
             for event in events
             if not is_finished(
                 state["events"].get(
-                    event["id"], {}
+                    event["id"],
+                    {},
                 )
             )
         ]
@@ -2135,14 +2254,19 @@ def main():
         )
 
         if not pending:
-            receipt["status"] = "no_new_event"
+            receipt["status"] = (
+                "no_new_event"
+            )
 
             save_json(
                 receipt_path,
                 receipt,
             )
 
-            log("SIN NUEVOS EVENTOS")
+            log(
+                "SIN NUEVOS EVENTOS"
+            )
+
             return 0
 
         pending = pending[
@@ -2208,27 +2332,31 @@ def main():
             )
 
         if all(
-            item == "preview_only"
-            for item in statuses
+            value == "preview_only"
+            for value in statuses
         ):
-            receipt["status"] = "preview_only"
+            receipt["status"] = (
+                "preview_only"
+            )
 
         elif any(
-            item == "partial_or_uncertain"
-            for item in statuses
+            value == "partial_or_uncertain"
+            for value in statuses
         ):
             receipt["status"] = (
                 "partial_or_uncertain"
             )
 
         elif all(
-            item in (
+            value in (
                 "published",
                 "already_published",
             )
-            for item in statuses
+            for value in statuses
         ):
-            receipt["status"] = "published"
+            receipt["status"] = (
+                "published"
+            )
 
         else:
             receipt["status"] = "error"
@@ -2243,15 +2371,14 @@ def main():
             receipt["status"],
         )
 
-        return (
-            0
-            if receipt["status"] in (
-                "published",
-                "preview_only",
-                "no_new_event",
-            )
-            else 1
-        )
+        if receipt["status"] in (
+            "published",
+            "preview_only",
+            "no_new_event",
+        ):
+            return 0
+
+        return 1
 
     except Exception as exc:
         receipt["status"] = "error"
