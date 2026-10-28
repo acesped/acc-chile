@@ -171,6 +171,38 @@
         }
       }
     },
+    "a21f397fbffbc36e85fb": {
+      "article": {
+        "category": "sismos",
+        "date": "2026-10-28T19:58:25+00:00",
+        "description": "Terremoto moderado mag. 4.5 - Océano Pacífico Norte, 230 km al noreste de Petropávlovsk-Kamchatski, Kamchatka, Rusia, Thursday 29 Oct 2026 a las 07:33 (Hora Kamchatka) Volcano Discovery",
+        "explanation": "Se registró un terremoto moderado de magnitud 4.5 en el Océano Pacífico Norte, a 230 km al noreste de Petropávlovsk-Kamchatski, en la península de Kamchatka, Rusia. El evento ocurrió el jueves 29 de octubre de 2026 a las 07:33, hora local de Kamchatka. Este tipo de actividad sísmica es común en regiones cercanas a placas tectónicas, como es el caso de Kamchatka, que es conocida por su alta actividad sísmica y volcánica.",
+        "id": "a21f397fbffbc36e85fb",
+        "lang": "es",
+        "scientific_advance": true,
+        "search_category": "oceanos",
+        "source": "Volcano Discovery",
+        "title": "Terremoto moderado mag. 4.5 - Océano Pacífico Norte, 230 km al noreste de Petropávlovsk-Kamchatski, Kamchatka, Rusia, Thursday 29 Oct 2026 a las 07:33 (Hora Kamchatka)",
+        "url": "https://news.google.com/rss/articles/CBMixwFBVV95cUxOX1VrWmpScm5sSzNyWVpWbGhTQU9fTEU5UDh5cnJtU1ZFdjFFbjNHd2NPUnBmeUVUSmNFSklWbkQ1MkptMUpCYklFTldjRDhWcWx3VTNlSTZoVHduREJINWp3RU11OGVHU1kxSEZ2eHZ4d0stRmc3Z3ZQNFF5N0lidXFDOE8yRFFPZl9RRkZ4enNTMGk3X1lYeWk0aVp6ZUdJS1hqQTN3WS03b1dqM3lZVW02OHI2TFFvVkVNWVprR0xjYWJFVVJN?oc=5"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "earthquake fault landscape",
+        "source": "https://commons.wikimedia.org/wiki/File:San_Francisco_STS058-083-023.jpg",
+        "title": "File:San Francisco STS058-083-023.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3a/San_Francisco_STS058-083-023.jpg/1920px-San_Francisco_STS058-083-023.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/a21f397fbffbc36e85fb.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "b8249d63af52eb76948d": {
       "article": {
         "date": "2026-10-26T13:29:52+00:00",
