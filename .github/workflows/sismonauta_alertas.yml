@@ -2,10 +2,12 @@
 name: SISMONAUTA - Alertas mundiales M7+
 
 on:
-  schedule:
-    # Cada cinco minutos, todos los dias.
-    - cron: '*/5 * * * *'
+  # Activacion desde cron-job.org u otro servicio HTTP
+  repository_dispatch:
+    types:
+      - sismonauta-alertas-m7
 
+  # Ejecucion manual desde GitHub Actions
   workflow_dispatch:
     inputs:
       publish:
@@ -14,10 +16,15 @@ on:
         type: boolean
         default: false
 
+  # Cron interno opcional.
+  # Descomentarlo solo si tambien deseas la
+  # programacion automatica de GitHub.
+  # schedule:
+  #   - cron: '*/5 * * * *'
+
 permissions:
   contents: write
 
-# Grupo independiente de monitor y noticias.
 concurrency:
   group: sismonauta-alertas-m7
   cancel-in-progress: false
@@ -40,7 +47,7 @@ jobs:
       INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
       INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
 
-      # Fanpage Facebook SISMONAUTA
+      # Facebook SISMONAUTA
       FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
       FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
 
@@ -48,9 +55,8 @@ jobs:
       IG_GRAPH_VERSION: 'v25.0'
 
     steps:
-
       # ========================================
-      # 1. OBTENER REPOSITORIO
+      # 1. DESCARGAR REPOSITORIO
       # ========================================
 
       - name: Descargar repositorio
@@ -105,34 +111,59 @@ jobs:
           echo "Script Python validado"
 
       # ========================================
-      # 5. MODO PUBLICACION
+      # 5. DETERMINAR MODO
       # ========================================
 
-      - name: Determinar modo
+      - name: Determinar modo de ejecucion
         id: modo
         shell: bash
         env:
           EVENT_NAME: ${{ github.event_name }}
           MANUAL_PUBLISH: ${{ inputs.publish }}
+          EXTERNAL_PUBLISH: ${{ github.event.client_payload.publish }}
         run: |
           set -euo pipefail
 
-          if [[ "$EVENT_NAME" == "schedule" ]]; then
-            PUBLISH=true
-          elif [[ "$MANUAL_PUBLISH" == "true" ]]; then
-            PUBLISH=true
-          else
-            PUBLISH=false
-          fi
+          case "$EVENT_NAME" in
+
+            repository_dispatch)
+              # Publicar por defecto.
+              # Permite desactivar con:
+              # "client_payload":{"publish":false}
+              if [[ "$EXTERNAL_PUBLISH" == "false" ]]; then
+                PUBLISH=false
+              else
+                PUBLISH=true
+              fi
+              ;;
+
+            schedule)
+              PUBLISH=true
+              ;;
+
+            workflow_dispatch)
+              if [[ "$MANUAL_PUBLISH" == "true" ]]; then
+                PUBLISH=true
+              else
+                PUBLISH=false
+              fi
+              ;;
+
+            *)
+              echo "::error::Evento no autorizado"
+              exit 1
+              ;;
+
+          esac
 
           echo "publish=$PUBLISH" >> "$GITHUB_OUTPUT"
 
           echo "==================================="
           echo "SISMONAUTA ALERTAS M7+"
           echo "==================================="
+          echo "Evento: $EVENT_NAME"
           echo "Publicar: $PUBLISH"
           echo "Umbral: magnitud >= 7.0"
-          echo "Frecuencia: cada cinco minutos"
           echo "Fuente sismica: USGS"
           echo "Fuente tsunami: PTWC/NTWC"
           echo "==================================="
@@ -155,7 +186,7 @@ jobs:
             GH_TOKEN
           do
             if [[ -z "${!name:-}" ]]; then
-              echo "::error::Falta secreto $name"
+              echo "::error::Falta credencial $name"
               exit 1
             fi
           done
@@ -163,7 +194,7 @@ jobs:
           echo "Credenciales disponibles"
 
       # ========================================
-      # 7. MONITOREAR USGS Y PUBLICAR
+      # 7. EJECUTAR MONITOREO
       # ========================================
 
       - name: Ejecutar monitoreo
@@ -188,14 +219,13 @@ jobs:
           CODE=$?
 
           echo "exit_code=$CODE" >> "$GITHUB_OUTPUT"
-
           echo "Codigo del programa: $CODE"
 
-          # El siguiente paso valida el recibo.
+          # El siguiente paso comprueba el recibo.
           exit 0
 
       # ========================================
-      # 8. COMPROBAR RESULTADOS
+      # 8. VERIFICAR RESULTADOS
       # ========================================
 
       - name: Verificar publicaciones
@@ -216,6 +246,17 @@ jobs:
               "output_alertas/estado_publicacion.json"
           )
 
+          code = int(os.getenv("SCRIPT_EXIT") or "1")
+          publish = os.getenv("PUBLISH") == "true"
+
+          print("Modo publicar:", publish)
+          print("Codigo Python:", code)
+
+          if code != 0:
+              raise SystemExit(
+                  "::error::Error en el script Python"
+              )
+
           if not file.exists():
               raise SystemExit(
                   "::error::No existe recibo de monitoreo"
@@ -226,33 +267,19 @@ jobs:
           )
 
           status = data.get("status")
-          code = int(
-              os.getenv("SCRIPT_EXIT") or "1"
-          )
-          publish = (
-              os.getenv("PUBLISH") == "true"
-          )
-
-          print("Modo publicar:", publish)
-          print("Codigo Python:", code)
           print("Estado:", status)
-
-          if code != 0:
-              raise SystemExit(
-                  "::error::Error en el script Python"
-              )
 
           if status == "no_new_event":
               print(
-                  "::notice::No existen eventos M7+ "
-                  "nuevos pendientes de publicación"
+                  "::notice::Sin nuevos eventos M7+ "
+                  "pendientes de publicacion"
               )
               raise SystemExit(0)
 
           if status == "preview_only":
               if publish:
                   raise SystemExit(
-                      "::error::Se esperaba publicación"
+                      "::error::Se esperaba publicacion"
                   )
 
               print("Vista previa generada")
@@ -260,7 +287,7 @@ jobs:
 
           if status == "partial_or_uncertain":
               raise SystemExit(
-                  "::error::Publicación parcial o "
+                  "::error::Publicacion parcial o "
                   "incierta. Revisar las plataformas."
               )
 
@@ -268,6 +295,11 @@ jobs:
               raise SystemExit(
                   "::error::Resultado inesperado: "
                   + str(status)
+              )
+
+          if not publish:
+              raise SystemExit(
+                  "::error::Publicacion no solicitada"
               )
 
           events = data.get("events", [])
@@ -288,7 +320,7 @@ jobs:
                       or not str(info.get("id") or "").strip()
                   ):
                       raise SystemExit(
-                          "::error::Falta confirmación: "
+                          "::error::Falta confirmacion: "
                           + platform
                       )
 
@@ -300,7 +332,7 @@ jobs:
                   )
 
           print(
-              "SISMONAUTA: publicación confirmada "
+              "SISMONAUTA: publicacion confirmada "
               "en Instagram y Facebook"
           )
           PYVERIFY
@@ -309,7 +341,7 @@ jobs:
       # 9. GUARDAR EVIDENCIAS
       # ========================================
 
-      - name: Guardar imágenes y registros
+      - name: Guardar imagenes y registros
         if: always()
         uses: actions/upload-artifact@v4
         with:
