@@ -3,41 +3,75 @@
 # -*- coding: utf-8 -*-
 
 """
-SISMONAUTA - NOTICIAS CIENTIFICAS
-================================
+SISMONAUTA - NOTICIAS CIENTIFICAS Y NATURALES
+=============================================
 
-Busca y publica noticias sobre:
-- Sismologia
-- Investigaciones cientificas
-- Fallas tectonicas
-- Tsunamis
-- Tecnologia sismica
-- Sistemas de alerta temprana
-- Monitoreo de la Tierra
+Python 3.11+
 
-Redes:
+TEMATICAS:
+- Sismos, terremotos y sismologia
+- Volcanes y erupciones
+- Geologia, tectonica y geofisica
+- Tsunamis y oceanografia
+- Meteorologia y tormentas
+- Huracanes y ciclones
+- Climatologia y cambio climatico
+- Glaciares y criosfera
+- Desastres naturales
+- Satelites y observacion terrestre
+- Astronomia y exploracion espacial
+- Investigaciones y descubrimientos cientificos
+
+PUBLICACION:
 - Instagram @sismonauta
 - Facebook Page SISMONAUTA
 
-Caracteristicas:
-- Noticias publicadas durante las ultimas 24 horas
-- Busqueda en espanol e ingles
+CARACTERISTICAS:
+- Noticias de las ultimas 24 horas
+- Busqueda RSS en espanol e ingles
+- Seleccion editorial flexible
 - Traduccion al espanol
-- Redaccion con Gemini, OpenRouter o Groq
-- Explicaciones basadas en los datos reales
-- Sin disclaimers ni parrafos genericos
-- Fotografia reutilizable o fondo grafico original
-- Imagen vertical de 1080 x 1350
-- Banner azul con letras blancas y contorno negro
-- Historial para evitar duplicados
-- Verificacion de publicacion en Meta
+- Gemini, OpenRouter o Groq opcionales
+- Redaccion basada en informacion disponible
+- Fotografias Wikimedia Commons CC0/PD
+- Fondos graficos originales de respaldo
+- Imagen vertical 1080 x 1350
+- Banner azul y tipografia blanca
+- Historial GitHub antduplicados
+- Control de publicaciones inciertas
+- Publicacion automatica o vista previa
 
-Dependencias:
+DEPENDENCIAS:
     pip install requests pillow
 
-Uso:
+VISTA PREVIA:
     python noticias_sismonauta.py --out output_noticias
+
+PUBLICACION:
     python noticias_sismonauta.py --publish --out output_noticias
+
+VARIABLES OBLIGATORIAS PARA PUBLICAR:
+    GH_TOKEN
+    GITHUB_REPOSITORY
+    GITHUB_REF_NAME
+    INSTAGRAM_TOKEN
+    INSTAGRAM_USER_ID
+    FACEBOOK_PAGE_ID
+    FACEBOOK_PAGE_TOKEN
+
+OPCIONALES:
+    GEMINI_API_KEY
+    OPENROUTER_API_KEY
+    GROQ_API_KEY
+    IG_GRAPH_VERSION
+    IG_GRAPH_BASE
+    NEWS_LOOKBACK_HOURS
+    NEWS_MAX_ARTICLES
+
+NOTA:
+El programa no inventa noticias ni hechos cientificos.
+Una respuesta de Meta confirma la solicitud aceptada;
+no garantiza la visibilidad posterior del contenido.
 """
 
 from __future__ import annotations
@@ -54,6 +88,7 @@ import random
 import re
 import sys
 import time
+import unicodedata
 import urllib.parse
 import xml.etree.ElementTree as ET
 
@@ -64,174 +99,409 @@ from pathlib import Path
 
 import requests
 
-from PIL import Image, ImageDraw, ImageFont, ImageOps
-
+from PIL import (
+    Image,
+    ImageDraw,
+    ImageFont,
+    ImageOps,
+)
 
 # ============================================================
-# CONFIGURACION GENERAL
+# 1. CONFIGURACION GENERAL
 # ============================================================
 
-UA = "SismonautaNews/3.1"
+UA = "SismonautaNews/4.0"
 
 HTTP = requests.Session()
 
 HTTP.headers.update({
-    "User-Agent": UA
+    "User-Agent": UA,
+    "Accept": "*/*",
 })
 
 VERSION = os.getenv(
     "IG_GRAPH_VERSION",
-    "v25.0"
+    "v25.0",
 )
 
 IG_BASE = os.getenv(
     "IG_GRAPH_BASE",
-    "https://graph.instagram.com"
+    "https://graph.instagram.com",
 ).rstrip("/")
 
 FB_BASE = "https://graph.facebook.com"
 
-STATE_FILE = "sismonauta_noticias/state.json"
-
 ACCOUNT = "sismonauta"
 
-MAX_ARTICLES = 40
+# IMPORTANTE:
+# Mantener el archivo historico original.
+STATE_FILE = "sismonauta_noticias/state.json"
 
-MIN_DESCRIPTION_WORDS = 22
-
-HASHTAGS = (
-    "#SISMONAUTA #Sismologia #Ciencia "
-    "#Terremotos #Tecnologia #Investigacion "
-    "#Geologia #Tectonica"
+LOOKBACK_HOURS = int(
+    os.getenv("NEWS_LOOKBACK_HOURS", "24")
 )
 
-
-# ============================================================
-# BUSQUEDAS RSS
-# ============================================================
-
-SOURCES = [
-    ("es", "sismología investigación when:1d"),
-    ("es", "terremotos estudio científico when:1d"),
-    ("es", "tsunami investigación when:1d"),
-    ("es", "alerta sísmica tecnología when:1d"),
-    ("es", "fallas tectónicas descubrimiento when:1d"),
-    ("es", "ondas sísmicas científicos when:1d"),
-    ("es", "geofísica investigación when:1d"),
-    ("es", "sensor sísmico innovación when:1d"),
-    ("es", "satélite terremotos estudio when:1d"),
-    ("es", "placas tectónicas investigación when:1d"),
-    ("es", "nuevo estudio sismología when:1d"),
-    ("es", "investigación geológica fallas when:1d"),
-
-    ("en", "seismology research when:1d"),
-    ("en", "earthquake technology when:1d"),
-    ("en", "tsunami research when:1d"),
-    ("en", "seismic early warning technology when:1d"),
-    ("en", "geophysics scientific discovery when:1d"),
-    ("en", "earthquake sensors research when:1d"),
-    ("en", "tectonic plates research when:1d"),
-    ("en", "earthquake satellite monitoring when:1d"),
-    ("en", "seismic imaging research when:1d"),
-    ("en", "fault mapping scientific study when:1d"),
-    ("en", "earthquake risk researchers findings when:1d"),
-    ("en", "tsunami detection ocean research when:1d"),
-    ("en", "earthquake early warning scientists when:1d"),
-    ("en", "seismometer new technology when:1d"),
-]
-
-
-SCIENCE = re.compile(
-    r"(?i)\b("
-    r"sism\w*|sísm\w*|seism\w*|"
-    r"earthquak\w*|terremot\w*|"
-    r"tsunami\w*|tect[oó]nic\w*|"
-    r"tectoni\w*|fault\w*|"
-    r"fallas?\b|geof[ií]sic\w*|"
-    r"geophysic\w*|subduction|"
-    r"subducci[oó]n|liquefaction|"
-    r"licuefacci[oó]n"
-    r")"
+MAX_ARTICLES = int(
+    os.getenv("NEWS_MAX_ARTICLES", "100")
 )
+
+MIN_DESCRIPTION_WORDS = 12
+
+WIDTH = 1080
+HEIGHT = 1350
+
+MAX_FEED_ITEMS = 80
+
+HASHTAGS_BASE = (
+    "#SISMONAUTA #Ciencia #Actualidad "
+    "#Naturaleza #Investigacion "
+    "#PlanetaTierra #DivulgacionCientifica"
+)
+
+# ============================================================
+# 2. CATEGORIAS Y BUSQUEDAS
+# ============================================================
+
+# Las consultas se mantienen relativamente amplias
+# para no depender de la aparicion de estudios nuevos.
+#
+# Google News RSS devuelve enlaces a medios.
+# Los contenidos se vuelven a filtrar localmente.
+
+SEARCH_GROUPS = {
+    "sismos": [
+        ("es", "sismos terremotos"),
+        ("es", "sismología"),
+        ("es", "fallas tectónicas"),
+        ("es", "alerta sísmica"),
+        ("en", "earthquake seismology"),
+        ("en", "earthquake research"),
+        ("en", "tectonic plates earthquake"),
+        ("en", "seismic monitoring"),
+    ],
+
+    "volcanes": [
+        ("es", "volcanes erupciones"),
+        ("es", "actividad volcánica"),
+        ("es", "vigilancia volcánica"),
+        ("es", "investigación volcanes"),
+        ("en", "volcano eruption"),
+        ("en", "volcanic activity"),
+        ("en", "volcano monitoring"),
+        ("en", "volcanology discovery"),
+    ],
+
+    "meteorologia": [
+        ("es", "meteorología tormentas"),
+        ("es", "huracanes ciclones"),
+        ("es", "fenómenos meteorológicos"),
+        ("es", "pronóstico meteorológico científico"),
+        ("en", "meteorology weather research"),
+        ("en", "hurricane cyclone"),
+        ("en", "extreme weather"),
+        ("en", "atmospheric science"),
+    ],
+
+    "climatologia": [
+        ("es", "clima investigación"),
+        ("es", "cambio climático"),
+        ("es", "glaciares científicos"),
+        ("es", "temperatura global clima"),
+        ("en", "climate science"),
+        ("en", "climate research"),
+        ("en", "glacier research"),
+        ("en", "global temperature climate"),
+    ],
+
+    "oceanos": [
+        ("es", "océanos investigación"),
+        ("es", "tsunami océano"),
+        ("es", "corrientes oceánicas"),
+        ("es", "nivel del mar investigación"),
+        ("en", "ocean science"),
+        ("en", "oceanography discovery"),
+        ("en", "tsunami research"),
+        ("en", "sea level research"),
+    ],
+
+    "espacio": [
+        ("es", "astronomía descubrimiento"),
+        ("es", "NASA espacio"),
+        ("es", "satélites observación terrestre"),
+        ("es", "exploración espacial"),
+        ("en", "NASA space science"),
+        ("en", "astronomy discovery"),
+        ("en", "Earth observation satellite"),
+        ("en", "space exploration science"),
+    ],
+
+    "desastres": [
+        ("es", "desastres naturales"),
+        ("es", "deslizamientos de tierra"),
+        ("es", "inundaciones prevención"),
+        ("es", "riesgos naturales"),
+        ("en", "natural hazards"),
+        ("en", "landslide flooding"),
+        ("en", "disaster risk science"),
+        ("en", "natural disaster monitoring"),
+    ],
+
+    "geologia": [
+        ("es", "geología descubrimiento"),
+        ("es", "geofísica investigación"),
+        ("es", "formación de montañas"),
+        ("en", "geology discovery"),
+        ("en", "geophysics research"),
+        ("en", "Earth science discovery"),
+        ("en", "geological research"),
+    ],
+}
+
+# ============================================================
+# 3. PALABRAS CIENTIFICAS POR CATEGORIA
+# ============================================================
+
+CATEGORY_PATTERNS = {
+    "sismos": re.compile(
+        r"sism\w*|s[ií]smic\w*|seism\w*|"
+        r"earthquak\w*|terremot\w*|"
+        r"tect[oó]nic\w*|tectoni\w*|"
+        r"falla geol[oó]gica|"
+        r"fault zone|subduction|subducci[oó]n",
+        re.I,
+    ),
+
+    "volcanes": re.compile(
+        r"volc[aá]n\w*|volcan\w*|"
+        r"volcanic\w*|erupci[oó]n\w*|"
+        r"eruption\w*|lava\b|magma\w*|"
+        r"ceniza volc[aá]nica|ash plume",
+        re.I,
+    ),
+
+    "meteorologia": re.compile(
+        r"meteorolog\w*|weather\b|"
+        r"storm\w*|torment\w*|"
+        r"hurac[aá]n\w*|hurricane\w*|"
+        r"cicl[oó]n\w*|cyclone\w*|"
+        r"tornado\w*|atmosf[eé]ric\w*|"
+        r"atmospher\w*|precipitaci[oó]n\w*|"
+        r"rainfall|forecast\w*|"
+        r"pron[oó]stic\w*",
+        re.I,
+    ),
+
+    "climatologia": re.compile(
+        r"climat\w*|climate\w*|"
+        r"calentamiento global|"
+        r"global warming|"
+        r"glaciar\w*|glacier\w*|"
+        r"criosfera|cryosphere|"
+        r"temperatura global|"
+        r"global temperature|"
+        r"deshielo|ice melt",
+        re.I,
+    ),
+
+    "oceanos": re.compile(
+        r"oc[eé]an\w*|ocean\w*|"
+        r"oceanograf\w*|oceanograph\w*|"
+        r"tsunami\w*|maremot\w*|"
+        r"corrientes marinas|"
+        r"ocean currents|"
+        r"nivel del mar|sea level|"
+        r"fondo marino|seafloor|"
+        r"arrecife\w*|coral reef",
+        re.I,
+    ),
+
+    "espacio": re.compile(
+        r"astronom\w*|astronomy|"
+        r"espacio exterior|outer space|"
+        r"exploraci[oó]n espacial|"
+        r"space exploration|"
+        r"NASA\b|ESA\b|"
+        r"sat[eé]lit\w*|satellite\w*|"
+        r"planet\w*|planeta\w*|"
+        r"galaxi\w*|galaxy|"
+        r"telescop\w*|"
+        r"asteroid\w*|asteroide\w*|"
+        r"solar system|sistema solar|"
+        r"cosmic\w*|c[oó]smic\w*",
+        re.I,
+    ),
+
+    "desastres": re.compile(
+        r"desastre\w* natural\w*|"
+        r"natural disaster\w*|"
+        r"deslizamiento\w*|landslide\w*|"
+        r"inundaci[oó]n\w*|flood\w*|"
+        r"alud\w*|avalanche\w*|"
+        r"incendio\w* forestal\w*|"
+        r"wildfire\w*|"
+        r"riesgo natural|natural hazard\w*|"
+        r"emergencia clim[aá]tica|"
+        r"extreme weather",
+        re.I,
+    ),
+
+    "geologia": re.compile(
+        r"geolog\w*|ge[oó]log\w*|"
+        r"geophysic\w*|geof[ií]sic\w*|"
+        r"corteza terrestre|earth crust|"
+        r"rock formation\w*|"
+        r"formaci[oó]n rocosa|"
+        r"geological\w*|"
+        r"geographic\w*|"
+        r"geomorfolog\w*|"
+        r"tectonic\w*|"
+        r"continental drift",
+        re.I,
+    ),
+}
 
 ADVANCE = re.compile(
-    r"(?i)\b("
-    r"estudi\w*|investigaci[oó]n|"
-    r"investigador\w*|cient[ií]fic\w*|"
+    r"estudi\w*|investig\w*|"
+    r"cient[ií]fic\w*|scientis\w*|"
+    r"research\w*|discover\w*|"
     r"descubr\w*|hallazgo\w*|"
-    r"avance\w*|tecnolog\w*|"
-    r"sensor\w*|sat[eé]lit\w*|"
-    r"alerta\w*|sistema\w*|"
-    r"desarroll\w*|m[eé]todo\w*|"
-    r"inteligencia artificial|"
-    r"model\w*|research\w*|"
-    r"stud(?:y|ies)|scientis\w*|"
-    r"discover\w*|breakthrough\w*|"
-    r"technolog\w*|satellite\w*|"
-    r"warning\w*|innovation\w*|"
-    r"develop\w*|detect\w*|"
-    r"monitor\w*|mapping|"
-    r"analy\w*|analiz\w*|"
-    r"advanc\w*|published|paper\b"
-    r")"
-)
-
-EVENT = re.compile(
-    r"(?i)\b("
-    r"sismo de magnitud|"
-    r"temblor de magnitud|"
-    r"terremoto de magnitud|"
-    r"earthquake of magnitude|"
-    r"magnitude [0-9]|"
-    r"sismo hoy|temblor hoy|"
-    r"earthquake strikes|"
-    r"earthquake hits|"
-    r"earthquake struck|"
-    r"earthquake shakes|"
-    r"terremoto sacude|"
-    r"reportan sismo"
-    r")"
+    r"an[aá]lis\w*|analys\w*|"
+    r"tecnolog\w*|technolog\w*|"
+    r"monitor\w*|observ\w*|"
+    r"detect\w*|sistema\w*|system\w*|"
+    r"sat[eé]lit\w*|satellite\w*|"
+    r"medici[oó]n\w*|measurement\w*|"
+    r"alerta\w*|warning\w*|"
+    r"model\w*|m[eé]todo\w*|"
+    r"pron[oó]stic\w*|forecast\w*|"
+    r"publicad\w*|published|"
+    r"nuev\w*|new\b",
+    re.I,
 )
 
 SPAM = re.compile(
-    r"(?i)\b("
-    r"horoscope|hor[oó]scopo|"
-    r"astrolog|conspiracy|"
-    r"tiktok|apocalipsis"
-    r")"
+    r"hor[oó]scop\w*|horoscop\w*|"
+    r"astrolog\w*|conspiracy|"
+    r"conspiraci[oó]n\w*|"
+    r"apocalipsis|"
+    r"loter[ií]a|lottery|"
+    r"apuesta\w*|betting|"
+    r"descuentos?|oferta comercial|"
+    r"promoci[oó]n comercial",
+    re.I,
 )
 
+# Publicaciones puramente especulativas o
+# predicciones de terremotos no verificadas.
+
+MISLEADING = re.compile(
+    r"predicen el pr[oó]ximo terremoto|"
+    r"exact earthquake prediction|"
+    r"fecha exacta del pr[oó]ximo sismo|"
+    r"earthquake prediction date",
+    re.I,
+)
 
 # ============================================================
-# UTILIDADES
+# 4. UTILIDADES
 # ============================================================
+
+def log(*values):
+    print(*values, flush=True)
+
 
 def clean(value):
     value = html.unescape(
         re.sub(
             r"<[^>]*>",
             " ",
-            value or ""
+            str(value or ""),
         )
     )
 
     return re.sub(
         r"\s+",
         " ",
-        value
+        value,
     ).strip()
+
+
+def normalized(value):
+    text = unicodedata.normalize(
+        "NFKD",
+        clean(value).lower(),
+    )
+
+    return "".join(
+        character
+        for character in text
+        if not unicodedata.combining(character)
+    )
+
+
+def word_count(value):
+    return len(clean(value).split())
+
+
+def utcnow():
+    return datetime.now(timezone.utc)
+
+
+def iso_now():
+    return utcnow().isoformat()
+
+
+def write_json(path, data):
+    path = Path(path)
+
+    path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    path.write_text(
+        json.dumps(
+            data,
+            ensure_ascii=False,
+            indent=2,
+            default=str,
+        ),
+        encoding="utf-8",
+    )
+
+
+def safe_error(exc):
+    result = str(exc)
+
+    for name in (
+        "GH_TOKEN",
+        "INSTAGRAM_TOKEN",
+        "FACEBOOK_PAGE_TOKEN",
+        "GEMINI_API_KEY",
+        "OPENROUTER_API_KEY",
+        "GROQ_API_KEY",
+    ):
+        secret = os.getenv(name, "")
+
+        if secret:
+            result = result.replace(
+                secret,
+                "***",
+            )
+
+    return result[:300]
 
 
 def get(url, **kwargs):
     timeout = kwargs.pop(
         "timeout",
-        25
+        25,
     )
 
     response = HTTP.get(
         url,
         timeout=timeout,
-        **kwargs
+        **kwargs,
     )
 
     response.raise_for_status()
@@ -239,195 +509,255 @@ def get(url, **kwargs):
     return response
 
 
-def write_json(path, data):
-    path.parent.mkdir(
-        parents=True,
-        exist_ok=True
+def article_fingerprint(title):
+    value = normalized(title)
+
+    value = re.sub(
+        r"[^a-z0-9]+",
+        "",
+        value,
     )
 
-    path.write_text(
-        json.dumps(
-            data,
-            ensure_ascii=False,
-            indent=2
-        ),
-        encoding="utf-8"
+    return hashlib.sha256(
+        value.encode("utf-8")
+    ).hexdigest()[:20]
+
+
+# ============================================================
+# 5. CLASIFICACION EDITORIAL
+# ============================================================
+
+def classify_article(title, description):
+    content = (
+        clean(title)
+        + " "
+        + clean(description)
     )
 
+    if SPAM.search(content):
+        return None
 
-def word_count(text):
-    return len(
-        text.split()
+    if MISLEADING.search(content):
+        return None
+
+    matches = []
+
+    for category, pattern in CATEGORY_PATTERNS.items():
+        if pattern.search(content):
+            matches.append(category)
+
+    if not matches:
+        return None
+
+    # No se exige una palabra como
+    # "investigacion" para aceptar la noticia.
+    #
+    # Tambien se aceptan observaciones,
+    # eventos naturales y avances relevantes.
+
+    priorities = (
+        "sismos",
+        "volcanes",
+        "oceanos",
+        "desastres",
+        "meteorologia",
+        "climatologia",
+        "geologia",
+        "espacio",
+    )
+
+    for category in priorities:
+        if category in matches:
+            return category
+
+    return matches[0]
+
+
+def is_low_information(title, description):
+    title = clean(title)
+    description = clean(description)
+
+    if word_count(title) < 4:
+        return True
+
+    if not description:
+        return False
+
+    # El resumen no puede limitarse
+    # a repetir exactamente el titular.
+
+    return (
+        normalized(description)
+        == normalized(title)
     )
 
 
 # ============================================================
-# NOTICIAS DE LAS ULTIMAS 24 HORAS
+# 6. CONSULTA RSS
 # ============================================================
 
 def feed_items():
+    now = utcnow()
 
-    now = datetime.now(
-        timezone.utc
-    )
-
-    output = {}
+    result = {}
 
     audit = {
         "feeds_ok": 0,
         "feeds_failed": 0,
         "rss_items": 0,
-        "outside_24h": 0,
+        "outside_window": 0,
         "missing_date": 0,
-        "not_science": 0,
-        "not_advance": 0,
-        "event_only": 0,
-        "spam": 0,
+        "not_relevant": 0,
+        "spam_or_invalid": 0,
+        "accepted": 0,
     }
 
-    for lang, query in SOURCES:
+    for search_category, searches in SEARCH_GROUPS.items():
+        for lang, query in searches:
 
-        if lang == "es":
             region = (
-                "es-CL",
-                "CL",
-                "CL:es-419"
-            )
-        else:
-            region = (
-                "en-US",
-                "US",
-                "US:en"
+                ("es-CL", "CL", "CL:es-419")
+                if lang == "es"
+                else ("en-US", "US", "US:en")
             )
 
-        url = (
-            "https://news.google.com/rss/search?"
-            + urllib.parse.urlencode({
-                "q": query,
-                "hl": region[0],
-                "gl": region[1],
-                "ceid": region[2],
-            })
-        )
-
-        try:
-            root = ET.fromstring(
-                get(
-                    url,
-                    timeout=25
-                ).content
+            # El RSS se limita al periodo
+            # establecido por el workflow.
+            complete_query = (
+                query
+                + f" when:{LOOKBACK_HOURS}h"
             )
 
-            audit["feeds_ok"] += 1
-
-        except Exception as exc:
-
-            audit["feeds_failed"] += 1
-
-            print(
-                "RSS ERROR:",
-                query,
-                str(exc)[:100],
-                flush=True
+            url = (
+                "https://news.google.com/rss/search?"
+                + urllib.parse.urlencode({
+                    "q": complete_query,
+                    "hl": region[0],
+                    "gl": region[1],
+                    "ceid": region[2],
+                })
             )
-
-            continue
-
-        entries = root.findall(
-            ".//channel/item"
-        )
-
-        print(
-            "RSS:",
-            lang,
-            query,
-            "resultados:",
-            len(entries),
-            flush=True
-        )
-
-        for node in entries:
-
-            audit["rss_items"] += 1
-
-            title = clean(
-                node.findtext("title")
-            )
-
-            description = clean(
-                node.findtext("description")
-            )
-
-            link = (
-                node.findtext("link") or ""
-            ).strip()
 
             try:
-                date = parsedate_to_datetime(
-                    node.findtext("pubDate") or ""
-                ).astimezone(timezone.utc)
-
-            except Exception:
-
-                audit["missing_date"] += 1
-                continue
-
-            if not (
-                now - timedelta(hours=24)
-                <= date
-                <= now + timedelta(minutes=5)
-            ):
-                audit["outside_24h"] += 1
-                continue
-
-            provider = clean(
-                node.findtext("source") or ""
-            )
-
-            if " - " in title:
-
-                prefix, suffix = title.rsplit(
-                    " - ",
-                    1
+                root = ET.fromstring(
+                    get(
+                        url,
+                        timeout=20,
+                    ).content
                 )
 
-                if (
-                    not provider
-                    or suffix.lower() == provider.lower()
-                ):
-                    title = prefix.strip()
+                audit["feeds_ok"] += 1
 
-            content = (
-                title + " " + description
+            except Exception as exc:
+                audit["feeds_failed"] += 1
+
+                log(
+                    "RSS ERROR:",
+                    search_category,
+                    query,
+                    safe_error(exc)[:100],
+                )
+
+                continue
+
+            entries = root.findall(
+                ".//channel/item"
+            )[:MAX_FEED_ITEMS]
+
+            log(
+                "RSS:",
+                search_category,
+                lang,
+                "|",
+                query,
+                "| resultados:",
+                len(entries),
             )
 
-            if not SCIENCE.search(content):
-                audit["not_science"] += 1
-                continue
+            for node in entries:
+                audit["rss_items"] += 1
 
-            if not ADVANCE.search(content):
-                audit["not_advance"] += 1
-                continue
+                title = clean(
+                    node.findtext("title")
+                )
 
-            if EVENT.search(title):
-                audit["event_only"] += 1
-                continue
+                description = clean(
+                    node.findtext("description")
+                )
 
-            if SPAM.search(content):
-                audit["spam"] += 1
-                continue
+                link = clean(
+                    node.findtext("link")
+                )
 
-            identifier = hashlib.sha256(
-                re.sub(
-                    r"\W+",
-                    "",
-                    title.lower()
-                ).encode("utf-8")
-            ).hexdigest()[:20]
+                try:
+                    date = parsedate_to_datetime(
+                        node.findtext("pubDate") or ""
+                    )
 
-            if identifier not in output:
+                    if date.tzinfo is None:
+                        date = date.replace(
+                            tzinfo=timezone.utc
+                        )
 
-                output[identifier] = {
+                    date = date.astimezone(
+                        timezone.utc
+                    )
+
+                except Exception:
+                    audit["missing_date"] += 1
+                    continue
+
+                if not (
+                    now - timedelta(
+                        hours=LOOKBACK_HOURS
+                    )
+                    <= date
+                    <= now + timedelta(minutes=5)
+                ):
+                    audit["outside_window"] += 1
+                    continue
+
+                provider = clean(
+                    node.findtext("source")
+                )
+
+                if " - " in title:
+                    prefix, suffix = title.rsplit(
+                        " - ",
+                        1,
+                    )
+
+                    if (
+                        not provider
+                        or normalized(suffix)
+                        == normalized(provider)
+                    ):
+                        title = prefix.strip()
+
+                if is_low_information(
+                    title,
+                    description,
+                ):
+                    audit["spam_or_invalid"] += 1
+                    continue
+
+                category = classify_article(
+                    title,
+                    description,
+                )
+
+                if not category:
+                    audit["not_relevant"] += 1
+                    continue
+
+                identifier = article_fingerprint(
+                    title
+                )
+
+                if identifier in result:
+                    continue
+
+                result[identifier] = {
                     "id": identifier,
                     "title": title,
                     "description": description,
@@ -435,113 +765,153 @@ def feed_items():
                     "source": provider,
                     "date": date.isoformat(),
                     "lang": lang,
+                    "category": category,
+                    "search_category": search_category,
+                    "scientific_advance": bool(
+                        ADVANCE.search(
+                            title + " " + description
+                        )
+                    ),
                 }
 
-    print(
+                audit["accepted"] += 1
+
+    log(
         "AUDITORIA RSS:",
         json.dumps(
             audit,
-            ensure_ascii=False
+            ensure_ascii=False,
         ),
-        flush=True
     )
 
     if audit["feeds_ok"] == 0:
         raise RuntimeError(
-            "No se pudo consultar ninguna fuente RSS"
+            "No fue posible consultar ninguna "
+            "fuente RSS"
         )
 
-    return list(
-        output.values()
-    )
+    return list(result.values())
 
 
 # ============================================================
-# PRIORIDAD EDITORIAL
+# 7. PRIORIDAD EDITORIAL
 # ============================================================
 
 def priority(article):
-
-    text = (
+    text = normalized(
         article["title"]
         + " "
         + article["description"]
-    ).lower()
+    )
 
-    score = 0
+    score = 0.0
+
+    category_weights = {
+        "sismos": 9,
+        "volcanes": 8,
+        "oceanos": 7,
+        "desastres": 7,
+        "meteorologia": 6,
+        "climatologia": 6,
+        "geologia": 6,
+        "espacio": 5,
+    }
+
+    score += category_weights.get(
+        article.get("category"),
+        0,
+    )
 
     weights = [
-        ("investigación", 5),
+        ("investigacion", 5),
         ("research", 5),
         ("descubrimiento", 5),
         ("discovery", 5),
-        ("tecnología", 4),
+        ("nasa", 4),
+        ("noaa", 4),
+        ("tecnologia", 4),
         ("technology", 4),
         ("estudio", 4),
         ("study", 4),
-        ("early warning", 4),
-        ("alerta temprana", 4),
-        ("sensor", 3),
-        ("satélite", 3),
-        ("satellite", 3),
-        ("seismic", 2),
-        ("sísmic", 2),
+        ("volcan", 3),
+        ("eruption", 3),
+        ("huracan", 3),
+        ("hurricane", 3),
+        ("tsunami", 3),
+        ("oceano", 2),
+        ("ocean", 2),
+        ("satellite", 2),
+        ("satelite", 2),
+        ("scientists", 2),
+        ("cientificos", 2),
     ]
 
     for term, weight in weights:
-
         if term in text:
             score += weight
+
+    if article.get("scientific_advance"):
+        score += 3
 
     date = datetime.fromisoformat(
         article["date"]
     )
 
-    age = (
-        datetime.now(timezone.utc)
-        - date
-    ).total_seconds() / 3600
+    age_hours = max(
+        0,
+        (
+            utcnow() - date
+        ).total_seconds() / 3600,
+    )
 
     score += max(
         0,
-        24 - age
-    ) * 0.12
+        LOOKBACK_HOURS - age_hours,
+    ) * 0.18
+
+    # Preferir noticias que aportan
+    # contexto o informacion verificable.
+    score += min(
+        5,
+        word_count(
+            article.get("description")
+        ) / 12,
+    )
 
     return score
 
 
 # ============================================================
-# MODELOS DE IA
+# 8. MODELOS DE IA
 # ============================================================
 
 def ai_text(prompt, max_tokens=1100):
 
+    # ----------------------------
     # GEMINI
+    # ----------------------------
 
     key = os.getenv(
         "GEMINI_API_KEY",
-        ""
+        "",
     ).strip()
 
     if key:
-
         try:
             model = os.getenv(
                 "GEMINI_NEWS_MODEL",
-                "gemini-2.5-flash"
-            )
-
-            endpoint = (
-                "https://generativelanguage.googleapis.com/"
-                "v1beta/models/"
-                + model
-                + ":generateContent"
+                "gemini-2.5-flash",
             )
 
             response = HTTP.post(
-                endpoint,
-                params={
-                    "key": key
+                (
+                    "https://generativelanguage."
+                    "googleapis.com/v1beta/models/"
+                    + model
+                    + ":generateContent"
+                ),
+                headers={
+                    "x-goog-api-key": key
                 },
                 json={
                     "contents": [{
@@ -550,11 +920,11 @@ def ai_text(prompt, max_tokens=1100):
                         }]
                     }],
                     "generationConfig": {
-                        "temperature": 0.1,
-                        "maxOutputTokens": max_tokens
+                        "temperature": 0.15,
+                        "maxOutputTokens": max_tokens,
                     },
                 },
-                timeout=55
+                timeout=65,
             )
 
             response.raise_for_status()
@@ -573,43 +943,45 @@ def ai_text(prompt, max_tokens=1100):
                 return result
 
         except Exception as exc:
-
-            print(
+            log(
                 "Gemini no disponible:",
-                str(exc)[:130],
-                flush=True
+                safe_error(exc)[:120],
             )
 
+    # ----------------------------
     # OPENROUTER
+    # ----------------------------
 
     key = os.getenv(
         "OPENROUTER_API_KEY",
-        ""
+        "",
     ).strip()
 
     if key:
-
         try:
             model = os.getenv(
                 "OPENROUTER_NEWS_MODEL",
-                "openai/gpt-4o-mini"
+                "openrouter/free",
             )
 
             response = HTTP.post(
-                "https://openrouter.ai/api/v1/chat/completions",
+                (
+                    "https://openrouter.ai/"
+                    "api/v1/chat/completions"
+                ),
                 headers={
                     "Authorization": "Bearer " + key
                 },
                 json={
                     "model": model,
-                    "temperature": 0.1,
+                    "temperature": 0.15,
                     "max_tokens": max_tokens,
                     "messages": [{
                         "role": "user",
-                        "content": prompt
+                        "content": prompt,
                     }],
                 },
-                timeout=55
+                timeout=65,
             )
 
             response.raise_for_status()
@@ -617,49 +989,54 @@ def ai_text(prompt, max_tokens=1100):
             result = (
                 response.json()["choices"][0]
                 ["message"]["content"]
-            ).strip()
-
-            if result:
-                return result
-
-        except Exception as exc:
-
-            print(
-                "OpenRouter no disponible:",
-                str(exc)[:130],
-                flush=True
             )
 
+            if isinstance(result, str):
+                result = result.strip()
+
+                if result:
+                    return result
+
+        except Exception as exc:
+            log(
+                "OpenRouter no disponible:",
+                safe_error(exc)[:120],
+            )
+
+    # ----------------------------
     # GROQ
+    # ----------------------------
 
     key = os.getenv(
         "GROQ_API_KEY",
-        ""
+        "",
     ).strip()
 
     if key:
-
         try:
             model = os.getenv(
                 "GROQ_NEWS_MODEL",
-                "llama-3.3-70b-versatile"
+                "llama-3.3-70b-versatile",
             )
 
             response = HTTP.post(
-                "https://api.groq.com/openai/v1/chat/completions",
+                (
+                    "https://api.groq.com/"
+                    "openai/v1/chat/completions"
+                ),
                 headers={
                     "Authorization": "Bearer " + key
                 },
                 json={
                     "model": model,
-                    "temperature": 0.1,
+                    "temperature": 0.15,
                     "max_tokens": max_tokens,
                     "messages": [{
                         "role": "user",
-                        "content": prompt
+                        "content": prompt,
                     }],
                 },
-                timeout=55
+                timeout=65,
             )
 
             response.raise_for_status()
@@ -673,51 +1050,46 @@ def ai_text(prompt, max_tokens=1100):
                 return result
 
         except Exception as exc:
-
-            print(
+            log(
                 "Groq no disponible:",
-                str(exc)[:130],
-                flush=True
+                safe_error(exc)[:120],
             )
 
     return None
 
 
 # ============================================================
-# TRADUCCION AL ESPANOL
+# 9. TRADUCCION
 # ============================================================
 
 def translate_es(value):
-
     value = clean(value)
 
     if not value:
         return ""
 
     prompt = (
-        "Traduce fielmente al español de Chile "
-        "el siguiente texto periodístico. "
-        "Conserva todos los nombres, cifras y datos. "
-        "No agregues información. "
-        "Devuelve solamente la traducción:\n\n"
+        "Traduce fielmente al español de Chile. "
+        "No agregues datos ni cambies nombres "
+        "o cifras. Devuelve solo la traducción:\n\n"
         + value
     )
 
     result = ai_text(
         prompt,
-        max_tokens=650
+        max_tokens=650,
     )
 
-    if (
-        result
-        and len(result) >= 12
-    ):
-        return result
+    if result and len(result) >= 10:
+        return clean(result)
 
+    # Traduccion automatica de respaldo.
     try:
         response = get(
-            "https://translate.googleapis.com/"
-            "translate_a/single",
+            (
+                "https://translate.googleapis.com/"
+                "translate_a/single"
+            ),
             params={
                 "client": "gtx",
                 "sl": "auto",
@@ -725,7 +1097,7 @@ def translate_es(value):
                 "dt": "t",
                 "q": value,
             },
-            timeout=18
+            timeout=18,
         )
 
         result = clean(
@@ -736,17 +1108,19 @@ def translate_es(value):
             )
         )
 
-        if len(result) >= 12:
+        if len(result) >= 10:
             return result
 
-    except Exception:
-        pass
+    except Exception as exc:
+        log(
+            "Traduccion no disponible:",
+            type(exc).__name__,
+        )
 
     return None
 
 
 def spanish_article(article):
-
     if article["lang"] == "es":
         return dict(article)
 
@@ -757,25 +1131,30 @@ def spanish_article(article):
     if not title:
         return None
 
-    description = ""
+    result = dict(article)
 
-    if article.get("description"):
+    result["original_title"] = (
+        article["title"]
+    )
 
-        description = translate_es(
-            article["description"]
-        ) or ""
+    result["title"] = title
 
-    converted = dict(article)
+    description = article.get(
+        "description", ""
+    )
 
-    converted["original_title"] = article["title"]
-    converted["title"] = title
-    converted["description"] = description
+    if description:
+        result["description"] = (
+            translate_es(description) or ""
+        )
 
-    return converted
+    result["lang"] = "es"
+
+    return result
 
 
 # ============================================================
-# EXTRACCION DEL ARTICULO
+# 10. EXTRACCION DEL ARTICULO
 # ============================================================
 
 class ArticleParser(HTMLParser):
@@ -789,7 +1168,6 @@ class ArticleParser(HTMLParser):
         self.paragraphs = []
 
     def handle_starttag(self, tag, attrs):
-
         if tag in (
             "script",
             "style",
@@ -802,12 +1180,10 @@ class ArticleParser(HTMLParser):
             self.block += 1
 
         elif tag == "p" and not self.block:
-
             self.in_paragraph = True
             self.parts = []
 
     def handle_endtag(self, tag):
-
         if tag in (
             "script",
             "style",
@@ -819,16 +1195,15 @@ class ArticleParser(HTMLParser):
         ):
             self.block = max(
                 0,
-                self.block - 1
+                self.block - 1,
             )
 
         elif tag == "p" and self.in_paragraph:
-
             paragraph = clean(
                 " ".join(self.parts)
             )
 
-            if len(paragraph) > 65:
+            if len(paragraph) > 55:
                 self.paragraphs.append(
                     paragraph
                 )
@@ -837,16 +1212,16 @@ class ArticleParser(HTMLParser):
             self.parts = []
 
     def handle_data(self, data):
-
-        if self.in_paragraph and not self.block:
+        if (
+            self.in_paragraph
+            and not self.block
+        ):
             self.parts.append(data)
 
 
 def full_article_text(article):
-
     url = article.get(
-        "url",
-        ""
+        "url", ""
     )
 
     if not url.startswith("https://"):
@@ -858,12 +1233,11 @@ def full_article_text(article):
             timeout=20,
             headers={
                 "Accept": "text/html"
-            }
+            },
         )
 
         if "html" not in response.headers.get(
-            "Content-Type",
-            ""
+            "Content-Type", ""
         ).lower():
             return ""
 
@@ -880,18 +1254,20 @@ def full_article_text(article):
         seen = set()
 
         for paragraph in parser.paragraphs:
+            key = normalized(
+                paragraph
+            )[:100]
 
-            fingerprint = paragraph.lower()[:90]
-
-            if fingerprint in seen:
+            if key in seen:
                 continue
 
-            seen.add(fingerprint)
+            seen.add(key)
 
             if re.search(
-                r"(?i)cookies|privacy policy|"
-                r"subscribe|advertisement|copyright",
-                paragraph
+                r"cookies|privacy policy|"
+                r"subscribe|advertisement",
+                paragraph,
+                re.I,
             ):
                 continue
 
@@ -903,28 +1279,27 @@ def full_article_text(article):
             paragraphs
         )
 
-        if word_count(content) < 100:
+        # Mas flexible que antes:
+        # 60 palabras en vez de 100.
+        if word_count(content) < 60:
             return ""
 
         return content[:16000]
 
     except Exception as exc:
-
-        print(
+        log(
             "Articulo no accesible:",
             type(exc).__name__,
-            flush=True
         )
 
         return ""
 
 
 # ============================================================
-# EXPLICACION COMPLETA MEDIANTE IA
+# 11. EXPLICACION DETALLADA
 # ============================================================
 
 def detailed_explanation(article):
-
     body = full_article_text(
         article
     )
@@ -934,34 +1309,39 @@ def detailed_explanation(article):
 
     prompt = (
         "Eres periodista científico de SISMONAUTA. "
-        "Redacta una explicación periodística original "
-        "en español de Chile, de aproximadamente "
-        "160 a 240 palabras, organizada en párrafos.\n\n"
+        "Redacta una explicación original y clara, "
+        "en español de Chile, sobre esta noticia.\n\n"
 
-        "Explica los hechos reales de esta noticia:\n"
-        "- Qué se descubrió o investigó.\n"
-        "- Quién realizó el estudio, cuando se conozca.\n"
-        "- Cómo se desarrolló la investigación.\n"
-        "- Qué resultados se obtuvieron.\n"
-        "- Qué importancia tiene el descubrimiento.\n\n"
+        "Extensión orientativa: entre 80 y 190 palabras, "
+        "según la información que exista.\n\n"
 
-        "REGLAS:\n"
-        "- Utiliza exclusivamente los datos proporcionados.\n"
-        "- No inventes resultados, cifras ni instituciones.\n"
-        "- No añadas información genérica de relleno.\n"
-        "- No escribas disclaimers ni advertencias editoriales.\n"
-        "- No incluyas titular, fuentes, enlaces ni hashtags.\n"
-        "- No copies párrafos completos del artículo.\n"
-        "- Si faltan datos esenciales, responde INSUFICIENTE.\n\n"
+        "Incluye solamente hechos demostrables "
+        "dentro del texto proporcionado.\n"
+
+        "Explica qué ocurrió, qué se observó o "
+        "qué se investigó. Menciona resultados, "
+        "instituciones o fechas solo si aparecen "
+        "en la fuente.\n\n"
+
+        "No inventes cifras, autores, conclusiones "
+        "ni causas. No agregues predicciones.\n"
+
+        "No copies párrafos extensos.\n"
+        "No agregues hashtags ni enlaces.\n"
+        "No incluyas frases genéricas de relleno.\n"
+
+        "Si el texto no permite describir siquiera "
+        "un hecho verificable, responde INSUFICIENTE.\n\n"
 
         f"TITULAR: {article['title']}\n"
-        f"MEDIO: {article.get('source', '')}\n\n"
+        f"MEDIO: {article.get('source', '')}\n"
+        f"CATEGORÍA: {article.get('category', '')}\n\n"
         f"ARTÍCULO:\n{body[:14500]}"
     )
 
     result = ai_text(
         prompt,
-        max_tokens=1200
+        max_tokens=1050,
     )
 
     if not result:
@@ -970,26 +1350,17 @@ def detailed_explanation(article):
     if "INSUFICIENTE" in result.upper():
         return None
 
-    if word_count(result) < 75:
+    if word_count(result) < 25:
         return None
 
     return result.strip()
 
 
 # ============================================================
-# REDACCION A PARTIR DE INFORMACION DISPONIBLE
+# 12. EXPLICACION DESDE EL RESUMEN
 # ============================================================
 
 def evidence_brief(article):
-
-    """
-    Genera una explicacion basada en el
-    resumen disponible, sin disclaimers.
-
-    No inventa detalles ni agrega parrafos
-    genericos para aumentar la extension.
-    """
-
     title = clean(
         article.get("title", "")
     )
@@ -998,300 +1369,374 @@ def evidence_brief(article):
         article.get("description", "")
     )
 
-    # Evitar que un titular repetido se tome
-    # por una descripcion informativa.
+    if not summary:
+        return None
+
+    if normalized(summary) == normalized(title):
+        return None
 
     if (
-        not summary
-        or summary.lower() == title.lower()
+        word_count(summary)
+        < MIN_DESCRIPTION_WORDS
     ):
         return None
 
-    if word_count(summary) < MIN_DESCRIPTION_WORDS:
-        return None
-
     prompt = (
-        "Redacta para SISMONAUTA una explicación "
-        "informativa, clara y natural de esta noticia "
-        "científica, en español de Chile.\n\n"
+        "Redacta una nota informativa para "
+        "SISMONAUTA en español de Chile.\n\n"
 
-        "Utiliza solamente la información del titular "
-        "y del resumen proporcionados.\n"
+        "Utiliza exclusivamente el titular y "
+        "el resumen de esta noticia.\n"
 
-        "Explica los hechos específicos conocidos. "
-        "Si existen datos suficientes, desarrolla "
-        "varios párrafos; si son pocos, escribe "
-        "menos texto en lugar de inventar.\n\n"
+        "Puede tratar sobre sismos, volcanes, "
+        "meteorología, clima, océanos, espacio, "
+        "geología o desastres naturales.\n\n"
 
-        "PROHIBIDO:\n"
-        "- Inventar resultados, investigadores o cifras.\n"
-        "- Escribir advertencias sobre información limitada.\n"
-        "- Incluir frases de relleno sobre responsabilidad.\n"
-        "- Repetir el titular como explicación.\n"
-        "- Añadir fuentes, enlaces o créditos de imágenes.\n"
-        "- Añadir hashtags.\n"
-        "- Agregar comentarios sobre predicción de sismos "
-        "si la noticia no trata específicamente ese tema.\n\n"
+        "Redacta entre 35 y 100 palabras "
+        "cuando los datos lo permitan.\n"
 
-        "Devuelve solamente el texto explicativo. "
-        "Si los datos no permiten explicar un hecho "
-        "concreto, responde INSUFICIENTE.\n\n"
+        "Si hay pocos datos, utiliza menos "
+        "palabras. No inventes información.\n"
 
-        f"TITULAR:\n{title}\n\n"
-        f"RESUMEN:\n{summary}"
+        "No agregues resultados, cifras ni "
+        "instituciones ausentes de los datos.\n"
+
+        "No copies el titular como explicación.\n"
+        "No agregues hashtags ni enlaces.\n"
+
+        "Si no puedes explicar el hecho concreto, "
+        "responde INSUFICIENTE.\n\n"
+
+        f"TITULAR: {title}\n\n"
+        f"RESUMEN: {summary}"
     )
 
     result = ai_text(
         prompt,
-        max_tokens=900
+        max_tokens=650,
     )
 
     if (
         result
         and "INSUFICIENTE" not in result.upper()
-        and word_count(result) >= 35
+        and word_count(result) >= 20
     ):
         return result.strip()
 
-    # Respaldo determinista: solamente el resumen
-    # informativo real, sin comentarios adicionales.
+    # Respaldo determinista.
+    # El resumen ya constituye información
+    # publicada por la fuente original.
+    #
+    # No generar contenido inventado.
 
-    if word_count(summary) >= 35:
+    if word_count(summary) >= 18:
+        return summary.rstrip(".") + "."
+
+    return None
+
+
+def obtain_explanation(article):
+    explanation = detailed_explanation(
+        article
+    )
+
+    if explanation:
+        return explanation
+
+    explanation = evidence_brief(
+        article
+    )
+
+    if explanation:
+        return explanation
+
+    # Si hay suficiente informacion en
+    # el resumen, permitir una nota breve
+    # sin necesidad de un modelo de IA.
+    summary = clean(
+        article.get("description", "")
+    )
+
+    if (
+        word_count(summary) >= 12
+        and normalized(summary)
+        != normalized(article["title"])
+    ):
         return summary.rstrip(".") + "."
 
     return None
 
 
 # ============================================================
-# FOTOGRAFIAS DE WIKIMEDIA COMMONS
+# 13. FOTOGRAFIAS DE WIKIMEDIA COMMONS
 # ============================================================
 
-def commons_photo(article):
+PHOTO_QUERIES = {
+    "sismos": [
+        "earthquake fault landscape",
+        "San Andreas Fault",
+        "mountain rock landscape",
+    ],
 
-    text = (
-        article.get("title", "")
-        + " "
-        + article.get("description", "")
+    "volcanes": [
+        "volcano landscape",
+        "volcanic eruption",
+        "volcanic mountain",
+    ],
+
+    "meteorologia": [
+        "storm clouds landscape",
+        "hurricane satellite",
+        "thunderstorm clouds",
+    ],
+
+    "climatologia": [
+        "glacier landscape",
+        "polar ice landscape",
+        "mountain glacier",
+    ],
+
+    "oceanos": [
+        "ocean coastline",
+        "sea waves shore",
+        "coastal landscape",
+    ],
+
+    "espacio": [
+        "NASA Earth from space",
+        "Hubble galaxy",
+        "planet astronomy",
+    ],
+
+    "desastres": [
+        "landslide mountain",
+        "flooded river landscape",
+        "forest wildfire",
+    ],
+
+    "geologia": [
+        "rock formations landscape",
+        "mountain geology",
+        "geological fault",
+    ],
+}
+
+PHOTO_ALLOWED = (
+    "cc0",
+    "public domain",
+    "publicdomain",
+    "pdm",
+    "pd-old",
+    "pd-us",
+    "pd-self",
+)
+
+
+def commons_license_accepted(metadata):
+    short = clean(
+        (metadata.get("LicenseShortName") or {})
+        .get("value", "")
     ).lower()
 
-    searches = []
+    code = clean(
+        (metadata.get("License") or {})
+        .get("value", "")
+    ).lower()
 
-    if re.search(
-        r"tsunami|coast|ocean|shore|costa|oc[eé]ano",
-        text
-    ):
-        searches.extend([
-            (
-                "tsunami coast",
-                ("tsunami", "coast", "shore")
-            ),
-            (
-                "tsunami shoreline",
-                ("tsunami", "coast", "shore")
-            ),
-        ])
+    usage = clean(
+        (metadata.get("UsageTerms") or {})
+        .get("value", "")
+    ).lower()
 
-    if re.search(
-        r"sensor|seismomet|sism[oó]graf|"
-        r"monitor|alert|warning",
-        text
-    ):
-        searches.extend([
-            (
-                "seismic monitoring station",
-                ("seismic", "station", "seismometer")
-            ),
-            (
-                "USGS seismic station",
-                ("seismic", "station", "usgs")
-            ),
-        ])
+    combined = " ".join((
+        short,
+        code,
+        usage,
+    ))
 
-    if re.search(
-        r"fault|falla|tectonic|tect[oó]nic|"
-        r"subduct|geolog",
-        text
-    ):
-        searches.extend([
-            (
-                "San Andreas Fault landscape",
-                ("fault", "tectonic", "geologic")
-            ),
-            (
-                "earthquake ground rupture",
-                ("earthquake", "fault", "rupture")
-            ),
-        ])
+    return any(
+        marker in combined
+        for marker in PHOTO_ALLOWED
+    )
 
-    if not searches:
 
-        searches = [
-            (
-                "earthquake fault landscape",
-                ("earthquake", "fault", "rupture")
-            )
-        ]
+def commons_photo(article):
+    category = article.get(
+        "category", "geologia"
+    )
+
+    searches = PHOTO_QUERIES.get(
+        category,
+        PHOTO_QUERIES["geologia"],
+    )
 
     candidates = []
+    seen = set()
 
-    for query, terms in searches[:6]:
+    for query in searches:
+        params = {
+            "action": "query",
+            "format": "json",
+            "formatversion": 2,
+            "generator": "search",
+            "gsrsearch": query,
+            "gsrnamespace": 6,
+            "gsrlimit": 40,
+            "prop": "imageinfo",
+            "iiprop": (
+                "url|extmetadata|mime|size"
+            ),
+            "iiurlwidth": 1500,
+        }
 
-        try:
-            data = get(
-                "https://commons.wikimedia.org/w/api.php",
-                params={
-                    "action": "query",
-                    "generator": "search",
-                    "gsrsearch": query,
-                    "gsrnamespace": 6,
-                    "gsrlimit": 35,
-                    "prop": "imageinfo",
-                    "iiprop": "url|extmetadata|mime",
-                    "iiurlwidth": 1500,
-                    "format": "json",
-                },
-                timeout=25
-            ).json()
+        continuation = {}
 
-        except Exception:
-            continue
+        for page_number in range(2):
+            try:
+                data = get(
+                    "https://commons.wikimedia.org/w/api.php",
+                    params={
+                        **params,
+                        **continuation,
+                    },
+                    timeout=25,
+                ).json()
 
-        pages = (
-            data.get("query") or {}
-        ).get("pages", {})
-
-        for page in pages.values():
-
-            info = (
-                page.get("imageinfo") or [{}]
-            )[0]
-
-            metadata = (
-                info.get("extmetadata") or {}
-            )
-
-            license_name = (
-                clean(
-                    metadata.get(
-                        "LicenseShortName", {}
-                    ).get("value", "")
+            except Exception as exc:
+                log(
+                    "COMMONS ERROR:",
+                    query,
+                    safe_error(exc)[:100],
                 )
-                + " "
-                + clean(
-                    metadata.get(
-                        "License", {}
-                    ).get("value", "")
+                break
+
+            pages = (
+                data.get("query") or {}
+            ).get("pages", [])
+
+            if isinstance(pages, dict):
+                pages = list(
+                    pages.values()
                 )
-            ).lower()
 
-            usage = clean(
-                metadata.get(
-                    "UsageTerms", {}
-                ).get("value", "")
-            ).lower()
-
-            allowed = (
-                re.search(
-                    r"\bcc0\b|public domain|publicdomain|pdm",
-                    license_name
+            for page in pages:
+                infos = (
+                    page.get("imageinfo")
+                    or []
                 )
-                or "public domain" in usage
+
+                if not infos:
+                    continue
+
+                info = infos[0]
+                metadata = (
+                    info.get("extmetadata")
+                    or {}
+                )
+
+                if not commons_license_accepted(
+                    metadata
+                ):
+                    continue
+
+                title = clean(
+                    page.get("title", "")
+                )
+
+                if not re.search(
+                    r"\.(jpg|jpeg|png|webp)$",
+                    title,
+                    re.I,
+                ):
+                    continue
+
+                if info.get("mime") not in (
+                    "image/jpeg",
+                    "image/png",
+                    "image/webp",
+                ):
+                    continue
+
+                if (
+                    int(info.get("width") or 0) < 500
+                    or int(info.get("height") or 0) < 450
+                ):
+                    continue
+
+                # Evitar infografias, mapas
+                # y documentos en lugar de fotos.
+                if re.search(
+                    r"diagram|infographic|"
+                    r"schematic|drawing|"
+                    r"illustration|logo|"
+                    r"poster|chart|"
+                    r"presentation|screenshot",
+                    title,
+                    re.I,
+                ):
+                    continue
+
+                url = (
+                    info.get("thumburl")
+                    or info.get("url")
+                )
+
+                if not url or url in seen:
+                    continue
+
+                seen.add(url)
+
+                candidates.append({
+                    "title": title,
+                    "url": url,
+                    "source": info.get(
+                        "descriptionurl", ""
+                    ),
+                    "license": clean(
+                        (
+                            metadata.get(
+                                "LicenseShortName"
+                            ) or {}
+                        ).get("value", "")
+                    ),
+                    "generated": False,
+                    "query": query,
+                })
+
+            continuation = data.get(
+                "continue"
             )
 
-            if not allowed:
-                continue
-
-            name = page.get(
-                "title",
-                ""
-            )
-
-            description = clean(
-                metadata.get(
-                    "ImageDescription", {}
-                ).get("value", "")
-            )
-
-            searchable = (
-                name + " " + description
-            ).lower()
-
-            if re.search(
-                r"(?i)\b("
-                r"moon|lunar|mars|spacecraft|"
-                r"poster|logo|diagram|chart|"
-                r"map|drawing|illustration|"
-                r"portrait|people|person|"
-                r"crowd|tourist|screenshot"
-                r")\b",
-                searchable
-            ):
-                continue
-
-            matches = sum(
-                term in searchable
-                for term in terms
-            )
-
-            if matches < 1:
-                continue
-
-            image_url = (
-                info.get("thumburl")
-                or info.get("url")
-            )
-
-            if not image_url:
-                continue
-
-            if info.get("mime") not in (
-                "image/jpeg",
-                "image/png",
-                "image/webp",
-            ):
-                continue
-
-            candidates.append({
-                "score": matches,
-                "name": name,
-                "url": image_url,
-                "license": license_name,
-            })
+            if not continuation:
+                break
 
         if candidates:
             break
 
-    candidates.sort(
-        key=lambda item: item["score"],
-        reverse=True
-    )
-
-    for candidate in candidates:
-
+    for candidate in candidates[:18]:
         try:
             response = get(
                 candidate["url"],
-                timeout=30
+                timeout=30,
             )
 
             if len(response.content) > 15_000_000:
                 continue
 
-            image = Image.open(
-                io.BytesIO(
-                    response.content
-                )
-            ).convert("RGB")
+            with Image.open(
+                io.BytesIO(response.content)
+            ) as original:
+                image = original.convert("RGB")
 
             if min(image.size) < 450:
                 continue
 
-            return image, {
-                "title": candidate["name"],
-                "url": candidate["url"],
-                "license": candidate["license"],
-                "generated": False,
-            }
+            log(
+                "FOTO COMMONS:",
+                candidate["title"][:90],
+            )
+
+            return image, candidate
 
         except Exception:
             continue
@@ -1300,35 +1745,29 @@ def commons_photo(article):
 
 
 # ============================================================
-# FONDO GRAFICO ORIGINAL
+# 14. FONDO GRAFICO ORIGINAL
 # ============================================================
 
 def original_science_background(article):
-
     seed = int(
         hashlib.sha256(
             article["id"].encode("utf-8")
         ).hexdigest()[:12],
-        16
+        16,
     )
 
     rng = random.Random(seed)
 
-    W, H = 1080, 1350
-
     image = Image.new(
         "RGB",
-        (W, H),
-        (5, 27, 53)
+        (WIDTH, HEIGHT),
+        (5, 27, 53),
     )
 
-    draw = ImageDraw.Draw(
-        image
-    )
+    draw = ImageDraw.Draw(image)
 
-    for y in range(H):
-
-        t = y / H
+    for y in range(HEIGHT):
+        t = y / HEIGHT
 
         color = (
             int(8 + 17 * t),
@@ -1337,25 +1776,27 @@ def original_science_background(article):
         )
 
         draw.line(
-            (0, y, W, y),
-            fill=color
+            (0, y, WIDTH, y),
+            fill=color,
         )
 
-    for layer in range(7):
+    category = article.get(
+        "category", ""
+    )
 
+    # Dibujos abstractos para cualquier
+    # categoria cientifica.
+    for layer in range(7):
         points = []
 
-        base = (
-            425 + layer * 116
-        )
-
+        base = 425 + layer * 116
         phase = rng.uniform(
-            0,
-            math.tau
+            0, math.tau
         )
 
-        for x in range(-20, W + 40, 16):
-
+        for x in range(
+            -20, WIDTH + 40, 16
+        ):
             y = (
                 base
                 + 65 * math.sin(
@@ -1371,8 +1812,8 @@ def original_science_background(article):
             )
 
         points.extend([
-            (W, H),
-            (0, H)
+            (WIDTH, HEIGHT),
+            (0, HEIGHT),
         ])
 
         color = (
@@ -1383,28 +1824,50 @@ def original_science_background(article):
 
         draw.polygon(
             points,
-            fill=color
+            fill=color,
         )
 
-    for shift in (
-        -25,
-        20,
-        75
+    if category in (
+        "espacio",
+        "meteorologia",
+        "climatologia",
     ):
+        for _ in range(75):
+            x = rng.randint(
+                0, WIDTH - 1
+            )
 
-        points = [
-            (160 + shift, 1130),
-            (350 + shift, 860),
-            (570 + shift, 780),
-            (780 + shift, 490),
-            (1030 + shift, 400),
-        ]
+            y = rng.randint(
+                100, HEIGHT - 150
+            )
 
-        draw.line(
-            points,
-            fill=(226, 139, 62),
-            width=7 if shift == 20 else 3
-        )
+            radius = rng.randint(1, 4)
+
+            draw.ellipse(
+                (
+                    x-radius,
+                    y-radius,
+                    x+radius,
+                    y+radius,
+                ),
+                fill=(170, 210, 240),
+            )
+
+    else:
+        for shift in (-25, 20, 75):
+            draw.line(
+                [
+                    (160+shift, 1130),
+                    (350+shift, 860),
+                    (570+shift, 780),
+                    (780+shift, 490),
+                    (1030+shift, 400),
+                ],
+                fill=(226, 139, 62),
+                width=(
+                    7 if shift == 20 else 3
+                ),
+            )
 
     metadata = {
         "title": "Arte original SISMONAUTA",
@@ -1417,58 +1880,56 @@ def original_science_background(article):
 
 
 # ============================================================
-# TIPOGRAFIA Y DISEÑO
+# 15. TIPOGRAFIA
 # ============================================================
 
 def font(size, bold=False):
-
     if bold:
         paths = [
-            "/usr/share/fonts/truetype/dejavu/"
-            "DejaVuSans-Bold.ttf",
-            "/usr/share/fonts/truetype/liberation2/"
-            "LiberationSans-Bold.ttf",
+            (
+                "/usr/share/fonts/truetype/"
+                "dejavu/DejaVuSans-Bold.ttf"
+            ),
+            (
+                "/usr/share/fonts/truetype/"
+                "liberation2/"
+                "LiberationSans-Bold.ttf"
+            ),
         ]
     else:
         paths = [
-            "/usr/share/fonts/truetype/dejavu/"
-            "DejaVuSans.ttf",
+            (
+                "/usr/share/fonts/truetype/"
+                "dejavu/DejaVuSans.ttf"
+            ),
         ]
 
     for path in paths:
-
         if Path(path).exists():
-
             return ImageFont.truetype(
                 path,
-                size
+                size,
             )
 
     return ImageFont.load_default()
 
 
 def wrap_text(draw, text, selected_font, width):
-
-    words = text.split()
-
     lines = []
-
     current = ""
 
-    for word in words:
-
-        proposal = (
+    for word in text.split():
+        proposed = (
             current + " " + word
         ).strip()
 
-        measured = draw.textbbox(
+        if draw.textbbox(
             (0, 0),
-            proposal,
-            font=selected_font
-        )[2]
+            proposed,
+            font=selected_font,
+        )[2] <= width:
+            current = proposed
 
-        if measured <= width:
-            current = proposal
         else:
             if current:
                 lines.append(current)
@@ -1481,37 +1942,36 @@ def wrap_text(draw, text, selected_font, width):
     return lines
 
 
+# ============================================================
+# 16. CREACION DE IMAGEN
+# ============================================================
+
 def make_card(image, article, path):
-
-    W, H = 1080, 1350
-
     canvas = ImageOps.fit(
         image,
-        (W, H),
+        (WIDTH, HEIGHT),
         Image.Resampling.LANCZOS,
-        centering=(0.5, 0.44)
+        centering=(0.5, 0.44),
     ).convert("RGBA")
 
     overlay = Image.new(
         "RGBA",
-        (W, H),
-        (0, 0, 0, 0)
+        (WIDTH, HEIGHT),
+        (0, 0, 0, 0),
     )
 
-    draw = ImageDraw.Draw(
-        overlay
-    )
+    draw = ImageDraw.Draw(overlay)
 
     draw.rectangle(
-        (0, 0, W, 100),
-        fill=(4, 21, 46, 235)
+        (0, 0, WIDTH, 100),
+        fill=(4, 21, 46, 235),
     )
 
     draw.text(
         (54, 27),
         "SISMONAUTA  |  ACTUALIDAD",
         font=font(37, True),
-        fill="white"
+        fill="white",
     )
 
     title = clean(
@@ -1523,54 +1983,58 @@ def make_card(image, article, path):
     line_height = 0
     band_height = 0
 
-    for size in range(70, 21, -2):
-
-        candidate_font = font(
+    for size in range(
+        70, 21, -2
+    ):
+        candidate = font(
             size,
-            True
+            True,
         )
 
         candidate_lines = wrap_text(
             draw,
             title,
-            candidate_font,
-            W - 120
+            candidate,
+            WIDTH - 120,
         )
 
         leading = int(
             size * 1.27
         )
 
-        height = max(
+        band = max(
             210,
-            len(candidate_lines) * leading + 100
+            len(candidate_lines)
+            * leading
+            + 100,
         )
 
-        if height <= 690:
-
-            selected_font = candidate_font
+        if (
+            band <= 690
+            and len(candidate_lines) <= 10
+        ):
+            selected_font = candidate
             lines = candidate_lines
             line_height = leading
-            band_height = height
+            band_height = band
             break
 
     if not lines:
-
         raise ValueError(
             "El titular no cabe en la imagen"
         )
 
-    bottom = H - 94
+    bottom = HEIGHT - 94
     top = bottom - band_height
 
     draw.rectangle(
-        (0, top, W, bottom),
-        fill=(0, 87, 202, 248)
+        (0, top, WIDTH, bottom),
+        fill=(0, 87, 202, 248),
     )
 
     draw.rectangle(
-        (0, top, W, top + 9),
-        fill=(36, 163, 255, 255)
+        (0, top, WIDTH, top+9),
+        fill=(36, 163, 255, 255),
     )
 
     total_height = (
@@ -1582,12 +2046,11 @@ def make_card(image, article, path):
     ) // 2
 
     for line in lines:
-
         bbox = draw.textbbox(
             (0, 0),
             line,
             font=selected_font,
-            stroke_width=3
+            stroke_width=3,
         )
 
         text_width = (
@@ -1595,7 +2058,7 @@ def make_card(image, article, path):
         )
 
         x = (
-            W - text_width
+            WIDTH - text_width
         ) // 2
 
         draw.text(
@@ -1604,100 +2067,226 @@ def make_card(image, article, path):
             font=selected_font,
             fill=(255, 255, 255, 255),
             stroke_width=3,
-            stroke_fill=(0, 0, 0, 255)
+            stroke_fill=(0, 0, 0, 255),
         )
 
         y += line_height
 
     draw.rectangle(
-        (0, H - 94, W, H),
-        fill=(3, 24, 49, 245)
+        (
+            0,
+            HEIGHT - 94,
+            WIDTH,
+            HEIGHT,
+        ),
+        fill=(3, 24, 49, 245),
+    )
+
+    category_labels = {
+        "sismos": "SISMOS",
+        "volcanes": "VOLCANES",
+        "meteorologia": "METEOROLOGÍA",
+        "climatologia": "CLIMA",
+        "oceanos": "OCÉANOS",
+        "espacio": "ESPACIO",
+        "desastres": "NATURALEZA",
+        "geologia": "GEOLOGÍA",
+    }
+
+    category = category_labels.get(
+        article.get("category"),
+        "CIENCIA",
     )
 
     draw.text(
-        (54, H - 67),
-        "CIENCIA  •  SISMOS  •  TECNOLOGÍA",
+        (54, HEIGHT - 67),
+        (
+            "CIENCIA  •  "
+            + category
+            + "  •  ACTUALIDAD"
+        ),
         font=font(28, True),
-        fill="white"
+        fill="white",
     )
 
     result = Image.alpha_composite(
         canvas,
-        overlay
+        overlay,
     ).convert("RGB")
+
+    path = Path(path)
 
     path.parent.mkdir(
         parents=True,
-        exist_ok=True
+        exist_ok=True,
     )
 
     result.save(
         path,
         "JPEG",
         quality=91,
-        optimize=True
+        optimize=True,
     )
 
 
 # ============================================================
-# DESCRIPCION PARA INSTAGRAM Y FACEBOOK
+# 17. HASHTAGS POR TEMATICA
 # ============================================================
 
+CATEGORY_HASHTAGS = {
+    "sismos": (
+        "#Sismos #Terremotos #Sismologia "
+        "#Geofisica #Tectonica"
+    ),
+
+    "volcanes": (
+        "#Volcanes #Erupciones "
+        "#Volcanologia #Geologia"
+    ),
+
+    "meteorologia": (
+        "#Meteorologia #Tiempo "
+        "#Tormentas #Atmosfera"
+    ),
+
+    "climatologia": (
+        "#Climatologia #Clima "
+        "#CambioClimatico #Glaciares"
+    ),
+
+    "oceanos": (
+        "#Oceanos #Oceanografia "
+        "#Tsunamis #CienciaDelMar"
+    ),
+
+    "espacio": (
+        "#Espacio #Astronomia "
+        "#NASA #ExploracionEspacial"
+    ),
+
+    "desastres": (
+        "#DesastresNaturales "
+        "#Prevencion #RiesgosNaturales"
+    ),
+
+    "geologia": (
+        "#Geologia #PlanetaTierra "
+        "#Geociencias #Investigacion"
+    ),
+}
+
+
 def caption(article, credit):
+    explanation = clean(
+        article.get("explanation", "")
+    )
 
-    explanation = (
-        article.get("explanation")
-        or ""
-    ).strip()
-
-    if word_count(explanation) < 22:
-
+    if word_count(explanation) < 12:
         raise ValueError(
-            "La noticia no tiene una "
-            "explicacion suficientemente informativa"
+            "La noticia no contiene "
+            "informacion suficiente"
         )
 
+    category = article.get(
+        "category",
+        "sismos",
+    )
+
+    category_label = {
+        "sismos": "ACTUALIDAD SÍSMICA",
+        "volcanes": "ACTUALIDAD VOLCÁNICA",
+        "meteorologia": "METEOROLOGÍA",
+        "climatologia": "CLIMATOLOGÍA",
+        "oceanos": "CIENCIAS DEL OCÉANO",
+        "espacio": "CIENCIA ESPACIAL",
+        "desastres": "RIESGOS NATURALES",
+        "geologia": "CIENCIAS DE LA TIERRA",
+    }.get(category, "ACTUALIDAD CIENTÍFICA")
+
+    source = clean(
+        article.get("source", "")
+    )
+
     parts = [
-        "🌎 SISMONAUTA | ACTUALIDAD SÍSMICA",
+        "🌎 SISMONAUTA | " + category_label,
         "",
-        clean(
-            article["title"]
-        ),
+        clean(article["title"]),
         "",
         explanation,
         "",
         (
-            "¿Qué opinas de este descubrimiento? "
+            "💬 ¿Qué opinas? "
             "Te leemos en los comentarios."
         ),
-        "",
-        HASHTAGS,
     ]
 
-    text = "\n".join(
+    if source:
+        parts.extend([
+            "",
+            "📰 Medio: " + source,
+        ])
+
+    parts.extend([
+        "",
+        HASHTAGS_BASE,
+        CATEGORY_HASHTAGS.get(
+            category, ""
+        ),
+    ])
+
+    result = "\n".join(
         parts
     )
 
-    if len(text) > 2200:
+    if len(result) > 2200:
+        # Recortar exclusivamente el cuerpo,
+        # conservando titulo y hashtags.
+        overflow = len(result) - 2200
 
+        if overflow > 0:
+            explanation = explanation[
+                :max(100, len(explanation) - overflow - 10)
+            ].rsplit(" ", 1)[0].rstrip(
+                ",;:"
+            ) + "."
+
+            article = dict(article)
+            article["explanation"] = explanation
+
+            result = "\n".join([
+                "🌎 SISMONAUTA | " + category_label,
+                "",
+                clean(article["title"]),
+                "",
+                explanation,
+                "",
+                "💬 ¿Qué opinas? Te leemos en los comentarios.",
+                "",
+                HASHTAGS_BASE,
+                CATEGORY_HASHTAGS.get(category, ""),
+            ])
+
+    if len(result) > 2200:
         raise ValueError(
-            "Descripcion demasiado larga para Instagram"
+            "La descripción supera "
+            "el límite de Instagram"
         )
 
-    return text
+    return result
 
 
 # ============================================================
-# GITHUB: IMAGENES E HISTORIAL
+# 18. GITHUB - IMAGENES E HISTORIAL
 # ============================================================
 
 class Github:
 
     def __init__(self):
-
         repo = os.environ[
             "GITHUB_REPOSITORY"
         ]
+
+        self.repo = repo
 
         self.branch = (
             os.getenv("GITHUB_REF_NAME")
@@ -1723,35 +2312,34 @@ class Github:
 
         response = self.session.get(
             self.base,
-            timeout=20
+            timeout=20,
         )
 
         response.raise_for_status()
 
         if response.json().get("private"):
-
             raise RuntimeError(
-                "El repositorio debe ser publico "
+                "Se necesita un repositorio público "
                 "para alojar la imagen"
             )
 
-    def read(self, path):
-
-        endpoint = (
+    def endpoint(self, path):
+        return (
             self.base
             + "/contents/"
             + urllib.parse.quote(
                 path,
-                safe="/"
+                safe="/",
             )
         )
 
+    def read(self, path):
         response = self.session.get(
-            endpoint,
+            self.endpoint(path),
             params={
                 "ref": self.branch
             },
-            timeout=25
+            timeout=25,
         )
 
         if response.status_code == 404:
@@ -1765,22 +2353,15 @@ class Github:
             base64.b64decode(
                 data["content"]
             ),
-            data["sha"]
+            data["sha"],
         )
 
     def write(self, path, raw):
-
-        endpoint = (
-            self.base
-            + "/contents/"
-            + urllib.parse.quote(
-                path,
-                safe="/"
-            )
+        endpoint = self.endpoint(
+            path
         )
 
-        for attempt in range(3):
-
+        for attempt in range(4):
             old, sha = self.read(
                 path
             )
@@ -1793,7 +2374,7 @@ class Github:
                 "branch": self.branch,
                 "content": base64.b64encode(
                     raw
-                ).decode(),
+                ).decode("ascii"),
             }
 
             if sha:
@@ -1802,43 +2383,41 @@ class Github:
             response = self.session.put(
                 endpoint,
                 json=body,
-                timeout=50
+                timeout=60,
             )
 
             if (
-                response.status_code in (409, 422)
-                and attempt < 2
+                response.status_code
+                in (409, 422)
+                and attempt < 3
             ):
-                time.sleep(2)
+                time.sleep(
+                    2 + attempt
+                )
                 continue
 
             response.raise_for_status()
-            return
+            return response.json()
 
     def image_url(self, path):
-
-        repo = os.environ[
-            "GITHUB_REPOSITORY"
-        ]
-
         return (
             "https://raw.githubusercontent.com/"
-            + repo
+            + self.repo
             + "/"
             + urllib.parse.quote(
                 self.branch,
-                safe=""
+                safe="",
             )
             + "/"
             + urllib.parse.quote(
                 path,
-                safe="/"
+                safe="/",
             )
         )
 
 
 # ============================================================
-# META GRAPH API
+# 19. META GRAPH API
 # ============================================================
 
 def graph(
@@ -1846,8 +2425,9 @@ def graph(
     path,
     token,
     params=None,
-    base=IG_BASE
+    base=None,
 ):
+    base = base or IG_BASE
 
     endpoint = (
         f"{base}/{VERSION}/{path}"
@@ -1860,35 +2440,34 @@ def graph(
     payload["access_token"] = token
 
     if method == "GET":
-
         response = requests.get(
             endpoint,
             params=payload,
-            timeout=55
+            timeout=55,
         )
-
     else:
-
         response = requests.post(
             endpoint,
             data=payload,
-            timeout=70
+            timeout=75,
         )
 
     try:
         data = response.json()
 
-    except Exception:
-
+    except ValueError:
         raise RuntimeError(
-            "Meta devolvio respuesta no JSON"
+            "Meta devolvió una respuesta "
+            "no JSON"
         )
 
-    if not response.ok or data.get("error"):
-
-        error = data.get(
-            "error",
-            {}
+    if (
+        not response.ok
+        or data.get("error")
+    ):
+        error = (
+            data.get("error")
+            or {}
         )
 
         raise RuntimeError(
@@ -1898,20 +2477,19 @@ def graph(
             + str(
                 error.get(
                     "message",
-                    data
+                    data,
                 )
-            )[:230]
+            )[:240]
         )
 
     return data
 
 
 # ============================================================
-# VALIDAR INSTAGRAM
+# 20. VALIDAR INSTAGRAM
 # ============================================================
 
 def ig_check():
-
     token = os.environ[
         "INSTAGRAM_TOKEN"
     ]
@@ -1926,33 +2504,31 @@ def ig_check():
         token,
         {
             "fields": "id,username"
-        }
+        },
     )
 
     if (
-        str(info.get("id")) != user_id
-        or info.get("username", "").lower()
-        != ACCOUNT
+        str(info.get("id")) != str(user_id)
+        or str(
+            info.get("username", "")
+        ).lower() != ACCOUNT
     ):
-
         raise RuntimeError(
             "Cuenta de Instagram incorrecta"
         )
 
-    print(
-        "Instagram @sismonauta verificado",
-        flush=True
+    log(
+        "Instagram @sismonauta verificado"
     )
 
     return user_id, token
 
 
 # ============================================================
-# VALIDAR FACEBOOK
+# 21. VALIDAR FACEBOOK
 # ============================================================
 
 def fb_check():
-
     page_id = os.environ[
         "FACEBOOK_PAGE_ID"
     ]
@@ -1968,44 +2544,43 @@ def fb_check():
         {
             "fields": "id,name,username"
         },
-        FB_BASE
+        FB_BASE,
     )
 
-    if str(info.get("id")) != page_id:
-
+    if str(info.get("id")) != str(page_id):
         raise RuntimeError(
             "Facebook Page ID incorrecto"
         )
 
     if (
         info.get("username")
-        and info["username"].lower() != ACCOUNT
+        and str(
+            info["username"]
+        ).lower() != ACCOUNT
     ):
-
         raise RuntimeError(
-            "La fanpage no corresponde a SISMONAUTA"
+            "La fanpage no corresponde "
+            "a SISMONAUTA"
         )
 
-    print(
+    log(
         "Facebook validado:",
         info.get("name"),
-        flush=True
     )
 
     return page_id, token
 
 
 # ============================================================
-# PUBLICACION EN INSTAGRAM
+# 22. PUBLICACION INSTAGRAM
 # ============================================================
 
 def publish_ig(
     user_id,
     token,
     image_url,
-    text
+    text,
 ):
-
     container = graph(
         "POST",
         user_id + "/media",
@@ -2013,11 +2588,10 @@ def publish_ig(
         {
             "image_url": image_url,
             "caption": text,
-        }
+        },
     )["id"]
 
     for attempt in range(18):
-
         time.sleep(8)
 
         result = graph(
@@ -2026,7 +2600,7 @@ def publish_ig(
             token,
             {
                 "fields": "status_code"
-            }
+            },
         )
 
         status = result.get(
@@ -2038,18 +2612,17 @@ def publish_ig(
 
         if status in (
             "ERROR",
-            "EXPIRED"
+            "EXPIRED",
         ):
-
             raise RuntimeError(
-                "Instagram rechazo la imagen: "
+                "Instagram rechazó la imagen: "
                 + status
             )
 
     else:
-
         raise RuntimeError(
-            "Instagram no confirmo el contenedor"
+            "Instagram no confirmó "
+            "el contenedor"
         )
 
     result = graph(
@@ -2058,23 +2631,31 @@ def publish_ig(
         token,
         {
             "creation_id": container
-        }
+        },
     )
 
-    return result["id"]
+    identifier = result.get(
+        "id"
+    )
+
+    if not identifier:
+        raise RuntimeError(
+            "Instagram no devolvió ID"
+        )
+
+    return str(identifier)
 
 
 # ============================================================
-# PUBLICACION EN FACEBOOK
+# 23. PUBLICACION FACEBOOK
 # ============================================================
 
 def publish_fb(
     page_id,
     token,
     image_url,
-    text
+    text,
 ):
-
     result = graph(
         "POST",
         page_id + "/photos",
@@ -2084,29 +2665,42 @@ def publish_fb(
             "caption": text,
             "published": "true",
         },
-        FB_BASE
+        FB_BASE,
     )
 
-    return (
+    identifier = (
         result.get("post_id")
         or result.get("id")
     )
 
+    if not identifier:
+        raise RuntimeError(
+            "Facebook no devolvió ID"
+        )
+
+    return str(identifier)
+
 
 # ============================================================
-# HISTORIAL ANTIDUPLICADOS
+# 24. HISTORIAL ANTIDUPLICADOS
 # ============================================================
 
 def load_state(github):
-
     raw, sha = github.read(
         STATE_FILE
     )
 
     if raw:
-        return json.loads(
+        state = json.loads(
             raw
         )
+
+        state.setdefault(
+            "stories",
+            {},
+        )
+
+        return state
 
     return {
         "stories": {}
@@ -2114,34 +2708,448 @@ def load_state(github):
 
 
 def save_state(github, state):
-
     github.write(
         STATE_FILE,
         json.dumps(
             state,
             ensure_ascii=False,
             indent=2,
-            sort_keys=True
-        ).encode("utf-8")
+            sort_keys=True,
+        ).encode("utf-8"),
+    )
+
+
+def is_confirmed(entry):
+    targets = entry.get(
+        "targets",
+        {},
+    )
+
+    return all(
+        targets.get(
+            platform,
+            {},
+        ).get("status") == "published"
+        for platform in (
+            "instagram",
+            "facebook",
+        )
+    )
+
+
+def has_uncertain(entry):
+    targets = entry.get(
+        "targets",
+        {},
+    )
+
+    return any(
+        targets.get(
+            platform,
+            {},
+        ).get("status") == "uncertain"
+        for platform in (
+            "instagram",
+            "facebook",
+        )
+    )
+
+
+def publication_targets(entry):
+    targets = entry.setdefault(
+        "targets",
+        {},
+    )
+
+    for name in (
+        "instagram",
+        "facebook",
+    ):
+        targets.setdefault(
+            name,
+            {
+                "status": "pending"
+            },
+        )
+
+    return targets
+
+
+# ============================================================
+# 25. BUSCAR NOTICIA ELEGIBLE
+# ============================================================
+
+def select_news(
+    articles,
+    state,
+    output,
+):
+    reasons = {
+        "already_published": 0,
+        "uncertain_previous": 0,
+        "translation_failed": 0,
+        "no_information": 0,
+        "invalid_caption": 0,
+        "generated_backgrounds": 0,
+    }
+
+    for original in articles[:MAX_ARTICLES]:
+        existing = state.get(
+            "stories",
+            {},
+        ).get(
+            original["id"]
+        )
+
+        # No repetir noticias confirmadas.
+        if existing and is_confirmed(
+            existing
+        ):
+            reasons["already_published"] += 1
+            continue
+
+        # Evitar publicar una noticia
+        # cuyo envío anterior sea incierto.
+        if existing and has_uncertain(
+            existing
+        ):
+            reasons["uncertain_previous"] += 1
+            continue
+
+        log(
+            "EVALUANDO:",
+            original["title"][:110],
+            "| categoria:",
+            original["category"],
+        )
+
+        article = spanish_article(
+            original
+        )
+
+        if article is None:
+            reasons["translation_failed"] += 1
+            continue
+
+        explanation = obtain_explanation(
+            article
+        )
+
+        if not explanation:
+            reasons["no_information"] += 1
+
+            log(
+                "OMITIDA: información insuficiente"
+            )
+
+            continue
+
+        article["explanation"] = explanation
+
+        photo, metadata = commons_photo(
+            original
+        )
+
+        if photo is None:
+            photo, metadata = (
+                original_science_background(
+                    article
+                )
+            )
+
+            reasons["generated_backgrounds"] += 1
+
+            log(
+                "FONDO GRAFICO ORIGINAL GENERADO"
+            )
+
+        try:
+            description = caption(
+                article,
+                metadata,
+            )
+
+        except ValueError as exc:
+            reasons["invalid_caption"] += 1
+
+            log(
+                "OMITIDA:",
+                safe_error(exc),
+            )
+
+            continue
+
+        log(
+            "AUDITORIA SELECCION:",
+            json.dumps(
+                reasons,
+                ensure_ascii=False,
+            ),
+        )
+
+        return (
+            article,
+            photo,
+            metadata,
+            description,
+            reasons,
+        )
+
+    log(
+        "AUDITORIA SELECCION:",
+        json.dumps(
+            reasons,
+            ensure_ascii=False,
+        ),
+    )
+
+    return (
+        None,
+        None,
+        None,
+        None,
+        reasons,
     )
 
 
 # ============================================================
-# PROGRAMA PRINCIPAL
+# 26. PUBLICAR EN META
+# ============================================================
+
+def publish_article(
+    github,
+    state,
+    article,
+    image_file,
+    credit,
+    description,
+    output,
+):
+    instagram_id, instagram_token = ig_check()
+    facebook_id, facebook_token = fb_check()
+
+    article_id = article["id"]
+
+    # Evitar sobreescribir el historial
+    # de una publicacion parcial.
+    entry = state["stories"].setdefault(
+        article_id,
+        {
+            "article": article,
+            "image": credit,
+            "targets": {},
+        },
+    )
+
+    targets = publication_targets(
+        entry
+    )
+
+    if is_confirmed(entry):
+        log(
+            "NOTICIA YA PUBLICADA:",
+            article_id,
+        )
+
+        return {
+            "status": "already_published",
+            "article_id": article_id,
+            "targets": targets,
+        }
+
+    if has_uncertain(entry):
+        raise RuntimeError(
+            "La noticia tiene una publicación "
+            "anterior incierta. Revisar Meta."
+        )
+
+    # Imagen alojada en GitHub.
+    remote_path = (
+        "sismonauta_noticias/images/"
+        + article_id
+        + ".jpg"
+    )
+
+    github.write(
+        remote_path,
+        image_file.read_bytes(),
+    )
+
+    image_url = github.image_url(
+        remote_path
+    )
+
+    # Comprobar disponibilidad pública.
+    accessible = False
+
+    for attempt in range(8):
+        try:
+            response = HTTP.get(
+                image_url,
+                timeout=25,
+            )
+
+            if (
+                response.ok
+                and response.headers.get(
+                    "Content-Type", ""
+                ).lower().startswith("image/")
+            ):
+                accessible = True
+                break
+
+        except requests.RequestException:
+            pass
+
+        time.sleep(3)
+
+    if not accessible:
+        raise RuntimeError(
+            "La imagen no está accesible "
+            "para Meta"
+        )
+
+    entry["article"] = article
+    entry["image"] = credit
+    entry["image_url"] = image_url
+
+    save_state(
+        github,
+        state,
+    )
+
+    failures = []
+
+    for target in (
+        "instagram",
+        "facebook",
+    ):
+        row = targets[target]
+
+        if row.get("status") == "published":
+            log(
+                "OMITIDO:",
+                target,
+                "ya publicado",
+            )
+            continue
+
+        # Registrar resultado incierto antes
+        # de llamar a Meta para evitar
+        # reintentos automáticos duplicados.
+        row["status"] = "uncertain"
+        row.pop("error", None)
+
+        save_state(
+            github,
+            state,
+        )
+
+        try:
+            if target == "instagram":
+                identifier = publish_ig(
+                    instagram_id,
+                    instagram_token,
+                    image_url,
+                    description,
+                )
+
+            else:
+                identifier = publish_fb(
+                    facebook_id,
+                    facebook_token,
+                    image_url,
+                    description,
+                )
+
+            row.update({
+                "status": "published",
+                "id": str(identifier),
+            })
+
+            save_state(
+                github,
+                state,
+            )
+
+            log(
+                "PUBLICADO:",
+                target,
+                "ID:",
+                identifier,
+            )
+
+        except Exception as exc:
+            row["error"] = safe_error(
+                exc
+            )
+
+            save_state(
+                github,
+                state,
+            )
+
+            failures.append(
+                target + ": " + safe_error(exc)
+            )
+
+            log(
+                "ERROR META:",
+                target,
+                safe_error(exc),
+            )
+
+    status = (
+        "published"
+        if is_confirmed(entry)
+        else "partial_or_uncertain"
+    )
+
+    receipt = {
+        "status": status,
+        "article_id": article_id,
+        "article_title": article["title"],
+        "category": article["category"],
+        "targets": targets,
+        "checked_at": iso_now(),
+    }
+
+    write_json(
+        output / "estado_publicacion.json",
+        receipt,
+    )
+
+    if failures:
+        raise RuntimeError(
+            "Publicación parcial o incierta. "
+            "Revisar Meta y el historial antes "
+            "de reintentar: "
+            + " / ".join(failures)
+        )
+
+    return receipt
+
+
+# ============================================================
+# 27. PROGRAMA PRINCIPAL
 # ============================================================
 
 def main():
-
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description=(
+            "SISMONAUTA: noticias científicas "
+            "de la Tierra, océanos y espacio"
+        )
+    )
 
     parser.add_argument(
         "--publish",
-        action="store_true"
+        action="store_true",
     )
 
     parser.add_argument(
         "--out",
-        default="output_noticias"
+        default="output_noticias",
     )
 
     args = parser.parse_args()
@@ -2152,8 +3160,39 @@ def main():
 
     output.mkdir(
         parents=True,
-        exist_ok=True
+        exist_ok=True,
     )
+
+    # Eliminar recibo local previo.
+    (
+        output / "estado_publicacion.json"
+    ).unlink(
+        missing_ok=True
+    )
+
+    log("=" * 55)
+    log("SISMONAUTA - NOTICIAS CIENTIFICAS")
+    log(
+        "VENTANA:",
+        LOOKBACK_HOURS,
+        "HORAS",
+    )
+    log(
+        "CATEGORIAS:",
+        len(SEARCH_GROUPS),
+    )
+    log(
+        "BUSQUEDAS:",
+        sum(
+            len(items)
+            for items in SEARCH_GROUPS.values()
+        ),
+    )
+    log(
+        "PUBLICAR:",
+        args.publish,
+    )
+    log("=" * 55)
 
     github = (
         Github()
@@ -2164,202 +3203,90 @@ def main():
     state = (
         load_state(github)
         if github
-        else {"stories": {}}
+        else {
+            "stories": {}
+        }
     )
 
     articles = feed_items()
 
     articles.sort(
         key=priority,
-        reverse=True
+        reverse=True,
     )
 
-    print(
+    log(
         "NOTICIAS CANDIDATAS:",
         len(articles),
-        flush=True
     )
 
     if not articles:
-
         write_json(
             output / "estado_publicacion.json",
             {
                 "status": "no_eligible_news",
                 "published": False,
-            }
+                "lookback_hours": LOOKBACK_HOURS,
+                "checked_at": iso_now(),
+            },
         )
 
-        print(
-            "SIN NOTICIAS ELEGIBLES",
-            flush=True
+        log(
+            "SIN NOTICIAS ELEGIBLES"
         )
 
         return 0
 
-    chosen = None
-    image = None
-    credit = None
-
-    reasons = {
-        "already_seen": 0,
-        "no_translation": 0,
-        "no_information": 0,
-        "invalid_caption": 0,
-        "generated_backgrounds": 0,
-    }
-
-    # --------------------------------------------------------
-    # EVALUAR NOTICIAS
-    # --------------------------------------------------------
-
-    for original in articles[:MAX_ARTICLES]:
-
-        if original["id"] in state["stories"]:
-
-            reasons["already_seen"] += 1
-            continue
-
-        print(
-            "EVALUANDO:",
-            original["title"][:110],
-            flush=True
-        )
-
-        article = spanish_article(
-            original
-        )
-
-        if article is None:
-
-            reasons["no_translation"] += 1
-            continue
-
-        # Primero intentar una explicacion
-        # basada en el articulo completo.
-
-        explanation = detailed_explanation(
-            article
-        )
-
-        # Alternativa informativa:
-        # sin disclaimers y sin relleno.
-
-        if not explanation:
-
-            explanation = evidence_brief(
-                article
-            )
-
-            if explanation:
-
-                print(
-                    "EXPLICACION GENERADA "
-                    "DESDE DATOS DISPONIBLES",
-                    flush=True
-                )
-
-        if not explanation:
-
-            reasons["no_information"] += 1
-
-            print(
-                "OMITIDA: informacion insuficiente",
-                flush=True
-            )
-
-            continue
-
-        article["explanation"] = explanation
-
-        # Buscar fotografia reutilizable.
-
-        photo, metadata = commons_photo(
-            original
-        )
-
-        # Fondo grafico original de respaldo.
-
-        if photo is None:
-
-            photo, metadata = original_science_background(
-                article
-            )
-
-            reasons["generated_backgrounds"] += 1
-
-            print(
-                "FONDO GRAFICO ORIGINAL GENERADO",
-                flush=True
-            )
-
-        try:
-            description = caption(
-                article,
-                metadata
-            )
-
-        except ValueError as exc:
-
-            reasons["invalid_caption"] += 1
-
-            print(
-                "OMITIDA:",
-                str(exc),
-                flush=True
-            )
-
-            continue
-
-        chosen = article
-        image = photo
-        credit = metadata
-        break
-
-    print(
-        "AUDITORIA SELECCION:",
-        json.dumps(
-            reasons,
-            ensure_ascii=False
-        ),
-        flush=True
+    (
+        chosen,
+        image,
+        credit,
+        description,
+        reasons,
+    ) = select_news(
+        articles,
+        state,
+        output,
     )
 
     if chosen is None:
-
         write_json(
             output / "estado_publicacion.json",
             {
                 "status": "no_eligible_news",
                 "published": False,
+                "lookback_hours": LOOKBACK_HOURS,
                 "articles_reviewed": min(
                     len(articles),
-                    MAX_ARTICLES
+                    MAX_ARTICLES,
                 ),
                 "reasons": reasons,
-            }
+                "checked_at": iso_now(),
+            },
+        )
+
+        log(
+            "SIN NOTICIAS NUEVAS PUBLICABLES"
         )
 
         return 0
 
-    # --------------------------------------------------------
+    # ----------------------------
     # GENERAR IMAGEN
-    # --------------------------------------------------------
+    # ----------------------------
 
     image_file = (
         output
-        / (chosen["id"] + ".jpg")
+        / (
+            chosen["id"]
+            + ".jpg"
+        )
     )
 
     make_card(
         image,
         chosen,
-        image_file
-    )
-
-    description = caption(
-        chosen,
-        credit
+        image_file,
     )
 
     write_json(
@@ -2368,250 +3295,94 @@ def main():
             "article": chosen,
             "image": credit,
             "caption": description,
-        }
+        },
     )
 
-    print(
+    log(
         "NOTICIA SELECCIONADA:",
         chosen["title"],
-        flush=True
     )
 
-    print(
+    log(
+        "CATEGORIA:",
+        chosen["category"],
+    )
+
+    log(
         "EXTENSION:",
         word_count(
             chosen["explanation"]
         ),
         "palabras",
-        flush=True
     )
 
-    # --------------------------------------------------------
+    # ----------------------------
     # VISTA PREVIA
-    # --------------------------------------------------------
+    # ----------------------------
 
     if not args.publish:
-
         write_json(
             output / "estado_publicacion.json",
             {
                 "status": "preview_only",
                 "published": False,
+                "article_id": chosen["id"],
+                "category": chosen["category"],
                 "image": str(image_file),
-            }
+                "lookback_hours": LOOKBACK_HOURS,
+            },
         )
 
-        print(
-            "VISTA PREVIA COMPLETADA",
-            flush=True
+        log(
+            "VISTA PREVIA COMPLETADA"
         )
 
         return 0
 
-    # --------------------------------------------------------
-    # VALIDAR CUENTAS
-    # --------------------------------------------------------
+    # ----------------------------
+    # PUBLICACION
+    # ----------------------------
 
-    instagram_id, instagram_token = ig_check()
-
-    facebook_id, facebook_token = fb_check()
-
-    # --------------------------------------------------------
-    # PUBLICAR IMAGEN TEMPORAL EN GITHUB
-    # --------------------------------------------------------
-
-    remote_path = (
-        "sismonauta_noticias/images/"
-        + chosen["id"]
-        + ".jpg"
-    )
-
-    github.write(
-        remote_path,
-        image_file.read_bytes()
-    )
-
-    image_url = github.image_url(
-        remote_path
-    )
-
-    response = HTTP.get(
-        image_url,
-        timeout=25
-    )
-
-    if (
-        not response.ok
-        or not response.headers.get(
-            "Content-Type",
-            ""
-        ).startswith("image/")
-    ):
-
-        raise RuntimeError(
-            "La imagen no esta accesible para Meta"
-        )
-
-    # --------------------------------------------------------
-    # REGISTRAR PENDIENTE
-    # --------------------------------------------------------
-
-    state["stories"][chosen["id"]] = {
-        "article": chosen,
-        "image": credit,
-        "targets": {
-            "instagram": {
-                "status": "pending"
-            },
-            "facebook": {
-                "status": "pending"
-            },
-        },
-    }
-
-    save_state(
+    receipt = publish_article(
         github,
-        state
+        state,
+        chosen,
+        image_file,
+        credit,
+        description,
+        output,
     )
 
-    failures = []
-
-    # --------------------------------------------------------
-    # PUBLICAR EN INSTAGRAM Y FACEBOOK
-    # --------------------------------------------------------
-
-    for target in (
-        "instagram",
-        "facebook"
-    ):
-
-        entry = (
-            state["stories"][chosen["id"]]
-            ["targets"][target]
+    if receipt["status"] == "published":
+        log(
+            "PUBLICACION CONFIRMADA EN "
+            "INSTAGRAM Y FACEBOOK"
         )
 
-        entry["status"] = "uncertain"
+        return 0
 
-        save_state(
-            github,
-            state
-        )
+    if receipt["status"] == "already_published":
+        return 0
 
-        try:
-
-            if target == "instagram":
-
-                identifier = publish_ig(
-                    instagram_id,
-                    instagram_token,
-                    image_url,
-                    description
-                )
-
-            else:
-
-                identifier = publish_fb(
-                    facebook_id,
-                    facebook_token,
-                    image_url,
-                    description
-                )
-
-            if not identifier:
-
-                raise RuntimeError(
-                    "Meta no devolvio identificador"
-                )
-
-            entry.update(
-                status="published",
-                id=str(identifier)
-            )
-
-            save_state(
-                github,
-                state
-            )
-
-            print(
-                "PUBLICADO:",
-                target,
-                "ID:",
-                identifier,
-                flush=True
-            )
-
-        except Exception as exc:
-
-            failures.append(
-                target + ": " + str(exc)
-            )
-
-            print(
-                "ERROR:",
-                target,
-                str(exc)[:250],
-                flush=True
-            )
-
-    # --------------------------------------------------------
-    # RECIBO FINAL
-    # --------------------------------------------------------
-
-    receipt = {
-        "status": (
-            "published"
-            if not failures
-            else "partial_or_uncertain"
-        ),
-        "article_id": chosen["id"],
-        "article_title": chosen["title"],
-        "targets": (
-            state["stories"][chosen["id"]]
-            ["targets"]
-        ),
-    }
-
-    write_json(
-        output / "estado_publicacion.json",
-        receipt
-    )
-
-    if failures:
-
-        raise RuntimeError(
-            "Publicacion parcial o incierta. "
-            "Revisar antes de reintentar: "
-            + " / ".join(failures)
-        )
-
-    print(
-        "PUBLICACION CONFIRMADA EN "
-        "INSTAGRAM Y FACEBOOK",
-        flush=True
-    )
-
-    return 0
+    return 1
 
 
 # ============================================================
-# EJECUCION
+# 28. EJECUCION
 # ============================================================
 
 if __name__ == "__main__":
-
     try:
         sys.exit(
             main()
         )
 
     except Exception as exc:
-
         print(
             "ERROR:",
-            exc,
+            safe_error(exc),
             file=sys.stderr,
-            flush=True
+            flush=True,
         )
 
         sys.exit(1)
