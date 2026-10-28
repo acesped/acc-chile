@@ -293,14 +293,15 @@
     "sismos-49c5ebbd2fd6": {
       "topic": "tsunami_retroceso",
       "reel": "publicado",
-      "updated_at": "2026-10-28T23:03:23.369387+00:00",
+      "updated_at": "2026-10-28T23:03:24.498266+00:00",
       "reel_id": "18136823329657543",
       "story": "publicado",
       "story_id": "17994416355048554",
       "facebook_reel": "publicado",
       "facebook_reel_id": "1772959643781412",
       "facebook_story": "publicado",
-      "facebook_story_id": "1755723762349413"
+      "facebook_story_id": "1755723762349413",
+      "facebook_feed": "enviando"
     }
   }
 }
