@@ -279,7 +279,7 @@
     "sismos-daa85aceb990": {
       "topic": "sismografo",
       "reel": "publicado",
-      "updated_at": "2026-10-28T22:40:32.978119+00:00",
+      "updated_at": "2026-10-28T22:40:39.203215+00:00",
       "reel_id": "18006111639007088",
       "story": "publicado",
       "story_id": "18077880857448519",
@@ -287,7 +287,8 @@
       "facebook_reel_id": "1434436328755852",
       "facebook_story": "publicado",
       "facebook_story_id": "2239903653407290",
-      "facebook_feed": "enviando"
+      "facebook_feed": "publicado",
+      "facebook_feed_id": "3639798599518062"
     }
   }
 }
