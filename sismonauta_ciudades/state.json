@@ -1,4 +1,18 @@
 {
   "events": {
+    "emsc_20261028_0000184": {
+      "magnitude": 4.1,
+      "place": "REGION METROPOLITANA, CHILE",
+      "time": "2026-10-28T12:52:13.080000+00:00",
+      "source": "EMSC-CSEM",
+      "targets": {
+        "instagram": {
+          "status": "pending"
+        },
+        "facebook": {
+          "status": "pending"
+        }
+      }
+    }
   }
 }
