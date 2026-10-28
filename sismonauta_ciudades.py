@@ -70,7 +70,7 @@ RADIUS_KM = 100.0
 
 # Regla obligatoria:
 # buscar solo terremotos de la ultima hora.
-LOOKBACK_HOURS = 1
+LOOKBACK_HOURS = 2
 
 WIDTH = 1080
 HEIGHT = 1350
