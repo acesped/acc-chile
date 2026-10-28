@@ -2,11 +2,11 @@
 name: SISMONAUTA - Alertas Ciudades EMSC
 
 # ============================================================
-# ACTIVACION DEL WORKFLOW
+# ACTIVACION
 # ============================================================
 
 on:
-  # Activacion desde cron-job.org mediante GitHub API
+  # Activacion directa por cron-job.org
   workflow_dispatch:
     inputs:
       publish:
@@ -15,26 +15,12 @@ on:
         type: boolean
         default: false
 
-      lookback_hours:
-        description: 'Horas de busqueda retrospectiva en EMSC'
-        required: true
-        type: choice
-        options:
-          - '24'
-          - '12'
-          - '6'
-          - '3'
-          - '1'
-        default: '24'
-
-  # Alternativa: activacion mediante repository_dispatch
+  # Activacion alternativa por repository_dispatch
   repository_dispatch:
     types:
       - sismonauta-ciudades-emsc
 
-  # Cron interno GitHub desactivado para evitar
-  # ejecuciones duplicadas con cron-job.org.
-  #
+  # Cron interno desactivado para evitar duplicados.
   # schedule:
   #   - cron: '*/5 * * * *'
 
@@ -45,8 +31,8 @@ on:
 permissions:
   contents: write
 
-# Evitar monitoreos simultaneos y escrituras
-# concurrentes en el historial persistente.
+# Impide que dos ejecuciones modifiquen
+# simultaneamente el historial de GitHub.
 concurrency:
   group: sismonauta-ciudades-emsc
   cancel-in-progress: false
@@ -57,8 +43,7 @@ concurrency:
 
 jobs:
   monitoreo_emsc:
-
-    name: Monitorear EMSC y publicar sismos
+    name: Monitorear ultima hora EMSC
 
     runs-on: ubuntu-24.04
 
@@ -69,34 +54,21 @@ jobs:
       PYTHONDONTWRITEBYTECODE: '1'
       MPLBACKEND: Agg
 
-      # ========================================
-      # GITHUB
-      # ========================================
-
+      # GitHub
       GH_TOKEN: ${{ github.token }}
       GITHUB_REPOSITORY: ${{ github.repository }}
       GITHUB_REF_NAME: ${{ github.event.repository.default_branch }}
 
-      # ========================================
-      # INSTAGRAM @sismonauta
-      # ========================================
-
+      # Instagram SISMONAUTA
       INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
       INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
 
-      # ========================================
-      # FACEBOOK SISMONAUTA
-      # ========================================
-
+      # Facebook SISMONAUTA
       FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
       FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
 
-      # ========================================
-      # META GRAPH API
-      # ========================================
-
+      # Meta
       META_GRAPH_VERSION: 'v25.0'
-
       IG_GRAPH_BASE: 'https://graph.instagram.com'
 
     steps:
@@ -119,11 +91,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip'
-          cache-dependency-path: '.github/workflows/sismonauta_ciudades.yml'
-          # El caché es opcional. Si este archivo no
-          # existe todavía en main, desactiva las
-          # dos líneas de caché anteriores.
 
       # ========================================
       # 3. INSTALAR DEPENDENCIAS
@@ -161,14 +128,13 @@ jobs:
           print("Pillow:", PIL.__version__)
           print("Matplotlib:", matplotlib.__version__)
           print("Cartopy:", cartopy.__version__)
-          print("Dependencias instaladas")
           PYDEPS
 
       # ========================================
-      # 4. VALIDAR PYTHON
+      # 4. VALIDAR SCRIPT
       # ========================================
 
-      - name: Validar script SISMONAUTA
+      - name: Validar Python
         shell: bash
         run: |
           set -euo pipefail
@@ -184,7 +150,7 @@ jobs:
           echo "Script Python validado"
 
       # ========================================
-      # 5. IDENTIFICAR MODO DE EJECUCION
+      # 5. DETERMINAR MODO
       # ========================================
 
       - name: Determinar parametros
@@ -193,14 +159,11 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
           MANUAL_PUBLISH: ${{ inputs.publish }}
-          MANUAL_LOOKBACK: ${{ inputs.lookback_hours }}
           EXTERNAL_PUBLISH: ${{ github.event.client_payload.publish }}
-          EXTERNAL_LOOKBACK: ${{ github.event.client_payload.lookback_hours }}
         run: |
           set -euo pipefail
 
           PUBLISH=false
-          LOOKBACK=24
 
           case "$EVENT_NAME" in
 
@@ -208,68 +171,44 @@ jobs:
               if [[ "$MANUAL_PUBLISH" == "true" ]]; then
                 PUBLISH=true
               fi
-
-              if [[ -n "$MANUAL_LOOKBACK" ]]; then
-                LOOKBACK="$MANUAL_LOOKBACK"
-              fi
               ;;
 
             repository_dispatch)
-              # Publicar por defecto en la
-              # activacion externa.
-              if [[ "$EXTERNAL_PUBLISH" == "false" ]]; then
-                PUBLISH=false
-              else
+              if [[ "$EXTERNAL_PUBLISH" == "true" ]]; then
                 PUBLISH=true
-              fi
-
-              if [[ -n "$EXTERNAL_LOOKBACK" ]]; then
-                LOOKBACK="$EXTERNAL_LOOKBACK"
               fi
               ;;
 
             schedule)
               PUBLISH=true
-              LOOKBACK=24
               ;;
 
             *)
-              echo "::error::Evento no autorizado: $EVENT_NAME"
+              echo "::error::Evento no autorizado"
               exit 1
               ;;
 
-          esac
-
-          case "$LOOKBACK" in
-            1|3|6|12|24)
-              ;;
-            *)
-              echo "::error::Ventana temporal invalida"
-              exit 1
-              ;;
           esac
 
           echo "publish=$PUBLISH" >> "$GITHUB_OUTPUT"
-          echo "lookback=$LOOKBACK" >> "$GITHUB_OUTPUT"
 
-          echo "======================================"
-          echo "SISMONAUTA - ALERTAS CIUDADES"
-          echo "======================================"
-          echo "Fuente: EMSC-CSEM"
+          echo "=================================="
+          echo "SISMONAUTA | EMSC-CSEM"
+          echo "=================================="
           echo "Evento GitHub: $EVENT_NAME"
           echo "Publicar: $PUBLISH"
-          echo "Ventana EMSC: $LOOKBACK horas"
+          echo "Consulta EMSC: ultimos 60 minutos"
+          echo "Magnitudes: M4.0 a M6.9"
           echo "Radio: 100 km"
-          echo "Magnitudes: 4.0 a menos de 7.0"
           echo "Ciudades: 15"
           echo "Tsunami: no se consulta"
-          echo "======================================"
+          echo "=================================="
 
       # ========================================
-      # 6. VERIFICAR CREDENCIALES
+      # 6. VALIDAR CREDENCIALES
       # ========================================
 
-      - name: Verificar secretos
+      - name: Verificar credenciales
         if: ${{ steps.modo.outputs.publish == 'true' }}
         shell: bash
         run: |
@@ -292,20 +231,17 @@ jobs:
           echo "Credenciales disponibles"
 
       # ========================================
-      # 7. PREPARAR DIRECTORIO DE RESULTADOS
+      # 7. PREPARAR RESULTADOS
       # ========================================
 
-      - name: Preparar directorios
+      - name: Preparar directorio
         shell: bash
         run: |
           set -euo pipefail
-
           mkdir -p output_ciudades
 
-          echo "Directorio preparado"
-
       # ========================================
-      # 8. EJECUTAR MONITOREO EMSC
+      # 8. MONITOREAR EMSC
       # ========================================
 
       - name: Monitorear EMSC y publicar
@@ -314,20 +250,20 @@ jobs:
         timeout-minutes: 18
         env:
           PUBLISH: ${{ steps.modo.outputs.publish }}
-          LOOKBACK: ${{ steps.modo.outputs.lookback }}
         run: |
           set -uo pipefail
 
           args=(
             --out output_ciudades
-            --lookback-hours "$LOOKBACK"
+            --lookback-hours 1
           )
 
           if [[ "$PUBLISH" == "true" ]]; then
             args+=(--publish)
           fi
 
-          echo "Ejecutando SISMONAUTA EMSC"
+          echo "Ejecutando monitoreo EMSC"
+          echo "Ventana: ultimos 60 minutos"
 
           python sismonauta_ciudades.py "${args[@]}"
 
@@ -335,16 +271,16 @@ jobs:
 
           echo "exit_code=$CODE" >> "$GITHUB_OUTPUT"
 
-          echo "Codigo del programa: $CODE"
+          echo "Codigo Python: $CODE"
 
-          # El paso siguiente revisa el resultado.
+          # El siguiente paso comprueba el recibo.
           exit 0
 
       # ========================================
-      # 9. COMPROBAR RESULTADO Y PUBLICACIONES
+      # 9. VERIFICAR PUBLICACIONES
       # ========================================
 
-      - name: Verificar publicaciones
+      - name: Verificar recibo y publicaciones
         if: ${{ steps.monitoreo.conclusion == 'success' }}
         shell: bash
         env:
@@ -372,7 +308,7 @@ jobs:
 
           if not receipt_path.exists():
               raise SystemExit(
-                  "::error::No existe recibo del monitoreo"
+                  "::error::Falta recibo de monitoreo"
               )
 
           receipt = json.loads(
@@ -383,35 +319,42 @@ jobs:
 
           status = receipt.get("status")
           source = receipt.get("source")
+          lookback = receipt.get("lookback_hours")
           events = receipt.get("events", [])
 
           print("Fuente:", source)
+          print("Ventana:", lookback, "hora")
           print("Estado:", status)
           print("Publicar:", publish)
           print("Codigo Python:", code)
-          print("Eventos registrados:", len(events))
+          print("Eventos:", len(events))
 
           if code != 0:
               raise SystemExit(
-                  "::error::El script Python devolvio error"
+                  "::error::El Python devolvio error"
               )
 
           if source != "EMSC-CSEM":
               raise SystemExit(
-                  "::error::Fuente de datos inesperada"
+                  "::error::Fuente inesperada"
+              )
+
+          if lookback != 1:
+              raise SystemExit(
+                  "::error::Ventana temporal incorrecta"
               )
 
           if status == "no_new_event":
               print(
-                  "::notice::Sin nuevos eventos "
-                  "que publicar"
+                  "::notice::Sin sismos nuevos "
+                  "pendientes de publicar"
               )
               raise SystemExit(0)
 
           if status == "preview_only":
               if publish:
                   raise SystemExit(
-                      "::error::Se esperaba publicacion real"
+                      "::error::Publicacion esperada"
                   )
 
               print(
@@ -421,8 +364,8 @@ jobs:
 
           if status == "partial_or_uncertain":
               raise SystemExit(
-                  "::error::Hay publicaciones inciertas "
-                  "que requieren revision manual"
+                  "::error::Publicaciones inciertas "
+                  "requieren revision manual"
               )
 
           if status != "published":
@@ -438,15 +381,14 @@ jobs:
 
           if not events:
               raise SystemExit(
-                  "::error::No hay eventos confirmados"
+                  "::error::No existen eventos confirmados"
               )
 
           for event in events:
               event_id = event.get("id")
-              event_status = event.get("status")
               targets = event.get("targets") or {}
 
-              if event_status not in (
+              if event.get("status") not in (
                   "published",
                   "already_published",
               ):
@@ -468,44 +410,43 @@ jobs:
                       ).strip()
                   ):
                       raise SystemExit(
-                          "::error::Falta confirmacion "
+                          "::error::Sin confirmacion: "
                           + str(event_id)
-                          + " en "
+                          + " - "
                           + platform
                       )
 
                   print(
-                      "PUBLICACION CONFIRMADA:",
+                      "CONFIRMADO:",
                       event_id,
                       platform,
                       target["id"],
                   )
 
           print(
-              "SISMONAUTA: resultados verificados"
+              "SISMONAUTA: publicaciones verificadas"
           )
           PYVERIFY
 
       # ========================================
-      # 10. RESUMEN DE EJECUCION
+      # 10. RESUMEN
       # ========================================
 
-      - name: Crear resumen
+      - name: Crear resumen de ejecucion
         if: always()
         shell: bash
         env:
           PUBLISH: ${{ steps.modo.outputs.publish }}
-          LOOKBACK: ${{ steps.modo.outputs.lookback }}
         run: |
           {
             echo "## SISMONAUTA | EMSC-CSEM"
             echo ""
             echo "- Fuente: EMSC-CSEM"
+            echo "- Ventana: ultimos 60 minutos"
             echo "- Magnitudes: M4.0 a M6.9"
             echo "- Radio: 100 km"
             echo "- Ciudades: 15"
-            echo "- Ventana consultada: ${LOOKBACK:-24} horas"
-            echo "- Publicacion: ${PUBLISH:-false}"
+            echo "- Publicar: ${PUBLISH:-false}"
             echo ""
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -535,7 +476,7 @@ jobs:
           fi
 
       # ========================================
-      # 11. GUARDAR EVIDENCIAS
+      # 11. CONSERVAR EVIDENCIAS
       # ========================================
 
       - name: Guardar imagenes y registros
