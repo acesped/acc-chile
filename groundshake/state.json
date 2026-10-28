@@ -293,9 +293,10 @@
     "sismos-49c5ebbd2fd6": {
       "topic": "tsunami_retroceso",
       "reel": "publicado",
-      "updated_at": "2026-10-28T23:02:27.176764+00:00",
+      "updated_at": "2026-10-28T23:03:03.104937+00:00",
       "reel_id": "18136823329657543",
-      "story": "enviando"
+      "story": "publicado",
+      "story_id": "17994416355048554"
     }
   }
 }
