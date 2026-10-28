@@ -28,8 +28,8 @@ on:
 permissions:
   contents: write
 
-# Serializa ejecuciones para proteger
-# el historial compartido de publicaciones.
+# Evitar ejecuciones simultaneas que puedan
+# modificar el mismo historial de publicaciones.
 concurrency:
   group: sismonauta-ciudades-emsc
   cancel-in-progress: false
@@ -211,6 +211,7 @@ jobs:
           for key in \
             GH_TOKEN \
             GITHUB_REPOSITORY \
+            GITHUB_REF_NAME \
             INSTAGRAM_TOKEN \
             INSTAGRAM_USER_ID \
             FACEBOOK_PAGE_ID \
@@ -232,7 +233,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
           mkdir -p output_ciudades
+
+          echo "Directorio de resultados preparado"
 
       # ========================================
       # 8. CONSULTAR EMSC Y PUBLICAR
@@ -260,6 +264,7 @@ jobs:
           echo "SISMONAUTA EMSC"
           echo "Ventana: ultimas 4 horas"
           echo "Muestreo: 240 minutos"
+          echo "Publicar: $PUBLISH"
           echo "=================================="
 
           python sismonauta_ciudades.py "${args[@]}"
@@ -267,10 +272,11 @@ jobs:
           CODE=$?
 
           echo "exit_code=$CODE" >> "$GITHUB_OUTPUT"
+
           echo "Codigo Python: $CODE"
 
-          # La verificacion posterior determina
-          # si el job debe terminar con error.
+          # El siguiente paso verifica el recibo
+          # y decide si el job debe fallar.
           exit 0
 
       # ========================================
@@ -449,7 +455,7 @@ jobs:
 
           if [[ -f output_ciudades/estado_publicacion.json ]]; then
 
-            python - <<'PYSUMMARY' >> "$GITHUB_STEP_SUMMARY"
+            python - <<'PYSUMMARY' >> "$GITHUB_STEP_SUMMARY" || true
           import json
           from pathlib import Path
 
@@ -457,20 +463,42 @@ jobs:
               "output_ciudades/estado_publicacion.json"
           )
 
-          data = json.loads(
-              path.read_text(encoding="utf-8")
-          )
+          try:
+              data = json.loads(
+                  path.read_text(encoding="utf-8")
+              )
 
-          print(
-              "- Estado final:",
-              data.get("status"),
-          )
+              print(
+                  "- Estado final:",
+                  data.get("status"),
+              )
 
-          print(
-              "- Eventos procesados:",
-              len(data.get("events", [])),
-          )
+              print(
+                  "- Eventos procesados:",
+                  len(data.get("events", [])),
+              )
+
+              for event in data.get("events", []):
+                  print(
+                      "- Evento:",
+                      event.get("id"),
+                      "| Magnitud:",
+                      event.get("magnitude"),
+                      "| Estado:",
+                      event.get("status"),
+                  )
+
+          except Exception as exc:
+              print(
+                  "- Error al leer resumen:",
+                  str(exc)[:200],
+              )
           PYSUMMARY
+
+          else
+
+            echo "- Sin recibo de ejecucion" \
+              >> "$GITHUB_STEP_SUMMARY"
 
           fi
 
@@ -478,8 +506,21 @@ jobs:
       # 11. GUARDAR EVIDENCIAS
       # ========================================
 
+      # CORRECCION PRINCIPAL:
+      # actions/upload-artifact necesita path.
+      #
+      # Guardar evidencias incluso cuando
+      # falle la consulta o la publicacion.
+      #
+      # Cada ejecucion tiene su propio
+      # artefacto dentro de GitHub Actions.
+
       - name: Guardar imagenes y registros
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: sismonauta
+          name: sismonauta-resultados
+          path: output_ciudades/
+          if-no-files-found: warn
+          retention-days: 7
+          compression-level: 6
