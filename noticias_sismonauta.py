@@ -5,47 +5,43 @@
 """
 SISMONAUTA - NOTICIAS CIENTIFICAS
 =================================
-
 Python 3.11+
 
-TEMATICAS:
-- Investigaciones sismologicas
-- Fallas tectonicas y geofisica
-- Volcanes y erupciones
+NOTICIAS PERMITIDAS:
+- Investigaciones sobre sismos y tectonica
+- Volcanes, geologia y geofisica
 - Meteorologia y fenomenos atmosfericos
 - Climatologia y glaciares
 - Oceanos, tsunamis y oceanografia
 - Espacio, astronomia y satelites
-- Desastres naturales y geologia
+- Desastres y riesgos naturales
 
-REGLA EDITORIAL OBLIGATORIA:
-- NO publicar reportes de ocurrencia de sismos.
-- NO publicar avisos de magnitud y epicentro.
-- SI permitir estudios y descubrimientos
-  relacionados con terremotos.
-- Los sismos recientes son responsabilidad
-  del sistema separado de alertas sismicas.
+PROHIBIDO:
+- Reportar la ocurrencia de terremotos y temblores
+- Publicar fichas de catalogos sismicos
+- Publicar avisos de magnitud, epicentro y profundidad
+- Inventar informacion cientifica
 
 REDES:
 - Instagram @sismonauta
-- Fanpage Facebook SISMONAUTA
+- Facebook Page Sismonauta
 
 CARACTERISTICAS:
-- Noticias publicadas en las ultimas 24 horas
-- RSS en espanol e ingles
-- Filtros cientificos mas flexibles
-- Traduccion automatica al espanol
-- Gemini, OpenRouter o Groq opcionales
-- Explicaciones sin datos inventados
-- Fotografias Wikimedia Commons CC0/PD
-- Fondo grafico original de respaldo
-- Imagen vertical 1080 x 1350
+- Noticias ultimas 24 horas
+- RSS Google News espanol e ingles
+- Traduccion al espanol
+- Gemini, OpenRouter y Groq opcionales
+- Explicaciones con informacion disponible
+- Imagenes Wikimedia Commons CC0/PD
+- Fondo grafico original como respaldo
+- Formato 1080 x 1350
 - Banner azul y letras blancas
-- Historial GitHub antiduplicados
-- Publicacion independiente por plataforma
-- Proteccion ante envios inciertos
+- Historial persistente GitHub
+- Deduplicacion por noticia y plataforma
+- Proteccion de publicaciones inciertas
+- Pruebas obligatorias del filtro sismico
 
-DEPENDENCIAS:
+INSTALACION:
     pip install requests pillow
 
 VISTA PREVIA:
@@ -53,6 +49,26 @@ VISTA PREVIA:
 
 PUBLICAR:
     python noticias_sismonauta.py --publish --out output_noticias
+
+PRUEBA DEL FILTRO:
+    python noticias_sismonauta.py --test-filter
+
+VARIABLES PARA PUBLICAR:
+    GH_TOKEN
+    GITHUB_REPOSITORY
+    GITHUB_REF_NAME
+    INSTAGRAM_TOKEN
+    INSTAGRAM_USER_ID
+    FACEBOOK_PAGE_ID
+    FACEBOOK_PAGE_TOKEN
+
+OPCIONALES:
+    GEMINI_API_KEY
+    OPENROUTER_API_KEY
+    GROQ_API_KEY
+    IG_GRAPH_VERSION
+    IG_GRAPH_BASE
+    NEWS_MAX_ARTICLES
 """
 
 from __future__ import annotations
@@ -83,21 +99,19 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 
 # ============================================================
-# 1. CONFIGURACION GENERAL
+# 1. CONFIGURACION
 # ============================================================
 
-UA = "SismonautaNews/4.1"
+UA = "SismonautaNews/4.2"
 
 HTTP = requests.Session()
-
 HTTP.headers.update({
     "User-Agent": UA,
     "Accept": "*/*",
 })
 
 VERSION = os.getenv(
-    "IG_GRAPH_VERSION",
-    "v25.0",
+    "IG_GRAPH_VERSION", "v25.0"
 )
 
 IG_BASE = os.getenv(
@@ -109,20 +123,20 @@ FB_BASE = "https://graph.facebook.com"
 
 ACCOUNT = "sismonauta"
 
-# NO cambiar: contiene el historial anterior.
+# Mantener exactamente esta ruta.
 STATE_FILE = "sismonauta_noticias/state.json"
 
 LOOKBACK_HOURS = 24
 
-MAX_ARTICLES = int(
-    os.getenv("NEWS_MAX_ARTICLES", "100")
+MAX_ARTICLES = max(
+    1,
+    int(os.getenv("NEWS_MAX_ARTICLES", "100"))
 )
 
 MIN_DESCRIPTION_WORDS = 12
 
 WIDTH = 1080
 HEIGHT = 1350
-
 MAX_FEED_ITEMS = 80
 
 HASHTAGS_BASE = (
@@ -133,7 +147,104 @@ HASHTAGS_BASE = (
 
 
 # ============================================================
-# 2. BUSQUEDAS RSS POR CATEGORIA
+# 2. UTILIDADES
+# ============================================================
+
+def log(*values):
+    print(*values, flush=True)
+
+
+def clean(value):
+    value = html.unescape(
+        re.sub(
+            r"<[^>]*>",
+            " ",
+            str(value or ""),
+        )
+    )
+    return re.sub(r"\s+", " ", value).strip()
+
+
+def normalized(value):
+    text = unicodedata.normalize(
+        "NFKD", clean(value).lower()
+    )
+    return "".join(
+        character
+        for character in text
+        if not unicodedata.combining(character)
+    )
+
+
+def word_count(value):
+    return len(clean(value).split())
+
+
+def utcnow():
+    return datetime.now(timezone.utc)
+
+
+def iso_now():
+    return utcnow().isoformat()
+
+
+def write_json(path, data):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(
+        json.dumps(
+            data,
+            ensure_ascii=False,
+            indent=2,
+            default=str,
+        ),
+        encoding="utf-8",
+    )
+    tmp.replace(path)
+
+
+def safe_error(exc):
+    message = str(exc)
+    for name in (
+        "GH_TOKEN",
+        "INSTAGRAM_TOKEN",
+        "FACEBOOK_PAGE_TOKEN",
+        "GEMINI_API_KEY",
+        "OPENROUTER_API_KEY",
+        "GROQ_API_KEY",
+    ):
+        secret = os.getenv(name, "")
+        if secret:
+            message = message.replace(secret, "***")
+    return message[:300]
+
+
+def get(url, **kwargs):
+    timeout = kwargs.pop("timeout", 25)
+    response = HTTP.get(
+        url,
+        timeout=timeout,
+        **kwargs,
+    )
+    response.raise_for_status()
+    return response
+
+
+def article_fingerprint(title):
+    value = re.sub(
+        r"[^a-z0-9]+",
+        "",
+        normalized(title),
+    )
+    return hashlib.sha256(
+        value.encode("utf-8")
+    ).hexdigest()[:20]
+
+
+# ============================================================
+# 3. BUSQUEDAS RSS
 # ============================================================
 
 SEARCH_GROUPS = {
@@ -227,7 +338,7 @@ SEARCH_GROUPS = {
 
 
 # ============================================================
-# 3. FILTROS TEMATICOS
+# 4. FILTROS TEMATICOS
 # ============================================================
 
 CATEGORY_PATTERNS = {
@@ -335,19 +446,16 @@ ADVANCE = re.compile(
     r"alerta\w*|warning\w*|"
     r"model\w*|m[eé]todo\w*|"
     r"pron[oó]stic\w*|forecast\w*|"
-    r"publicad\w*|published|"
-    r"nuev\w*|new\b",
+    r"publicad\w*|published|nuev\w*|new\b",
     re.I,
 )
 
 SPAM = re.compile(
-    r"hor[oó]scop\w*|horoscop\w*|"
-    r"astrolog\w*|conspiracy|"
-    r"conspiraci[oó]n\w*|"
+    r"hor[oó]scop\w*|astrolog\w*|"
+    r"conspiracy|conspiraci[oó]n\w*|"
     r"apocalipsis|loter[ií]a|lottery|"
     r"apuesta\w*|betting|"
-    r"descuentos?|oferta comercial|"
-    r"promoci[oó]n comercial",
+    r"oferta comercial|promoci[oó]n comercial",
     re.I,
 )
 
@@ -361,319 +469,305 @@ MISLEADING = re.compile(
 
 
 # ============================================================
-# 4. FILTRO OBLIGATORIO DE OCURRENCIA SISMICA
+# 5. BLOQUEO REFORZADO DE OCURRENCIAS
 # ============================================================
 
-# Este filtro solo afecta a noticias de
-# terremotos y temblores.
-#
-# Las noticias sobre volcanes, huracanes,
-# tsunamis, oceanos y otros fenomenos
-# permanecen elegibles.
+# Se normaliza el texto a minusculas y
+# sin tildes antes de aplicar las reglas.
 
-EARTHQUAKE_WORDS = re.compile(
-    r"\b("
-    r"sismos?|temblores?|terremotos?|"
+QUAKE_TERM = re.compile(
+    r"\b(?:"
+    r"sismos?|tembl(?:or|ores)|terremotos?|"
     r"earthquakes?|quakes?|"
-    r"seismic event|seismic tremor"
+    r"seismic\s+(?:event|tremor|shock)"
     r")\b",
     re.I,
 )
 
-# Indicadores de que el titular informa
-# un terremoto ocurrido y no un estudio.
-
-EARTHQUAKE_EVENT = re.compile(
-    r"\b("
-    r"magnitud\s*(?:de\s*)?\d|"
-    r"magnitude\s*(?:of\s*)?\d|"
-    r"magnitude\s+[3-9](?:[.,]\d)?|"
-    r"sacude|sacudi[oó]|sacuden|"
-    r"remece|remeci[oó]|remecen|"
-    r"se\s+registr[oó]|"
-    r"se\s+report[oó]|"
-    r"se\s+produjo|"
-    r"se\s+detect[oó]|"
-    r"se\s+sinti[oó]|"
-    r"reportan|registran|"
-    r"epicentro|"
-    r"strikes?|struck|"
-    r"hits?|shakes?|"
-    r"felt|reported|recorded|"
-    r"occurred|"
-    r"tembl[oó]\s+la\s+tierra"
-    r")\b",
-    re.I,
-)
-
-# Titulares tipicos de reportes:
-# "Sismo en Chile", "Nuevo terremoto",
-# "Earthquake near Japan", etc.
-
-EARTHQUAKE_HEADLINE = re.compile(
-    r"\b("
-    r"nuevo\s+sismo|fuerte\s+sismo|"
-    r"nuevo\s+temblor|fuerte\s+temblor|"
-    r"nuevo\s+terremoto|"
-    r"strong\s+earthquake|"
-    r"powerful\s+earthquake|"
-    r"major\s+earthquake|"
-    r"earthquake\s+(?:in|near|off)\b|"
-    r"terremoto\s+(?:en|cerca|frente)\b|"
-    r"sismo\s+(?:en|cerca|frente)\b|"
-    r"temblor\s+(?:en|cerca|frente)\b"
-    r")",
-    re.I,
-)
-
-# Indicadores claros de una nota cientifica.
-# Su presencia permite investigar noticias
-# sobre terremotos historicos o actuales,
-# pero no anula titulares de ocurrencia directa.
-
-EARTHQUAKE_RESEARCH = re.compile(
-    r"\b("
-    r"investigaci[oó]n|investigadores?|"
-    r"estudio|estudios|estudian|"
-    r"cient[ií]ficos?|"
-    r"descubrimiento|descubren|hallazgo|"
-    r"an[aá]lisis|analizan|"
-    r"nueva\s+tecnolog[ií]a|"
-    r"alerta\s+temprana|"
-    r"research|study|studies|"
-    r"scientists?|researchers?|"
-    r"discovery|findings?|"
-    r"new\s+technology|"
-    r"early\s+warning|new\s+model|"
-    r"new\s+research"
-    r")\b",
-    re.I,
-)
-
-# Formas de ocurrencia que requieren
-# que el titular realmente trate un sismo.
-
-EARTHQUAKE_DIRECT_REPORT = re.compile(
-    r"("
-    r"(?:sismo|temblor|terremoto|earthquake|quake)"
-    r"[^.!?]{0,85}"
-    r"(?:sacude|remece|registrado|reportado|"
-    r"ocurre|ocurri[oó]|se\s+registr[oó]|"
-    r"se\s+report[oó]|strikes?|hits?|"
-    r"struck|shakes?|reported|occurred)"
+QUAKE_MAGNITUDE = re.compile(
+    r"(?<![a-z0-9])(?:"
+    r"mag(?:nitud|nitude)?\.?\s*"
+    r"(?:de\s+|of\s+)?[:=]?\s*"
+    r"[0-9](?:[.,][0-9]+)?"
     r"|"
-    r"(?:sacude|remece|se\s+registr[oó]|"
-    r"reportan|strikes?|hits?|shakes?)"
-    r"[^.!?]{0,85}"
-    r"(?:sismo|temblor|terremoto|earthquake|quake)"
-    r")",
+    r"m(?:w|l|b|s)?\s*[:=]?\s*"
+    r"[3-9](?:[.,][0-9]+)?"
+    r")\b",
+    re.I,
+)
+
+QUAKE_REPORT = re.compile(
+    r"\b(?:"
+    r"sacud\w*|remec\w*|ocurr\w*|"
+    r"registr\w*|report\w*|detect\w*|"
+    r"sentid\w*|sinti\w*|"
+    r"strik\w*|struck|hits?|shak\w*|"
+    r"shook|felt|occurred|recorded|"
+    r"detected|reported|"
+    r"hoy|today|ayer|yesterday"
+    r")\b",
+    re.I,
+)
+
+QUAKE_LOCATION = re.compile(
+    r"\b(?:"
+    r"epicentro|hipocentro|profundidad|depth|"
+    r"km|kilometros?|"
+    r"near|offshore|cerca de|frente a|"
+    r"noreste|noroeste|sureste|suroeste|"
+    r"north|south|east|west|"
+    r"latitud|longitud|latitude|longitude"
+    r")\b",
+    re.I,
+)
+
+QUAKE_HEADLINE = re.compile(
+    r"\b(?:nuevo|fuerte|moderado|leve|"
+    r"strong|moderate|minor|major)\s+"
+    r"(?:sismo|temblor|terremoto|earthquake|quake)\b"
+    r"|"
+    r"\b(?:sismo|temblor|terremoto|"
+    r"earthquake|quake)\s+"
+    r"(?:en|cerca|frente|near|off|in|at)\b",
+    re.I,
+)
+
+QUAKE_RESEARCH = re.compile(
+    r"\b(?:"
+    r"investig\w*|estudi\w*|cientific\w*|"
+    r"descubr\w*|hallazgo\w*|"
+    r"analis\w*|analiz\w*|"
+    r"alerta temprana|"
+    r"research\w*|stud(?:y|ies)|"
+    r"scientist\w*|discover\w*|"
+    r"finding\w*|early warning|"
+    r"new model|historic\w*|historico\w*"
+    r")\b",
+    re.I,
+)
+
+QUAKE_CATALOG_SOURCES = (
+    "volcanodiscovery",
+    "earthquake track",
+    "earthquake tracker",
+    "earthquake monitor",
+    "recent earthquakes",
+    "latest earthquakes",
+)
+
+# Un titular de catalogo no necesariamente
+# contiene "sismo"; puede decir:
+# "Moderate mag. 4.5 - Pacific Ocean".
+QUAKE_CATALOG_TITLE = re.compile(
+    r"\b(?:"
+    r"moderado|moderate|fuerte|strong|"
+    r"leve|minor|light|weak"
+    r")\b.{0,55}"
+    r"(?:\bmag\.?\s*[0-9]|"
+    r"\bmw\s*[0-9]|"
+    r"\bml\s*[0-9])",
+    re.I,
+)
+
+QUAKE_DIRECT = re.compile(
+    r"\b(?:sismo|temblor|terremoto|"
+    r"earthquake|quake)\b"
+    r".{0,90}"
+    r"\b(?:sacude|remece|registrado|"
+    r"ocurre|ocurrio|reported|"
+    r"strikes|struck|hits|shakes)\b"
+    r"|"
+    r"\b(?:sacude|remece|registran|"
+    r"reportan|strikes|hits|shakes)\b"
+    r".{0,90}"
+    r"\b(?:sismo|temblor|terremoto|"
+    r"earthquake|quake)\b",
     re.I,
 )
 
 
-def is_earthquake_occurrence(title, description=""):
+def is_earthquake_occurrence(
+    title,
+    description="",
+    source="",
+):
     """
-    True: noticia que informa una ocurrencia.
+    True si el contenido es un reporte
+    de ocurrencia de un sismo.
 
-    False: noticia cientifica o de otra tematica.
+    No bloquea automaticamente noticias de
+    volcanes, huracanes o desastres distintos.
 
-    Se analiza especialmente el TITULAR para
-    evitar confundir un estudio retrospectivo
-    con un reporte sismico reciente.
+    Distingue investigaciones explicitas
+    de partes de catalogos sismicos.
     """
 
-    title = clean(title)
-    description = clean(description)
+    title = normalized(title)
+    description = normalized(description)
+    source = normalized(source)
+    combined = title + " " + description
 
-    if not EARTHQUAKE_WORDS.search(
-        title + " " + description
+    has_quake = bool(
+        QUAKE_TERM.search(combined)
+    )
+
+    catalog = any(
+        name in source
+        for name in QUAKE_CATALOG_SOURCES
+    )
+
+    scientific_title = bool(
+        QUAKE_RESEARCH.search(title)
+    )
+
+    # Catalogos de eventos, incluido
+    # "Terremoto moderado mag. 4.5".
+    if catalog and (
+        has_quake
+        or QUAKE_CATALOG_TITLE.search(title)
     ):
-        return False
-
-    # 1. Reportes explicitos de ocurrencia.
-    if EARTHQUAKE_DIRECT_REPORT.search(title):
-        return True
-
-    # 2. Titulares que anuncian un sismo
-    # en una localidad determinada.
-    if EARTHQUAKE_HEADLINE.search(title):
-        if not EARTHQUAKE_RESEARCH.search(title):
+        if not scientific_title:
             return True
 
-    # 3. Titulares de magnitud y epicentro.
+    # Titulares de magnitud.
     if (
-        EARTHQUAKE_WORDS.search(title)
-        and EARTHQUAKE_EVENT.search(title)
-        and not EARTHQUAKE_RESEARCH.search(title)
+        QUAKE_TERM.search(title)
+        and QUAKE_MAGNITUDE.search(title)
+        and not scientific_title
     ):
         return True
 
-    # 4. Investigación claramente identificada.
-    if EARTHQUAKE_RESEARCH.search(title):
+    # Catalogos sin la palabra terremoto.
+    if (
+        QUAKE_CATALOG_TITLE.search(title)
+        and QUAKE_LOCATION.search(title)
+        and not scientific_title
+    ):
+        return True
+
+    # Reportes de sismos ocurridos.
+    if (
+        QUAKE_TERM.search(title)
+        and QUAKE_REPORT.search(title)
+        and not scientific_title
+    ):
+        return True
+
+    if (
+        QUAKE_DIRECT.search(title)
+        and not scientific_title
+    ):
+        return True
+
+    # Sismo en Chile / Earthquake near Japan.
+    if (
+        QUAKE_HEADLINE.search(title)
+        and not scientific_title
+    ):
+        return True
+
+    # Investigaciones cientificas reales.
+    if scientific_title:
         return False
 
-    # 5. Si el titulo solo anuncia un sismo,
-    # examinar el resumen.
+    # Reporte de un evento en el resumen.
     if (
-        EARTHQUAKE_WORDS.search(title)
-        and EARTHQUAKE_EVENT.search(description)
-        and not EARTHQUAKE_RESEARCH.search(
-            title + " " + description
+        QUAKE_TERM.search(title)
+        and (
+            QUAKE_MAGNITUDE.search(description)
+            or QUAKE_REPORT.search(description)
+        )
+        and (
+            QUAKE_LOCATION.search(combined)
+            or QUAKE_MAGNITUDE.search(combined)
         )
     ):
-        return True
-
-    # 6. Otros titulares de ocurrencia sin
-    # magnitud, como "Fuerte temblor en...".
-    if EARTHQUAKE_HEADLINE.search(title):
         return True
 
     return False
 
 
 # ============================================================
-# 5. UTILIDADES
+# 6. PRUEBAS OBLIGATORIAS DEL FILTRO
 # ============================================================
 
-def log(*values):
-    print(*values, flush=True)
-
-
-def clean(value):
-    value = html.unescape(
-        re.sub(
-            r"<[^>]*>",
-            " ",
-            str(value or ""),
-        )
-    )
-
-    return re.sub(
-        r"\s+",
-        " ",
-        value,
-    ).strip()
-
-
-def normalized(value):
-    text = unicodedata.normalize(
-        "NFKD",
-        clean(value).lower(),
-    )
-
-    return "".join(
-        character
-        for character in text
-        if not unicodedata.combining(character)
-    )
-
-
-def word_count(value):
-    return len(
-        clean(value).split()
-    )
-
-
-def utcnow():
-    return datetime.now(
-        timezone.utc
-    )
-
-
-def iso_now():
-    return utcnow().isoformat()
-
-
-def write_json(path, data):
-    path = Path(path)
-
-    path.parent.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    path.write_text(
-        json.dumps(
-            data,
-            ensure_ascii=False,
-            indent=2,
-            default=str,
+def test_earthquake_filter():
+    rejected = [
+        (
+            "Terremoto moderado mag. 4.5 - "
+            "Océano Pacífico Norte, 230 km "
+            "al noreste de Kamchatka"
         ),
-        encoding="utf-8",
-    )
+        "Sismo magnitud 5.2 cerca de Santiago",
+        "Terremoto Mw 6.1 frente a Japón",
+        "Sismo M4.3 en el norte de Chile",
+        "Temblor de magnitud 3,8 sacude Perú",
+        "Earthquake M5.6 near Tokyo",
+        "Moderate earthquake strikes California",
+        "Sismo de magnitud 4.9 registrado en México",
+        "Fuerte temblor en el norte de Chile",
+        "Earthquake near Japan",
+        "Terremoto de magnitud 5,0 con epicentro en Perú",
+    ]
 
+    allowed = [
+        "Científicos estudian el terremoto de Valdivia de 1960",
+        "Investigadores analizan un terremoto de magnitud 7",
+        "Nuevo estudio explica las fallas tectónicas",
+        "NASA descubre nuevas características de Marte",
+        "Volcán presenta actividad eruptiva",
+        "Investigadores analizan corrientes oceánicas",
+        "Huracán se intensifica sobre el océano",
+        "Nuevo sistema de alerta temprana para terremotos",
+    ]
 
-def safe_error(exc):
-    message = str(exc)
+    failures = []
 
-    for key in (
-        "GH_TOKEN",
-        "INSTAGRAM_TOKEN",
-        "FACEBOOK_PAGE_TOKEN",
-        "GEMINI_API_KEY",
-        "OPENROUTER_API_KEY",
-        "GROQ_API_KEY",
-    ):
-        secret = os.getenv(
-            key, ""
-        )
-
-        if secret:
-            message = message.replace(
-                secret,
-                "***",
+    for title in rejected:
+        if not is_earthquake_occurrence(title):
+            failures.append(
+                "NO RECHAZADA: " + title
             )
 
-    return message[:300]
+    for title in allowed:
+        if is_earthquake_occurrence(title):
+            failures.append(
+                "BLOQUEADA INDEBIDAMENTE: " + title
+            )
 
+    if failures:
+        raise RuntimeError(
+            "FILTRO SISMICO NO SUPERA PRUEBAS: "
+            + " | ".join(failures)
+        )
 
-def get(url, **kwargs):
-    timeout = kwargs.pop(
-        "timeout",
-        25,
+    log(
+        "FILTRO SISMICO VALIDADO:",
+        len(rejected),
+        "reportes bloqueados;",
+        len(allowed),
+        "noticias permitidas"
     )
-
-    response = HTTP.get(
-        url,
-        timeout=timeout,
-        **kwargs,
-    )
-
-    response.raise_for_status()
-
-    return response
-
-
-def article_fingerprint(title):
-    value = normalized(title)
-
-    value = re.sub(
-        r"[^a-z0-9]+",
-        "",
-        value,
-    )
-
-    return hashlib.sha256(
-        value.encode("utf-8")
-    ).hexdigest()[:20]
 
 
 # ============================================================
-# 6. CLASIFICACION EDITORIAL
+# 7. CLASIFICACION EDITORIAL
 # ============================================================
 
-def classify_article(title, description):
-
-    # REGLA INVIOLABLE DE SISMONAUTA NOTICIAS.
+def classify_article(
+    title,
+    description,
+    source="",
+):
     if is_earthquake_occurrence(
-        title, description
+        title,
+        description,
+        source,
     ):
         return None
 
     content = (
-        clean(title)
-        + " "
-        + clean(description)
+        clean(title) + " " + clean(description)
     )
 
     if SPAM.search(content):
@@ -684,9 +778,7 @@ def classify_article(title, description):
 
     matches = []
 
-    for category, pattern in (
-        CATEGORY_PATTERNS.items()
-    ):
+    for category, pattern in CATEGORY_PATTERNS.items():
         if pattern.search(content):
             matches.append(category)
 
@@ -728,13 +820,11 @@ def is_low_information(title, description):
 
 
 # ============================================================
-# 7. NOTICIAS RSS - ULTIMAS 24 HORAS
+# 8. NOTICIAS RSS
 # ============================================================
 
 def feed_items():
-
     now = utcnow()
-
     output = {}
 
     audit = {
@@ -749,10 +839,7 @@ def feed_items():
         "accepted": 0,
     }
 
-    for search_category, searches in (
-        SEARCH_GROUPS.items()
-    ):
-
+    for search_category, searches in SEARCH_GROUPS.items():
         for lang, query in searches:
 
             region = (
@@ -761,14 +848,10 @@ def feed_items():
                 else ("en-US", "US", "US:en")
             )
 
-            full_query = (
-                query + " when:1d"
-            )
-
             url = (
                 "https://news.google.com/rss/search?"
                 + urllib.parse.urlencode({
-                    "q": full_query,
+                    "q": query + " when:1d",
                     "hl": region[0],
                     "gl": region[1],
                     "ceid": region[2],
@@ -777,24 +860,18 @@ def feed_items():
 
             try:
                 root = ET.fromstring(
-                    get(
-                        url,
-                        timeout=20,
-                    ).content
+                    get(url, timeout=20).content
                 )
-
                 audit["feeds_ok"] += 1
 
             except Exception as exc:
                 audit["feeds_failed"] += 1
-
                 log(
                     "RSS ERROR:",
                     search_category,
                     query,
                     safe_error(exc)[:100],
                 )
-
                 continue
 
             entries = root.findall(
@@ -805,24 +882,20 @@ def feed_items():
                 "RSS:",
                 search_category,
                 lang,
-                "|",
                 query,
-                "| resultados:",
+                "resultados:",
                 len(entries),
             )
 
             for node in entries:
-
                 audit["rss_items"] += 1
 
                 title = clean(
                     node.findtext("title")
                 )
-
                 description = clean(
                     node.findtext("description")
                 )
-
                 link = clean(
                     node.findtext("link")
                 )
@@ -859,8 +932,7 @@ def feed_items():
 
                 if " - " in title:
                     prefix, suffix = title.rsplit(
-                        " - ",
-                        1,
+                        " - ", 1
                     )
 
                     if (
@@ -870,22 +942,20 @@ def feed_items():
                     ):
                         title = prefix.strip()
 
-                # PRIMER BLOQUEO.
-                # Los reportes sismicos no son
-                # noticias cientificas publicables.
+                # BLOQUEO RSS.
                 if is_earthquake_occurrence(
                     title,
                     description,
+                    provider,
                 ):
                     audit[
                         "earthquake_occurrence"
                     ] += 1
 
                     log(
-                        "DESCARTADO - OCURRENCIA:",
-                        title[:105],
+                        "DESCARTADO - OCURRENCIA SISMICA:",
+                        title[:130],
                     )
-
                     continue
 
                 if is_low_information(
@@ -898,6 +968,7 @@ def feed_items():
                 category = classify_article(
                     title,
                     description,
+                    provider,
                 )
 
                 if not category:
@@ -927,7 +998,6 @@ def feed_items():
                         )
                     ),
                 }
-
                 audit["accepted"] += 1
 
     log(
@@ -940,15 +1010,14 @@ def feed_items():
 
     if audit["feeds_ok"] == 0:
         raise RuntimeError(
-            "No fue posible consultar "
-            "ninguna fuente RSS"
+            "No se pudo consultar ninguna fuente RSS"
         )
 
     return list(output.values())
 
 
 # ============================================================
-# 8. PRIORIDAD EDITORIAL
+# 9. PRIORIDAD EDITORIAL
 # ============================================================
 
 def priority(article):
@@ -958,9 +1027,7 @@ def priority(article):
         + article["description"]
     )
 
-    score = 0.0
-
-    category_weights = {
+    weights = {
         "sismos": 9,
         "volcanes": 8,
         "oceanos": 7,
@@ -971,12 +1038,11 @@ def priority(article):
         "espacio": 5,
     }
 
-    score += category_weights.get(
-        article.get("category"),
-        0,
+    score = weights.get(
+        article.get("category"), 0
     )
 
-    weights = [
+    terms = [
         ("investigacion", 5),
         ("research", 5),
         ("descubrimiento", 5),
@@ -998,13 +1064,11 @@ def priority(article):
         ("satelite", 2),
     ]
 
-    for term, weight in weights:
+    for term, value in terms:
         if term in text:
-            score += weight
+            score += value
 
-    if article.get(
-        "scientific_advance"
-    ):
+    if article.get("scientific_advance"):
         score += 3
 
     date = datetime.fromisoformat(
@@ -1013,20 +1077,14 @@ def priority(article):
 
     age = max(
         0,
-        (
-            utcnow() - date
-        ).total_seconds() / 3600,
+        (utcnow() - date).total_seconds() / 3600
     )
 
-    score += max(
-        0,
-        24 - age,
-    ) * 0.18
-
+    score += max(0, 24 - age) * 0.18
     score += min(
         5,
         word_count(
-            article.get("description")
+            article.get("description", "")
         ) / 12,
     )
 
@@ -1034,7 +1092,7 @@ def priority(article):
 
 
 # ============================================================
-# 9. IA - GEMINI, OPENROUTER, GROQ
+# 10. IA - GEMINI, OPENROUTER Y GROQ
 # ============================================================
 
 def ai_text(prompt, max_tokens=1100):
@@ -1044,12 +1102,12 @@ def ai_text(prompt, max_tokens=1100):
     ).strip()
 
     if key:
-        try:
-            model = os.getenv(
-                "GEMINI_NEWS_MODEL",
-                "gemini-2.5-flash",
-            )
+        model = os.getenv(
+            "GEMINI_NEWS_MODEL",
+            "gemini-2.5-flash",
+        )
 
+        try:
             response = HTTP.post(
                 (
                     "https://generativelanguage."
@@ -1058,12 +1116,12 @@ def ai_text(prompt, max_tokens=1100):
                     + ":generateContent"
                 ),
                 headers={
-                    "x-goog-api-key": key,
+                    "x-goog-api-key": key
                 },
                 json={
                     "contents": [{
                         "parts": [{
-                            "text": prompt,
+                            "text": prompt
                         }]
                     }],
                     "generationConfig": {
@@ -1073,7 +1131,6 @@ def ai_text(prompt, max_tokens=1100):
                 },
                 timeout=65,
             )
-
             response.raise_for_status()
 
             parts = (
@@ -1112,7 +1169,7 @@ def ai_text(prompt, max_tokens=1100):
                     "api/v1/chat/completions"
                 ),
                 headers={
-                    "Authorization": "Bearer " + key,
+                    "Authorization": "Bearer " + key
                 },
                 json={
                     "model": model,
@@ -1135,7 +1192,6 @@ def ai_text(prompt, max_tokens=1100):
 
             if isinstance(result, str):
                 result = result.strip()
-
                 if result:
                     return result
 
@@ -1162,7 +1218,7 @@ def ai_text(prompt, max_tokens=1100):
                     "openai/v1/chat/completions"
                 ),
                 headers={
-                    "Authorization": "Bearer " + key,
+                    "Authorization": "Bearer " + key
                 },
                 json={
                     "model": model,
@@ -1196,7 +1252,7 @@ def ai_text(prompt, max_tokens=1100):
 
 
 # ============================================================
-# 10. TRADUCCION AL ESPANOL
+# 11. TRADUCCION AL ESPANOL
 # ============================================================
 
 def translate_es(value):
@@ -1208,7 +1264,7 @@ def translate_es(value):
     prompt = (
         "Traduce fielmente al español de Chile. "
         "No agregues datos ni cambies nombres, "
-        "fechas ni cifras. Devuelve solamente "
+        "fechas ni cifras. Devuelve solo "
         "la traducción:\n\n"
         + value
     )
@@ -1265,37 +1321,29 @@ def spanish_article(article):
     if not title:
         return None
 
-    result = dict(article)
+    converted = dict(article)
+    converted["original_title"] = article["title"]
+    converted["title"] = title
 
-    result["original_title"] = (
-        article["title"]
-    )
-
-    result["title"] = title
-
-    description = article.get(
-        "description", ""
-    )
-
-    if description:
-        result["description"] = (
-            translate_es(description) or ""
+    if article.get("description"):
+        converted["description"] = (
+            translate_es(
+                article["description"]
+            ) or ""
         )
 
-    result["lang"] = "es"
-
-    return result
+    converted["lang"] = "es"
+    return converted
 
 
 # ============================================================
-# 11. EXTRAER ARTICULO COMPLETO
+# 12. EXTRACCION DEL ARTICULO
 # ============================================================
 
 class ArticleParser(HTMLParser):
 
     def __init__(self):
         super().__init__()
-
         self.block = 0
         self.in_paragraph = False
         self.parts = []
@@ -1303,12 +1351,8 @@ class ArticleParser(HTMLParser):
 
     def handle_starttag(self, tag, attrs):
         if tag in (
-            "script",
-            "style",
-            "nav",
-            "footer",
-            "header",
-            "aside",
+            "script", "style", "nav",
+            "footer", "header", "aside",
             "noscript",
         ):
             self.block += 1
@@ -1319,18 +1363,11 @@ class ArticleParser(HTMLParser):
 
     def handle_endtag(self, tag):
         if tag in (
-            "script",
-            "style",
-            "nav",
-            "footer",
-            "header",
-            "aside",
+            "script", "style", "nav",
+            "footer", "header", "aside",
             "noscript",
         ):
-            self.block = max(
-                0,
-                self.block - 1,
-            )
+            self.block = max(0, self.block - 1)
 
         elif tag == "p" and self.in_paragraph:
             paragraph = clean(
@@ -1338,9 +1375,7 @@ class ArticleParser(HTMLParser):
             )
 
             if len(paragraph) > 55:
-                self.paragraphs.append(
-                    paragraph
-                )
+                self.paragraphs.append(paragraph)
 
             self.in_paragraph = False
             self.parts = []
@@ -1364,7 +1399,7 @@ def full_article_text(article):
             url,
             timeout=20,
             headers={
-                "Accept": "text/html",
+                "Accept": "text/html"
             },
         )
 
@@ -1383,9 +1418,7 @@ def full_article_text(article):
         seen = set()
 
         for paragraph in parser.paragraphs:
-            key = normalized(
-                paragraph
-            )[:100]
+            key = normalized(paragraph)[:100]
 
             if key in seen:
                 continue
@@ -1400,13 +1433,9 @@ def full_article_text(article):
             ):
                 continue
 
-            paragraphs.append(
-                paragraph
-            )
+            paragraphs.append(paragraph)
 
-        content = " ".join(
-            paragraphs
-        )
+        content = " ".join(paragraphs)
 
         if word_count(content) < 60:
             return ""
@@ -1418,18 +1447,15 @@ def full_article_text(article):
             "Articulo no accesible:",
             type(exc).__name__,
         )
-
         return ""
 
 
 # ============================================================
-# 12. EXPLICACION DETALLADA
+# 13. EXPLICACION DETALLADA
 # ============================================================
 
 def detailed_explanation(article):
-    body = full_article_text(
-        article
-    )
+    body = full_article_text(article)
 
     if not body:
         return None
@@ -1438,33 +1464,21 @@ def detailed_explanation(article):
         "Eres periodista científico de SISMONAUTA. "
         "Redacta una explicación original y clara "
         "en español de Chile.\n\n"
-
         "Extensión orientativa: 80 a 190 palabras, "
         "según los datos disponibles.\n\n"
-
         "Explica qué se descubrió, observó o "
-        "investigó y su importancia.\n"
-
-        "Incluye solamente datos que aparezcan "
-        "en el material proporcionado.\n"
-
-        "No inventes cifras, instituciones, "
-        "fechas ni conclusiones.\n"
-
-        "No agregues predicciones sísmicas.\n"
-
+        "investigó, y su importancia.\n"
+        "Utiliza solamente los datos proporcionados.\n"
+        "No inventes cifras, fechas, instituciones, "
+        "resultados ni causas.\n"
+        "No añadas predicciones sísmicas.\n"
         "No conviertas investigaciones sobre "
         "terremotos en avisos de sismos recientes.\n"
-
-        "No copies extensos párrafos del artículo.\n"
-
-        "No añadas hashtags ni enlaces.\n"
-
-        "Evita frases genéricas de relleno.\n\n"
-
-        "Si falta información verificable, "
+        "No copies párrafos extensos.\n"
+        "No incluyas hashtags ni enlaces.\n"
+        "No agregues frases de relleno.\n"
+        "Si faltan hechos comprobables, "
         "responde INSUFICIENTE.\n\n"
-
         f"TITULAR: {article['title']}\n"
         f"MEDIO: {article.get('source', '')}\n"
         f"CATEGORÍA: {article.get('category', '')}\n\n"
@@ -1489,14 +1503,13 @@ def detailed_explanation(article):
 
 
 # ============================================================
-# 13. EXPLICACION DESDE EL RESUMEN RSS
+# 14. EXPLICACION DESDE RSS
 # ============================================================
 
 def evidence_brief(article):
     title = clean(
         article.get("title", "")
     )
-
     summary = clean(
         article.get("description", "")
     )
@@ -1512,31 +1525,21 @@ def evidence_brief(article):
 
     prompt = (
         "Redacta una nota informativa para "
-        "SISMONAUTA, en español de Chile.\n\n"
-
-        "Puede tratar de sismología científica, "
-        "volcanes, océanos, meteorología, "
-        "climatología, geología, desastres "
-        "naturales o espacio.\n\n"
-
-        "Utiliza exclusivamente los datos del "
-        "titular y el resumen.\n"
-
-        "No inventes resultados, causas, "
-        "instituciones ni cifras.\n"
-
-        "No transformes un estudio sobre "
-        "terremotos en una alerta sísmica.\n"
-
-        "Si hay pocos datos, escribe menos "
-        "en lugar de inventar.\n"
-
+        "SISMONAUTA, en español de Chile.\n"
+        "Utiliza exclusivamente el titular "
+        "y el resumen de la noticia.\n"
+        "Puede tratar de geología, sismología "
+        "científica, volcanes, meteorología, "
+        "clima, océanos, espacio o desastres.\n"
+        "Redacta solamente hechos concretos.\n"
+        "No inventes información ni cifras.\n"
+        "No conviertas estudios de terremotos "
+        "en alertas sísmicas.\n"
+        "Si existen pocos datos, escribe menos.\n"
         "No repitas el titular como explicación.\n"
-        "No agregues hashtags ni enlaces.\n"
-
-        "Si no puedes explicar un hecho concreto, "
-        "responde INSUFICIENTE.\n\n"
-
+        "No añadas hashtags ni enlaces.\n"
+        "Si los datos no permiten explicar "
+        "un hecho, responde INSUFICIENTE.\n\n"
         f"TITULAR: {title}\n\n"
         f"RESUMEN: {summary}"
     )
@@ -1553,6 +1556,7 @@ def evidence_brief(article):
     ):
         return result.strip()
 
+    # Respaldo sin generacion de hechos nuevos.
     if word_count(summary) >= 18:
         return summary.rstrip(".") + "."
 
@@ -1560,16 +1564,12 @@ def evidence_brief(article):
 
 
 def obtain_explanation(article):
-    result = detailed_explanation(
-        article
-    )
+    result = detailed_explanation(article)
 
     if result:
         return result
 
-    result = evidence_brief(
-        article
-    )
+    result = evidence_brief(article)
 
     if result:
         return result
@@ -1589,7 +1589,7 @@ def obtain_explanation(article):
 
 
 # ============================================================
-# 14. FOTOGRAFIAS DE WIKIMEDIA COMMONS
+# 15. FOTOGRAFIAS WIKIMEDIA COMMONS
 # ============================================================
 
 PHOTO_QUERIES = {
@@ -1598,43 +1598,36 @@ PHOTO_QUERIES = {
         "San Andreas Fault",
         "mountain rock landscape",
     ],
-
     "volcanes": [
         "volcano landscape",
         "volcanic eruption",
         "volcanic mountain",
     ],
-
     "meteorologia": [
         "storm clouds landscape",
         "hurricane satellite",
         "thunderstorm clouds",
     ],
-
     "climatologia": [
         "glacier landscape",
         "polar ice landscape",
         "mountain glacier",
     ],
-
     "oceanos": [
         "ocean coastline",
         "sea waves shore",
         "coastal landscape",
     ],
-
     "espacio": [
         "NASA Earth from space",
         "Hubble galaxy",
         "planet astronomy",
     ],
-
     "desastres": [
         "landslide mountain",
         "flooded river landscape",
         "forest wildfire",
     ],
-
     "geologia": [
         "rock formations landscape",
         "mountain geology",
@@ -1644,32 +1637,20 @@ PHOTO_QUERIES = {
 
 
 def commons_license_accepted(metadata):
-    short = clean(
-        (
-            metadata.get("LicenseShortName")
-            or {}
-        ).get("value", "")
-    ).lower()
+    def value(key):
+        return clean(
+            (metadata.get(key) or {}).get(
+                "value", ""
+            )
+        ).lower()
 
-    code = clean(
-        (
-            metadata.get("License")
-            or {}
-        ).get("value", "")
-    ).lower()
+    short = value("LicenseShortName")
+    code = value("License")
+    usage = value("UsageTerms")
 
-    usage = clean(
-        (
-            metadata.get("UsageTerms")
-            or {}
-        ).get("value", "")
-    ).lower()
-
-    combined = " ".join((
-        short,
-        code,
-        usage,
-    ))
+    combined = " ".join(
+        (short, code, usage)
+    )
 
     allowed = (
         "cc0",
@@ -1710,13 +1691,15 @@ def commons_photo(article):
             "gsrnamespace": 6,
             "gsrlimit": 40,
             "prop": "imageinfo",
-            "iiprop": "url|extmetadata|mime|size",
+            "iiprop": (
+                "url|extmetadata|mime|size"
+            ),
             "iiurlwidth": 1500,
         }
 
         continuation = {}
 
-        for page_number in range(2):
+        for _ in range(2):
             try:
                 data = get(
                     "https://commons.wikimedia.org/w/api.php",
@@ -1740,22 +1723,19 @@ def commons_photo(article):
             ).get("pages", [])
 
             if isinstance(pages, dict):
-                pages = list(
-                    pages.values()
-                )
+                pages = list(pages.values())
 
             for page in pages:
-                infos = page.get(
-                    "imageinfo"
-                ) or []
+                infos = (
+                    page.get("imageinfo") or []
+                )
 
                 if not infos:
                     continue
 
                 info = infos[0]
                 metadata = (
-                    info.get("extmetadata")
-                    or {}
+                    info.get("extmetadata") or {}
                 )
 
                 if not commons_license_accepted(
@@ -1788,9 +1768,8 @@ def commons_photo(article):
                     continue
 
                 if re.search(
-                    r"diagram|infographic|"
-                    r"schematic|drawing|"
-                    r"illustration|logo|"
+                    r"diagram|infographic|schematic|"
+                    r"drawing|illustration|logo|"
                     r"poster|chart|presentation|"
                     r"screenshot",
                     title,
@@ -1825,9 +1804,7 @@ def commons_photo(article):
                     "query": query,
                 })
 
-            continuation = data.get(
-                "continue"
-            )
+            continuation = data.get("continue")
 
             if not continuation:
                 break
@@ -1847,10 +1824,8 @@ def commons_photo(article):
 
             with Image.open(
                 io.BytesIO(response.content)
-            ) as original:
-                image = original.convert(
-                    "RGB"
-                )
+            ) as src:
+                image = src.convert("RGB")
 
             if min(image.size) < 450:
                 continue
@@ -1869,7 +1844,7 @@ def commons_photo(article):
 
 
 # ============================================================
-# 15. FONDO GRAFICO ORIGINAL
+# 16. FONDO GRAFICO ORIGINAL
 # ============================================================
 
 def original_science_background(article):
@@ -1880,9 +1855,7 @@ def original_science_background(article):
         16,
     )
 
-    rng = random.Random(
-        seed
-    )
+    rng = random.Random(seed)
 
     image = Image.new(
         "RGB",
@@ -1890,19 +1863,15 @@ def original_science_background(article):
         (5, 27, 53),
     )
 
-    draw = ImageDraw.Draw(
-        image
-    )
+    draw = ImageDraw.Draw(image)
 
     for y in range(HEIGHT):
         t = y / HEIGHT
-
         color = (
             int(8 + 17*t),
             int(42 + 32*t),
             int(83 + 30*t),
         )
-
         draw.line(
             (0, y, WIDTH, y),
             fill=color,
@@ -1910,16 +1879,11 @@ def original_science_background(article):
 
     for layer in range(7):
         points = []
-
         base = 425 + layer * 116
-        phase = rng.uniform(
-            0, math.tau
-        )
+        phase = rng.uniform(0, math.tau)
 
         for x in range(
-            -20,
-            WIDTH + 40,
-            16,
+            -20, WIDTH + 40, 16
         ):
             y = (
                 base
@@ -1930,25 +1894,20 @@ def original_science_background(article):
                     x/37 + phase/2
                 )
             )
-
-            points.append(
-                (x, int(y))
-            )
+            points.append((x, int(y)))
 
         points.extend([
             (WIDTH, HEIGHT),
             (0, HEIGHT),
         ])
 
-        color = (
-            10 + layer*8,
-            55 + layer*8,
-            87 + layer*4,
-        )
-
         draw.polygon(
             points,
-            fill=color,
+            fill=(
+                10 + layer*8,
+                55 + layer*8,
+                87 + layer*4,
+            ),
         )
 
     if article.get("category") in (
@@ -1957,24 +1916,14 @@ def original_science_background(article):
         "climatologia",
     ):
         for _ in range(75):
-            x = rng.randint(
-                0, WIDTH-1
-            )
-
-            y = rng.randint(
-                100, HEIGHT-150
-            )
-
-            radius = rng.randint(
-                1, 4
-            )
+            x = rng.randint(0, WIDTH-1)
+            y = rng.randint(100, HEIGHT-150)
+            radius = rng.randint(1, 4)
 
             draw.ellipse(
                 (
-                    x-radius,
-                    y-radius,
-                    x+radius,
-                    y+radius,
+                    x-radius, y-radius,
+                    x+radius, y+radius,
                 ),
                 fill=(170, 210, 240),
             )
@@ -1995,47 +1944,36 @@ def original_science_background(article):
                 ),
             )
 
-    metadata = {
+    return image, {
         "title": "Arte original SISMONAUTA",
         "url": "",
         "license": "Obra original",
         "generated": True,
     }
 
-    return image, metadata
-
 
 # ============================================================
-# 16. TIPOGRAFIA Y DISENO
+# 17. FUENTES Y TEXTO
 # ============================================================
 
 def font(size, bold=False):
     if bold:
         paths = [
-            (
-                "/usr/share/fonts/truetype/"
-                "dejavu/DejaVuSans-Bold.ttf"
-            ),
-            (
-                "/usr/share/fonts/truetype/"
-                "liberation2/"
-                "LiberationSans-Bold.ttf"
-            ),
+            "/usr/share/fonts/truetype/"
+            "dejavu/DejaVuSans-Bold.ttf",
+            "/usr/share/fonts/truetype/"
+            "liberation2/LiberationSans-Bold.ttf",
         ]
-
     else:
         paths = [
-            (
-                "/usr/share/fonts/truetype/"
-                "dejavu/DejaVuSans.ttf"
-            ),
+            "/usr/share/fonts/truetype/"
+            "dejavu/DejaVuSans.ttf",
         ]
 
     for path in paths:
         if Path(path).exists():
             return ImageFont.truetype(
-                path,
-                size,
+                path, size
             )
 
     return ImageFont.load_default()
@@ -2058,11 +1996,9 @@ def wrap_text(draw, text, selected_font, width):
 
         if measured <= width:
             current = proposed
-
         else:
             if current:
                 lines.append(current)
-
             current = word
 
     if current:
@@ -2072,7 +2008,7 @@ def wrap_text(draw, text, selected_font, width):
 
 
 # ============================================================
-# 17. CREACION DE IMAGEN
+# 18. IMAGEN PARA INSTAGRAM Y FACEBOOK
 # ============================================================
 
 def make_card(image, article, path):
@@ -2089,9 +2025,7 @@ def make_card(image, article, path):
         (0, 0, 0, 0),
     )
 
-    draw = ImageDraw.Draw(
-        overlay
-    )
+    draw = ImageDraw.Draw(overlay)
 
     draw.rectangle(
         (0, 0, WIDTH, 100),
@@ -2105,21 +2039,15 @@ def make_card(image, article, path):
         fill="white",
     )
 
-    title = clean(
-        article["title"]
-    )
+    title = clean(article["title"])
 
     selected_font = None
     lines = None
     line_height = 0
     band_height = 0
 
-    for size in range(
-        70, 21, -2
-    ):
-        candidate = font(
-            size, True
-        )
+    for size in range(70, 21, -2):
+        candidate = font(size, True)
 
         candidate_lines = wrap_text(
             draw,
@@ -2128,14 +2056,11 @@ def make_card(image, article, path):
             WIDTH - 120,
         )
 
-        leading = int(
-            size * 1.27
-        )
+        leading = int(size * 1.27)
 
         band = max(
             210,
-            len(candidate_lines)
-            * leading + 100,
+            len(candidate_lines) * leading + 100,
         )
 
         if (
@@ -2166,9 +2091,7 @@ def make_card(image, article, path):
         fill=(36, 163, 255, 255),
     )
 
-    total_height = (
-        len(lines) * line_height
-    )
+    total_height = len(lines) * line_height
 
     y = top + (
         band_height - total_height
@@ -2182,13 +2105,8 @@ def make_card(image, article, path):
             stroke_width=3,
         )
 
-        text_width = (
-            bbox[2] - bbox[0]
-        )
-
-        x = (
-            WIDTH - text_width
-        ) // 2
+        text_width = bbox[2] - bbox[0]
+        x = (WIDTH - text_width) // 2
 
         draw.text(
             (x, y),
@@ -2202,17 +2120,12 @@ def make_card(image, article, path):
         y += line_height
 
     draw.rectangle(
-        (
-            0,
-            HEIGHT-94,
-            WIDTH,
-            HEIGHT,
-        ),
+        (0, HEIGHT-94, WIDTH, HEIGHT),
         fill=(3, 24, 49, 245),
     )
 
     labels = {
-        "sismos": "SISMOS",
+        "sismos": "CIENCIA SÍSMICA",
         "volcanes": "VOLCANES",
         "meteorologia": "METEOROLOGÍA",
         "climatologia": "CLIMA",
@@ -2228,19 +2141,14 @@ def make_card(image, article, path):
     )
 
     draw.text(
-        (54, HEIGHT - 67),
-        (
-            "CIENCIA  •  "
-            + category
-            + "  •  ACTUALIDAD"
-        ),
+        (54, HEIGHT-67),
+        "CIENCIA  •  " + category,
         font=font(28, True),
         fill="white",
     )
 
     result = Image.alpha_composite(
-        canvas,
-        overlay,
+        canvas, overlay
     ).convert("RGB")
 
     path = Path(path)
@@ -2258,7 +2166,7 @@ def make_card(image, article, path):
 
 
 # ============================================================
-# 18. DESCRIPCION Y HASHTAGS
+# 19. DESCRIPCIONES Y HASHTAGS
 # ============================================================
 
 CATEGORY_HASHTAGS = {
@@ -2266,37 +2174,30 @@ CATEGORY_HASHTAGS = {
         "#Sismos #Terremotos #Sismologia "
         "#Geofisica #Tectonica"
     ),
-
     "volcanes": (
         "#Volcanes #Erupciones "
         "#Volcanologia #Geologia"
     ),
-
     "meteorologia": (
         "#Meteorologia #Tiempo "
         "#Tormentas #Atmosfera"
     ),
-
     "climatologia": (
         "#Climatologia #Clima "
         "#CambioClimatico #Glaciares"
     ),
-
     "oceanos": (
         "#Oceanos #Oceanografia "
         "#Tsunamis #CienciaDelMar"
     ),
-
     "espacio": (
         "#Espacio #Astronomia "
         "#NASA #ExploracionEspacial"
     ),
-
     "desastres": (
         "#DesastresNaturales "
         "#Prevencion #RiesgosNaturales"
     ),
-
     "geologia": (
         "#Geologia #PlanetaTierra "
         "#Geociencias #Investigacion"
@@ -2311,8 +2212,7 @@ def caption(article, credit):
 
     if word_count(explanation) < 12:
         raise ValueError(
-            "Información insuficiente "
-            "para el texto de publicación"
+            "Informacion insuficiente"
         )
 
     labels = {
@@ -2327,11 +2227,10 @@ def caption(article, credit):
     }
 
     category = article.get(
-        "category",
-        "sismos",
+        "category", "sismos"
     )
 
-    category_label = labels.get(
+    label = labels.get(
         category,
         "ACTUALIDAD CIENTÍFICA",
     )
@@ -2340,60 +2239,57 @@ def caption(article, credit):
         article.get("source", "")
     )
 
-    parts = [
-        "🌎 SISMONAUTA | " + category_label,
-        "",
-        clean(article["title"]),
-        "",
-        explanation,
-        "",
-        (
-            "💬 ¿Qué opinas? "
-            "Te leemos en los comentarios."
-        ),
-    ]
+    def assemble(body):
+        parts = [
+            "🌎 SISMONAUTA | " + label,
+            "",
+            clean(article["title"]),
+            "",
+            body,
+            "",
+            "💬 ¿Qué opinas? Te leemos en los comentarios.",
+        ]
 
-    if source:
+        if source:
+            parts.extend([
+                "",
+                "📰 Medio: " + source,
+            ])
+
         parts.extend([
             "",
-            "📰 Medio: " + source,
+            HASHTAGS_BASE,
+            CATEGORY_HASHTAGS.get(category, ""),
         ])
 
-    parts.extend([
-        "",
-        HASHTAGS_BASE,
-        CATEGORY_HASHTAGS.get(
-            category, ""
-        ),
-    ])
+        return "\n".join(parts)
 
-    result = "\n".join(
-        parts
-    )
+    text = assemble(explanation)
 
-    if len(result) > 2200:
-        overflow = len(result) - 2200
-
-        explanation = explanation[
-            :max(
-                100,
-                len(explanation) - overflow - 20
-            )
-        ].rsplit(" ", 1)[0].rstrip(",;:") + "."
-
-        parts[4] = explanation
-        result = "\n".join(parts)
-
-    if len(result) > 2200:
-        raise ValueError(
-            "Descripción demasiado larga"
+    if len(text) > 2200:
+        excess = len(text) - 2200
+        limit = max(
+            80,
+            len(explanation) - excess - 20,
         )
 
-    return result
+        shortened = explanation[:limit]
+        shortened = shortened.rsplit(
+            " ", 1
+        )[0].rstrip(",;:") + "."
+
+        text = assemble(shortened)
+
+    if len(text) > 2200:
+        raise ValueError(
+            "Descripcion demasiado larga"
+        )
+
+    return text
 
 
 # ============================================================
-# 19. GITHUB - IMAGENES E HISTORIAL
+# 20. GITHUB: ESTADO E IMAGENES
 # ============================================================
 
 class Github:
@@ -2413,18 +2309,13 @@ class Github:
             + self.repo
         )
 
-        token = os.environ[
-            "GH_TOKEN"
-        ]
+        token = os.environ["GH_TOKEN"]
 
         self.session = requests.Session()
-
         self.session.headers.update({
             "Authorization": "Bearer " + token,
             "Accept": "application/vnd.github+json",
-            "X-GitHub-Api-Version": (
-                "2022-11-28"
-            ),
+            "X-GitHub-Api-Version": "2022-11-28",
         })
 
         response = self.session.get(
@@ -2436,8 +2327,8 @@ class Github:
 
         if response.json().get("private"):
             raise RuntimeError(
-                "El repositorio debe ser público "
-                "para alojar la imagen"
+                "Repositorio publico requerido "
+                "para alojar las imagenes"
             )
 
     def endpoint(self, path):
@@ -2445,17 +2336,14 @@ class Github:
             self.base
             + "/contents/"
             + urllib.parse.quote(
-                path,
-                safe="/",
+                path, safe="/"
             )
         )
 
     def read(self, path):
         response = self.session.get(
             self.endpoint(path),
-            params={
-                "ref": self.branch
-            },
+            params={"ref": self.branch},
             timeout=25,
         )
 
@@ -2463,7 +2351,6 @@ class Github:
             return None, None
 
         response.raise_for_status()
-
         data = response.json()
 
         return (
@@ -2474,12 +2361,10 @@ class Github:
         )
 
     def write(self, path, raw):
-        endpoint = self.endpoint(
-            path
-        )
+        endpoint = self.endpoint(path)
 
         for attempt in range(4):
-            old, sha = self.read(path)
+            _, sha = self.read(path)
 
             body = {
                 "message": (
@@ -2509,28 +2394,24 @@ class Github:
                 continue
 
             response.raise_for_status()
-
             return response.json()
 
     def image_url(self, path):
         return (
             "https://raw.githubusercontent.com/"
-            + self.repo
-            + "/"
+            + self.repo + "/"
             + urllib.parse.quote(
-                self.branch,
-                safe="",
+                self.branch, safe=""
             )
             + "/"
             + urllib.parse.quote(
-                path,
-                safe="/",
+                path, safe="/"
             )
         )
 
 
 # ============================================================
-# 20. META GRAPH API
+# 21. META GRAPH API
 # ============================================================
 
 def graph(
@@ -2541,10 +2422,7 @@ def graph(
     base=None,
 ):
     base = base or IG_BASE
-
-    endpoint = (
-        f"{base}/{VERSION}/{path}"
-    )
+    endpoint = f"{base}/{VERSION}/{path}"
 
     payload = dict(params or {})
     payload["access_token"] = token
@@ -2555,7 +2433,6 @@ def graph(
             params=payload,
             timeout=55,
         )
-
     else:
         response = requests.post(
             endpoint,
@@ -2565,29 +2442,23 @@ def graph(
 
     try:
         data = response.json()
-
     except ValueError:
         raise RuntimeError(
-            "Meta devolvió respuesta no JSON"
+            "Meta no devolvio JSON"
         )
 
     if (
         not response.ok
         or data.get("error")
     ):
-        error = data.get(
-            "error"
-        ) or {}
+        error = data.get("error") or {}
 
         raise RuntimeError(
             "Meta HTTP "
             + str(response.status_code)
             + ": "
             + str(
-                error.get(
-                    "message",
-                    data
-                )
+                error.get("message", data)
             )[:240]
         )
 
@@ -2595,14 +2466,11 @@ def graph(
 
 
 # ============================================================
-# 21. VERIFICAR INSTAGRAM Y FACEBOOK
+# 22. VALIDAR CUENTAS
 # ============================================================
 
 def ig_check():
-    token = os.environ[
-        "INSTAGRAM_TOKEN"
-    ]
-
+    token = os.environ["INSTAGRAM_TOKEN"]
     user_id = os.environ[
         "INSTAGRAM_USER_ID"
     ]
@@ -2611,9 +2479,7 @@ def ig_check():
         "GET",
         "me",
         token,
-        {
-            "fields": "id,username"
-        },
+        {"fields": "id,username"},
     )
 
     if (
@@ -2646,9 +2512,7 @@ def fb_check():
         "GET",
         page_id,
         token,
-        {
-            "fields": "id,name,username"
-        },
+        {"fields": "id,name,username"},
         FB_BASE,
     )
 
@@ -2664,8 +2528,7 @@ def fb_check():
         ).lower() != ACCOUNT
     ):
         raise RuntimeError(
-            "La fanpage no corresponde "
-            "a SISMONAUTA"
+            "La fanpage no corresponde a SISMONAUTA"
         )
 
     log(
@@ -2677,7 +2540,7 @@ def fb_check():
 
 
 # ============================================================
-# 22. PUBLICAR INSTAGRAM
+# 23. PUBLICACION EN INSTAGRAM
 # ============================================================
 
 def publish_ig(
@@ -2696,16 +2559,14 @@ def publish_ig(
         },
     )["id"]
 
-    for attempt in range(18):
+    for _ in range(18):
         time.sleep(8)
 
         result = graph(
             "GET",
             container,
             token,
-            {
-                "fields": "status_code"
-            },
+            {"fields": "status_code"},
         )
 
         status = result.get(
@@ -2716,40 +2577,37 @@ def publish_ig(
             break
 
         if status in (
-            "ERROR",
-            "EXPIRED",
+            "ERROR", "EXPIRED"
         ):
             raise RuntimeError(
-                "Instagram rechazó la imagen: "
+                "Instagram rechazo la imagen: "
                 + status
             )
 
     else:
         raise RuntimeError(
-            "Instagram no confirmó el contenedor"
+            "Instagram no confirmo contenedor"
         )
 
     result = graph(
         "POST",
         user_id + "/media_publish",
         token,
-        {
-            "creation_id": container
-        },
+        {"creation_id": container},
     )
 
     identifier = result.get("id")
 
     if not identifier:
         raise RuntimeError(
-            "Instagram no devolvió ID"
+            "Instagram no devolvio ID"
         )
 
     return str(identifier)
 
 
 # ============================================================
-# 23. PUBLICAR FACEBOOK
+# 24. PUBLICACION EN FACEBOOK
 # ============================================================
 
 def publish_fb(
@@ -2777,31 +2635,25 @@ def publish_fb(
 
     if not identifier:
         raise RuntimeError(
-            "Facebook no devolvió ID"
+            "Facebook no devolvio ID"
         )
 
     return str(identifier)
 
 
 # ============================================================
-# 24. HISTORIAL ANTIDUPLICADOS
+# 25. HISTORIAL ANTIDUPLICADOS
 # ============================================================
 
 def load_state(github):
-    raw, _ = github.read(
-        STATE_FILE
-    )
+    raw, _ = github.read(STATE_FILE)
 
     if raw:
         state = json.loads(raw)
-        state.setdefault(
-            "stories", {}
-        )
+        state.setdefault("stories", {})
         return state
 
-    return {
-        "stories": {}
-    }
+    return {"stories": {}}
 
 
 def save_state(github, state):
@@ -2816,6 +2668,22 @@ def save_state(github, state):
     )
 
 
+def publication_targets(entry):
+    targets = entry.setdefault(
+        "targets", {}
+    )
+
+    for platform in (
+        "instagram", "facebook"
+    ):
+        targets.setdefault(
+            platform,
+            {"status": "pending"},
+        )
+
+    return targets
+
+
 def is_confirmed(entry):
     targets = entry.get(
         "targets", {}
@@ -2826,8 +2694,7 @@ def is_confirmed(entry):
             platform, {}
         ).get("status") == "published"
         for platform in (
-            "instagram",
-            "facebook",
+            "instagram", "facebook"
         )
     )
 
@@ -2842,40 +2709,16 @@ def has_uncertain(entry):
             platform, {}
         ).get("status") == "uncertain"
         for platform in (
-            "instagram",
-            "facebook",
+            "instagram", "facebook"
         )
     )
 
 
-def publication_targets(entry):
-    targets = entry.setdefault(
-        "targets", {}
-    )
-
-    for platform in (
-        "instagram",
-        "facebook",
-    ):
-        targets.setdefault(
-            platform,
-            {
-                "status": "pending"
-            },
-        )
-
-    return targets
-
-
 # ============================================================
-# 25. SELECCIONAR NOTICIA ELEGIBLE
+# 26. SELECCIONAR UNA NOTICIA
 # ============================================================
 
-def select_news(
-    articles,
-    state,
-    output,
-):
+def select_news(articles, state):
     reasons = {
         "earthquake_occurrence": 0,
         "already_published": 0,
@@ -2886,48 +2729,55 @@ def select_news(
         "generated_backgrounds": 0,
     }
 
+    stories = state.get("stories", {})
+
     for original in articles[:MAX_ARTICLES]:
 
-        # SEGUNDO BLOQUEO.
-        # Nunca seleccionar ocurrencias.
+        # SEGUNDA VERIFICACION:
+        # comprobar titular ORIGINAL.
         if is_earthquake_occurrence(
             original["title"],
-            original.get(
-                "description", ""
-            ),
+            original.get("description", ""),
+            original.get("source", ""),
         ):
             reasons[
                 "earthquake_occurrence"
             ] += 1
 
             log(
-                "OMITIDA OCURRENCIA SISMICA:",
-                original["title"][:110],
+                "DESCARTADA OCURRENCIA:",
+                original["title"][:120],
             )
-
             continue
 
-        existing = state.get(
-            "stories", {}
-        ).get(original["id"])
+        existing = stories.get(original["id"])
 
-        if (
-            existing
-            and is_confirmed(existing)
-        ):
-            reasons[
-                "already_published"
-            ] += 1
-            continue
+        # No arriesgar una nueva publicacion
+        # de una noticia con historial previo.
+        if existing:
+            targets = existing.get("targets", {})
 
-        if (
-            existing
-            and has_uncertain(existing)
-        ):
-            reasons[
-                "uncertain_previous"
-            ] += 1
-            continue
+            if is_confirmed(existing):
+                reasons["already_published"] += 1
+                continue
+
+            if has_uncertain(existing):
+                reasons["uncertain_previous"] += 1
+                continue
+
+            # Reanudar solo cuando los destinos
+            # tengan estados conocidos.
+            valid_states = {
+                None, "pending", "published"
+            }
+
+            if any(
+                targets.get(k, {}).get("status")
+                not in valid_states
+                for k in ("instagram", "facebook")
+            ):
+                reasons["uncertain_previous"] += 1
+                continue
 
         log(
             "EVALUANDO:",
@@ -2936,36 +2786,30 @@ def select_news(
             original["category"],
         )
 
-        article = spanish_article(
-            original
-        )
+        article = spanish_article(original)
 
         if article is None:
-            reasons[
-                "translation_failed"
-            ] += 1
+            reasons["translation_failed"] += 1
             continue
 
-        # Verificacion de la traduccion.
+        # TERCERA VERIFICACION:
+        # revisar la version traducida.
         if is_earthquake_occurrence(
             article["title"],
-            article.get(
-                "description", ""
-            ),
+            article.get("description", ""),
+            article.get("source", ""),
         ):
             reasons[
                 "earthquake_occurrence"
             ] += 1
 
             log(
-                "OMITIDA TRADUCCION DE OCURRENCIA:",
-                article["title"][:100],
+                "DESCARTADA TRADUCCION:",
+                article["title"][:120],
             )
             continue
 
-        explanation = obtain_explanation(
-            article
-        )
+        explanation = obtain_explanation(article)
 
         if not explanation:
             reasons["no_information"] += 1
@@ -2973,15 +2817,11 @@ def select_news(
 
         article["explanation"] = explanation
 
-        photo, metadata = commons_photo(
-            original
-        )
+        photo, metadata = commons_photo(original)
 
         if photo is None:
             photo, metadata = (
-                original_science_background(
-                    article
-                )
+                original_science_background(article)
             )
 
             reasons[
@@ -2989,22 +2829,15 @@ def select_news(
             ] += 1
 
             log(
-                "FONDO GRAFICO ORIGINAL GENERADO"
+                "FONDO ORIGINAL GENERADO"
             )
 
         try:
             description = caption(
                 article, metadata
             )
-
-        except ValueError as exc:
+        except ValueError:
             reasons["invalid_caption"] += 1
-
-            log(
-                "OMITIDA:",
-                safe_error(exc),
-            )
-
             continue
 
         return (
@@ -3016,16 +2849,12 @@ def select_news(
         )
 
     return (
-        None,
-        None,
-        None,
-        None,
-        reasons,
+        None, None, None, None, reasons
     )
 
 
 # ============================================================
-# 26. PUBLICACION SEGURA EN META
+# 27. PUBLICACION SEGURA EN META
 # ============================================================
 
 def publish_article(
@@ -3038,26 +2867,33 @@ def publish_article(
     output,
 ):
 
-    # TERCER BLOQUEO.
-    # Se comprueba de nuevo inmediatamente
-    # antes de cualquier accion de publicacion.
-    if is_earthquake_occurrence(
+    # CUARTA VERIFICACION:
+    # antes de enviar cualquier publicacion.
+    original_title = (
         article.get("original_title")
-        or article["title"],
+        or article["title"]
+    )
+
+    source = article.get("source", "")
+
+    if is_earthquake_occurrence(
+        original_title,
         article.get("description", ""),
+        source,
     ):
         raise RuntimeError(
             "PUBLICACION BLOQUEADA: "
-            "noticia sobre ocurrencia de sismo"
+            "ocurrencia sismica en texto original"
         )
 
     if is_earthquake_occurrence(
         article["title"],
         article.get("description", ""),
+        source,
     ):
         raise RuntimeError(
             "PUBLICACION BLOQUEADA: "
-            "ocurrencia sismica"
+            "ocurrencia sismica en texto traducido"
         )
 
     instagram_id, instagram_token = ig_check()
@@ -3074,9 +2910,7 @@ def publish_article(
         },
     )
 
-    targets = publication_targets(
-        entry
-    )
+    targets = publication_targets(entry)
 
     if is_confirmed(entry):
         return {
@@ -3102,9 +2936,7 @@ def publish_article(
         image_file.read_bytes(),
     )
 
-    image_url = github.image_url(
-        remote_path
-    )
+    image_url = github.image_url(remote_path)
 
     accessible = False
 
@@ -3138,22 +2970,16 @@ def publish_article(
     entry["image"] = credit
     entry["image_url"] = image_url
 
-    save_state(
-        github,
-        state,
-    )
+    save_state(github, state)
 
     failures = []
 
     for platform in (
-        "instagram",
-        "facebook",
+        "instagram", "facebook"
     ):
         target = targets[platform]
 
-        if target.get(
-            "status"
-        ) == "published":
+        if target.get("status") == "published":
             log(
                 "OMITIDO:",
                 platform,
@@ -3161,15 +2987,11 @@ def publish_article(
             )
             continue
 
-        # Se guarda el bloqueo antes de
-        # enviar la solicitud a Meta.
+        # Evitar duplicados ante errores de red
+        # o resultados de publicacion inciertos.
         target["status"] = "uncertain"
         target.pop("error", None)
-
-        save_state(
-            github,
-            state,
-        )
+        save_state(github, state)
 
         try:
             if platform == "instagram":
@@ -3179,7 +3001,6 @@ def publish_article(
                     image_url,
                     description,
                 )
-
             else:
                 identifier = publish_fb(
                     facebook_id,
@@ -3193,10 +3014,7 @@ def publish_article(
                 "id": str(identifier),
             })
 
-            save_state(
-                github,
-                state,
-            )
+            save_state(github, state)
 
             log(
                 "PUBLICADO:",
@@ -3206,19 +3024,12 @@ def publish_article(
             )
 
         except Exception as exc:
-            target["error"] = (
-                safe_error(exc)
-            )
+            target["error"] = safe_error(exc)
 
-            save_state(
-                github,
-                state,
-            )
+            save_state(github, state)
 
             failures.append(
-                platform
-                + ": "
-                + safe_error(exc)
+                platform + ": " + safe_error(exc)
             )
 
             log(
@@ -3258,14 +3069,14 @@ def publish_article(
 
 
 # ============================================================
-# 27. PROGRAMA PRINCIPAL
+# 28. PROGRAMA PRINCIPAL
 # ============================================================
 
 def main():
     parser = argparse.ArgumentParser(
         description=(
-            "SISMONAUTA - Noticias cientificas "
-            "sin reportes de ocurrencia de sismos"
+            "SISMONAUTA: noticias cientificas "
+            "sin reportes de ocurrencia sismica"
         )
     )
 
@@ -3279,12 +3090,24 @@ def main():
         default="output_noticias",
     )
 
-    args = parser.parse_args()
-
-    output = Path(
-        args.out
+    parser.add_argument(
+        "--test-filter",
+        action="store_true",
     )
 
+    args = parser.parse_args()
+
+    # Pruebas obligatorias antes de consultar
+    # RSS o publicar.
+    test_earthquake_filter()
+
+    if args.test_filter:
+        log(
+            "PRUEBAS COMPLETADAS SIN PUBLICAR"
+        )
+        return 0
+
+    output = Path(args.out)
     output.mkdir(
         parents=True,
         exist_ok=True,
@@ -3292,9 +3115,7 @@ def main():
 
     (
         output / "estado_publicacion.json"
-    ).unlink(
-        missing_ok=True
-    )
+    ).unlink(missing_ok=True)
 
     log("=" * 55)
     log("SISMONAUTA - NOTICIAS CIENTIFICAS")
@@ -3348,10 +3169,7 @@ def main():
             },
         )
 
-        log(
-            "SIN NOTICIAS ELEGIBLES"
-        )
-
+        log("SIN NOTICIAS ELEGIBLES")
         return 0
 
     (
@@ -3363,7 +3181,6 @@ def main():
     ) = select_news(
         articles,
         state,
-        output,
     )
 
     log(
@@ -3393,25 +3210,26 @@ def main():
         log(
             "SIN NOTICIAS NUEVAS PUBLICABLES"
         )
-
         return 0
 
-    # BLOQUEO ADICIONAL ANTES DE
-    # GENERAR LOS ARCHIVOS.
-    if is_earthquake_occurrence(
+    # Ultima comprobacion antes de
+    # preparar imagen y descripcion.
+    for title in (
+        chosen.get("original_title"),
         chosen["title"],
-        chosen.get("description", ""),
     ):
-        raise RuntimeError(
-            "Se detecto una ocurrencia sismica "
-            "en la noticia seleccionada"
-        )
+        if title and is_earthquake_occurrence(
+            title,
+            chosen.get("description", ""),
+            chosen.get("source", ""),
+        ):
+            raise RuntimeError(
+                "NOTICIA BLOQUEADA: "
+                "ocurrencia de terremoto"
+            )
 
     image_file = (
-        output
-        / (
-            chosen["id"] + ".jpg"
-        )
+        output / (chosen["id"] + ".jpg")
     )
 
     make_card(
@@ -3433,12 +3251,10 @@ def main():
         "NOTICIA SELECCIONADA:",
         chosen["title"],
     )
-
     log(
         "CATEGORIA:",
         chosen["category"],
     )
-
     log(
         "EXTENSION:",
         word_count(
@@ -3457,13 +3273,13 @@ def main():
                 "category": chosen["category"],
                 "image": str(image_file),
                 "lookback_hours": 24,
+                "checked_at": iso_now(),
             },
         )
 
         log(
             "VISTA PREVIA COMPLETADA"
         )
-
         return 0
 
     receipt = publish_article(
@@ -3481,7 +3297,6 @@ def main():
             "PUBLICACION CONFIRMADA EN "
             "INSTAGRAM Y FACEBOOK"
         )
-
         return 0
 
     if receipt["status"] == "already_published":
@@ -3491,14 +3306,12 @@ def main():
 
 
 # ============================================================
-# 28. EJECUCION
+# 29. EJECUCION
 # ============================================================
 
 if __name__ == "__main__":
     try:
-        sys.exit(
-            main()
-        )
+        sys.exit(main())
 
     except Exception as exc:
         print(
@@ -3507,5 +3320,4 @@ if __name__ == "__main__":
             file=sys.stderr,
             flush=True,
         )
-
         sys.exit(1)
