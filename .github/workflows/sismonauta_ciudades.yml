@@ -1,0 +1,254 @@
+
+name: SISMONAUTA - Alertas ciudades M4 a M6.9
+
+on:
+  # Activacion mediante cron-job.org
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publicar en Instagram y Facebook'
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sismonauta-ciudades
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    name: Revisar sismos en 15 ciudades
+
+    runs-on: ubuntu-24.04
+
+    timeout-minutes: 30
+
+    env:
+      PYTHONUNBUFFERED: '1'
+
+      # GitHub
+      GH_TOKEN: ${{ github.token }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      GITHUB_REF_NAME: ${{ github.event.repository.default_branch }}
+
+      # Instagram
+      INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
+      INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
+
+      # Facebook
+      FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+      FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
+
+      # Meta
+      META_GRAPH_VERSION: 'v25.0'
+
+    steps:
+
+      # ========================================
+      # 1. DESCARGAR REPOSITORIO
+      # ========================================
+
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      # ========================================
+      # 2. INSTALAR PYTHON
+      # ========================================
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # ========================================
+      # 3. INSTALAR DEPENDENCIAS
+      # ========================================
+
+      - name: Instalar librerias
+        shell: bash
+        timeout-minutes: 10
+        run: |
+          set -euo pipefail
+
+          sudo apt-get update -qq
+
+          sudo apt-get install -y -qq \
+            fonts-dejavu-core
+
+          python -m pip install \
+            --disable-pip-version-check \
+            --retries 3 \
+            --timeout 45 \
+            'requests>=2.31,<3' \
+            'Pillow>=10,<13' \
+            'matplotlib>=3.8,<4' \
+            'cartopy>=0.23,<1'
+
+      # ========================================
+      # 4. VALIDAR SCRIPT
+      # ========================================
+
+      - name: Validar Python
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test -f sismonauta_ciudades.py || {
+            echo "::error::Falta sismonauta_ciudades.py"
+            exit 1
+          }
+
+          python -m py_compile \
+            sismonauta_ciudades.py
+
+          echo "Script validado"
+
+      # ========================================
+      # 5. DETERMINAR PUBLICACION
+      # ========================================
+
+      - name: Determinar modo
+        id: mode
+        shell: bash
+        env:
+          REQUESTED: ${{ inputs.publish }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$REQUESTED" == "true" ]]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ========================================
+      # 6. VERIFICAR SECRETOS
+      # ========================================
+
+      - name: Verificar credenciales
+        if: steps.mode.outputs.publish == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for key in \
+            INSTAGRAM_TOKEN \
+            INSTAGRAM_USER_ID \
+            FACEBOOK_PAGE_ID \
+            FACEBOOK_PAGE_TOKEN \
+            GH_TOKEN
+          do
+            if [[ -z "${!key:-}" ]]; then
+              echo "::error::Falta $key"
+              exit 1
+            fi
+          done
+
+          echo "Credenciales disponibles"
+
+      # ========================================
+      # 7. MONITOREAR Y PUBLICAR
+      # ========================================
+
+      - name: Monitorear USGS y publicar
+        shell: bash
+        timeout-minutes: 18
+        run: |
+          set -euo pipefail
+
+          args=(
+            --out output_ciudades
+            --lookback-hours 24
+          )
+
+          if [[ \
+            '${{ steps.mode.outputs.publish }}' \
+            == "true" \
+          ]]; then
+            args+=(--publish)
+          fi
+
+          python sismonauta_ciudades.py \
+            "${args[@]}"
+
+      # ========================================
+      # 8. VERIFICAR RESULTADOS
+      # ========================================
+
+      - name: Verificar recibo
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python - <<'PYVERIFY'
+          import json
+          from pathlib import Path
+
+          path = Path(
+              "output_ciudades/estado_publicacion.json"
+          )
+
+          if not path.exists():
+              raise SystemExit(
+                  "Falta recibo de monitoreo"
+              )
+
+          data = json.loads(
+              path.read_text(encoding="utf-8")
+          )
+
+          status = data.get("status")
+
+          print("Estado:", status)
+
+          valid = (
+              "no_new_event",
+              "preview_only",
+              "published",
+          )
+
+          if status not in valid:
+              raise SystemExit(
+                  "Estado no confirmado"
+              )
+
+          if status == "published":
+              for event in data.get("events", []):
+                  for platform in (
+                      "instagram",
+                      "facebook"
+                  ):
+                      target = event[
+                          "targets"
+                      ][platform]
+
+                      if (
+                          target.get("status") != "published"
+                          or not target.get("id")
+                      ):
+                          raise SystemExit(
+                              "Publicacion no confirmada: "
+                              + platform
+                          )
+
+          print("Verificacion finalizada")
+          PYVERIFY
+
+      # ========================================
+      # 9. GUARDAR EVIDENCIAS
+      # ========================================
+
+      - name: Guardar imágenes y registros
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sismonauta-ciudades-${{ github.run_id }}-${{ github.run_attempt }}
+          path: output_ciudades/
+          if-no-files-found: warn
+          retention-days: 14
