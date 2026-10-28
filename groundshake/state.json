@@ -279,8 +279,9 @@
     "sismos-daa85aceb990": {
       "topic": "sismografo",
       "reel": "publicado",
-      "updated_at": "2026-10-28T22:39:34.135779+00:00",
-      "reel_id": "18006111639007088"
+      "updated_at": "2026-10-28T22:39:35.226480+00:00",
+      "reel_id": "18006111639007088",
+      "story": "enviando"
     }
   }
 }
