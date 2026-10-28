@@ -6,7 +6,7 @@ name: SISMONAUTA - Alertas Ciudades EMSC
 # ============================================================
 
 on:
-  # Activacion directa por cron-job.org
+  # Activacion directa desde cron-job.org
   workflow_dispatch:
     inputs:
       publish:
@@ -15,12 +15,14 @@ on:
         type: boolean
         default: false
 
-  # Activacion alternativa por repository_dispatch
+  # Activacion externa alternativa
   repository_dispatch:
     types:
       - sismonauta-ciudades-emsc
 
-  # Cron interno desactivado para evitar duplicados.
+  # Cron interno desactivado:
+  # cron-job.org controla la frecuencia.
+  #
   # schedule:
   #   - cron: '*/5 * * * *'
 
@@ -31,8 +33,8 @@ on:
 permissions:
   contents: write
 
-# Impide que dos ejecuciones modifiquen
-# simultaneamente el historial de GitHub.
+# Evitar ejecuciones simultaneas que puedan
+# duplicar publicaciones o sobrescribir estados.
 concurrency:
   group: sismonauta-ciudades-emsc
   cancel-in-progress: false
@@ -43,10 +45,9 @@ concurrency:
 
 jobs:
   monitoreo_emsc:
-    name: Monitorear ultima hora EMSC
+    name: Monitorear EMSC - Ultimas 3 horas
 
     runs-on: ubuntu-24.04
-
     timeout-minutes: 30
 
     env:
@@ -59,7 +60,7 @@ jobs:
       GITHUB_REPOSITORY: ${{ github.repository }}
       GITHUB_REF_NAME: ${{ github.event.repository.default_branch }}
 
-      # Instagram SISMONAUTA
+      # Instagram @sismonauta
       INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
       INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
 
@@ -67,7 +68,7 @@ jobs:
       FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
       FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
 
-      # Meta
+      # Meta Graph API
       META_GRAPH_VERSION: 'v25.0'
       IG_GRAPH_BASE: 'https://graph.instagram.com'
 
@@ -128,13 +129,14 @@ jobs:
           print("Pillow:", PIL.__version__)
           print("Matplotlib:", matplotlib.__version__)
           print("Cartopy:", cartopy.__version__)
+          print("Dependencias instaladas")
           PYDEPS
 
       # ========================================
-      # 4. VALIDAR SCRIPT
+      # 4. VALIDAR PYTHON
       # ========================================
 
-      - name: Validar Python
+      - name: Validar script SISMONAUTA
         shell: bash
         run: |
           set -euo pipefail
@@ -150,7 +152,7 @@ jobs:
           echo "Script Python validado"
 
       # ========================================
-      # 5. DETERMINAR MODO
+      # 5. DETERMINAR MODO DE PUBLICACION
       # ========================================
 
       - name: Determinar parametros
@@ -197,10 +199,11 @@ jobs:
           echo "=================================="
           echo "Evento GitHub: $EVENT_NAME"
           echo "Publicar: $PUBLISH"
-          echo "Consulta EMSC: ultimos 60 minutos"
+          echo "Ventana EMSC: ultimas 3 horas"
+          echo "Ventana EMSC: 180 minutos"
           echo "Magnitudes: M4.0 a M6.9"
           echo "Radio: 100 km"
-          echo "Ciudades: 15"
+          echo "Ciudades monitoreadas: 15"
           echo "Tsunami: no se consulta"
           echo "=================================="
 
@@ -231,17 +234,17 @@ jobs:
           echo "Credenciales disponibles"
 
       # ========================================
-      # 7. PREPARAR RESULTADOS
+      # 7. PREPARAR DIRECTORIO
       # ========================================
 
-      - name: Preparar directorio
+      - name: Preparar directorio de salida
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p output_ciudades
 
       # ========================================
-      # 8. MONITOREAR EMSC
+      # 8. CONSULTAR EMSC Y PUBLICAR
       # ========================================
 
       - name: Monitorear EMSC y publicar
@@ -255,32 +258,35 @@ jobs:
 
           args=(
             --out output_ciudades
-            --lookback-hours 1
+            --lookback-hours 3
           )
 
           if [[ "$PUBLISH" == "true" ]]; then
             args+=(--publish)
           fi
 
-          echo "Ejecutando monitoreo EMSC"
-          echo "Ventana: ultimos 60 minutos"
+          echo "=================================="
+          echo "Ejecutando SISMONAUTA EMSC"
+          echo "Ventana: ultimas 3 horas"
+          echo "Intervalo: 180 minutos"
+          echo "=================================="
 
           python sismonauta_ciudades.py "${args[@]}"
 
           CODE=$?
 
           echo "exit_code=$CODE" >> "$GITHUB_OUTPUT"
-
           echo "Codigo Python: $CODE"
 
-          # El siguiente paso comprueba el recibo.
+          # El siguiente paso verifica el recibo
+          # y determina si la ejecucion fue correcta.
           exit 0
 
       # ========================================
-      # 9. VERIFICAR PUBLICACIONES
+      # 9. VERIFICAR RECIBO Y PUBLICACIONES
       # ========================================
 
-      - name: Verificar recibo y publicaciones
+      - name: Verificar resultados
         if: ${{ steps.monitoreo.conclusion == 'success' }}
         shell: bash
         env:
@@ -308,7 +314,7 @@ jobs:
 
           if not receipt_path.exists():
               raise SystemExit(
-                  "::error::Falta recibo de monitoreo"
+                  "::error::No existe recibo de monitoreo"
               )
 
           receipt = json.loads(
@@ -319,42 +325,66 @@ jobs:
 
           status = receipt.get("status")
           source = receipt.get("source")
-          lookback = receipt.get("lookback_hours")
+          lookback_hours = receipt.get(
+              "lookback_hours"
+          )
+          lookback_minutes = receipt.get(
+              "lookback_minutes"
+          )
           events = receipt.get("events", [])
 
           print("Fuente:", source)
-          print("Ventana:", lookback, "hora")
+          print("Ventana:", lookback_hours, "horas")
+          print("Minutos:", lookback_minutes)
           print("Estado:", status)
           print("Publicar:", publish)
           print("Codigo Python:", code)
-          print("Eventos:", len(events))
+          print("Eventos procesados:", len(events))
 
+          # Codigo de salida del Python
           if code != 0:
               raise SystemExit(
                   "::error::El Python devolvio error"
               )
 
+          # Fuente correcta
           if source != "EMSC-CSEM":
               raise SystemExit(
-                  "::error::Fuente inesperada"
+                  "::error::Fuente sismica inesperada"
               )
 
-          if lookback != 1:
+          # Ventana estricta de tres horas
+          if lookback_hours != 3:
               raise SystemExit(
-                  "::error::Ventana temporal incorrecta"
+                  "::error::Ventana incorrecta: "
+                  "se esperaban 3 horas"
               )
 
+          if lookback_minutes != 180:
+              raise SystemExit(
+                  "::error::Ventana incorrecta: "
+                  "se esperaban 180 minutos"
+              )
+
+          # Sin nuevos sismos
           if status == "no_new_event":
+              if events:
+                  raise SystemExit(
+                      "::error::Recibo inconsistente: "
+                      "no_new_event con eventos"
+                  )
+
               print(
-                  "::notice::Sin sismos nuevos "
-                  "pendientes de publicar"
+                  "::notice::Sin nuevos sismos "
+                  "pendientes de publicacion"
               )
               raise SystemExit(0)
 
+          # Ejecucion de prueba
           if status == "preview_only":
               if publish:
                   raise SystemExit(
-                      "::error::Publicacion esperada"
+                      "::error::Se esperaba publicacion real"
                   )
 
               print(
@@ -362,12 +392,14 @@ jobs:
               )
               raise SystemExit(0)
 
+          # Publicacion incierta
           if status == "partial_or_uncertain":
               raise SystemExit(
-                  "::error::Publicaciones inciertas "
-                  "requieren revision manual"
+                  "::error::Publicaciones parciales "
+                  "o inciertas. Revisar Meta."
               )
 
+          # Confirmacion final
           if status != "published":
               raise SystemExit(
                   "::error::Estado inesperado: "
@@ -386,9 +418,10 @@ jobs:
 
           for event in events:
               event_id = event.get("id")
+              event_status = event.get("status")
               targets = event.get("targets") or {}
 
-              if event.get("status") not in (
+              if event_status not in (
                   "published",
                   "already_published",
               ):
@@ -410,14 +443,14 @@ jobs:
                       ).strip()
                   ):
                       raise SystemExit(
-                          "::error::Sin confirmacion: "
+                          "::error::Falta confirmacion: "
                           + str(event_id)
-                          + " - "
+                          + " / "
                           + platform
                       )
 
                   print(
-                      "CONFIRMADO:",
+                      "PUBLICACION CONFIRMADA:",
                       event_id,
                       platform,
                       target["id"],
@@ -429,7 +462,7 @@ jobs:
           PYVERIFY
 
       # ========================================
-      # 10. RESUMEN
+      # 10. CREAR RESUMEN
       # ========================================
 
       - name: Crear resumen de ejecucion
@@ -442,7 +475,8 @@ jobs:
             echo "## SISMONAUTA | EMSC-CSEM"
             echo ""
             echo "- Fuente: EMSC-CSEM"
-            echo "- Ventana: ultimos 60 minutos"
+            echo "- Ventana: ultimas 3 horas"
+            echo "- Duracion: 180 minutos"
             echo "- Magnitudes: M4.0 a M6.9"
             echo "- Radio: 100 km"
             echo "- Ciudades: 15"
@@ -451,6 +485,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
           if [[ -f output_ciudades/estado_publicacion.json ]]; then
+
             python - <<'PYSUMMARY' >> "$GITHUB_STEP_SUMMARY"
           import json
           from pathlib import Path
@@ -473,6 +508,7 @@ jobs:
               len(data.get("events", [])),
           )
           PYSUMMARY
+
           fi
 
       # ========================================
