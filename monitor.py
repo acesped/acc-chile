@@ -3,76 +3,38 @@
 # -*- coding: utf-8 -*-
 
 """
-SISMONAUTA (@sismonauta)
-MONITOR DE DIVULGACIÓN SÍSMICA — VERSIÓN MEJORADA
+SISMONAUTA @sismonauta
+MONITOR AUTOMATICO DE DIVULGACION SISMICA
 
 Python 3.11+
 
-CARACTERÍSTICAS
----------------
-- 25 temas científicos documentados.
-- Selección de temas inéditos.
-- Historial antduplicados persistente en GitHub.
-- Fotografías reales de Wikimedia Commons y Openverse.
-- Acepta una fotografía auténtica cuando no existen más.
-- Diferentes encuadres de una misma fotografía.
-- Búsqueda temática y filtrado de imágenes.
-- Licencias CC0 y dominio público.
-- Openverse con reintentos y suspensión temporal.
-- Voz individual sincronizada con cada escena.
-- Rótulos centrales grandes.
-- Música instrumental sintetizada.
-- Portada automática.
-- Escena final DALE LIKE con icono animado.
-- Instagram Reel y Story.
-- Facebook Reel, Story y Feed.
-- Publicación automática o manual.
-- Verificación de cuentas y estados de publicación.
+- 25 temas cientificos documentados
+- Temas ineditos con historial GitHub
+- Fotos reales de Wikimedia Commons y Openverse
+- Paisajes, montanas, cerros, bosques, playas y costas
+- Licencias CC0 y dominio publico
+- Una sola fotografia es suficiente
+- Encuadres variables para cada escena
+- Voz neural individual por escena
+- Rotulos grandes, portada y musica original
+- Animacion DALE LIKE
+- Instagram Reel + Story
+- Facebook Reel + Story + Feed
+- Prevencion de duplicados y envios inciertos
+- Omision segura si no hay fotografias validas
 
-INSTALACIÓN
------------
-pip install pillow requests edge-tts mutagen imageio-ffmpeg
+INSTALACION:
+    pip install pillow requests edge-tts mutagen imageio-ffmpeg
 
-También requiere FFmpeg disponible en PATH.
+Requiere FFmpeg instalado en PATH.
 
-PRUEBA
-------
-python monitor.py --out output_sismos
+VISTA PREVIA:
+    python monitor.py --out output_sismos
 
-PUBLICAR AUTOMÁTICAMENTE
-------------------------
-python monitor.py --publish --auto-publish --story
+PUBLICACION:
+    python monitor.py --publish --auto-publish --story
 
-VARIABLES DE ENTORNO
---------------------
-INSTAGRAM_TOKEN
-INSTAGRAM_USER_ID
-FACEBOOK_PAGE_ID
-FACEBOOK_PAGE_TOKEN
-GH_TOKEN
-GITHUB_REPOSITORY
-GITHUB_REF_NAME
-
-OPCIONALES
-----------
-GEMINI_API_KEY
-OPENROUTER_API_KEY
-IG_GRAPH_VERSION
-IG_GRAPH_BASE
-IG_EXPECTED_USERNAME
-FACEBOOK_EXPECTED_USERNAME
-DV_VOICE
-
-NOTA EDITORIAL
---------------
-Los contenidos están basados en afirmaciones científicas
-predefinidas. La IA no se considera fuente de verificación
-independiente.
-
-El sistema no inventa noticias, predicciones sísmicas ni
-datos científicos nuevos para completar episodios.
-
-Si no encuentra ninguna fotografía válida, no publica.
+No utiliza Pexels ni requiere claves de imagenes.
 """
 
 from __future__ import annotations
@@ -82,12 +44,14 @@ import asyncio
 import base64
 import hashlib
 import io
+import ipaddress
 import json
 import math
 import os
 import random
 import re
 import shutil
+import socket
 import subprocess
 import sys
 import tempfile
@@ -111,24 +75,16 @@ from PIL import (
     ImageStat,
 )
 
-try:
-    from IPython.display import Video, display
-except ImportError:
-    Video = None
-
-    def display(*args, **kwargs):
-        return None
-
-
 # ============================================================
-# 1. CONFIGURACIÓN GENERAL
+# 1. CONFIGURACION
 # ============================================================
 
 BRAND = "SISMONAUTA"
 ACCOUNT = "sismonauta"
 
-# Mantener ruta histórica para no perder antduplicados.
+# Se mantiene para preservar los historiales anteriores.
 STATE_PATH = "groundshake/state.json"
+EDITORIAL_PATH = "dataviral/sismos_editorial.json"
 
 GRAPH_VERSION = os.getenv(
     "IG_GRAPH_VERSION", "v25.0"
@@ -136,51 +92,56 @@ GRAPH_VERSION = os.getenv(
 
 GRAPH_URL = os.getenv(
     "IG_GRAPH_BASE",
-    "https://graph.instagram.com",
+    "https://graph.instagram.com"
 ).rstrip("/")
 
 W = 720
 H = 1280
 FPS = 30
-
 TARGET_R7 = 0.70
 
 VOICE = os.getenv(
     "DV_VOICE",
-    "es-CL-CatalinaNeural",
+    "es-CL-CatalinaNeural"
+)
+
+MIN_VALID_PHOTOS = 1
+MAX_VALID_PHOTOS = 3
+
+COMMONS_TIMEOUT = (10, 35)
+OPENVERSE_TIMEOUT = (8, 20)
+
+COMMONS_PAGES = 3
+COMMONS_PAGE_SIZE = 40
+
+OPENVERSE_BACKOFF = 600
+_OPENVERSE_UNAVAILABLE_UNTIL = 0.0
+
+ENABLE_OPENVERSE = (
+    os.getenv("ENABLE_OPENVERSE", "true")
+    .lower() in ("true", "1", "yes")
 )
 
 USER_AGENT = (
-    "SismonautaSismos/3.0 "
-    "(educational research; https://commons.wikimedia.org)"
+    "SismonautaSismos/4.0 "
+    "(educational media; Wikimedia Commons)"
 )
 
 HTTP = requests.Session()
 HTTP.headers.update({
-    "User-Agent": USER_AGENT
+    "User-Agent": USER_AGENT,
+    "Accept": "application/json",
 })
-
-# Configuración de búsqueda.
-MIN_VALID_PHOTOS = 1
-MAX_VALID_PHOTOS = 3
-
-COMMONS_TIMEOUT = (8, 30)
-OPENVERSE_TIMEOUT = (8, 15)
-
-OPENVERSE_MAX_ATTEMPTS = 2
-OPENVERSE_BACKOFF = 600
-
-_OPENVERSE_UNAVAILABLE_UNTIL = 0.0
-
 
 # ============================================================
 # 2. UTILIDADES
 # ============================================================
 
-def norm(s):
+def norm(value):
     return "".join(
         c for c in unicodedata.normalize(
-            "NFKD", str(s).lower()
+            "NFKD",
+            str(value).lower()
         )
         if not unicodedata.combining(c)
     )
@@ -190,6 +151,10 @@ def utcnow():
     return datetime.now(
         timezone.utc
     ).isoformat()
+
+
+def log(*values):
+    print(*values, flush=True)
 
 
 def read_json(path, default):
@@ -219,7 +184,8 @@ def write_json_atomic(path, obj):
         json.dumps(
             obj,
             ensure_ascii=False,
-            indent=2
+            indent=2,
+            default=str
         ),
         encoding="utf-8"
     )
@@ -227,330 +193,349 @@ def write_json_atomic(path, obj):
     tmp.replace(path)
 
 
+def safe_error(exc):
+    message = str(exc)
+
+    for name in (
+        "GH_TOKEN",
+        "INSTAGRAM_TOKEN",
+        "FACEBOOK_PAGE_TOKEN",
+    ):
+        secret = os.getenv(name, "")
+        if secret:
+            message = message.replace(
+                secret, "***"
+            )
+
+    return message[:350]
+
+
+def has_term(text, term):
+    text = norm(text)
+    term = norm(term).strip()
+
+    return bool(
+        re.search(
+            r"(?<![a-z])"
+            + re.escape(term)
+            + r"(?![a-z])",
+            text
+        )
+    )
+
+
+def ffmpeg(args):
+    process = subprocess.run(
+        [
+            "ffmpeg",
+            "-hide_banner",
+            "-loglevel", "error",
+            "-y",
+            *map(str, args)
+        ],
+        capture_output=True,
+        text=True
+    )
+
+    if process.returncode:
+        raise RuntimeError(
+            "FFmpeg: "
+            + process.stderr[-1400:]
+        )
+
+
 # ============================================================
-# 3. CATÁLOGO CIENTÍFICO
+# 3. CATALOGO CIENTIFICO
 # ============================================================
 
+def topic(
+    key,
+    title,
+    fact,
+    lesson,
+    source,
+    queries
+):
+    return {
+        "id": key,
+        "category": "Divulgación sísmica",
+        "title": title,
+        "fact": fact,
+        "lesson": lesson,
+        "source": source,
+        "queries": queries,
+    }
+
+
+USGS = (
+    "https://www.usgs.gov/"
+    "programs/earthquake-hazards"
+)
+
+NOAA = (
+    "https://www.noaa.gov/jetstream/"
+    "tsunamis/tsunami-inundation"
+)
+
+BGS = (
+    "https://www.bgs.ac.uk/discovering-geology/"
+    "earth-hazards/earthquakes/what-causes-earthquakes/"
+)
+
 TOPICS = [
-    {
-        "id": "ruptura",
-        "category": "Geología y fenómenos sísmicos",
-        "title": "¿Todos los terremotos rompen la superficie?",
-        "fact": (
-            "Un terremoto puede romper la superficie cuando "
-            "el desplazamiento de una falla alcanza el terreno; "
-            "no todos lo hacen."
-        ),
-        "lesson": "Una grieta visible no acompaña a todos los sismos.",
-        "source": "https://www.usgs.gov/programs/earthquake-hazards/science/faqs?page=1",
-        "queries": ["earthquake surface rupture", "fault scarp"],
-    },
-    {
-        "id": "deslizamientos",
-        "category": "Geología y fenómenos sísmicos",
-        "title": "¿Un terremoto puede derrumbar una montaña?",
-        "fact": (
-            "Las sacudidas fuertes pueden desestabilizar "
-            "laderas y desencadenar deslizamientos de tierra."
-        ),
-        "lesson": "Las consecuencias de un terremoto no se limitan a las sacudidas.",
-        "source": "https://www.usgs.gov/programs/earthquake-hazards/science/faqs",
-        "queries": ["earthquake landslide", "earthquake triggered landslide"],
-    },
-    {
-        "id": "grietas",
-        "category": "Geología y fenómenos sísmicos",
-        "title": "¿La Tierra se abre durante un terremoto?",
-        "fact": (
-            "Algunos terremotos provocan grietas poco profundas "
-            "por deslizamientos y deformación del terreno; "
-            "las fallas no se abren como grandes abismos."
-        ),
-        "lesson": "Las grietas superficiales no son pozos sin fondo.",
-        "source": "https://www.usgs.gov/programs/earthquake-hazards/science/faqs",
-        "queries": ["earthquake ground fissure", "earthquake surface rupture"],
-    },
-    {
-        "id": "transformante",
-        "category": "Geología y fenómenos sísmicos",
-        "title": "¿Qué ocurre cuando dos placas se deslizan de lado?",
-        "fact": (
-            "En los límites transformantes, dos placas se "
-            "desplazan horizontalmente una respecto a la otra; "
-            "estas zonas pueden generar grandes terremotos."
-        ),
-        "lesson": "La falla de San Andrés es un ejemplo de este movimiento.",
-        "source": "https://www.noaa.gov/jetstream/tsunamis/tsunami-generation-earthquakes/jetstream-max-plate-tectonics-and-earthquakes",
-        "queries": ["San Andreas Fault", "transform fault landscape"],
-    },
-    {
-        "id": "rift",
-        "category": "Geología y fenómenos sísmicos",
-        "title": "¿Por qué se forman grandes valles de fractura?",
-        "fact": (
-            "En algunos límites divergentes, las placas se "
-            "separan y pueden formar valles de rift "
-            "acompañados de actividad sísmica."
-        ),
-        "lesson": "Un valle puede contar la historia de placas que se separan.",
-        "source": "https://www.noaa.gov/jetstream/tsunamis/tsunami-generation-earthquakes/jetstream-max-plate-tectonics-and-earthquakes",
-        "queries": ["East African Rift valley", "rift valley landscape"],
-    },
-    {
-        "id": "subduccion",
-        "category": "Geología y fenómenos sísmicos",
-        "title": "¿Qué ocurre cuando una placa se hunde bajo otra?",
-        "fact": (
-            "En las zonas de subducción, una placa se introduce "
-            "bajo otra y pueden producirse grandes terremotos "
-            "y tsunamis."
-        ),
-        "lesson": "La costa puede revelar dónde convergen las placas.",
-        "source": "https://www.noaa.gov/jetstream/tsunamis/tsunami-generation-earthquakes/jetstream-max-plate-tectonics-and-earthquakes",
-        "queries": ["subduction zone coast", "tectonic coastal mountains"],
-    },
-    {
-        "id": "colision",
-        "category": "Geología y fenómenos sísmicos",
-        "title": "¿Qué relación tienen las montañas con la tectónica?",
-        "fact": (
-            "La colisión de placas continentales puede elevar "
-            "y deformar rocas, formando grandes cordilleras "
-            "y fallas inversas."
-        ),
-        "lesson": "Las cordilleras guardan señales del movimiento terrestre.",
-        "source": "https://www.bgs.ac.uk/discovering-geology/earth-hazards/earthquakes/what-causes-earthquakes/",
-        "queries": ["Himalaya tectonic mountains", "folded geological mountain rocks"],
-    },
-    {
-        "id": "falla_inversa",
-        "category": "Geología y fenómenos sísmicos",
-        "title": "¿Puede una falla elevar parte del paisaje?",
-        "fact": (
-            "En una falla inversa un bloque de roca se desplaza "
-            "hacia arriba respecto al otro, debido a esfuerzos "
-            "de compresión."
-        ),
-        "lesson": "La compresión también transforma el relieve.",
-        "source": "https://www.bgs.ac.uk/discovering-geology/earth-hazards/earthquakes/what-causes-earthquakes/",
-        "queries": ["thrust fault scarp", "reverse fault rock outcrop"],
-    },
-    {
-        "id": "falla_normal",
-        "category": "Geología y fenómenos sísmicos",
-        "title": "¿Una falla puede hundir un bloque de terreno?",
-        "fact": (
-            "En las fallas normales un bloque desciende "
-            "respecto al otro bajo condiciones de extensión "
-            "de la corteza."
-        ),
-        "lesson": "La extensión deja escalones visibles en el terreno.",
-        "source": "https://www.bgs.ac.uk/discovering-geology/earth-hazards/earthquakes/what-causes-earthquakes/",
-        "queries": ["normal fault scarp", "rift valley fault scarp"],
-    },
-    {
-        "id": "tsunami_oleadas",
-        "category": "Geología y fenómenos sísmicos",
-        "title": "¿La primera ola de un tsunami es siempre la mayor?",
-        "fact": (
-            "La primera ola de un tsunami no tiene por qué ser "
-            "la más alta ni la más destructiva; pueden llegar "
-            "varias oleadas."
-        ),
-        "lesson": "La primera ola no marca necesariamente el final del peligro.",
-        "source": "https://www.noaa.gov/jetstream/tsunamis/tsunami-inundation",
-        "queries": ["tsunami inundation coast", "tsunami shoreline"],
-    },
-    {
-        "id": "tsunami_retroceso",
-        "category": "Geología y fenómenos sísmicos",
-        "title": "¿Por qué el mar puede retroceder antes de un tsunami?",
-        "fact": (
-            "Algunos tsunamis llegan primero con un valle de onda "
-            "y producen un retiro inusual del mar; no ocurre "
-            "en todos los casos."
-        ),
-        "lesson": "Un retiro repentino del mar es una señal natural de peligro.",
-        "source": "https://www.noaa.gov/jetstream/tsunamis/tsunami-inundation",
-        "queries": ["tsunami receding shoreline", "tsunami exposed seafloor coast"],
-    },
-    {
-        "id": "tsunami_rios",
-        "category": "Geología y fenómenos sísmicos",
-        "title": "¿Un tsunami puede avanzar por un río?",
-        "fact": (
-            "Los tsunamis pueden remontar ríos y estuarios "
-            "conectados con el mar, extendiendo la inundación "
-            "tierra adentro."
-        ),
-        "lesson": "La amenaza puede seguir el curso de un río.",
-        "source": "https://www.noaa.gov/jetstream/tsunamis/tsunami-inundation",
-        "queries": ["tsunami river estuary", "tsunami flooded coast"],
-    },
-    {
-        "id": "tsunami_inundacion",
-        "category": "Geología y fenómenos sísmicos",
-        "title": "¿Un tsunami siempre parece una enorme ola que rompe?",
-        "fact": (
-            "Un tsunami puede llegar a la costa como una "
-            "inundación que sube rápidamente, y no necesariamente "
-            "como una ola gigante de película."
-        ),
-        "lesson": "El peligro no siempre tiene la forma que imaginamos.",
-        "source": "https://www.weather.gov/safety/tsunami-about",
-        "queries": ["tsunami coastal inundation", "tsunami flood shoreline"],
-    },
-    {
-        "id": "ondas",
-        "category": "Ciencia sísmica",
-        "title": "¿Por qué hay distintos tipos de ondas sísmicas?",
-        "fact": (
-            "Las ondas P y S viajan de maneras diferentes; "
-            "las ondas S no se propagan a través de líquidos."
-        ),
-        "lesson": "El comportamiento de las ondas revela propiedades del interior terrestre.",
-        "source": "https://www.usgs.gov/programs/earthquake-hazards/science/earthquake-science",
-        "queries": ["seismograph recording instrument", "seismometer scientific equipment"],
-    },
-    {
-        "id": "magnitud",
-        "category": "Mitos y ciencia",
-        "title": "¿Por qué magnitud e intensidad no son lo mismo?",
-        "fact": (
-            "La magnitud describe el tamaño de un terremoto; "
-            "la intensidad describe los efectos y sacudidas "
-            "en un lugar."
-        ),
-        "lesson": "Un mismo terremoto puede sentirse de forma diferente según la ubicación.",
-        "source": "https://www.usgs.gov/programs/earthquake-hazards",
-        "queries": ["seismograph seismogram", "earthquake damaged building"],
-    },
-    {
-        "id": "replicas",
-        "category": "Ciencia sísmica",
-        "title": "¿Por qué ocurren réplicas después de un terremoto?",
-        "fact": (
-            "Las réplicas son terremotos que siguen a uno mayor "
-            "en su misma región durante el reajuste de la corteza."
-        ),
-        "lesson": "La actividad sísmica puede continuar tras un evento principal.",
-        "source": "https://www.usgs.gov/programs/earthquake-hazards",
-        "queries": ["earthquake fault rocks", "earthquake geology fault"],
-    },
-    {
-        "id": "valdivia",
-        "category": "Historia sísmica",
-        "title": "El mayor terremoto registrado instrumentalmente",
-        "fact": (
-            "El terremoto de Valdivia, Chile, del 22 de mayo "
-            "de 1960 alcanzó una magnitud de 9,5."
-        ),
-        "lesson": "Los registros históricos permiten estudiar terremotos extraordinarios.",
-        "source": "https://www.usgs.gov/programs/earthquake-hazards/science/20-largest-earthquakes-world",
-        "queries": ["1960 Valdivia earthquake Chile", "1960 Chile earthquake aftermath"],
-    },
-    {
-        "id": "profundidad",
-        "category": "Curiosidades sísmicas",
-        "title": "¿Qué diferencia a un terremoto superficial de uno profundo?",
-        "fact": (
-            "Los terremotos pueden originarse a profundidades "
-            "muy distintas; la profundidad influye en cómo "
-            "se perciben sus ondas."
-        ),
-        "lesson": "La profundidad es un dato importante al interpretar un sismo.",
-        "source": "https://earthquake.usgs.gov/earthquakes/map/",
-        "queries": ["subduction zone geological landscape", "tectonic fault mountain"],
-    },
-    {
-        "id": "placas",
-        "category": "Tectónica",
-        "title": "¿Por qué se mueve la superficie de la Tierra?",
-        "fact": (
-            "La litosfera está dividida en placas que se "
-            "desplazan lentamente y pueden acumular "
-            "esfuerzos en sus bordes."
-        ),
-        "lesson": "El movimiento de placas explica gran parte de la actividad sísmica.",
-        "source": "https://www.usgs.gov/programs/earthquake-hazards",
-        "queries": ["tectonic fault landscape", "San Andreas Fault aerial"],
-    },
-    {
-        "id": "tsunamis",
-        "category": "Ciencia sísmica",
-        "title": "¿Todos los terremotos submarinos provocan tsunamis?",
-        "fact": (
-            "No todos los terremotos submarinos generan tsunamis; "
-            "importa el desplazamiento del fondo marino y "
-            "otros factores."
-        ),
-        "lesson": "Un terremoto bajo el océano no implica automáticamente un tsunami.",
-        "source": "https://www.tsunami.gov/",
-        "queries": ["tsunami coast", "tsunami inundation shoreline"],
-    },
-    {
-        "id": "alerta",
-        "category": "Tecnología",
-        "title": "¿Una alerta sísmica predice terremotos?",
-        "fact": (
-            "Los sistemas de alerta temprana detectan un "
-            "terremoto ya iniciado e intentan avisar antes "
-            "de la llegada de sacudidas fuertes."
-        ),
-        "lesson": "La alerta temprana no es una predicción del próximo terremoto.",
-        "source": "https://www.usgs.gov/programs/earthquake-hazards/earthquake-early-warning",
-        "queries": ["earthquake surface rupture", "San Andreas Fault"],
-    },
-    {
-        "id": "falla",
-        "category": "Tectónica",
-        "title": "¿Qué es realmente una falla geológica?",
-        "fact": (
-            "Una falla es una fractura de las rocas a lo "
-            "largo de la cual ha ocurrido desplazamiento."
-        ),
-        "lesson": "Las fallas ayudan a comprender dónde y cómo se deforman las rocas.",
-        "source": "https://www.usgs.gov/programs/earthquake-hazards",
-        "queries": ["San Andreas Fault California", "geological fault rock outcrop"],
-    },
-    {
-        "id": "prediccion",
-        "category": "Mitos y ciencia",
-        "title": "¿La ciencia puede predecir el día exacto de un sismo?",
-        "fact": (
-            "Actualmente no existe un método científicamente "
-            "validado que prediga con certeza fecha, lugar "
-            "y magnitud de un gran terremoto."
-        ),
-        "lesson": "Las estimaciones de probabilidad no son predicciones exactas.",
-        "source": "https://www.usgs.gov/faqs/can-you-predict-earthquakes",
-        "queries": ["San Andreas Fault", "fault scarp"],
-    },
-    {
-        "id": "sismografo",
-        "category": "Tecnología",
-        "title": "¿Cómo registra un instrumento el movimiento del suelo?",
-        "fact": (
-            "Los sismómetros detectan el movimiento del suelo "
-            "y producen registros que ayudan a estudiar "
-            "los terremotos."
-        ),
-        "lesson": "Las ondas sísmicas permiten investigar fenómenos que no podemos ver directamente.",
-        "source": "https://www.usgs.gov/programs/earthquake-hazards",
-        "queries": ["seismograph recording paper", "seismometer field instrument"],
-    },
-    {
-        "id": "terremoto",
-        "category": "Curiosidades sísmicas",
-        "title": "¿Por qué un terremoto lejano puede sentirse?",
-        "fact": (
-            "Las ondas sísmicas transportan energía a través "
-            "de la Tierra y algunas pueden recorrer grandes distancias."
-        ),
-        "lesson": "La distancia al epicentro no explica por sí sola toda la percepción del temblor.",
-        "source": "https://www.usgs.gov/programs/earthquake-hazards",
-        "queries": ["earthquake surface rupture", "earthquake geological landscape"],
-    },
+    topic(
+        "ruptura",
+        "¿Todos los terremotos rompen la superficie?",
+        "Un terremoto puede romper la superficie cuando "
+        "el desplazamiento de una falla alcanza el terreno; "
+        "no todos lo hacen.",
+        "Una grieta visible no acompaña a todos los sismos.",
+        USGS + "/science/faqs?page=1",
+        ["earthquake surface rupture", "fault scarp"],
+    ),
+    topic(
+        "deslizamientos",
+        "¿Un terremoto puede derrumbar una montaña?",
+        "Las sacudidas fuertes pueden desestabilizar "
+        "laderas y desencadenar deslizamientos de tierra.",
+        "Las consecuencias de un terremoto no se limitan "
+        "a las sacudidas.",
+        USGS + "/science/faqs",
+        ["earthquake landslide", "mountain hillside"],
+    ),
+    topic(
+        "grietas",
+        "¿La Tierra se abre durante un terremoto?",
+        "Algunos terremotos provocan grietas poco profundas "
+        "por deslizamientos y deformación del terreno; "
+        "las fallas no se abren como grandes abismos.",
+        "Las grietas superficiales no son pozos sin fondo.",
+        USGS + "/science/faqs",
+        ["earthquake ground fissure", "rock landscape"],
+    ),
+    topic(
+        "transformante",
+        "¿Qué ocurre cuando dos placas se deslizan de lado?",
+        "En los límites transformantes, dos placas se "
+        "desplazan horizontalmente una respecto a la otra; "
+        "estas zonas pueden generar grandes terremotos.",
+        "La falla de San Andrés es un ejemplo.",
+        "https://www.noaa.gov/jetstream/tsunamis/"
+        "tsunami-generation-earthquakes/"
+        "jetstream-max-plate-tectonics-and-earthquakes",
+        ["San Andreas Fault", "California mountains"],
+    ),
+    topic(
+        "rift",
+        "¿Por qué se forman grandes valles de fractura?",
+        "En algunos límites divergentes, las placas se "
+        "separan y pueden formar valles de rift "
+        "acompañados de actividad sísmica.",
+        "Un valle puede contar la historia de placas "
+        "que se separan.",
+        USGS,
+        ["East African Rift valley", "rift mountains"],
+    ),
+    topic(
+        "subduccion",
+        "¿Qué ocurre cuando una placa se hunde bajo otra?",
+        "En las zonas de subducción, una placa se introduce "
+        "bajo otra y pueden producirse grandes terremotos "
+        "y tsunamis.",
+        "La costa puede revelar dónde convergen las placas.",
+        USGS,
+        ["Andes mountains coastline", "Pacific coast mountains"],
+    ),
+    topic(
+        "colision",
+        "¿Qué relación tienen las montañas con la tectónica?",
+        "La colisión de placas continentales puede elevar "
+        "y deformar rocas, formando grandes cordilleras "
+        "y fallas inversas.",
+        "Las cordilleras guardan señales del movimiento terrestre.",
+        BGS,
+        ["Himalaya mountains", "mountain geological landscape"],
+    ),
+    topic(
+        "falla_inversa",
+        "¿Puede una falla elevar parte del paisaje?",
+        "En una falla inversa un bloque de roca se desplaza "
+        "hacia arriba respecto al otro, debido a esfuerzos "
+        "de compresión.",
+        "La compresión también transforma el relieve.",
+        BGS,
+        ["thrust fault", "rock mountains"],
+    ),
+    topic(
+        "falla_normal",
+        "¿Una falla puede hundir un bloque de terreno?",
+        "En las fallas normales un bloque desciende respecto "
+        "al otro bajo condiciones de extensión de la corteza.",
+        "La extensión deja escalones visibles en el terreno.",
+        BGS,
+        ["normal fault scarp", "rift valley landscape"],
+    ),
+    topic(
+        "tsunami_oleadas",
+        "¿La primera ola de un tsunami es siempre la mayor?",
+        "La primera ola de un tsunami no tiene por qué ser "
+        "la más alta ni la más destructiva; pueden llegar "
+        "varias oleadas.",
+        "La primera ola no marca necesariamente el final del peligro.",
+        NOAA,
+        ["tsunami coast", "ocean waves coastline"],
+    ),
+    topic(
+        "tsunami_retroceso",
+        "¿Por qué el mar puede retroceder antes de un tsunami?",
+        "Algunos tsunamis llegan primero con un valle de onda "
+        "y producen un retiro inusual del mar; no ocurre "
+        "en todos los casos.",
+        "Un retiro repentino del mar es una señal natural de peligro.",
+        NOAA,
+        ["tsunami sea withdrawal", "beach shoreline landscape"],
+    ),
+    topic(
+        "tsunami_rios",
+        "¿Un tsunami puede avanzar por un río?",
+        "Los tsunamis pueden remontar ríos y estuarios "
+        "conectados con el mar, extendiendo la inundación "
+        "tierra adentro.",
+        "La amenaza puede seguir el curso de un río.",
+        NOAA,
+        ["tsunami estuary", "river estuary coastline"],
+    ),
+    topic(
+        "tsunami_inundacion",
+        "¿Un tsunami siempre parece una enorme ola que rompe?",
+        "Un tsunami puede llegar a la costa como una "
+        "inundación que sube rápidamente, y no necesariamente "
+        "como una ola gigante de película.",
+        "El peligro no siempre tiene la forma que imaginamos.",
+        "https://www.weather.gov/safety/tsunami-about",
+        ["tsunami coastal inundation", "beach coast ocean"],
+    ),
+    topic(
+        "ondas",
+        "¿Por qué hay distintos tipos de ondas sísmicas?",
+        "Las ondas P y S viajan de maneras diferentes; "
+        "las ondas S no se propagan a través de líquidos.",
+        "El comportamiento de las ondas revela propiedades "
+        "del interior terrestre.",
+        USGS + "/science/earthquake-science",
+        ["seismometer", "geological mountain landscape"],
+    ),
+    topic(
+        "magnitud",
+        "¿Por qué magnitud e intensidad no son lo mismo?",
+        "La magnitud describe el tamaño de un terremoto; "
+        "la intensidad describe los efectos y sacudidas "
+        "en un lugar.",
+        "Un mismo terremoto puede sentirse de forma diferente.",
+        USGS,
+        ["earthquake landscape", "mountain terrain"],
+    ),
+    topic(
+        "replicas",
+        "¿Por qué ocurren réplicas después de un terremoto?",
+        "Las réplicas son terremotos que siguen a uno mayor "
+        "en su misma región durante el reajuste de la corteza.",
+        "La actividad sísmica puede continuar tras un evento principal.",
+        USGS,
+        ["earthquake geology", "rock mountains landscape"],
+    ),
+    topic(
+        "valdivia",
+        "El mayor terremoto registrado instrumentalmente",
+        "El terremoto de Valdivia, Chile, del 22 de mayo "
+        "de 1960 alcanzó una magnitud de 9,5.",
+        "Los registros históricos permiten estudiar "
+        "terremotos extraordinarios.",
+        USGS + "/science/20-largest-earthquakes-world",
+        ["1960 Valdivia earthquake", "Valdivia Chile landscape"],
+    ),
+    topic(
+        "profundidad",
+        "¿Qué diferencia a un terremoto superficial de uno profundo?",
+        "Los terremotos pueden originarse a profundidades "
+        "muy distintas; la profundidad influye en cómo "
+        "se perciben sus ondas.",
+        "La profundidad es importante al interpretar un sismo.",
+        "https://earthquake.usgs.gov/earthquakes/map/",
+        ["mountain rock layers", "mountain landscape"],
+    ),
+    topic(
+        "placas",
+        "¿Por qué se mueve la superficie de la Tierra?",
+        "La litosfera está dividida en placas que se "
+        "desplazan lentamente y pueden acumular "
+        "esfuerzos en sus bordes.",
+        "El movimiento de placas explica gran parte "
+        "de la actividad sísmica.",
+        USGS,
+        ["San Andreas Fault", "mountain valleys"],
+    ),
+    topic(
+        "tsunamis",
+        "¿Todos los terremotos submarinos provocan tsunamis?",
+        "No todos los terremotos submarinos generan tsunamis; "
+        "importa el desplazamiento del fondo marino "
+        "y otros factores.",
+        "Un terremoto bajo el océano no implica automáticamente "
+        "un tsunami.",
+        "https://www.tsunami.gov/",
+        ["tsunami coast", "ocean shoreline"],
+    ),
+    topic(
+        "alerta",
+        "¿Una alerta sísmica predice terremotos?",
+        "Los sistemas de alerta temprana detectan un "
+        "terremoto ya iniciado e intentan avisar antes "
+        "de la llegada de sacudidas fuertes.",
+        "La alerta temprana no es una predicción.",
+        USGS + "/earthquake-early-warning",
+        ["earthquake monitoring station", "mountain landscape"],
+    ),
+    topic(
+        "falla",
+        "¿Qué es realmente una falla geológica?",
+        "Una falla es una fractura de las rocas a lo "
+        "largo de la cual ha ocurrido desplazamiento.",
+        "Las fallas ayudan a comprender cómo se deforman las rocas.",
+        USGS,
+        ["San Andreas Fault", "rocky mountain landscape"],
+    ),
+    topic(
+        "prediccion",
+        "¿La ciencia puede predecir el día exacto de un sismo?",
+        "Actualmente no existe un método científicamente "
+        "validado que prediga con certeza fecha, lugar "
+        "y magnitud de un gran terremoto.",
+        "Las probabilidades no son predicciones exactas.",
+        "https://www.usgs.gov/faqs/can-you-predict-earthquakes",
+        ["San Andreas Fault", "mountain forest landscape"],
+    ),
+    topic(
+        "sismografo",
+        "¿Cómo registra un instrumento el movimiento del suelo?",
+        "Los sismómetros detectan el movimiento del suelo "
+        "y producen registros que ayudan a estudiar terremotos.",
+        "Las ondas sísmicas permiten investigar fenómenos "
+        "que no podemos ver directamente.",
+        USGS,
+        ["seismograph", "geological rock landscape"],
+    ),
+    topic(
+        "terremoto",
+        "¿Por qué un terremoto lejano puede sentirse?",
+        "Las ondas sísmicas transportan energía a través "
+        "de la Tierra y algunas pueden recorrer "
+        "grandes distancias.",
+        "La distancia al epicentro no explica por sí sola "
+        "la percepción del temblor.",
+        USGS,
+        ["earthquake fault", "mountain forest landscape"],
+    ),
 ]
 
 STYLES = (
@@ -561,10 +546,12 @@ STYLES = (
     "pregunta_respuesta",
 )
 
+# ============================================================
+# 4. GUIONES POR ESCENA
+# ============================================================
 
-# ============================================================
-# 4. GUIONES CIENTÍFICOS POR ESCENA
-# ============================================================
+# Cinco escenas educativas + una escena final DALE LIKE.
+# Cada par contiene (voz, rotulo).
 
 RETENTION_STORIES = {
     "ruptura": [
@@ -591,7 +578,7 @@ RETENTION_STORIES = {
     "transformante": [
         ("¿Qué sucede cuando dos placas se rozan de lado?", "¿PLACAS QUE SE DESLIZAN?"),
         ("No todos los bordes de placas chocan de frente.", "NO SIEMPRE HAY CHOQUE"),
-        ("En una falla transformante, las placas se mueven lateralmente.", "MOVIMIENTO HORIZONTAL"),
+        ("En una falla transformante las placas se mueven lateralmente.", "MOVIMIENTO HORIZONTAL"),
         ("Ese desplazamiento puede generar fuertes terremotos.", "PUEDEN OCURRIR TERREMOTOS"),
         ("La falla de San Andrés permite observar este tipo de límite.", "SAN ANDRÉS DA PISTAS"),
     ],
@@ -600,7 +587,7 @@ RETENTION_STORIES = {
         ("Algunos revelan que la corteza se está separando.", "LA CORTEZA SE SEPARA"),
         ("En un límite divergente las placas se alejan entre sí.", "PLACAS EN SEPARACIÓN"),
         ("La extensión puede formar valles de rift y actividad sísmica.", "UN VALLE QUE SE ABRE"),
-        ("El relieve también deja huellas del movimiento de placas.", "EL PAISAJE CUENTA HISTORIAS"),
+        ("El relieve deja huellas del movimiento de placas.", "EL PAISAJE CUENTA HISTORIAS"),
     ],
     "subduccion": [
         ("¿Cómo puede una placa hundirse bajo otra?", "¿QUÉ ES SUBDUCCIÓN?"),
@@ -660,123 +647,107 @@ RETENTION_STORIES = {
     ],
     "alerta": [
         ("¿Cómo puede una alerta avisarte antes de que sientas el terremoto?", "¿TE PUEDE AVISAR ANTES?"),
-        ("No es que conozca el futuro. La explicación ocurre bajo nuestros pies.", "NO ES ADIVINACIÓN"),
+        ("No es que conozca el futuro.", "NO ES ADIVINACIÓN"),
         ("El terremoto ya comenzó cuando los sensores detectan sus primeras ondas.", "EL SISMO YA COMENZÓ"),
         ("La alerta puede llegar antes que las sacudidas fuertes, pero no siempre hay tiempo suficiente.", "SEGUNDOS QUE PUEDEN IMPORTAR"),
         ("La alerta no predice el sismo. Detecta lo que ya empezó.", "DETECTAR NO ES PREDECIR"),
     ],
     "ondas": [
-        ("¿Cómo sabemos qué ocurre dentro de la Tierra sin poder mirar allí?", "¿CÓMO MIRAMOS BAJO TIERRA?"),
-        ("La pista viene de algo que viaja después de un terremoto.", "LAS ONDAS GUARDAN PISTAS"),
+        ("¿Cómo sabemos qué ocurre dentro de la Tierra?", "¿CÓMO MIRAMOS BAJO TIERRA?"),
+        ("La pista viene de las ondas que viajan tras un terremoto.", "LAS ONDAS GUARDAN PISTAS"),
         ("Las ondas P y S se propagan de forma distinta.", "NO TODAS VIAJAN IGUAL"),
-        ("Las ondas S no atraviesan materiales líquidos. Esa diferencia revela propiedades del interior terrestre.", "LAS ONDAS S NO CRUZAN LÍQUIDOS"),
-        ("Lo que una onda no puede atravesar también nos enseña algo.", "EL SILENCIO TAMBIÉN INFORMA"),
+        ("Las ondas S no atraviesan líquidos.", "LAS ONDAS S NO CRUZAN LÍQUIDOS"),
+        ("Las ondas sísmicas revelan propiedades del interior terrestre.", "LAS ONDAS NOS ENSEÑAN"),
     ],
     "magnitud": [
-        ("¿Por qué el mismo terremoto puede sentirse muy distinto en dos ciudades?", "¿UN SISMO, DOS EXPERIENCIAS?"),
-        ("El número que escuchamos en las noticias no explica todo.", "EL NÚMERO NO BASTA"),
-        ("La magnitud describe el tamaño del terremoto.", "LA MAGNITUD MIDE EL TAMAÑO"),
-        ("La intensidad describe las sacudidas y los efectos en cada lugar.", "LA INTENSIDAD CAMBIA SEGÚN EL LUGAR"),
-        ("El terremoto es uno. Sus efectos no tienen por qué ser iguales.", "UN SISMO. MUCHAS EXPERIENCIAS"),
+        ("¿Por qué un terremoto se siente diferente según el lugar?", "¿UN SISMO, DOS EXPERIENCIAS?"),
+        ("El número de magnitud no lo explica todo.", "EL NÚMERO NO BASTA"),
+        ("La magnitud describe el tamaño del terremoto.", "MAGNITUD: TAMAÑO"),
+        ("La intensidad describe las sacudidas y efectos en cada lugar.", "INTENSIDAD: EFECTOS"),
+        ("El terremoto es uno. Sus efectos pueden ser diferentes.", "UN SISMO. MUCHAS EXPERIENCIAS"),
     ],
     "replicas": [
-        ("¿El peligro termina exactamente cuando deja de temblar?", "¿YA TERMINÓ TODO?"),
-        ("Después de un terremoto, la región puede seguir reajustándose.", "LA TIERRA SIGUE REAJUSTÁNDOSE"),
+        ("¿El peligro termina cuando deja de temblar?", "¿YA TERMINÓ TODO?"),
+        ("Después de un terremoto la región puede reajustarse.", "LA TIERRA SIGUE REAJUSTÁNDOSE"),
         ("Esos movimientos posteriores se conocen como réplicas.", "PUEDEN LLEGAR RÉPLICAS"),
-        ("Pueden ocurrir después del evento principal en la misma región.", "EL MOVIMIENTO PUEDE CONTINUAR"),
-        ("Que el suelo esté quieto ahora no significa que no haya más réplicas.", "EL SILENCIO NO SIEMPRE ES EL FINAL"),
+        ("Pueden ocurrir después del evento principal.", "EL MOVIMIENTO PUEDE CONTINUAR"),
+        ("El suelo quieto no garantiza que terminen las réplicas.", "EL SILENCIO NO ES EL FINAL"),
     ],
     "valdivia": [
-        ("¿Sabías que el mayor terremoto registrado ocurrió en Chile?", "¿EL MAYOR TERREMOTO REGISTRADO?"),
-        ("Sucedió en un lugar que quedó grabado en la historia sísmica.", "CHILE QUEDÓ EN LA HISTORIA"),
+        ("¿Sabías que el mayor terremoto registrado ocurrió en Chile?", "¿EL MAYOR TERREMOTO?"),
+        ("Sucedió en un lugar que marcó la historia sísmica.", "CHILE QUEDÓ EN LA HISTORIA"),
         ("El 22 de mayo de 1960, Valdivia vivió un terremoto de magnitud nueve coma cinco.", "VALDIVIA 1960: MAGNITUD 9,5"),
-        ("Es el mayor registrado instrumentalmente. Sus datos siguen siendo relevantes para la ciencia.", "UN REGISTRO EXTRAORDINARIO"),
-        ("Valdivia nos recuerda cuánta energía puede liberar la Tierra.", "VALDIVIA: UNA FECHA IMPOSIBLE DE OLVIDAR"),
+        ("Es el mayor registrado instrumentalmente.", "UN REGISTRO EXTRAORDINARIO"),
+        ("Valdivia recuerda cuánta energía puede liberar la Tierra.", "UNA FECHA HISTÓRICA"),
     ],
     "profundidad": [
-        ("¿Por qué dos terremotos de magnitud parecida pueden sentirse diferentes?", "¿MISMA MAGNITUD, DISTINTA SACUDIDA?"),
+        ("¿Por qué dos sismos parecidos pueden sentirse diferentes?", "¿MISMA MAGNITUD?"),
         ("Hay un dato que suele quedar fuera del titular.", "MIRA BAJO LA SUPERFICIE"),
         ("No todos los sismos comienzan a la misma profundidad.", "LA PROFUNDIDAD CAMBIA"),
-        ("La profundidad del origen influye en cómo se percibe el movimiento del suelo.", "NO TODO ES LA MAGNITUD"),
-        ("Para entender un sismo, también hay que mirar dónde comienza.", "IMPORTA LO QUE NO VEMOS"),
+        ("Esa profundidad influye en cómo se percibe el movimiento.", "NO TODO ES MAGNITUD"),
+        ("Para comprender un sismo también importa dónde comienza.", "IMPORTA LO QUE NO VEMOS"),
     ],
     "placas": [
-        ("¿Cómo puede moverse el suelo que parece tan firme bajo tus pies?", "¿LA TIERRA ESTÁ QUIETA?"),
-        ("El movimiento es lento. Pero sus efectos pueden ser enormes.", "UN MOVIMIENTO CASI INVISIBLE"),
+        ("¿Cómo puede moverse el suelo que parece tan firme?", "¿LA TIERRA ESTÁ QUIETA?"),
+        ("El movimiento es lento, pero sus efectos pueden ser enormes.", "UN MOVIMIENTO CASI INVISIBLE"),
         ("La parte externa rígida de la Tierra está dividida en placas.", "VIVIMOS SOBRE PLACAS"),
-        ("Esas placas se desplazan lentamente y pueden acumular esfuerzos en sus bordes.", "LOS ESFUERZOS SE ACUMULAN"),
-        ("El suelo parece inmóvil. La Tierra sigue en movimiento.", "LA QUIETUD ES SOLO APARIENCIA"),
+        ("Estas placas se desplazan y acumulan esfuerzos en sus bordes.", "LOS ESFUERZOS SE ACUMULAN"),
+        ("El suelo parece inmóvil, pero la Tierra sigue moviéndose.", "LA QUIETUD ES APARIENCIA"),
     ],
     "tsunamis": [
-        ("¿Cada terremoto bajo el mar termina creando un tsunami?", "¿SISMO SUBMARINO = TSUNAMI?"),
-        ("La respuesta depende de más que la ubicación del epicentro.", "NO BASTA CON ESTAR BAJO EL MAR"),
+        ("¿Cada terremoto submarino genera un tsunami?", "¿SISMO SUBMARINO = TSUNAMI?"),
+        ("La respuesta depende de más que la ubicación.", "NO BASTA CON ESTAR BAJO EL MAR"),
         ("No todos los terremotos submarinos producen tsunamis.", "NO TODOS GENERAN TSUNAMIS"),
-        ("El desplazamiento del fondo marino y otros factores influyen en su generación.", "IMPORTA CÓMO SE MUEVE EL FONDO"),
-        ("Bajo el océano, no todo temblor levanta una gran ola.", "UN SISMO NO SIEMPRE ES UN TSUNAMI"),
+        ("Importan el desplazamiento del fondo marino y otros factores.", "IMPORTA CÓMO SE MUEVE EL FONDO"),
+        ("No todo temblor bajo el océano levanta una gran ola.", "NO SIEMPRE HAY TSUNAMI"),
     ],
     "falla": [
-        ("¿Una falla geológica es simplemente una grieta en el terreno?", "¿SOLO UNA GRIETA?"),
+        ("¿Una falla geológica es simplemente una grieta?", "¿SOLO UNA GRIETA?"),
         ("Hay una diferencia que cambia su significado.", "LA CLAVE ES EL MOVIMIENTO"),
-        ("Una falla es una fractura donde las rocas se han desplazado.", "LAS ROCAS SE DESPLAZARON"),
-        ("Estudiar esas fracturas ayuda a comprender la deformación de la corteza.", "LA ROCA CONSERVA EVIDENCIAS"),
-        ("Una falla no solo se ve. También cuenta cómo se movió la Tierra.", "LA ROCA CUENTA SU HISTORIA"),
+        ("Una falla es una fractura donde las rocas se desplazaron.", "LAS ROCAS SE DESPLAZARON"),
+        ("Estudiarla ayuda a entender la deformación de la corteza.", "LA ROCA CONSERVA EVIDENCIAS"),
+        ("Una falla también cuenta cómo se movió la Tierra.", "LA ROCA CUENTA SU HISTORIA"),
     ],
     "prediccion": [
-        ("¿Alguien puede decirte el día exacto del próximo gran terremoto?", "¿SE PUEDE SABER EL DÍA EXACTO?"),
-        ("Hay mucha diferencia entre una estimación y una predicción.", "NO CONFUNDAS PROBABILIDAD Y CERTEZA"),
-        ("Hoy no existe un método validado que anticipe con certeza fecha, lugar y magnitud.", "NO EXISTE PREDICCIÓN EXACTA VALIDADA"),
-        ("La ciencia puede estudiar probabilidades, pero eso no equivale a conocer el futuro.", "RIESGO NO ES UNA FECHA"),
-        ("Quien promete una fecha exacta necesita pruebas que la ciencia aún no tiene.", "DESCONFÍA DE LA CERTEZA SIN PRUEBAS"),
+        ("¿Podemos conocer el día exacto del próximo terremoto?", "¿SE PUEDE SABER EL DÍA?"),
+        ("Una estimación no es una predicción exacta.", "NO CONFUNDAS PROBABILIDAD"),
+        ("No existe un método validado que anticipe con certeza fecha, lugar y magnitud.", "NO EXISTE PREDICCIÓN EXACTA"),
+        ("La ciencia puede estudiar probabilidades.", "RIESGO NO ES UNA FECHA"),
+        ("Desconfía de quien promete una fecha exacta sin pruebas.", "EXIGE EVIDENCIAS"),
     ],
     "sismografo": [
-        ("¿Cómo puede una máquina registrar un movimiento que casi no vemos?", "¿CÓMO SE VE UN MOVIMIENTO INVISIBLE?"),
-        ("La respuesta comienza con un instrumento sensible al suelo.", "UN SENSOR ESCUCHA AL SUELO"),
-        ("Los sismómetros detectan y registran sus movimientos.", "EL SISMÓMETRO REGISTRA MOVIMIENTO"),
-        ("Esos registros ayudan a estudiar terremotos y el paso de ondas sísmicas.", "EL MOVIMIENTO SE CONVIERTE EN DATOS"),
-        ("Lo que no podemos ver a simple vista puede dejar un registro.", "LO INVISIBLE DEJA HUELLAS"),
+        ("¿Cómo puede una máquina registrar el movimiento del suelo?", "¿CÓMO SE REGISTRA?"),
+        ("La respuesta comienza con un instrumento sensible.", "UN SENSOR ESCUCHA AL SUELO"),
+        ("Los sismómetros detectan y registran movimientos.", "EL SISMÓMETRO REGISTRA"),
+        ("Esos datos ayudan a estudiar terremotos y ondas.", "MOVIMIENTO CONVERTIDO EN DATOS"),
+        ("Lo invisible puede dejar un registro.", "LO INVISIBLE DEJA HUELLAS"),
     ],
     "terremoto": [
-        ("¿Cómo puede sentirse un terremoto que ocurrió tan lejos?", "¿POR QUÉ SE SIENTE TAN LEJOS?"),
+        ("¿Cómo puede sentirse un terremoto muy lejano?", "¿POR QUÉ SE SIENTE LEJOS?"),
         ("La energía liberada no se queda junto al epicentro.", "LA ENERGÍA VIAJA"),
-        ("Las ondas sísmicas se propagan a través de la Tierra.", "LAS ONDAS CRUZAN DISTANCIAS"),
-        ("Algunas pueden recorrer grandes distancias y producir movimientos perceptibles.", "EL MOVIMIENTO PUEDE LLEGAR LEJOS"),
-        ("Un terremoto comienza en un lugar. Sus ondas pueden llegar mucho más allá.", "EL EPICENTRO NO ES EL LÍMITE"),
+        ("Las ondas sísmicas se propagan por la Tierra.", "LAS ONDAS CRUZAN DISTANCIAS"),
+        ("Algunas recorren enormes distancias y pueden sentirse.", "EL MOVIMIENTO LLEGA LEJOS"),
+        ("El epicentro no marca el límite de las ondas.", "EL EPICENTRO NO ES EL LÍMITE"),
     ],
 }
 
-
 # ============================================================
-# 5. TEXTOS EDITORIALES Y HASHTAGS
+# 5. TEXTOS Y HASHTAGS
 # ============================================================
 
 MEMORABLE_CLOSINGS = {
     "ondas": "LAS ONDAS CUENTAN LO QUE NO VEMOS.",
     "magnitud": "UN SOLO SISMO. MUCHAS FORMAS DE SENTIRLO.",
     "replicas": "QUE PARE EL TEMBLOR NO SIGNIFICA QUE TERMINEN LAS RÉPLICAS.",
-    "valdivia": "VALDIVIA 1960: UNA FECHA QUE LA TIERRA NO BORRA.",
-    "profundidad": "LA PROFUNDIDAD TAMBIÉN CUENTA LA HISTORIA.",
-    "placas": "BAJO NUESTROS PIES, LA TIERRA SIGUE MOVIÉNDOSE.",
-    "tsunamis": "BAJO EL MAR, NO TODO TEMBLOR LEVANTA UNA OLA.",
-    "alerta": "LA ALERTA NO ADIVINA: DETECTA LO QUE YA COMENZÓ.",
-    "falla": "UNA FALLA NO ES SOLO UNA GRIETA: ES MOVIMIENTO.",
-    "prediccion": "PROBABILIDAD NO SIGNIFICA SABER CUÁNDO TEMBLARÁ.",
-    "sismografo": "UN SISMÓMETRO HACE VISIBLE LO INVISIBLE.",
-    "terremoto": "LAS ONDAS VIAJAN MÁS ALLÁ DE LO QUE VEMOS.",
-}
-
-TOPIC_HASHTAGS = {
-    "ondas": ["OndasSismicas", "OndasP", "OndasS", "PropagacionDeOndas", "InteriorTerrestre", "Sismologia", "Geofisica", "CienciaDeLaTierra"],
-    "magnitud": ["MagnitudSismica", "IntensidadSismica", "EscalaDeMagnitud", "MovimientoDelSuelo", "Sismologia", "RiesgoSismico", "CienciaDeLaTierra", "Geofisica"],
-    "replicas": ["ReplicasSismicas", "ActividadSismica", "Terremoto", "FallasGeologicas", "CortezaTerrestre", "Sismologia", "Geologia", "CienciaDeLaTierra"],
-    "valdivia": ["Valdivia1960", "TerremotoDeValdivia", "ChileSismico", "HistoriaSismica", "Magnitud95", "Sismologia", "TerremotosHistoricos", "GeologiaDeChile"],
-    "profundidad": ["ProfundidadSismica", "Hipocentro", "Epicentro", "Sismologia", "TerremotosProfundos", "TerremotosSuperficiales", "Geofisica", "CienciaDeLaTierra"],
-    "placas": ["PlacasTectonicas", "TectonicaDePlacas", "Litosfera", "Geologia", "FallasGeologicas", "CienciaDeLaTierra", "Sismologia", "MovimientoDePlacas"],
-    "tsunamis": ["Tsunami", "TerremotoSubmarino", "FondoMarino", "RiesgoDeTsunami", "Sismologia", "Oceano", "CienciaDeLaTierra", "SeguridadCostera"],
-    "alerta": ["AlertaSismica", "AlertaTemprana", "DeteccionSismica", "Sismometros", "OndasSismicas", "PrevencionSismica", "Sismologia", "TecnologiaSismica"],
-    "falla": ["FallaGeologica", "FallasTectonicas", "Geologia", "FracturaDeRocas", "TectonicaDePlacas", "Sismologia", "CienciaDeLaTierra", "MovimientoTectonico"],
-    "prediccion": ["PrediccionSismica", "ProbabilidadSismica", "MitosSismicos", "CienciaSismica", "Sismologia", "RiesgoSismico", "Terremotos", "Geofisica"],
-    "sismografo": ["Sismometro", "Sismografo", "RegistroSismico", "InstrumentosSismicos", "Sismologia", "Geofisica", "OndasSismicas", "TecnologiaSismica"],
-    "terremoto": ["OndasSismicas", "DistanciaEpicentral", "PropagacionSismica", "MovimientoDelSuelo", "Sismologia", "Geofisica", "Terremotos", "CienciaDeLaTierra"],
+    "valdivia": "VALDIVIA 1960: UNA FECHA HISTÓRICA.",
+    "profundidad": "LA PROFUNDIDAD TAMBIÉN CUENTA.",
+    "placas": "LA TIERRA SIGUE MOVIÉNDOSE.",
+    "tsunamis": "NO TODO TEMBLOR BAJO EL MAR CREA UNA OLA.",
+    "alerta": "DETECTAR NO ES PREDECIR.",
+    "falla": "UNA FALLA ES MOVIMIENTO.",
+    "prediccion": "PROBABILIDAD NO ES CERTEZA.",
+    "sismografo": "LO INVISIBLE DEJA REGISTROS.",
+    "terremoto": "LAS ONDAS VIAJAN MÁS ALLÁ.",
 }
 
 
@@ -790,9 +761,18 @@ def episode_hashtags(ep):
         "Terremotos",
     ]
 
-    tags += TOPIC_HASHTAGS.get(
-        key,
-        [
+    topic_tags = {
+        "tsunami": [
+            "Tsunami",
+            "Tsunamis",
+            "Maremoto",
+            "Oceano",
+            "SeguridadCostera",
+            "Prevencion",
+            "CienciaDelMar",
+            "FenomenosNaturales",
+        ],
+        "general": [
             "Sismologia",
             "Geofisica",
             "CienciaDeLaTierra",
@@ -802,17 +782,29 @@ def episode_hashtags(ep):
             "OndasSismicas",
             "RiesgoSismico",
         ]
+    }
+
+    if "tsunami" in key:
+        tags.extend(topic_tags["tsunami"])
+    else:
+        tags.extend(topic_tags["general"])
+
+    tags.extend([
+        "DivulgacionCientifica",
+        "AprendeConSismonauta"
+    ])
+
+    unique = list(
+        dict.fromkeys(
+            tag for tag in tags
+            if tag
+        )
     )
 
-    unique = []
-    seen = set()
-
-    for tag in tags:
-        if tag.lower() not in seen:
-            unique.append("#" + tag)
-            seen.add(tag.lower())
-
-    return " ".join(unique[:14])
+    return " ".join(
+        "#" + tag
+        for tag in unique[:14]
+    )
 
 
 def episode_caption_base(ep):
@@ -823,16 +815,15 @@ def episode_caption_base(ep):
     lesson = str(ep.get("lesson", "")).strip()
 
     close = MEMORABLE_CLOSINGS.get(
-        key,
-        lesson
+        key, lesson
     )
 
     if not all((title, fact, lesson, close)):
         raise RuntimeError(
-            "Falta información editorial para la descripción"
+            "Faltan datos editoriales"
         )
 
-    return (
+    caption = (
         f"{title}\n\n"
         f"{fact}\n\n"
         f"{lesson}\n\n"
@@ -840,227 +831,22 @@ def episode_caption_base(ep):
         "¿Qué opinas? Te leemos en los comentarios."
     )
 
+    if ep.get("image_credits"):
+        caption += (
+            "\n\nImágenes de archivo utilizadas "
+            "con fines ilustrativos."
+        )
+
+    return caption
+
 
 # ============================================================
-# 6. IA OPCIONAL
+# 6. SELECCION DE EPISODIOS
 # ============================================================
 
-def ai_json(prompt):
-    problems = []
-
-    key = os.getenv(
-        "GEMINI_API_KEY", ""
-    ).strip()
-
-    raw = None
-
-    if key:
-        configured = os.getenv(
-            "GEMINI_MODEL", ""
-        ).strip().removeprefix("models/")
-
-        candidates = [configured] if configured else []
-
-        try:
-            listing = HTTP.get(
-                "https://generativelanguage.googleapis.com/v1beta/models",
-                headers={
-                    "x-goog-api-key": key
-                },
-                params={
-                    "pageSize": 100
-                },
-                timeout=25
-            )
-
-            listing.raise_for_status()
-
-            available = []
-
-            for model in listing.json().get("models", []):
-                name = str(
-                    model.get("name", "")
-                ).removeprefix("models/")
-
-                methods = (
-                    model.get("supportedGenerationMethods")
-                    or []
-                )
-
-                if (
-                    name.startswith("gemini-")
-                    and "generateContent" in methods
-                    and not any(
-                        x in name
-                        for x in (
-                            "image",
-                            "audio",
-                            "tts",
-                            "embedding",
-                            "live",
-                        )
-                    )
-                ):
-                    available.append(name)
-
-            available.sort(
-                key=lambda name: (
-                    0 if "flash-lite" in name
-                    else 1 if "flash" in name
-                    else 2,
-                    "preview" in name,
-                    name,
-                )
-            )
-
-            candidates.extend(available[:6])
-
-        except Exception as exc:
-            problems.append(
-                "Listado Gemini: " + str(exc)[:110]
-            )
-
-        for model in dict.fromkeys(candidates):
-            try:
-                url = (
-                    "https://generativelanguage.googleapis.com/"
-                    "v1beta/models/"
-                    + urllib.parse.quote(model, safe="")
-                    + ":generateContent"
-                )
-
-                response = HTTP.post(
-                    url,
-                    headers={
-                        "x-goog-api-key": key
-                    },
-                    json={
-                        "contents": [
-                            {
-                                "parts": [
-                                    {"text": prompt}
-                                ]
-                            }
-                        ],
-                        "generationConfig": {
-                            "temperature": 0.35,
-                            "maxOutputTokens": 1600,
-                            "responseMimeType": "application/json",
-                        },
-                    },
-                    timeout=90
-                )
-
-                if response.status_code in (
-                    400, 404, 429, 503
-                ):
-                    problems.append(
-                        f"Gemini {model}: HTTP {response.status_code}"
-                    )
-                    continue
-
-                response.raise_for_status()
-
-                raw = "".join(
-                    str(p.get("text", ""))
-                    for p in (
-                        response.json()
-                        .get("candidates", [{}])[0]
-                        .get("content", {})
-                        .get("parts") or []
-                    )
-                )
-
-                if not raw.strip():
-                    raise ValueError(
-                        "Respuesta sin texto"
-                    )
-
-                break
-
-            except Exception as exc:
-                problems.append(
-                    f"Gemini {model}: {str(exc)[:100]}"
-                )
-
-    if raw is None:
-        key = os.getenv(
-            "OPENROUTER_API_KEY", ""
-        ).strip()
-
-        if not key:
-            raise RuntimeError(
-                "Sin modelo accesible. "
-                + "; ".join(problems[-5:])
-            )
-
-        model = os.getenv(
-            "OPENROUTER_MODEL",
-            "openrouter/free"
-        )
-
-        if (
-            model != "openrouter/free"
-            and not model.endswith(":free")
-        ):
-            raise RuntimeError(
-                "Solo se permite OpenRouter gratuito"
-            )
-
-        response = HTTP.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            headers={
-                "Authorization": "Bearer " + key
-            },
-            json={
-                "model": model,
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ],
-                "temperature": 0.35,
-                "max_tokens": 1400,
-            },
-            timeout=110
-        )
-
-        response.raise_for_status()
-
-        raw = response.json()[
-            "choices"
-        ][0]["message"]["content"]
-
-    if not isinstance(raw, str):
-        raise ValueError(
-            "Respuesta IA no textual"
-        )
-
-    raw = re.sub(
-        r"^```(?:json)?\s*|\s*```$",
-        "",
-        raw.strip(),
-        flags=re.I
-    )
-
-    match = re.search(
-        r"\{[\s\S]*\}",
-        raw
-    )
-
-    if not match:
-        raise ValueError(
-            "La IA no devolvió JSON"
-        )
-
-    return json.loads(
-        match.group()
-    )
-
-
-def generate_angle(topic, history, use_ai=True):
-    styles = list(STYLES)
+def generate_angle(topic_data, history, use_ai=True):
+    # Los hechos proceden del catalogo documentado.
+    # No se generan afirmaciones nuevas con IA.
 
     angles = [
         "¿Sabías esto?",
@@ -1082,181 +868,66 @@ def generate_angle(topic, history, use_ai=True):
         for item in history.get("items", [])
     }
 
-    combos = [
+    choices = [
         (style, angle)
-        for style in styles
+        for style in STYLES
         for angle in angles
         if (
-            topic["id"],
+            topic_data["id"],
             style,
-            angle,
+            angle
         ) not in used
     ]
 
-    if not combos:
-        if not (
-            use_ai
-            and (
-                os.getenv("GEMINI_API_KEY")
-                or os.getenv("OPENROUTER_API_KEY")
-            )
-        ):
-            raise RuntimeError(
-                "Se agotaron los enfoques locales "
-                "para el tema"
-            )
-
-        existing = [
-            x.get("angle", "")
-            for x in history.get("items", [])
-            if x.get("topic") == topic["id"]
-        ][-80:]
-
-        proposal = ai_json(
-            'Devuelve JSON {"angle":"...","style":"..."}. '
-            "Tema: " + topic["title"]
-            + ". Hecho documentado: "
-            + topic["fact"]
-            + ". Evita repetir: "
-            + json.dumps(existing, ensure_ascii=False)
-            + ". Introduce solo un enfoque editorial nuevo, "
-            "sin hechos adicionales. Estilos: "
-            + ", ".join(STYLES)
+    if not choices:
+        raise RuntimeError(
+            "No quedan enfoques locales inéditos"
         )
 
-        style = str(
-            proposal.get("style", "descubrimiento")
-        )
-
-        if style not in STYLES:
-            style = "descubrimiento"
-
-        angle = str(
-            proposal.get("angle", "")
-        ).strip()[:100]
-
-        if (
-            not angle
-            or norm(angle) in {
-                norm(x) for x in existing
-            }
-        ):
-            raise RuntimeError(
-                "La IA no encontró un enfoque nuevo"
-            )
-
-    else:
-        style, angle = random.SystemRandom().choice(
-            combos
-        )
-
-    script = " ".join([
-        topic["title"],
-        topic["fact"],
-        topic["lesson"],
-    ])
-
-    visuals = [
-        topic["title"],
-        topic["fact"],
-        topic["lesson"],
-    ]
-
-    if (
-        use_ai
-        and (
-            os.getenv("GEMINI_API_KEY")
-            or os.getenv("OPENROUTER_API_KEY")
-        )
-    ):
-        prompt = (
-            "Eres guionista científico de SISMONAUTA, "
-            "cuenta @sismonauta. "
-            f"Tema: {topic['title']}. "
-            f"HECHO PERMITIDO: {topic['fact']} "
-            f"CONCLUSIÓN: {topic['lesson']}. "
-            f"Enfoque: {angle}. "
-            f"Estructura: {style}. "
-            'Devuelve JSON con "script" (40-58 palabras) '
-            'y "visuals" (seis mensajes de 3-10 palabras). '
-            "No añadas fechas, cifras, causalidades, "
-            "ejemplos concretos, alertas, predicciones "
-            "ni hechos nuevos."
-        )
-
-        try:
-            result = ai_json(prompt)
-
-            candidate = str(
-                result.get("script", "")
-            ).strip()
-
-            v = result.get("visuals")
-
-            if (
-                40 <= len(candidate.split()) <= 58
-                and isinstance(v, list)
-                and len(v) == 6
-                and all(
-                    isinstance(z, str)
-                    and 3 <= len(z.split()) <= 10
-                    and len(z) <= 100
-                    for z in v
-                )
-            ):
-                script = candidate
-                visuals = v
-
-        except Exception as exc:
-            print(
-                "IA no disponible; usando hechos documentados:",
-                str(exc)[:140],
-                flush=True
-            )
+    style, angle = random.SystemRandom().choice(
+        choices
+    )
 
     episode_id = (
         "sismos-"
         + hashlib.sha1(
             (
-                topic["id"]
+                topic_data["id"]
                 + style
                 + angle
             ).encode()
         ).hexdigest()[:12]
     )
 
-    return dict(
-        topic,
-        style=style,
-        angle=angle,
-        script=script,
-        visuals=visuals,
-        episode_id=episode_id,
-        created_at=utcnow(),
-        verified=False,
-        review_note=(
-            "Revisar guion frente a la fuente "
-            "antes de publicar"
+    return {
+        **topic_data,
+        "style": style,
+        "angle": angle,
+        "episode_id": episode_id,
+        "created_at": utcnow(),
+        "script": (
+            topic_data["title"] + " "
+            + topic_data["fact"] + " "
+            + topic_data["lesson"]
         ),
-    )
+        "visuals": [],
+        "verified": False,
+        "review_note": (
+            "Base editorial predefinida. "
+            "No equivale a verificación de la "
+            "fuente en tiempo real."
+        ),
+    }
 
-
-# ============================================================
-# 7. STORYBOARD — VOZ Y RÓTULO POR ESCENA
-# ============================================================
 
 def build_storyboard(ep):
-    key = str(
-        ep.get("id", "")
-    )
-
     beats = RETENTION_STORIES.get(
-        key
+        ep.get("id")
     )
 
-    if not beats:
+    if not beats or len(beats) != 5:
         raise RuntimeError(
-            "No existe guion narrativo para " + key
+            "Falta storyboard para el tema"
         )
 
     stages = (
@@ -1267,30 +938,25 @@ def build_storyboard(ep):
         "cierre",
     )
 
-    queries = list(
-        ep.get("queries")
-        or ["earthquake fault"]
-    )
+    queries = ep.get("queries") or [
+        "natural landscape"
+    ]
 
-    storyboard = []
+    result = []
 
     for i, ((narration, overlay), stage) in enumerate(
         zip(beats, stages)
     ):
-        overlay = overlay.strip()
-
         if (
             not narration.strip()
-            or not overlay
+            or not overlay.strip()
             or len(overlay.split()) > 12
-            or "..." in overlay
-            or "…" in overlay
         ):
-            raise ValueError(
-                "Escena editorial incompleta: " + key
+            raise RuntimeError(
+                "Escena editorial no valida"
             )
 
-        storyboard.append({
+        result.append({
             "narration": narration,
             "overlay": overlay,
             "query": queries[
@@ -1299,523 +965,233 @@ def build_storyboard(ep):
             "stage": stage,
         })
 
-    storyboard.append({
+    result.append({
         "narration": (
             "Dale me gusta y comparte, para seguir "
             "recibiendo más información sobre este "
-            "fascinante tema. Muchas gracias!"
+            "fascinante tema. ¡Muchas gracias!"
         ),
         "overlay": "DALE LIKE",
         "query": queries[-1],
         "stage": "cta",
     })
 
-    return storyboard
+    return result
 
 
 # ============================================================
-# 8. BÚSQUEDA DE FOTOGRAFÍAS
+# 7. FOTOGRAFIAS FLEXIBLES
 # ============================================================
 
-PHOTO_TERMS = {
-    "ruptura": ("surface rupture", "fault scarp", "ground rupture", "earthquake fissure"),
-    "deslizamientos": ("earthquake landslide", "earthquake triggered landslide", "landslide"),
-    "grietas": ("ground fissure", "surface rupture", "earthquake fissure", "fault scarp"),
-    "transformante": ("san andreas fault", "transform fault", "fault scarp"),
-    "rift": ("rift valley", "east african rift", "rift escarpment"),
-    "subduccion": ("subduction", "tectonic coast", "coastal mountain"),
-    "colision": ("himalaya", "folded rock", "mountain rock", "folded geological", "folded strata"),
-    "falla_inversa": ("thrust fault", "reverse fault", "fault scarp", "overthrust"),
-    "falla_normal": ("normal fault", "rift valley", "fault scarp"),
-    "tsunami_oleadas": ("tsunami", "maremoto"),
-    "tsunami_retroceso": ("tsunami", "maremoto"),
-    "tsunami_rios": ("tsunami", "maremoto"),
-    "tsunami_inundacion": ("tsunami", "maremoto"),
-    "ondas": ("san andreas fault", "geological fault", "rift valley"),
-    "magnitud": ("earthquake surface rupture", "earthquake landslide"),
-    "replicas": ("earthquake", "fault scarp", "landslide"),
-    "valdivia": ("1960 chile earthquake", "1960 valdivia", "1960 chile tsunami"),
-    "profundidad": ("subduction", "tectonic fault", "fault scarp"),
-    "placas": ("san andreas fault", "tectonic fault", "rift valley", "fault scarp"),
-    "tsunamis": ("tsunami", "maremoto"),
-    "alerta": ("earthquake surface rupture", "san andreas fault"),
-    "falla": ("san andreas fault", "geological fault", "fault scarp", "surface rupture"),
-    "prediccion": ("san andreas fault", "fault scarp"),
-    "sismografo": ("san andreas fault", "surface rupture"),
-    "terremoto": ("earthquake", "fault scarp", "landslide"),
-}
+# Ya no se exige una fotografia que muestre
+# directamente el evento geologico.
+#
+# Se aceptan fotografias naturales como
+# contexto visual de divulgacion cientifica.
+
+NATURE_QUERIES = [
+    "mountain landscape",
+    "rocky hills",
+    "forest landscape",
+    "ocean coast",
+    "sea beach",
+    "coastal cliffs",
+    "river valley",
+    "mountain forest",
+    "geological landscape",
+    "rock formations",
+    "mountain coastline",
+    "natural landscape",
+]
 
 PHOTO_SEARCH_QUERIES = {
-    "ruptura": ["earthquake surface rupture", "fault scarp"],
-    "deslizamientos": ["earthquake landslide", "earthquake triggered landslide"],
-    "grietas": ["earthquake ground fissure", "earthquake surface rupture"],
-    "transformante": ["San Andreas Fault", "transform fault landscape"],
-    "rift": ["East African Rift valley", "rift valley landscape"],
-    "subduccion": ["subduction zone coast", "tectonic coastal mountains", "Andes subduction coast"],
-    "colision": ["Himalaya tectonic mountains", "folded geological mountain rocks", "folded rock outcrop"],
-    "falla_inversa": ["thrust fault scarp", "reverse fault rock outcrop", "thrust fault geology landscape", "Lewis overthrust fault"],
-    "falla_normal": ["normal fault scarp", "rift valley fault scarp"],
-    "tsunami_oleadas": ["tsunami inundation coast", "tsunami shoreline"],
-    "tsunami_retroceso": ["tsunami receding shoreline", "tsunami exposed seafloor coast"],
-    "tsunami_rios": ["tsunami river estuary", "tsunami flooded coast"],
-    "tsunami_inundacion": ["tsunami coastal inundation", "tsunami flood shoreline"],
-    "ondas": ["San Andreas Fault", "fault scarp"],
-    "magnitud": ["earthquake landslide", "earthquake surface rupture"],
-    "replicas": ["earthquake landslide", "fault scarp"],
-    "valdivia": ["1960 Valdivia earthquake coast", "1960 Chile tsunami"],
-    "profundidad": ["subduction coast", "tectonic fault landscape"],
-    "placas": ["San Andreas Fault", "rift valley"],
-    "tsunamis": ["tsunami coast", "tsunami shoreline", "tsunami coastal erosion", "tsunami inundation"],
-    "alerta": ["earthquake surface rupture", "San Andreas Fault"],
-    "falla": ["San Andreas Fault", "fault scarp", "surface rupture"],
-    "prediccion": ["San Andreas Fault", "fault scarp"],
-    "sismografo": ["San Andreas Fault", "surface rupture"],
-    "terremoto": ["earthquake landslide", "earthquake surface rupture"],
+    "ruptura": [
+        "earthquake surface rupture",
+        "fault scarp",
+        "rocky mountains",
+    ],
+    "deslizamientos": [
+        "earthquake landslide",
+        "landslide mountain",
+        "green mountain hills",
+    ],
+    "grietas": [
+        "ground fissure",
+        "rock formations",
+        "dry rocky landscape",
+    ],
+    "transformante": [
+        "San Andreas Fault",
+        "California mountains",
+        "rocky hills",
+    ],
+    "rift": [
+        "East African Rift valley",
+        "rift valley",
+        "mountain valley",
+    ],
+    "subduccion": [
+        "Andes mountains",
+        "Pacific coast mountains",
+        "coastal cliffs",
+    ],
+    "colision": [
+        "Himalaya mountains",
+        "folded geological rocks",
+        "mountain landscape",
+    ],
+    "falla_inversa": [
+        "thrust fault",
+        "rock outcrop",
+        "mountain hills",
+    ],
+    "falla_normal": [
+        "normal fault",
+        "rift valley",
+        "mountain landscape",
+    ],
+    "tsunami_oleadas": [
+        "2011 Japan tsunami",
+        "ocean waves coast",
+        "sea beach",
+        "Pacific ocean coast",
+    ],
+    "tsunami_retroceso": [
+        "tsunami receding sea",
+        "beach shoreline",
+        "exposed seafloor",
+        "coastal beach",
+        "ocean coast",
+    ],
+    "tsunami_rios": [
+        "tsunami river",
+        "river estuary",
+        "coastal river",
+        "river valley",
+    ],
+    "tsunami_inundacion": [
+        "2011 Japan tsunami flooding",
+        "tsunami coastal inundation",
+        "ocean shoreline",
+        "sandy beach",
+        "coastal cliffs",
+    ],
+    "ondas": [
+        "seismograph",
+        "mountain geology",
+        "rock formations",
+    ],
+    "magnitud": [
+        "earthquake",
+        "mountain landscape",
+        "rocky hills",
+    ],
+    "replicas": [
+        "earthquake fault",
+        "mountain hills",
+        "forest landscape",
+    ],
+    "valdivia": [
+        "1960 Valdivia earthquake",
+        "Valdivia Chile landscape",
+        "Chile forest landscape",
+    ],
+    "profundidad": [
+        "geological mountains",
+        "rock formations",
+        "mountain landscape",
+    ],
+    "placas": [
+        "San Andreas Fault",
+        "mountain landscape",
+        "rift valley",
+    ],
+    "tsunamis": [
+        "tsunami coast",
+        "ocean shoreline",
+        "Pacific coast",
+        "sea beach",
+    ],
+    "alerta": [
+        "earthquake landscape",
+        "mountain landscape",
+        "forest mountains",
+    ],
+    "falla": [
+        "San Andreas Fault",
+        "rock outcrop",
+        "mountain valley",
+    ],
+    "prediccion": [
+        "geological landscape",
+        "rocky hills",
+        "forest mountains",
+    ],
+    "sismografo": [
+        "seismograph",
+        "mountain landscape",
+        "rock formations",
+    ],
+    "terremoto": [
+        "earthquake geology",
+        "mountain hills",
+        "coastal cliffs",
+    ],
 }
 
-LANDSCAPE_AUTO_TOPICS = frozenset((
-    "falla",
-    "placas",
-    "tsunamis",
-    "terremoto",
-    "replicas",
-    "ruptura",
-    "deslizamientos",
-    "grietas",
-    "transformante",
-    "rift",
-    "subduccion",
-    "colision",
-    "falla_inversa",
-    "falla_normal",
-    "tsunami_oleadas",
-    "tsunami_retroceso",
-    "tsunami_rios",
-    "tsunami_inundacion",
-))
-
-FORBIDDEN_VISUAL_TERMS = (
-    "person", "people", "portrait", "selfie",
-    "man ", "woman ", "child", "children",
-    "crowd", "tourist", "hiker", "hiking",
-    "visitor", "rescue", "rescuer", "firefighter",
-    "soldier", "police", "protester", "human",
-    "family", "group photo", "group of",
-    "persona", "personas", "gente", "retrato",
-    "turista", "excursionista", "rescate",
-    "building", "buildings", "house", "houses",
-    "city", "cities", "urban", "street",
-    "road", "bridge", "car ", "vehicle", "train",
-    "construction", "infrastructure",
-    "edificio", "edificios", "casa ",
-    "ciudad", "calle", "puente", "vehiculo",
-    "seismometer", "seismograph", "sensor",
-    "instrument", "equipment", "station",
-    "sismometro", "sismografo",
-    "laboratory", "laboratorio",
-    "museum", "exhibit", "memorial", "monument",
-    "sign", "warning", "poster",
-    "lroc", "lunar", "moon", "moon surface",
-    "mars", "martian", "apollo mission",
-    "planetary", "orbiter", "spacecraft",
-    "satellite image of moon",
-)
-
-LANDSCAPE_EVIDENCE = (
-    "fault", "rupture", "fissure", "rift",
-    "scarp", "landslide", "slip",
-    "subsidence", "coast", "coastal",
-    "shoreline", "shore", "cliff",
-    "terrain", "landscape", "valley",
-    "mountain", "hillside", "rock",
-    "outcrop", "geological", "tectonic",
-    "tsunami", "erosion", "trench",
-    "falla", "fractura", "deslizamiento",
-    "costa", "acantilado", "terreno",
-    "paisaje", "cordillera", "montana",
-    "ladera", "roca", "estratos",
+NATURE_TERMS = (
+    "mountain", "mountains", "hill", "hills",
+    "forest", "trees", "woodland",
+    "beach", "ocean", "sea", "coast",
+    "coastal", "shore", "shoreline",
+    "cliff", "cliffs", "valley", "river",
+    "lake", "landscape", "nature",
+    "natural", "terrain", "rock",
+    "rocks", "geology", "geological",
+    "fault", "rift", "tsunami",
+    "earthquake", "desert", "volcano",
+    "volcanic", "canyon", "waterfall",
+    "island", "bay", "water", "wave",
+    "inundation", "flood",
+    "montana", "montanas", "cerro",
+    "cerros", "bosque", "arboles",
+    "playa", "mar", "costa",
+    "acantilado", "valle", "rio",
+    "lago", "paisaje", "naturaleza",
+    "roca", "rocas", "falla",
+    "terremoto", "sismo",
+    "desierto", "volcan",
+    "inundacion",
 )
 
 NON_PHOTO_TERMS = (
-    "diagram", "diagrama", "infographic",
-    "infografia", "flowchart", "flow chart",
-    "schematic", "schema", "esquema",
-    "cross section", "cross-section", "cutaway",
-    "seismogram", "waveform", "spectrogram",
-    "graph", "graphic", "chart", "plot",
-    "hazard map", "seismic map", "mapa",
-    "cartography", "map ",
-    "illustration", "drawing", "dibujo",
+    "diagram", "infographic", "flowchart",
+    "schematic", "schema", "cross section",
+    "seismogram", "waveform",
+    "graph", "chart", "plot",
+    "illustration", "drawing",
     "cartoon", "vector", "icon", "logo",
     "poster", "banner", "slide",
-    "presentation", "powerpoint",
     "screenshot", "screen capture",
-    "screengrab", "table ", "figure ",
-    "fig.", "pdf", "paper", "journal",
-    "proceedings", "research report",
-    "technical report", "book cover",
-    "newspaper", "document", "scanned",
-    "scan of", "textbook", "certificate",
-    "brochure", "leaflet", "manual",
-    "report of", "guide for",
-    "advertisement", "stock photo",
-    "watermark", "labeled", "labelled",
-    "sonar", "buried objects",
-    "target classification",
+    "pdf", "book cover", "document",
+    "scanned", "certificate",
+    "diagrama", "infografia",
+    "esquema", "ilustracion",
+    "dibujo", "mapa", "map ",
+    "satellite image", "lunar", "mars",
+    "moon surface",
+)
+
+ALLOWED_PHOTO_EXTENSIONS = (
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".webp",
 )
 
 
-def contains_term(text, term):
-    term = norm(
-        str(term).strip()
-    )
-
-    return bool(
-        re.search(
-            r"(?<![a-z])"
-            + re.escape(term)
-            + r"(?![a-z])",
-            text,
-        )
-    )
-
-
-def photo_relevant(item, ep):
-    """
-    Filtrado de metadatos.
-
-    Acepta evidencia en título o descripción
-    sustantiva. No acepta fotografías genéricas
-    solo por etiquetas de búsqueda.
-
-    Sigue siendo un filtro automático, no
-    una comprobación visual infalible.
-    """
-
-    title = norm(
-        re.sub(
-            r"^file:",
-            "",
-            str(
-                item.get("title", "") or ""
-            ).strip(),
-            flags=re.I,
-        )
-    )
-
-    desc = norm(
-        str(
-            item.get("description", "") or ""
-        )
-    )
-
-    tags = norm(
-        str(
-            item.get("tags", "") or ""
-        )
-    )
-
-    if not title:
-        return False
-
-    if re.search(
-        r"\.(?:pdf|djvu|tiff?|svg|gif)(?:$|[?# ])",
-        title,
-    ):
-        return False
-
-    title_clean = re.sub(
-        r"[_-]+",
-        " ",
-        title
-    )
-
-    combined = (
-        title_clean + " " + desc + " " + tags
-    )
-
-    # Excluir documentos y esquemas.
-    if any(
-        contains_term(title_clean, term)
-        for term in NON_PHOTO_TERMS
-    ):
-        return False
-
-    # Excluir personas, ciudades, equipos
-    # y contenido expresamente no permitido.
-    if any(
-        contains_term(title_clean, term)
-        for term in FORBIDDEN_VISUAL_TERMS
-    ):
-        return False
-
-    forbidden_desc = (
-        "people", "person", "portrait",
-        "crowd", "tourist",
-        "rescue workers", "buildings",
-        "houses", "city street",
-        "evacuees", "victims",
-    )
-
-    if any(
-        contains_term(desc, term)
-        for term in forbidden_desc
-    ):
-        return False
-
-    topic = ep.get("id", "")
-
-    terms = tuple(
-        norm(t)
-        for t in PHOTO_TERMS.get(
-            topic, ()
-        )
-    )
-
-    if not terms:
-        return False
-
-    title_match = any(
-        contains_term(title_clean, term)
-        for term in terms
-    )
-
-    desc_match = (
-        len(desc) >= 30
-        and any(
-            contains_term(desc, term)
-            for term in terms
-        )
-    )
-
-    if not (
-        title_match or desc_match
-    ):
-        return False
-
-    landscape = any(
-        contains_term(title_clean, term)
-        or contains_term(desc, term)
-        for term in LANDSCAPE_EVIDENCE
-    )
-
-    if not landscape:
-        return False
-
-    tsunami_topics = {
-        "tsunamis",
-        "tsunami_oleadas",
-        "tsunami_retroceso",
-        "tsunami_rios",
-        "tsunami_inundacion",
-    }
-
-    if topic in tsunami_topics:
-        # No aceptar paisajes costeros
-        # sin evidencia específica de tsunami.
-        if not any(
-            contains_term(
-                title_clean + " " + desc,
-                term
-            )
-            for term in ("tsunami", "maremoto")
-        ):
-            return False
-
-        coastal_terms = (
-            "coast", "coastal", "shore",
-            "shoreline", "beach", "sea",
-            "ocean", "bay", "inundation",
-            "flood", "erosion", "wave",
-            "river", "estuary", "water",
-            "costa", "playa", "inundacion",
-            "rio", "estuario",
-        )
-
-        if not any(
-            contains_term(combined, term)
-            for term in coastal_terms
-        ):
-            return False
-
-    if topic == "valdivia":
-        # No representar el evento de 1960
-        # mediante una foto moderna.
-        if not (
-            "1960" in title_clean
-            and any(
-                x in title_clean
-                for x in ("chile", "valdivia")
-            )
-        ):
-            return False
-
-    return True
-
-
-# ============================================================
-# 9. AUDITORÍA VISUAL
-# ============================================================
-
-def visual_photo_audit(path):
-    """
-    Verificación automática conservadora.
-
-    Evalúa resolución, predominio de blanco,
-    densidad de bordes y texto con OCR opcional.
-
-    No pretende sustituir una inspección humana.
-    """
-
-    try:
-        with Image.open(path) as src:
-            rgb = ImageOps.exif_transpose(
-                src
-            ).convert("RGB")
-
-            if (
-                rgb.width < 500
-                or rgb.height < 350
-            ):
-                return False, "resolución insuficiente"
-
-            sample = ImageOps.contain(
-                rgb,
-                (480, 480)
-            )
-
-            pixels = list(
-                sample.resize(
-                    (160, 160)
-                ).getdata()
-            )
-
-            white = sum(
-                1
-                for r, g, b in pixels
-                if min(r, g, b) > 224
-                and max(r, g, b) - min(r, g, b) < 20
-            ) / len(pixels)
-
-            # Menos restrictivo que antes,
-            # pero mantiene el rechazo de páginas.
-            if white > 0.72:
-                return (
-                    False,
-                    "fondo documental predominantemente blanco",
-                )
-
-            gray = sample.convert("L")
-
-            edges = gray.filter(
-                ImageFilter.FIND_EDGES
-            )
-
-            avg_edge = ImageStat.Stat(
-                edges
-            ).mean[0]
-
-            if avg_edge > 68:
-                return (
-                    False,
-                    "densidad extrema de bordes"
-                )
-
-            if shutil.which("tesseract"):
-                try:
-                    import csv
-
-                    result = subprocess.run(
-                        [
-                            "tesseract",
-                            str(path),
-                            "stdout",
-                            "--psm",
-                            "11",
-                            "tsv",
-                        ],
-                        capture_output=True,
-                        text=True,
-                        timeout=18,
-                    )
-
-                    if result.returncode == 0:
-                        rows = list(
-                            csv.DictReader(
-                                io.StringIO(result.stdout),
-                                delimiter="\t"
-                            )
-                        )
-
-                        confident = []
-
-                        for row in rows:
-                            word = (
-                                row.get("text") or ""
-                            ).strip()
-
-                            try:
-                                confidence = float(
-                                    row.get("conf") or "-1"
-                                )
-                            except ValueError:
-                                confidence = -1
-
-                            if (
-                                confidence >= 75
-                                and re.fullmatch(
-                                    r"[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9]{3,}",
-                                    word,
-                                )
-                            ):
-                                confident.append(word)
-
-                        if len(confident) >= 3:
-                            return (
-                                False,
-                                "texto visible detectado por OCR",
-                            )
-
-                except (
-                    OSError,
-                    subprocess.TimeoutExpired
-                ):
-                    pass
-
-            else:
-                if white > 0.35 and avg_edge > 30:
-                    return (
-                        False,
-                        "posible documento sin OCR",
-                    )
-
-            return (
-                True,
-                "imagen apta por inspección automática",
-            )
-
-    except Exception as exc:
-        return (
-            False,
-            "imagen ilegible: " + str(exc)[:80],
-        )
-
-
-# ============================================================
-# 10. LICENCIAS
-# ============================================================
-
 def license_accepted(code):
-    """
-    Solo CC0 y dominio público.
-
-    Se mantienen las condiciones originales
-    del sistema editorial SISMONAUTA.
-    """
-
-    code = norm(
-        str(code)
-    ).strip().lower().replace("_", "-")
+    code = norm(code).strip().lower()
 
     compact = re.sub(
         r"[^a-z0-9]+",
@@ -1834,134 +1210,305 @@ def license_accepted(code):
     ))
 
 
+def photo_relevant(item, ep):
+    """
+    Filtro fotografico flexible.
+
+    Se aceptan paisajes naturales de contexto.
+    No exige imagen de un sismo o tsunami real.
+
+    Se excluyen diagramas, mapas, documentos,
+    logos e imagenes claramente no fotograficas.
+    """
+
+    title = str(
+        item.get("title") or ""
+    )
+
+    description = str(
+        item.get("description") or ""
+    )
+
+    tags = str(
+        item.get("tags") or ""
+    )
+
+    clean_title = norm(
+        re.sub(
+            r"^File:",
+            "",
+            title,
+            flags=re.I
+        ).replace("_", " ")
+    )
+
+    description = norm(description)
+    tags = norm(tags)
+
+    if not clean_title:
+        return False
+
+    if any(
+        has_term(clean_title, forbidden)
+        for forbidden in NON_PHOTO_TERMS
+    ):
+        return False
+
+    # Fotografia de un paisaje o fenomeno.
+    text = (
+        clean_title + " "
+        + description + " "
+        + tags
+    )
+
+    if any(
+        has_term(text, term)
+        for term in NATURE_TERMS
+    ):
+        return True
+
+    # Tambien se admite una fotografia
+    # natural con metadatos escasos.
+    # La búsqueda inicial debe corresponder
+    # a una consulta tematica o paisajistica.
+    if (
+        len(clean_title) >= 8
+        and item.get("provider") in (
+            "Wikimedia",
+            "Openverse",
+        )
+        and not any(
+            has_term(clean_title, word)
+            for word in (
+                "portrait", "selfie",
+                "advertisement", "logo",
+                "drawing", "diagram",
+                "painting", "illustration",
+            )
+        )
+    ):
+        return True
+
+    return False
+
+
 # ============================================================
-# 11. WIKIMEDIA COMMONS
+# 8. AUDITORIA VISUAL
+# ============================================================
+
+def visual_photo_audit(path):
+    """
+    Verificacion automatica basica.
+
+    No usa OCR ni rechaza playas claras,
+    nieve, arena, cielos o bosques.
+
+    Comprueba formato, resolucion y que
+    el archivo sea una imagen legible.
+    """
+
+    try:
+        with Image.open(path) as src:
+            image = ImageOps.exif_transpose(
+                src
+            ).convert("RGB")
+
+            if (
+                image.width < 500
+                or image.height < 350
+            ):
+                return (
+                    False,
+                    "resolucion insuficiente"
+                )
+
+            sample = ImageOps.contain(
+                image,
+                (320, 320)
+            )
+
+            gray = sample.convert("L")
+
+            stat = ImageStat.Stat(gray)
+
+            if stat.stddev[0] < 2.0:
+                return (
+                    False,
+                    "imagen casi uniforme"
+                )
+
+            return (
+                True,
+                "fotografia tecnicamente apta"
+            )
+
+    except Exception as exc:
+        return (
+            False,
+            "imagen ilegible: "
+            + safe_error(exc)[:90]
+        )
+
+
+# ============================================================
+# 9. WIKIMEDIA COMMONS PAGINADO
 # ============================================================
 
 def commons(query):
-    """
-    Fuente principal.
-
-    Comprueba licencia y obtiene imágenes
-    originales o miniaturas de Commons.
-    """
+    endpoint = (
+        "https://commons.wikimedia.org/w/api.php"
+    )
 
     params = {
         "action": "query",
         "format": "json",
+        "formatversion": 2,
         "generator": "search",
         "gsrsearch": query,
         "gsrnamespace": 6,
-        "gsrlimit": 40,
+        "gsrlimit": COMMONS_PAGE_SIZE,
         "prop": "imageinfo",
         "iiprop": "url|extmetadata|size",
         "iiurlwidth": 1400,
     }
 
-    response = HTTP.get(
-        "https://commons.wikimedia.org/w/api.php",
-        params=params,
-        timeout=COMMONS_TIMEOUT,
-    )
+    continuation = {}
+    seen = set()
 
-    response.raise_for_status()
-
-    pages = (
-        response.json()
-        .get("query", {})
-        .get("pages", {})
-    )
-
-    for page in pages.values():
-        info = (
-            page.get("imageinfo")
-            or [{}]
-        )[0]
-
-        meta = (
-            info.get("extmetadata")
-            or {}
-        )
-
-        def val(key):
-            raw = str(
-                (
-                    meta.get(key)
-                    or {}
-                ).get("value", "")
-            )
-
-            return re.sub(
-                r"<[^>]+>",
-                " ",
-                raw
-            )
-
-        license_code = val(
-            "LicenseShortName"
-        ).strip()
-
-        if not license_accepted(license_code):
-            continue
-
-        url = (
-            info.get("thumburl")
-            or info.get("url")
-        )
-
-        title = page.get(
-            "title", ""
-        )
-
-        if not re.search(
-            r"\.(jpg|jpeg|png|webp)$",
-            title,
-            re.I
-        ):
-            continue
-
-        if not url:
-            continue
-
-        yield {
-            "url": url,
-            "source": info.get(
-                "descriptionurl", ""
-            ),
-            "license": license_code,
-            "title": title,
-            "description": val("ImageDescription"),
-            "creator": (
-                val("Artist")
-                or "Autor no identificado"
-            ),
-            "tags": "",
-            "provider": "Wikimedia",
+    for page_number in range(COMMONS_PAGES):
+        request_params = {
+            **params,
+            **continuation,
         }
+
+        response = HTTP.get(
+            endpoint,
+            params=request_params,
+            timeout=COMMONS_TIMEOUT,
+        )
+
+        response.raise_for_status()
+
+        payload = response.json()
+
+        pages = (
+            payload.get("query", {})
+            .get("pages", [])
+        )
+
+        if isinstance(pages, dict):
+            pages = list(pages.values())
+
+        log(
+            "WIKIMEDIA:",
+            query,
+            "pagina:",
+            page_number + 1,
+            "candidatos:",
+            len(pages),
+        )
+
+        for page in pages:
+            infos = page.get("imageinfo") or []
+
+            if not infos:
+                continue
+
+            info = infos[0]
+            meta = info.get("extmetadata") or {}
+
+            def val(key):
+                raw = str(
+                    (meta.get(key) or {})
+                    .get("value") or ""
+                )
+
+                raw = re.sub(
+                    r"<[^>]+>",
+                    " ",
+                    raw
+                )
+
+                return re.sub(
+                    r"\s+",
+                    " ",
+                    raw
+                ).strip()
+
+            license_code = val(
+                "LicenseShortName"
+            )
+
+            if not license_accepted(
+                license_code
+            ):
+                continue
+
+            title = str(
+                page.get("title") or ""
+            )
+
+            if not title.lower().endswith(
+                ALLOWED_PHOTO_EXTENSIONS
+            ):
+                continue
+
+            if (
+                int(info.get("width") or 0) < 500
+                or int(info.get("height") or 0) < 350
+            ):
+                continue
+
+            url = (
+                info.get("thumburl")
+                or info.get("url")
+            )
+
+            if not url or url in seen:
+                continue
+
+            seen.add(url)
+
+            yield {
+                "url": url,
+                "source": info.get(
+                    "descriptionurl", ""
+                ),
+                "license": license_code,
+                "title": title,
+                "description": val(
+                    "ImageDescription"
+                ),
+                "creator": (
+                    val("Artist")
+                    or "Autor no identificado"
+                ),
+                "tags": "",
+                "provider": "Wikimedia",
+                "search_query": query,
+            }
+
+        continuation = payload.get(
+            "continue"
+        )
+
+        if not continuation:
+            break
 
 
 # ============================================================
-# 12. OPENVERSE — REINTENTOS Y FALLBACK
+# 10. OPENVERSE
 # ============================================================
 
 def openverse(query):
-    """
-    Openverse es fuente secundaria.
-
-    Mejoras:
-    - Timeout de lectura reducido.
-    - Dos intentos como máximo.
-    - Suspensión temporal ante fallos.
-    - No bloquea los demás proveedores.
-    """
-
     global _OPENVERSE_UNAVAILABLE_UNTIL
 
+    if not ENABLE_OPENVERSE:
+        return
+
     if time.monotonic() < _OPENVERSE_UNAVAILABLE_UNTIL:
-        print(
-            "OPENVERSE: omitido temporalmente "
-            "por fallos anteriores.",
-            flush=True
+        log(
+            "OPENVERSE: temporalmente omitido"
         )
         return
 
@@ -1972,74 +1519,55 @@ def openverse(query):
     params = {
         "q": query,
         "license": "cc0,pdm",
-        "category": "photograph",
         "page_size": 30,
     }
 
-    payload = None
+    try:
+        response = HTTP.get(
+            endpoint,
+            params=params,
+            timeout=OPENVERSE_TIMEOUT,
+        )
 
-    for attempt in range(
-        OPENVERSE_MAX_ATTEMPTS
-    ):
-        try:
-            response = HTTP.get(
-                endpoint,
-                params=params,
-                timeout=OPENVERSE_TIMEOUT,
+        if response.status_code in (
+            401, 403, 429
+        ):
+            _OPENVERSE_UNAVAILABLE_UNTIL = (
+                time.monotonic()
+                + OPENVERSE_BACKOFF
             )
 
-            if response.status_code in (
-                429, 500, 502, 503, 504
-            ):
-                raise requests.HTTPError(
-                    "Openverse HTTP "
-                    + str(response.status_code)
-                )
-
-            response.raise_for_status()
-
-            payload = response.json()
-            break
-
-        except (
-            requests.Timeout,
-            requests.ConnectionError,
-            requests.HTTPError,
-            ValueError,
-        ) as exc:
-
-            print(
-                f"OPENVERSE intento "
-                f"{attempt + 1}/{OPENVERSE_MAX_ATTEMPTS}: "
-                f"{str(exc)[:130]}",
-                flush=True
+            log(
+                "OPENVERSE: HTTP",
+                response.status_code,
+                "suspendido temporalmente."
             )
+            return
 
-            if attempt + 1 < OPENVERSE_MAX_ATTEMPTS:
-                time.sleep(
-                    2 * (attempt + 1)
-                )
+        response.raise_for_status()
+        payload = response.json()
 
-    if payload is None:
+    except (
+        requests.RequestException,
+        ValueError,
+    ) as exc:
         _OPENVERSE_UNAVAILABLE_UNTIL = (
             time.monotonic()
             + OPENVERSE_BACKOFF
         )
 
-        print(
-            "OPENVERSE suspendido durante "
-            "10 minutos. Se mantiene Wikimedia Commons.",
-            flush=True
+        log(
+            "OPENVERSE no disponible:",
+            safe_error(exc),
         )
-
         return
 
     for item in payload.get(
         "results", []
     ):
         license_code = str(
-            item.get("license", "")
-        ).lower()
+            item.get("license") or ""
+        )
 
         if not license_accepted(
             license_code
@@ -2058,10 +1586,8 @@ def openverse(query):
             continue
 
         tags = " ".join(
-            str(tag.get("name", ""))
-            for tag in (
-                item.get("tags") or []
-            )
+            str(tag.get("name") or "")
+            for tag in item.get("tags", [])
             if isinstance(tag, dict)
         )
 
@@ -2073,8 +1599,7 @@ def openverse(query):
             "license": license_code,
             "title": item.get("title", ""),
             "description": (
-                item.get("description")
-                or ""
+                item.get("description") or ""
             ),
             "tags": tags,
             "creator": (
@@ -2082,61 +1607,57 @@ def openverse(query):
                 or "Autor no identificado"
             ),
             "provider": "Openverse",
+            "search_query": query,
         }
 
 
 # ============================================================
-# 13. DESCARGA SEGURA DE FOTOGRAFÍAS
+# 11. DESCARGA CONTROLADA
 # ============================================================
 
+def valid_image_url(url):
+    parsed = urllib.parse.urlparse(
+        url
+    )
+
+    if (
+        parsed.scheme != "https"
+        or not parsed.hostname
+        or parsed.username
+        or parsed.password
+        or parsed.port not in (None, 443)
+    ):
+        return False
+
+    try:
+        addresses = socket.getaddrinfo(
+            parsed.hostname,
+            443,
+            type=socket.SOCK_STREAM,
+        )
+
+        return bool(addresses) and all(
+            ipaddress.ip_address(
+                entry[4][0]
+            ).is_global
+            for entry in addresses
+        )
+
+    except Exception:
+        return False
+
+
 def photo_download(item, dest):
-    import ipaddress
-    import socket
+    url = str(item["url"])
 
-    from urllib.parse import urlparse
-
-    url = item["url"]
-
-    def valid_url(candidate):
-        parsed = urlparse(candidate)
-
-        if (
-            parsed.scheme != "https"
-            or not parsed.hostname
-            or parsed.username
-            or parsed.password
-            or parsed.port not in (None, 443)
-        ):
-            return False
-
-        try:
-            addresses = socket.getaddrinfo(
-                parsed.hostname,
-                443,
-                type=socket.SOCK_STREAM,
-            )
-
-            if not addresses:
-                return False
-
-            return all(
-                ipaddress.ip_address(
-                    address[4][0]
-                ).is_global
-                for address in addresses
-            )
-
-        except Exception:
-            return False
-
-    if not valid_url(url):
+    if not valid_image_url(url):
         return False
 
     try:
         for _ in range(5):
             with HTTP.get(
                 url,
-                timeout=(8, 22),
+                timeout=(8, 25),
                 stream=True,
                 allow_redirects=False,
             ) as response:
@@ -2144,16 +1665,15 @@ def photo_download(item, dest):
                 if response.status_code in (
                     301, 302, 303, 307, 308
                 ):
-                    location = (
-                        response.headers.get("Location", "")
+                    location = response.headers.get(
+                        "Location", ""
                     )
 
                     url = urllib.parse.urljoin(
-                        url,
-                        location
+                        url, location
                     )
 
-                    if not valid_url(url):
+                    if not valid_image_url(url):
                         return False
 
                     continue
@@ -2167,8 +1687,8 @@ def photo_download(item, dest):
                 )
 
                 if not any(
-                    x in content_type
-                    for x in (
+                    kind in content_type
+                    for kind in (
                         "image/jpeg",
                         "image/png",
                         "image/webp",
@@ -2189,7 +1709,6 @@ def photo_download(item, dest):
                 with Image.open(
                     io.BytesIO(data)
                 ) as im:
-
                     im = ImageOps.exif_transpose(
                         im
                     )
@@ -2202,35 +1721,26 @@ def photo_download(item, dest):
 
                     im.convert("RGB").save(
                         dest,
-                        quality=91
+                        "JPEG",
+                        quality=91,
                     )
 
                 return True
 
     except Exception as exc:
-        print(
-            "Imagen no aceptada:",
-            str(exc)[:85],
-            flush=True
+        log(
+            "DESCARGA DESCARTADA:",
+            safe_error(exc)[:100],
         )
 
     return False
 
 
 # ============================================================
-# 14. SELECCIÓN DE FOTOGRAFÍAS
+# 12. SELECCION FLEXIBLE DE FOTOGRAFIAS
 # ============================================================
 
 def get_photos(ep, folder, local_dir=None):
-    """
-    Requiere al menos UNA foto real válida.
-
-    Si encuentra una, el video puede continuar.
-    Si encuentra varias, las distribuye entre escenas.
-
-    No usa imágenes de relleno.
-    """
-
     folder.mkdir(
         parents=True,
         exist_ok=True
@@ -2245,187 +1755,208 @@ def get_photos(ep, folder, local_dir=None):
         "metadata_rejected": 0,
         "download_failed": 0,
         "visual_rejected": 0,
+        "accepted": 0,
     }
-
-    # ----------------------------------------
-    # FOTOGRAFÍAS APORTADAS MANUALMENTE
-    # ----------------------------------------
 
     if local_dir:
         directory = Path(local_dir)
 
         if not directory.is_dir():
             raise RuntimeError(
-                "No existe --photo-dir: "
-                + str(directory)
+                "No existe --photo-dir"
             )
 
         for file in sorted(
             directory.iterdir()
         ):
             if file.suffix.lower() not in (
-                ".jpg",
-                ".jpeg",
-                ".png",
-                ".webp",
+                ALLOWED_PHOTO_EXTENSIONS
             ):
                 continue
 
-            try:
-                with Image.open(file) as im:
-                    if (
-                        im.width >= 500
-                        and im.height >= 350
-                        and visual_photo_audit(file)[0]
-                    ):
-                        found.append(file)
+            okay, _ = visual_photo_audit(
+                file
+            )
 
-                        credits.append({
-                            "source": str(file),
-                            "license": (
-                                "Verificar autorización de uso"
-                            ),
-                        })
+            if okay:
+                found.append(file)
 
-            except Exception:
-                continue
+                credits.append({
+                    "source": str(file),
+                    "license": (
+                        "Autorización manual requerida"
+                    ),
+                    "title": file.name,
+                    "provider": "Local",
+                })
+
+            if len(found) >= MAX_VALID_PHOTOS:
+                break
 
         if not found:
             raise RuntimeError(
-                "No se encontraron fotografías "
-                "válidas en --photo-dir"
+                "No hay fotografías válidas "
+                "en --photo-dir"
             )
 
-        return found[:MAX_VALID_PHOTOS], credits[:MAX_VALID_PHOTOS]
+        return found, credits
 
-    # ----------------------------------------
-    # BÚSQUEDAS TEMÁTICAS
-    # ----------------------------------------
-
-    queries = PHOTO_SEARCH_QUERIES.get(
-        ep.get("id")
+    queries = list(
+        PHOTO_SEARCH_QUERIES.get(
+            ep.get("id"), []
+        )
     )
 
     if not queries:
-        raise RuntimeError(
-            "Tema sin estrategia visual específica"
+        queries = list(
+            ep.get("queries") or []
         )
 
-    print(
-        "BUSQUEDA VISUAL TEMATICA:",
-        ep["id"],
-        "|",
-        queries,
-        flush=True
+    # Segunda etapa: paisajes naturales
+    # aunque no representen el hecho especifico.
+    if "tsunami" in ep.get("id", ""):
+        generic = [
+            "ocean coast",
+            "sandy beach",
+            "coastal cliffs",
+            "river estuary",
+            "mountain coastline",
+        ]
+    else:
+        generic = [
+            "mountain landscape",
+            "rocky hills",
+            "forest landscape",
+            "geological landscape",
+            "river valley",
+        ]
+
+    queries.extend(generic)
+
+    # Evitar consultas repetidas.
+    queries = list(
+        dict.fromkeys(queries)
     )
 
-    rejected_examples = []
+    log(
+        "BUSQUEDA VISUAL FLEXIBLE:",
+        ep["id"],
+        queries,
+    )
+
+    rejected = []
 
     for query in queries:
-        # Wikimedia primero, Openverse segundo.
         for provider in (
             commons,
             openverse,
         ):
-            try:
-                results = list(
-                    provider(query)
-                )
-
-            except Exception as exc:
-                print(
-                    f"Fotos {provider.__name__} / "
-                    f"{query}: {str(exc)[:110]}",
-                    flush=True
-                )
+            if (
+                provider is openverse
+                and not ENABLE_OPENVERSE
+            ):
                 continue
 
-            for item in results:
-                url = item.get("url", "")
+            try:
+                results = provider(query)
 
-                if url in seen:
-                    continue
+                for item in results:
+                    url = item.get("url", "")
 
-                seen.add(url)
+                    if not url or url in seen:
+                        continue
 
-                counts["candidates"] += 1
+                    seen.add(url)
+                    counts["candidates"] += 1
 
-                if not photo_relevant(
-                    item, ep
-                ):
-                    counts["metadata_rejected"] += 1
+                    if not photo_relevant(
+                        item, ep
+                    ):
+                        counts[
+                            "metadata_rejected"
+                        ] += 1
 
-                    if len(rejected_examples) < 5:
-                        rejected_examples.append(
-                            str(
-                                item.get("title", "")
-                            )[:85]
+                        if len(rejected) < 5:
+                            rejected.append(
+                                str(item.get(
+                                    "title", ""
+                                ))[:100]
+                            )
+                        continue
+
+                    path = (
+                        folder
+                        / (
+                            "foto_"
+                            + str(len(found) + 1)
+                            + ".jpg"
+                        )
+                    )
+
+                    if not photo_download(
+                        item, path
+                    ):
+                        counts[
+                            "download_failed"
+                        ] += 1
+                        continue
+
+                    okay, reason = (
+                        visual_photo_audit(path)
+                    )
+
+                    if not okay:
+                        counts[
+                            "visual_rejected"
+                        ] += 1
+
+                        path.unlink(
+                            missing_ok=True
                         )
 
-                    continue
+                        log(
+                            "FOTO DESCARTADA:",
+                            reason,
+                        )
+                        continue
 
-                path = (
-                    folder
-                    / f"foto_{len(found) + 1}.jpg"
-                )
+                    found.append(path)
 
-                if not photo_download(
-                    item, path
-                ):
-                    counts["download_failed"] += 1
-                    continue
+                    credits.append({
+                        key: item.get(key, "")
+                        for key in (
+                            "source",
+                            "license",
+                            "title",
+                            "creator",
+                            "provider",
+                            "description",
+                            "tags",
+                            "search_query",
+                        )
+                    })
 
-                okay, reason = visual_photo_audit(
-                    path
-                )
+                    counts["accepted"] += 1
 
-                if not okay:
-                    print(
-                        "FOTO DESCARTADA:",
-                        reason,
-                        "|",
-                        str(
-                            item.get("title", "")
-                        )[:95],
-                        flush=True
+                    log(
+                        "FOTO ACEPTADA:",
+                        item.get("title"),
+                        "| licencia:",
+                        item.get("license"),
                     )
 
-                    path.unlink(
-                        missing_ok=True
-                    )
+                    if (
+                        len(found)
+                        >= MAX_VALID_PHOTOS
+                    ):
+                        break
 
-                    counts["visual_rejected"] += 1
-                    continue
-
-                found.append(path)
-
-                credits.append({
-                    key: item.get(key, "")
-                    for key in (
-                        "source",
-                        "license",
-                        "title",
-                        "creator",
-                        "provider",
-                        "description",
-                        "tags",
-                    )
-                })
-
-                print(
-                    "FOTO TEMATICA:",
-                    ep["id"],
-                    "|",
-                    str(
-                        item.get("title", "")
-                    )[:85],
-                    "|",
-                    item.get("license"),
-                    flush=True
+            except Exception as exc:
+                log(
+                    "PROVEEDOR:",
+                    provider.__name__,
+                    safe_error(exc)[:140],
                 )
-
-                if len(found) >= MAX_VALID_PHOTOS:
-                    break
 
             if len(found) >= MAX_VALID_PHOTOS:
                 break
@@ -2433,66 +1964,77 @@ def get_photos(ep, folder, local_dir=None):
         if len(found) >= MAX_VALID_PHOTOS:
             break
 
-    if not found and rejected_examples:
-        print(
-            "EJEMPLOS DE TITULOS RECHAZADOS:",
-            rejected_examples,
-            flush=True
-        )
-
-    print(
+    log(
         "AUDITORIA FOTOGRAFIAS:",
         counts,
-        "aceptadas=",
-        len(found),
-        flush=True
     )
+
+    if not found and rejected:
+        log(
+            "TITULOS DESCARTADOS:",
+            rejected,
+        )
 
     if not found:
         raise RuntimeError(
             "No se encontraron fotografías auténticas "
-            "del tema específico con licencia CC0/PD. "
-            "No se publican imágenes de relleno."
+            "con licencia CC0/PD."
         )
 
     if len(found) == 1:
-        print(
-            "MODO FOTO UNICA: una fotografía "
-            "verificada disponible; se utilizarán "
-            "distintos encuadres.",
-            flush=True
+        log(
+            "MODO FOTO UNICA:",
+            "se usaran encuadres diferentes"
         )
-
     else:
-        print(
-            f"FOTOGRAFIAS VERIFICADAS: {len(found)}",
-            flush=True
+        log(
+            "FOTOS VALIDAS:",
+            len(found)
         )
 
     return found, credits
 
 
+def local_photo_audit(
+    photos,
+    credits,
+    ep,
+    photo_dir
+):
+    if photo_dir:
+        log(
+            "FOTOS LOCALES:",
+            "verificar derechos de uso."
+        )
+        return bool(photos)
+
+    return bool(photos) and all(
+        license_accepted(
+            credit.get("license", "")
+        )
+        for credit in credits
+    )
+
+
 # ============================================================
-# 15. FUENTES Y COMPOSICIÓN VISUAL
+# 13. FUENTES Y COMPOSICION VISUAL
 # ============================================================
 
 def font(size, bold=True):
-    options = (
-        [
+    if bold:
+        options = [
             "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
             "/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf",
         ]
-        if bold
-        else [
+    else:
+        options = [
             "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
         ]
-    )
 
     for path in options:
         if Path(path).exists():
             return ImageFont.truetype(
-                path,
-                size
+                path, size
             )
 
     return ImageFont.load_default()
@@ -2500,53 +2042,35 @@ def font(size, bold=True):
 
 def wrap(draw, text, ft, width):
     lines = []
-    line = ""
+    current = ""
 
     for word in text.split():
-        attempt = (
-            line + " " + word
+        proposed = (
+            current + " " + word
         ).strip()
 
         if draw.textbbox(
             (0, 0),
-            attempt,
+            proposed,
             font=ft
         )[2] <= width:
-            line = attempt
+            current = proposed
 
         else:
-            if line:
-                lines.append(line)
+            if current:
+                lines.append(current)
+            current = word
 
-            line = word
-
-    if line:
-        lines.append(line)
+    if current:
+        lines.append(current)
 
     return lines
 
 
-# ============================================================
-# 16. MEJORA: ENCUADRES DIFERENTES
-# ============================================================
-
 def photo_crop_variant(src, index):
-    """
-    Genera variaciones del encuadre original.
-
-    No crea fotografías artificiales.
-    No añade objetos ni altera el fenómeno.
-
-    Se limita a ampliar y desplazar suavemente
-    la fotografía real.
-    """
-
     image = ImageOps.exif_transpose(
         src
     ).convert("RGB")
-
-    # Variaciones de recorte para escenas
-    # sucesivas que reutilizan la misma imagen.
 
     centerings = [
         (0.50, 0.50),
@@ -2576,7 +2100,7 @@ def photo_crop_variant(src, index):
         image,
         (
             int(W * zoom),
-            int(H * zoom),
+            int(H * zoom)
         ),
         method=Image.Resampling.LANCZOS,
         centering=centering,
@@ -2585,17 +2109,15 @@ def photo_crop_variant(src, index):
     if zoom == 1:
         return fitted
 
-    excess_x = fitted.width - W
-    excess_y = fitted.height - H
-
-    cx, cy = centering
+    extra_x = fitted.width - W
+    extra_y = fitted.height - H
 
     left = int(
-        excess_x * cx
+        extra_x * centering[0]
     )
 
     top = int(
-        excess_y * cy
+        extra_y * centering[1]
     )
 
     return fitted.crop((
@@ -2606,22 +2128,15 @@ def photo_crop_variant(src, index):
     ))
 
 
-# ============================================================
-# 17. ESCENA FOTOGRÁFICA
-# ============================================================
-
-def clean_scene(photo, message, dest, variant=0):
-    """
-    Fondo fotográfico y rótulo centrado.
-
-    variant permite reutilizar una única foto
-    con encuadres diferentes.
-    """
-
-    with Image.open(photo) as src:
+def clean_scene(
+    photo,
+    message,
+    dest,
+    variant=0
+):
+    with Image.open(photo) as source:
         im = photo_crop_variant(
-            src,
-            variant
+            source, variant
         )
 
     im = im.filter(
@@ -2672,7 +2187,7 @@ def clean_scene(photo, message, dest, variant=0):
 
         veil_draw.line(
             (0, y, W, y),
-            fill=(0, 0, 0, alpha),
+            fill=(0, 0, 0, alpha)
         )
 
     im = Image.alpha_composite(
@@ -2680,9 +2195,7 @@ def clean_scene(photo, message, dest, variant=0):
         veil
     ).convert("RGB")
 
-    draw = ImageDraw.Draw(
-        im
-    )
+    draw = ImageDraw.Draw(im)
 
     message = re.sub(
         r"\s+",
@@ -2691,8 +2204,7 @@ def clean_scene(photo, message, dest, variant=0):
     )
 
     message = (
-        message
-        .replace("…", "")
+        message.replace("…", "")
         .replace("...", "")
         .strip()
     )
@@ -2703,14 +2215,9 @@ def clean_scene(photo, message, dest, variant=0):
         )
 
     max_width = W - 104
-
     chosen = None
 
-    for size in range(
-        65,
-        17,
-        -1
-    ):
+    for size in range(65, 17, -1):
         ft = font(size)
 
         lines = wrap(
@@ -2727,7 +2234,10 @@ def clean_scene(photo, message, dest, variant=0):
         if (
             not lines
             or len(lines) > 8
-            or len(lines) * line_height > H * 0.63
+            or (
+                len(lines) * line_height
+                > H * 0.63
+            )
         ):
             continue
 
@@ -2745,15 +2255,14 @@ def clean_scene(photo, message, dest, variant=0):
         chosen = (
             ft,
             lines,
-            line_height,
+            line_height
         )
 
         break
 
     if chosen is None:
         raise ValueError(
-            "Escena imposible de componer: "
-            + message[:90]
+            "Texto demasiado largo para escena"
         )
 
     ft, lines, line_height = chosen
@@ -2763,15 +2272,15 @@ def clean_scene(photo, message, dest, variant=0):
     ) // 2
 
     for line in lines:
-        bbox = draw.textbbox(
+        box = draw.textbbox(
             (0, 0),
             line,
             font=ft,
-            stroke_width=3,
+            stroke_width=3
         )
 
         x = (
-            W - (bbox[2] - bbox[0])
+            W - (box[2] - box[0])
         ) / 2
 
         draw.text(
@@ -2787,12 +2296,13 @@ def clean_scene(photo, message, dest, variant=0):
 
     im.save(
         dest,
+        "JPEG",
         quality=92
     )
 
 
 # ============================================================
-# 18. ICONO DALE LIKE
+# 14. ICONO ANIMADO DALE LIKE
 # ============================================================
 
 def draw_like_icon(
@@ -2800,7 +2310,7 @@ def draw_like_icon(
     cx,
     cy,
     scale=1.0,
-    fill=(255, 255, 255, 255),
+    fill=(255, 255, 255, 255)
 ):
     s = float(scale)
 
@@ -2822,80 +2332,60 @@ def draw_like_icon(
 
     draw.ellipse(
         (
-            cx-radius,
-            cy-radius,
-            cx+radius,
-            cy+radius,
+            cx - radius,
+            cy - radius,
+            cx + radius,
+            cy + radius
         ),
-        fill=blue,
+        fill=blue
     )
 
     def pts(items):
         return [
             (
-                cx + x*s,
-                cy + y*s,
+                cx + x * s,
+                cy + y * s
             )
             for x, y in items
         ]
 
     draw.rounded_rectangle(
         (
-            cx-88*s,
-            cy-3*s,
-            cx-54*s,
-            cy+69*s,
+            cx - 88 * s,
+            cy - 3 * s,
+            cx - 54 * s,
+            cy + 69 * s
         ),
-        radius=8*s,
-        fill=white,
-    )
-
-    palm = pts([
-        (-46, 1), (-24, -14),
-        (13, -14), (26, -23),
-        (47, -20), (58, -11),
-        (58, 1), (54, 13),
-        (52, 21), (50, 34),
-        (47, 42), (45, 55),
-        (31, 68), (-45, 68),
-    ])
-
-    draw.polygon(
-        palm,
+        radius=8 * s,
         fill=white
     )
 
-    thumb = pts([
-        (-39, 4), (-20, -15),
-        (-9, -38), (2, -74),
-        (12, -93), (24, -96),
-        (32, -88), (34, -75),
-        (22, -38), (17, -21),
-        (35, -21), (46, -16),
-        (47, -7), (40, 3),
-    ])
-
     draw.polygon(
-        thumb,
-        fill=white
-    )
-
-    draw.line(
         pts([
-            (-52, 2),
-            (-52, 67),
+            (-46, 1), (-24, -14),
+            (13, -14), (26, -23),
+            (47, -20), (58, -11),
+            (58, 1), (54, 13),
+            (52, 21), (50, 34),
+            (47, 42), (45, 55),
+            (31, 68), (-45, 68),
         ]),
-        fill=blue,
-        width=max(
-            3,
-            int(5*s)
-        ),
+        fill=white
     )
 
+    draw.polygon(
+        pts([
+            (-39, 4), (-20, -15),
+            (-9, -38), (2, -74),
+            (12, -93), (24, -96),
+            (32, -88), (34, -75),
+            (22, -38), (17, -21),
+            (35, -21), (46, -16),
+            (47, -7), (40, 3),
+        ]),
+        fill=white
+    )
 
-# ============================================================
-# 19. ANIMACIÓN FINAL DALE LIKE
-# ============================================================
 
 def cta_scene_video(dest_video, duration):
     tmpdir = Path(
@@ -2915,8 +2405,6 @@ def cta_scene_video(dest_video, duration):
             6
         )
 
-        bottom_text = "DALE LIKE"
-
         for n in range(total_frames):
             img = Image.new(
                 "RGBA",
@@ -2930,10 +2418,6 @@ def cta_scene_video(dest_video, duration):
 
             pulse = (
                 1.0 if visible else 0.88
-            )
-
-            alpha = (
-                255 if visible else 82
             )
 
             halo = Image.new(
@@ -2952,16 +2436,16 @@ def cta_scene_video(dest_video, duration):
             ):
                 halo_draw.ellipse(
                     (
-                        W/2-140-extra,
-                        H/2-130-extra,
-                        W/2+140+extra,
-                        H/2+150+extra,
+                        W / 2 - 140 - extra,
+                        H / 2 - 130 - extra,
+                        W / 2 + 140 + extra,
+                        H / 2 + 150 + extra,
                     ),
                     fill=(
                         255,
                         255,
                         255,
-                        opacity if visible else 0,
+                        opacity if visible else 0
                     ),
                 )
 
@@ -2970,53 +2454,40 @@ def cta_scene_video(dest_video, duration):
                 halo
             )
 
-            draw = ImageDraw.Draw(
-                img
-            )
+            draw = ImageDraw.Draw(img)
 
             draw_like_icon(
                 draw,
-                W/2,
-                H//2-40,
-                scale=1.20*pulse,
+                W / 2,
+                H // 2 - 40,
+                scale=1.20 * pulse,
                 fill=(
-                    255,
-                    255,
-                    255,
-                    alpha
-                )
+                    255, 255, 255,
+                    255 if visible else 82
+                ),
             )
 
+            text = "DALE LIKE"
             ft = font(54)
 
-            bbox = draw.textbbox(
+            box = draw.textbbox(
                 (0, 0),
-                bottom_text,
+                text,
                 font=ft,
-                stroke_width=3,
-            )
-
-            text_width = (
-                bbox[2] - bbox[0]
+                stroke_width=3
             )
 
             x = (
-                W - text_width
+                W - (box[2] - box[0])
             ) / 2
 
-            y = H - 160
-
             draw.text(
-                (x, y),
-                bottom_text,
+                (x, H - 160),
+                text,
                 font=ft,
-                fill=(
-                    255, 255, 255, 255
-                ),
+                fill="white",
                 stroke_width=3,
-                stroke_fill=(
-                    9, 19, 28, 255
-                ),
+                stroke_fill="#09131C"
             )
 
             img.convert("RGB").save(
@@ -3024,24 +2495,15 @@ def cta_scene_video(dest_video, duration):
             )
 
         ffmpeg([
-            "-framerate",
-            str(FPS),
-            "-i",
-            tmpdir / "frame_%04d.png",
-            "-t",
-            str(duration),
-            "-r",
-            str(FPS),
-            "-c:v",
-            "libx264",
-            "-preset",
-            "veryfast",
-            "-crf",
-            "23",
-            "-pix_fmt",
-            "yuv420p",
-            "-movflags",
-            "+faststart",
+            "-framerate", str(FPS),
+            "-i", tmpdir / "frame_%04d.png",
+            "-t", str(duration),
+            "-r", str(FPS),
+            "-c:v", "libx264",
+            "-preset", "veryfast",
+            "-crf", "23",
+            "-pix_fmt", "yuv420p",
+            "-movflags", "+faststart",
             dest_video,
         ])
 
@@ -3053,7 +2515,7 @@ def cta_scene_video(dest_video, duration):
 
 
 # ============================================================
-# 20. MÚSICA ORIGINAL
+# 15. MUSICA ORIGINAL
 # ============================================================
 
 def soundtrack(path, secs=45, sr=22050):
@@ -3065,6 +2527,13 @@ def soundtrack(path, secs=45, sr=22050):
 
     buf = array.array("h")
 
+    notes = (
+        130.81,
+        164.81,
+        196.00,
+        261.63,
+    )
+
     for i in range(n):
         t = i / sr
 
@@ -3073,42 +2542,35 @@ def soundtrack(path, secs=45, sr=22050):
             min(
                 1.0,
                 t / 1.3,
-                (secs-t) / 2.0
+                (secs - t) / 2.0
             )
         )
 
-        notes = (
-            130.81,
-            164.81,
-            196.00,
-            261.63,
-        )
-
         note = notes[
-            int(t*2) % 4
+            int(t * 2) % 4
         ]
 
         pad = (
             0.36 * math.sin(
-                2*math.pi*130.81*t
+                2 * math.pi * 130.81 * t
             )
             + 0.22 * math.sin(
-                2*math.pi*196*t
+                2 * math.pi * 196 * t
             )
             + 0.13 * math.sin(
-                2*math.pi*261.63*t
+                2 * math.pi * 261.63 * t
             )
         )
 
         pulse = (
             0.15
             * math.sin(
-                2*math.pi*note*t
+                2 * math.pi * note * t
             )
             * (
                 0.5
-                + 0.5*math.cos(
-                    2*math.pi*2*t
+                + 0.5 * math.cos(
+                    2 * math.pi * 2 * t
                 )
             )
         )
@@ -3116,32 +2578,28 @@ def soundtrack(path, secs=45, sr=22050):
         shimmer = (
             0.07
             * math.sin(
-                2*math.pi*392*t
+                2 * math.pi * 392 * t
             )
             * (
                 0.5
-                + 0.5*math.sin(
-                    2*math.pi*t/8
+                + 0.5 * math.sin(
+                    2 * math.pi * t / 8
                 )
             )
         )
 
-        sample = max(
+        value = max(
             -1.0,
             min(
                 1.0,
                 (
-                    pad
-                    + pulse
-                    + shimmer
+                    pad + pulse + shimmer
                 ) * 0.55 * fade
             )
         )
 
         buf.append(
-            int(
-                32767 * sample
-            )
+            int(32767 * value)
         )
 
     with wave.open(
@@ -3157,7 +2615,7 @@ def soundtrack(path, secs=45, sr=22050):
 
 
 # ============================================================
-# 21. VOZ NEURAL Y FFMPEG
+# 16. VOZ NEURAL
 # ============================================================
 
 async def speak(text, out):
@@ -3166,7 +2624,7 @@ async def speak(text, out):
     await edge_tts.Communicate(
         text,
         voice=VOICE,
-        rate="+8%",
+        rate="+8%"
     ).save(str(out))
 
     if (
@@ -3174,33 +2632,12 @@ async def speak(text, out):
         or out.stat().st_size < 1000
     ):
         raise RuntimeError(
-            "Voz no generada"
-        )
-
-
-def ffmpeg(cmd):
-    process = subprocess.run(
-        [
-            "ffmpeg",
-            "-hide_banner",
-            "-loglevel",
-            "error",
-            "-y",
-            *map(str, cmd),
-        ],
-        capture_output=True,
-        text=True,
-    )
-
-    if process.returncode:
-        raise RuntimeError(
-            "FFmpeg: "
-            + process.stderr[-1400:]
+            "No se genero la voz"
         )
 
 
 # ============================================================
-# 22. RENDERIZAR VIDEO
+# 17. GENERACION DEL VIDEO
 # ============================================================
 
 def render(
@@ -3209,14 +2646,6 @@ def render(
     photo_dir=None,
     voice=True
 ):
-    """
-    Produce el Reel completo.
-
-    Con una fotografía válida continúa.
-    Cada escena puede utilizar un encuadre
-    distinto de la misma imagen.
-    """
-
     if not shutil.which("ffmpeg"):
         raise RuntimeError(
             "FFmpeg no instalado"
@@ -3235,11 +2664,6 @@ def render(
         ep
     )
 
-    if len(storyboard) < 4:
-        raise RuntimeError(
-            "Historia insuficiente"
-        )
-
     ep["storyboard"] = storyboard
 
     ep["script"] = " ".join(
@@ -3257,10 +2681,8 @@ def render(
         storyboard
     )
 
-    # ----------------------------------------
-    # FOTOGRAFÍAS
-    # ----------------------------------------
-
+    # Obtener fotografias antes de gastar
+    # tiempo en voces y renderizado.
     photos, credits = get_photos(
         ep,
         folder,
@@ -3268,35 +2690,19 @@ def render(
     )
 
     if not local_photo_audit(
-        photos,
-        credits,
-        ep,
-        photo_dir
+        photos, credits, ep, photo_dir
     ):
         raise RuntimeError(
-            "Fotografías sin pertinencia "
-            "sísmica suficiente"
+            "Fotografías sin licencia "
+            "o validez suficiente"
         )
-
-    # MEJORA PRINCIPAL:
-    # No se requieren dos imágenes.
 
     if len(photos) < MIN_VALID_PHOTOS:
         raise RuntimeError(
-            "No hay fotografías auténticas "
-            "para generar el video"
+            "No hay fotografías auténticas"
         )
 
-    if len(photos) == 1:
-        print(
-            "RENDER CON FOTO UNICA: "
-            "se aplicarán encuadres diferentes.",
-            flush=True
-        )
-
-    # ----------------------------------------
-    # VOZ POR ESCENA
-    # ----------------------------------------
+    ep["image_credits"] = credits
 
     durations = []
     voices = []
@@ -3308,26 +2714,20 @@ def render(
                 / f"voz_escena_{i:02d}.mp3"
             )
 
-            try:
-                asyncio.run(
-                    speak(
-                        beat["narration"],
-                        clip
-                    )
+            asyncio.run(
+                speak(
+                    beat["narration"],
+                    clip
                 )
+            )
 
-                from mutagen.mp3 import MP3
+            from mutagen.mp3 import MP3
 
-                seconds = float(
-                    MP3(str(clip)).info.length
-                )
+            seconds = float(
+                MP3(str(clip)).info.length
+            )
 
-                voices.append(clip)
-
-            except Exception as exc:
-                raise RuntimeError(
-                    f"Fallo voz escena {i+1}: {exc}"
-                ) from exc
+            voices.append(clip)
 
         else:
             seconds = 0.0
@@ -3341,25 +2741,21 @@ def render(
         )
 
         if stage == "pregunta":
-            min_duration = 3.6
-            read_rate = 2.7
+            minimum, rate = 3.6, 2.7
 
         elif stage == "intriga":
-            min_duration = 3.0
-            read_rate = 2.6
+            minimum, rate = 3.0, 2.6
 
         elif stage == "cta":
-            min_duration = 5.4
-            read_rate = 2.3
+            minimum, rate = 5.4, 2.3
 
         else:
-            min_duration = 4.7
-            read_rate = 2.15
+            minimum, rate = 4.7, 2.15
 
         duration = max(
             seconds + 0.55,
-            min_duration,
-            words / read_rate + 0.7,
+            minimum,
+            words / rate + 0.7
         )
 
         durations.append(
@@ -3371,106 +2767,88 @@ def render(
         2
     )
 
-    print(
-        "SINCRONIA escenas:",
+    log(
+        "VOZ POR ESCENA:",
         durations,
-        "duracion total:",
-        total,
-        flush=True
+        "TOTAL:",
+        total
     )
 
-    # ----------------------------------------
-    # CREAR ESCENAS
-    # ----------------------------------------
-
-    media_items = []
+    media = []
     cover = None
     photo_index = 0
 
     for i, beat in enumerate(storyboard):
-        stage = beat.get(
-            "stage", ""
-        )
-
-        if stage == "cta":
-            clip_path = (
+        if beat["stage"] == "cta":
+            clip = (
                 folder
                 / f"escena_{i:02d}.mp4"
             )
 
             cta_scene_video(
-                clip_path,
+                clip,
                 durations[i]
             )
 
-            media_items.append({
+            media.append({
                 "kind": "video",
-                "path": clip_path,
+                "path": clip,
                 "duration": durations[i],
             })
 
-        else:
-            frame = (
-                folder
-                / f"escena_{i:02d}.jpg"
+            continue
+
+        frame = (
+            folder
+            / f"escena_{i:02d}.jpg"
+        )
+
+        photo = photos[
+            photo_index % len(photos)
+        ]
+
+        clean_scene(
+            photo,
+            beat["overlay"],
+            frame,
+            variant=i,
+        )
+
+        media.append({
+            "kind": "image",
+            "path": frame,
+            "duration": durations[i],
+        })
+
+        if cover is None:
+            cover = (
+                out
+                / (
+                    ep["episode_id"]
+                    + "_portada.jpg"
+                )
             )
 
-            photo = photos[
-                min(
-                    photo_index,
-                    len(photos)-1
-                )
-            ]
-
-            clean_scene(
-                photo,
-                beat["overlay"],
+            shutil.copy2(
                 frame,
-                variant=i,
+                cover
             )
 
-            media_items.append({
-                "kind": "image",
-                "path": frame,
-                "duration": durations[i],
-            })
+        log(
+            "ESCENA-FOTO:",
+            i + 1,
+            "|",
+            photo.name,
+            "| encuadre",
+            i + 1
+        )
 
-            if cover is None:
-                cover = (
-                    out
-                    / (
-                        ep["episode_id"]
-                        + "_portada.jpg"
-                    )
-                )
-
-                shutil.copy2(
-                    frame,
-                    cover
-                )
-
-            print(
-                "ESCENA-FOTO:",
-                i+1,
-                "|",
-                stage,
-                "|",
-                photo.name,
-                "|",
-                f"encuadre {i+1}",
-                flush=True
-            )
-
-            photo_index += 1
+        photo_index += 1
 
     if cover is None:
         raise RuntimeError(
-            "No se pudo crear portada"
+            "Portada no generada"
         )
-
-    # ----------------------------------------
-    # MÚSICA ORIGINAL
-    # ----------------------------------------
 
     music = (
         folder / "musica.wav"
@@ -3478,56 +2856,40 @@ def render(
 
     soundtrack(
         music,
-        secs=total+1
+        secs=total + 1
     )
-
-    # ----------------------------------------
-    # PREPARAR INPUTS FFMPEG
-    # ----------------------------------------
 
     inputs = []
 
-    for item in media_items:
+    for item in media:
         if item["kind"] == "image":
-            inputs += [
-                "-loop",
-                "1",
-                "-framerate",
-                str(FPS),
-                "-t",
-                str(item["duration"]),
-                "-i",
-                item["path"],
-            ]
-
+            inputs.extend([
+                "-loop", "1",
+                "-framerate", str(FPS),
+                "-t", str(item["duration"]),
+                "-i", item["path"],
+            ])
         else:
-            inputs += [
-                "-i",
-                item["path"],
-            ]
+            inputs.extend([
+                "-i", item["path"],
+            ])
 
-    media_count = len(
-        media_items
-    )
+    media_count = len(media)
 
-    inputs += [
-        "-i",
-        music,
-    ]
+    inputs.extend([
+        "-i", music
+    ])
 
-    voice_start = (
-        media_count + 1
-    )
+    voice_start = media_count + 1
 
-    for v in voices:
-        inputs += [
-            "-i",
-            v,
-        ]
+    for clip in voices:
+        inputs.extend([
+            "-i", clip
+        ])
 
     filters = []
 
-    for i, item in enumerate(media_items):
+    for i, item in enumerate(media):
         filters.append(
             f"[{i}:v]"
             f"scale={W}:{H},"
@@ -3540,15 +2902,15 @@ def render(
     filters.append(
         "".join(
             f"[v{i}]"
-            for i in range(
-                media_count
-            )
+            for i in range(media_count)
         )
         + f"concat=n={media_count}:v=1:a=0[v]"
     )
 
     if voice:
-        for i, duration in enumerate(durations):
+        for i, duration in enumerate(
+            durations
+        ):
             filters.append(
                 f"[{voice_start+i}:a]"
                 "aresample=44100,"
@@ -3561,11 +2923,10 @@ def render(
         filters.append(
             "".join(
                 f"[a{i}]"
-                for i in range(
-                    len(voices)
-                )
+                for i in range(len(voices))
             )
-            + f"concat=n={len(voices)}:v=0:a=1[narr]"
+            + f"concat=n={len(voices)}:"
+            "v=0:a=1[narr]"
         )
 
         filters.append(
@@ -3587,10 +2948,6 @@ def render(
             "alimiter=limit=0.94[a]"
         )
 
-    # ----------------------------------------
-    # RENDER FINAL
-    # ----------------------------------------
-
     movie = (
         out
         / (
@@ -3603,28 +2960,17 @@ def render(
         *inputs,
         "-filter_complex",
         ";".join(filters),
-        "-map",
-        "[v]",
-        "-map",
-        "[a]",
-        "-t",
-        str(total),
-        "-r",
-        str(FPS),
-        "-c:v",
-        "libx264",
-        "-preset",
-        "veryfast",
-        "-crf",
-        "23",
-        "-pix_fmt",
-        "yuv420p",
-        "-c:a",
-        "aac",
-        "-b:a",
-        "160k",
-        "-movflags",
-        "+faststart",
+        "-map", "[v]",
+        "-map", "[a]",
+        "-t", str(total),
+        "-r", str(FPS),
+        "-c:v", "libx264",
+        "-preset", "veryfast",
+        "-crf", "23",
+        "-pix_fmt", "yuv420p",
+        "-c:a", "aac",
+        "-b:a", "160k",
+        "-movflags", "+faststart",
         movie,
     ])
 
@@ -3641,53 +2987,26 @@ def render(
             "sincronizacion": (
                 "voz separada por escena"
             ),
-            "musica": (
-                "instrumental_original"
-            ),
+            "musica": "instrumental_original",
             "fotografias_distintas": len(photos),
-            "encuadres": len(storyboard)-1,
+            "encuadres": len(storyboard) - 1,
         }
     )
 
-    print(
+    log(
         "VIDEO:",
         movie,
         "PORTADA:",
         cover,
-        "VOZ sincronizada:",
+        "VOZ:",
         voice,
-        flush=True
     )
 
     return movie, cover, credits
 
 
-def local_photo_audit(
-    photos,
-    credits,
-    ep,
-    photo_dir
-):
-    if photo_dir:
-        print(
-            "AVISO: fotografías aportadas manualmente; "
-            "revisar pertinencia y licencias.",
-            flush=True
-        )
-
-        return True
-
-    return all(
-        photo_relevant(c, ep)
-        and license_accepted(
-            c.get("license", "")
-        )
-        for c in credits
-    )
-
-
 # ============================================================
-# 23. GITHUB — ESTADO PERSISTENTE
+# 18. GITHUB - ESTADO PERSISTENTE
 # ============================================================
 
 class Github:
@@ -3734,7 +3053,6 @@ class Github:
         )
 
         response.raise_for_status()
-
         return response.json()
 
     def read(self, path):
@@ -3762,7 +3080,7 @@ class Github:
             base64.b64decode(
                 data["content"]
             ),
-            data["sha"],
+            data["sha"]
         )
 
     def write(self, path, data, sha=None):
@@ -3795,13 +3113,13 @@ class Github:
             "GET", ""
         ).get("private"):
             raise RuntimeError(
-                "El repositorio debe ser público "
-                "para alojar la URL multimedia"
+                "El repositorio debe ser publico "
+                "para las URLs multimedia"
             )
 
 
 # ============================================================
-# 24. INSTAGRAM GRAPH API
+# 19. INSTAGRAM GRAPH API
 # ============================================================
 
 def ig(method, endpoint, token, fields):
@@ -3822,7 +3140,6 @@ def ig(method, endpoint, token, fields):
             params=fields,
             timeout=45
         )
-
     else:
         response = requests.post(
             url,
@@ -3830,7 +3147,12 @@ def ig(method, endpoint, token, fields):
             timeout=65
         )
 
-    data = response.json()
+    try:
+        data = response.json()
+    except ValueError:
+        raise RuntimeError(
+            "Instagram no respondio JSON"
+        )
 
     if (
         not response.ok
@@ -3838,7 +3160,7 @@ def ig(method, endpoint, token, fields):
     ):
         raise RuntimeError(
             f"Instagram {response.status_code}: "
-            + str(data)[:400]
+            + str(data)[:350]
         )
 
     return data
@@ -3877,9 +3199,7 @@ def ig_publish(
             container_id,
             token,
             {
-                "fields": (
-                    "status_code,status"
-                )
+                "fields": "status_code,status"
             }
         )
 
@@ -3895,14 +3215,13 @@ def ig_publish(
             "EXPIRED"
         ):
             raise RuntimeError(
-                "Procesamiento Instagram falló: "
+                "Instagram procesamiento fallido: "
                 + str(status)
             )
 
     else:
         raise RuntimeError(
-            "Tiempo de espera agotado; "
-            "publicación incierta."
+            "Instagram: procesamiento incierto"
         )
 
     return ig(
@@ -3923,8 +3242,7 @@ def verify_instagram_account():
 
     if expected != ACCOUNT:
         raise RuntimeError(
-            "Cuenta esperada incorrecta: "
-            + expected
+            "Cuenta esperada incorrecta"
         )
 
     token = os.getenv(
@@ -3937,8 +3255,7 @@ def verify_instagram_account():
 
     if not token or not user:
         raise RuntimeError(
-            "Faltan INSTAGRAM_TOKEN "
-            "o INSTAGRAM_USER_ID"
+            "Faltan credenciales Instagram"
         )
 
     me = ig(
@@ -3957,19 +3274,17 @@ def verify_instagram_account():
         ).lower() != ACCOUNT
     ):
         raise RuntimeError(
-            "El token Instagram no corresponde "
-            "a @sismonauta"
+            "El token no pertenece a @sismonauta"
         )
 
-    print(
-        "TOKEN Instagram válido; "
-        "cuenta verificada: @sismonauta",
-        flush=True
+    log(
+        "TOKEN Instagram válido;",
+        "cuenta verificada: @sismonauta"
     )
 
 
 # ============================================================
-# 25. FACEBOOK GRAPH API
+# 20. FACEBOOK GRAPH API
 # ============================================================
 
 def fb_api(
@@ -3998,23 +3313,20 @@ def fb_api(
         data = response.json()
     except ValueError:
         raise RuntimeError(
-            "Facebook respondió sin JSON"
+            "Facebook no respondio JSON"
         )
 
     if (
         not response.ok
         or data.get("error")
     ):
-        error = data.get(
-            "error", {}
-        )
+        error = data.get("error") or {}
 
         raise RuntimeError(
             f"Facebook HTTP {response.status_code}: "
-            + error.get(
-                "message",
-                str(data)[:180]
-            )
+            + str(
+                error.get("message", data)
+            )[:250]
         )
 
     return data
@@ -4031,12 +3343,12 @@ def verify_facebook_page():
 
     if not page or not token:
         raise RuntimeError(
-            "Faltan credenciales de Facebook"
+            "Faltan credenciales Facebook"
         )
 
     if not page.isdigit():
         raise RuntimeError(
-            "FACEBOOK_PAGE_ID debe ser numérico"
+            "FACEBOOK_PAGE_ID debe ser numerico"
         )
 
     info = fb_api(
@@ -4050,7 +3362,7 @@ def verify_facebook_page():
 
     if str(info.get("id")) != page:
         raise RuntimeError(
-            "El token no corresponde a la Fanpage"
+            "Token de fanpage incorrecto"
         )
 
     expected = os.getenv(
@@ -4072,17 +3384,16 @@ def verify_facebook_page():
             + username
         )
 
-    print(
+    log(
         "PAGINA Facebook validada:",
-        info.get("name", ""),
-        flush=True
+        info.get("name", "")
     )
 
     return page, token
 
 
 # ============================================================
-# 26. FACEBOOK REEL
+# 21. FACEBOOK REEL
 # ============================================================
 
 def fb_publish_reel(
@@ -4116,7 +3427,7 @@ def fb_publish_reel(
         )
     ):
         raise RuntimeError(
-            "Facebook Reel: sesión de carga incompleta"
+            "Facebook Reel: sesion incompleta"
         )
 
     headers = {
@@ -4163,19 +3474,19 @@ def fb_publish_reel(
             "video_state": "PUBLISHED",
             "description": caption[:5000],
             "title": str(episode_id)[:200],
-        },
+        }
     )
 
     if result.get("success") is not True:
         raise RuntimeError(
-            "Facebook Reel: finalización no confirmada"
+            "Facebook Reel: finalizacion incierta"
         )
 
     return video_id
 
 
 # ============================================================
-# 27. FACEBOOK STORY
+# 22. FACEBOOK STORY
 # ============================================================
 
 def fb_publish_story(page, token, movie):
@@ -4203,7 +3514,7 @@ def fb_publish_story(page, token, movie):
         )
     ):
         raise RuntimeError(
-            "Facebook Story: sesión incompleta"
+            "Facebook Story: sesion incompleta"
         )
 
     headers = {
@@ -4253,14 +3564,14 @@ def fb_publish_story(page, token, movie):
 
     if result.get("success") is not True:
         raise RuntimeError(
-            "Facebook Story: finalización no confirmada"
+            "Facebook Story: finalizacion incierta"
         )
 
     return video_id
 
 
 # ============================================================
-# 28. FACEBOOK FEED
+# 23. FACEBOOK FEED
 # ============================================================
 
 def fb_publish_feed_video(
@@ -4306,16 +3617,13 @@ def fb_publish_feed_video(
         not response.ok
         or result.get("error")
     ):
-        error = result.get(
-            "error", {}
-        )
+        error = result.get("error") or {}
 
         raise RuntimeError(
             "Facebook Feed: "
-            + error.get(
-                "message",
-                str(result)[:180]
-            )
+            + str(
+                error.get("message", result)
+            )[:250]
         )
 
     video_id = str(
@@ -4324,14 +3632,14 @@ def fb_publish_feed_video(
 
     if not video_id.isdigit():
         raise RuntimeError(
-            "Facebook Feed: no se devolvió ID"
+            "Facebook Feed: sin ID"
         )
 
     return video_id
 
 
 # ============================================================
-# 29. HISTORIAL ANTIDUPLICADOS
+# 24. HISTORIAL ANTIDUPLICADOS
 # ============================================================
 
 def legacy_topic_for_episode(episode_id):
@@ -4351,14 +3659,14 @@ def legacy_topic_for_episode(episode_id):
         "Lo esencial en segundos",
     ]
 
-    for topic in TOPICS:
+    for item in TOPICS:
         for style in STYLES:
             for angle in angles:
                 old_id = (
                     "sismos-"
                     + hashlib.sha1(
                         (
-                            topic["id"]
+                            item["id"]
                             + style
                             + angle
                         ).encode()
@@ -4366,18 +3674,15 @@ def legacy_topic_for_episode(episode_id):
                 )
 
                 if old_id == episode_id:
-                    return topic["id"]
+                    return item["id"]
 
     return None
 
 
-def remote_published_topics(
-    state,
-    history
-):
+def remote_published_topics(state, history):
     used = set()
 
-    published_keys = (
+    keys = (
         "reel",
         "story",
         "facebook_reel",
@@ -4388,7 +3693,6 @@ def remote_published_topics(
     for episode_id, row in (
         state.get("episodes") or {}
     ).items():
-
         if not isinstance(row, dict):
             continue
 
@@ -4398,47 +3702,47 @@ def remote_published_topics(
                 "enviando",
                 "incierto",
             )
-            for key in published_keys
+            for key in keys
         ):
             continue
 
-        topic = (
+        topic_id = (
             row.get("topic")
             or legacy_topic_for_episode(
                 episode_id
             )
         )
 
-        if not topic:
-            topic = next(
+        if not topic_id:
+            topic_id = next(
                 (
-                    h.get("topic")
-                    for h in history.get(
+                    item.get("topic")
+                    for item in history.get(
                         "items", []
                     )
-                    if h.get("episode_id") == episode_id
+                    if item.get("episode_id")
+                    == episode_id
                 ),
                 None
             )
 
-        if topic:
-            used.add(topic)
-
-        else:
+        if not topic_id:
             raise RuntimeError(
-                "Historial sin tema identificable: "
+                "Historial sin tema: "
                 + episode_id
             )
 
-    for entry in history.get(
+        used.add(topic_id)
+
+    for item in history.get(
         "items", []
     ):
         if (
-            entry.get("status") == "publicado"
-            and entry.get("topic")
+            item.get("status") == "publicado"
+            and item.get("topic")
         ):
             used.add(
-                entry["topic"]
+                item["topic"]
             )
 
     return used
@@ -4460,9 +3764,9 @@ def choose_topic(
             )
 
         matches = [
-            topic
-            for topic in TOPICS
-            if topic["id"] == requested
+            item
+            for item in TOPICS
+            if item["id"] == requested
         ]
 
         if not matches:
@@ -4472,49 +3776,47 @@ def choose_topic(
 
         return matches[0]
 
+    # Correccion:
+    # Los 25 temas estan disponibles
+    # para seleccion automatica.
     candidates = [
-        topic
-        for topic in TOPICS
-        if (
-            topic["id"] in LANDSCAPE_AUTO_TOPICS
-            and topic["id"] not in excluded
-        )
+        item
+        for item in TOPICS
+        if item["id"] not in excluded
     ]
 
     if not candidates:
         raise RuntimeError(
             "CATALOGO_AGOTADO: no quedan "
-            "temas científicos inéditos"
+            "temas cientificos ineditos"
         )
 
     counts = {
-        x["id"]: 0
-        for x in candidates
+        item["id"]: 0
+        for item in candidates
     }
 
-    for entry in history.get(
+    for item in history.get(
         "items", []
     ):
-        topic_id = entry.get(
+        topic_id = item.get(
             "topic"
         )
 
         if topic_id in counts:
             counts[topic_id] += 1
 
-    minimum = min(
-        counts.values()
-    )
+    minimum = min(counts.values())
 
     return random.SystemRandom().choice([
-        topic
-        for topic in candidates
-        if counts[topic["id"]] == minimum
+        item
+        for item in candidates
+        if counts[item["id"]] == minimum
     ])
 
 
 # ============================================================
-# 30. PUBLICAR EN LAS CINCO PLATAFORMAS
+# 25. PUBLICACION EN LAS CINCO PLATAFORMAS
 # ============================================================
 
 def publish(
@@ -4526,13 +3828,6 @@ def publish(
     out_dir=None,
     facebook=True
 ):
-    """
-    Respeta estados anteriores.
-
-    No reenvía publicaciones previamente
-    publicadas o con resultado incierto.
-    """
-
     if (
         not auto
         and approval != ep["episode_id"]
@@ -4546,17 +3841,7 @@ def publish(
         and not ep.get("base_verified")
     ):
         raise RuntimeError(
-            "Publicación autónoma no autorizada"
-        )
-
-    expected = os.getenv(
-        "IG_EXPECTED_USERNAME",
-        ACCOUNT
-    ).strip().lstrip("@").lower()
-
-    if expected != ACCOUNT:
-        raise RuntimeError(
-            "Cuenta esperada incorrecta"
+            "Publicacion automatica no autorizada"
         )
 
     token = os.environ[
@@ -4567,24 +3852,7 @@ def publish(
         "INSTAGRAM_USER_ID"
     ]
 
-    me = ig(
-        "GET",
-        "me",
-        token,
-        {
-            "fields": "id,username"
-        }
-    )
-
-    if (
-        str(me.get("id")) != user
-        or str(
-            me.get("username", "")
-        ).lower() != ACCOUNT
-    ):
-        raise RuntimeError(
-            "Token Instagram de otra cuenta"
-        )
+    verify_instagram_account()
 
     gh = Github()
     gh.assert_public()
@@ -4607,7 +3875,16 @@ def publish(
     )
 
     row = items.setdefault(
-        ep["episode_id"], {}
+        ep["episode_id"],
+        {}
+    )
+
+    keys = (
+        "reel",
+        "story",
+        "facebook_reel",
+        "facebook_story",
+        "facebook_feed",
     )
 
     for old_id, old_row in items.items():
@@ -4619,9 +3896,7 @@ def publish(
 
         old_topic = (
             old_row.get("topic")
-            or legacy_topic_for_episode(
-                old_id
-            )
+            or legacy_topic_for_episode(old_id)
         )
 
         if (
@@ -4632,28 +3907,20 @@ def publish(
                     "enviando",
                     "incierto",
                 )
-                for k in (
-                    "reel",
-                    "story",
-                    "facebook_reel",
-                    "facebook_story",
-                    "facebook_feed",
-                )
+                for k in keys
             )
         ):
             raise RuntimeError(
                 "Tema ya publicado o en proceso: "
-                + old_topic
+                + str(old_topic)
             )
 
-    if not row.get("topic"):
-        row["topic"] = ep.get(
-            "id"
-        )
+    row.setdefault(
+        "topic",
+        ep.get("id")
+    )
 
-    destinations = [
-        "reel"
-    ]
+    destinations = ["reel"]
 
     if story:
         destinations.append(
@@ -4675,16 +3942,14 @@ def publish(
         )
 
     for dest in destinations:
-        status = row.get(
-            dest
-        )
+        status = row.get(dest)
 
         if status in (
             "enviando",
             "incierto"
         ):
             raise RuntimeError(
-                f"{dest}: envío anterior incierto"
+                f"{dest}: envio anterior incierto"
             )
 
         if (
@@ -4694,7 +3959,7 @@ def publish(
             ).isdigit()
         ):
             raise RuntimeError(
-                f"{dest}: publicado sin ID válido"
+                f"{dest}: publicado sin ID valido"
             )
 
         if status not in (
@@ -4702,16 +3967,15 @@ def publish(
             "publicado"
         ):
             raise RuntimeError(
-                "Estado de historial desconocido"
+                "Estado del historial desconocido"
             )
 
-    print(
+    log(
         "REANUDACION SEGURA:",
         {
             k: row.get(k, "pendiente")
             for k in destinations
-        },
-        flush=True
+        }
     )
 
     def save(status, which):
@@ -4743,19 +4007,41 @@ def publish(
         "account": ACCOUNT,
         "episode_id": ep["episode_id"],
         "reel_id": row.get("reel_id"),
-        "reel_published": row.get("reel") == "publicado",
+        "reel_published": (
+            row.get("reel") == "publicado"
+        ),
         "story_requested": bool(story),
-        "story_published": row.get("story") == "publicado",
+        "story_published": (
+            row.get("story") == "publicado"
+        ),
         "story_id": row.get("story_id"),
-        "facebook_reel_requested": bool(facebook),
-        "facebook_reel_published": row.get("facebook_reel") == "publicado",
-        "facebook_reel_id": row.get("facebook_reel_id"),
-        "facebook_story_requested": bool(facebook and story),
-        "facebook_story_published": row.get("facebook_story") == "publicado",
-        "facebook_story_id": row.get("facebook_story_id"),
-        "facebook_feed_requested": bool(facebook),
-        "facebook_feed_published": row.get("facebook_feed") == "publicado",
-        "facebook_feed_id": row.get("facebook_feed_id"),
+        "facebook_reel_requested": bool(
+            facebook
+        ),
+        "facebook_reel_published": (
+            row.get("facebook_reel") == "publicado"
+        ),
+        "facebook_reel_id": row.get(
+            "facebook_reel_id"
+        ),
+        "facebook_story_requested": bool(
+            facebook and story
+        ),
+        "facebook_story_published": (
+            row.get("facebook_story") == "publicado"
+        ),
+        "facebook_story_id": row.get(
+            "facebook_story_id"
+        ),
+        "facebook_feed_requested": bool(
+            facebook
+        ),
+        "facebook_feed_published": (
+            row.get("facebook_feed") == "publicado"
+        ),
+        "facebook_feed_id": row.get(
+            "facebook_feed_id"
+        ),
         "confirmed_at": utcnow(),
     }
 
@@ -4777,19 +4063,19 @@ def publish(
             which + "_published"
         ] = True
 
-        confirmation[
-            "confirmed_at"
-        ] = utcnow()
+        confirmation["confirmed_at"] = (
+            utcnow()
+        )
 
         write_json_atomic(
             receipt_path,
             confirmation
         )
 
-        print(
-            f"{which.upper()} ACEPTADO POR META:",
-            media_id,
-            flush=True
+        log(
+            which.upper(),
+            "ACEPTADO POR META:",
+            media_id
         )
 
     write_json_atomic(
@@ -4801,17 +4087,19 @@ def publish(
         "image_credits", []
     )
 
-    if (
-        not credits
-        or any(
-            not license_accepted(
-                c.get("license", "")
-            )
-            for c in credits
+    if not credits:
+        raise RuntimeError(
+            "Sin fotografias verificadas"
         )
+
+    if any(
+        not license_accepted(
+            c.get("license", "")
+        )
+        for c in credits
     ):
         raise RuntimeError(
-            "No hay imágenes CC0/PD verificadas"
+            "Sin licencia CC0/PD validada"
         )
 
     caption = (
@@ -4820,22 +4108,10 @@ def publish(
         + episode_hashtags(ep)
     )
 
-    if (
-        len(caption) > 2200
-        or len(
-            re.findall(
-                r"(?<!\w)#[A-Za-z0-9_]+",
-                caption
-            )
-        ) < 10
-    ):
+    if len(caption) > 2200:
         raise RuntimeError(
-            "Descripción editorial inválida"
+            "Descripcion demasiado larga"
         )
-
-    # ----------------------------------------
-    # URL MULTIMEDIA PARA INSTAGRAM
-    # ----------------------------------------
 
     pending_ig = [
         dest
@@ -4883,7 +4159,7 @@ def publish(
         else:
             if old_file != contents:
                 raise RuntimeError(
-                    "Colisión de archivos multimedia"
+                    "Colision de archivo multimedia"
                 )
 
             commit = gh.api(
@@ -4902,39 +4178,33 @@ def publish(
         ) as response:
             response.raise_for_status()
 
-            if len(
-                response.content
-            ) != movie.stat().st_size:
+            if (
+                len(response.content)
+                != movie.stat().st_size
+            ):
                 raise RuntimeError(
                     "URL MP4 incompleta"
                 )
 
-    # ----------------------------------------
-    # INSTAGRAM REEL + STORY
-    # ----------------------------------------
-
+    # Instagram Reel + Story.
     for which in (
         "reel",
-        "story"
+        "story",
     ):
         if which not in destinations:
             continue
 
         if row.get(which) == "publicado":
-            print(
+            log(
                 which.upper(),
-                "OMITIDO: ya publicado",
-                flush=True
+                "YA PUBLICADO"
             )
             continue
 
-        save(
-            "enviando",
-            which
-        )
+        save("enviando", which)
 
         try:
-            published_id = ig_publish(
+            media_id = ig_publish(
                 user,
                 token,
                 url,
@@ -4947,23 +4217,16 @@ def publish(
             )
 
         except BaseException:
-            save(
-                "incierto",
-                which
-            )
+            save("incierto", which)
             raise
 
-        confirm(
-            which,
-            published_id
-        )
+        confirm(which, media_id)
 
-    # ----------------------------------------
-    # FACEBOOK REEL + STORY + FEED
-    # ----------------------------------------
-
+    # Facebook Reel + Story + Feed.
     if facebook:
-        page, fb_token = verify_facebook_page()
+        page, fb_token = (
+            verify_facebook_page()
+        )
 
         confirmation[
             "facebook_page_id"
@@ -4983,21 +4246,17 @@ def publish(
                 continue
 
             if row.get(which) == "publicado":
-                print(
+                log(
                     which.upper(),
-                    "OMITIDO: ya publicado",
-                    flush=True
+                    "YA PUBLICADO"
                 )
                 continue
 
-            save(
-                "enviando",
-                which
-            )
+            save("enviando", which)
 
             try:
                 if which == "facebook_reel":
-                    published_id = fb_publish_reel(
+                    media_id = fb_publish_reel(
                         page,
                         fb_token,
                         movie,
@@ -5006,14 +4265,14 @@ def publish(
                     )
 
                 elif which == "facebook_story":
-                    published_id = fb_publish_story(
+                    media_id = fb_publish_story(
                         page,
                         fb_token,
                         movie,
                     )
 
                 else:
-                    published_id = fb_publish_feed_video(
+                    media_id = fb_publish_feed_video(
                         page,
                         fb_token,
                         movie,
@@ -5022,10 +4281,7 @@ def publish(
                     )
 
             except BaseException:
-                save(
-                    "incierto",
-                    which
-                )
+                save("incierto", which)
 
                 confirmation[
                     which + "_uncertain"
@@ -5035,24 +4291,19 @@ def publish(
                     receipt_path,
                     confirmation
                 )
-
                 raise
 
-            confirm(
-                which,
-                published_id
-            )
+            confirm(which, media_id)
 
-    print(
+    log(
         "PUBLICACIONES SOLICITADAS A META;",
         "recibo:",
-        receipt_path,
-        flush=True
+        receipt_path
     )
 
 
 # ============================================================
-# 31. MÉTRICAS
+# 26. METRICAS
 # ============================================================
 
 def metrics(csv_path):
@@ -5063,15 +4314,9 @@ def metrics(csv_path):
         encoding="utf-8-sig",
         newline=""
     ) as fh:
-
         for row in csv.DictReader(fh):
-            plays = int(
-                row["plays"]
-            )
-
-            views = int(
-                row["views_7s"]
-            )
+            plays = int(row["plays"])
+            views = int(row["views_7s"])
 
             if (
                 plays < 0
@@ -5079,13 +4324,12 @@ def metrics(csv_path):
                 or views > plays
             ):
                 raise ValueError(
-                    "Métricas inconsistentes"
+                    "Metricas inconsistentes"
                 )
 
             rate = (
                 views / plays
-                if plays
-                else 0
+                if plays else 0
             )
 
             result = (
@@ -5094,23 +4338,22 @@ def metrics(csv_path):
                 else "NO ALCANZADO"
             )
 
-            print(
+            log(
                 f"{row['episode_id']}: "
                 f"R7={rate:.1%} | "
-                f"objetivo=70% | "
-                f"{result}"
+                f"objetivo=70% | {result}"
             )
 
 
 # ============================================================
-# 32. PROGRAMA PRINCIPAL
+# 27. PROGRAMA PRINCIPAL
 # ============================================================
 
 def main():
     parser = argparse.ArgumentParser(
         description=(
             "SISMONAUTA @sismonauta: "
-            "videos sísmicos con fotos reales"
+            "videos educativos con paisajes reales"
         )
     )
 
@@ -5182,22 +4425,35 @@ def main():
     args = parser.parse_args()
 
     if args.list:
-        for topic in TOPICS:
-            print(
-                topic["id"],
-                topic["title"]
+        for item in TOPICS:
+            log(
+                item["id"],
+                item["title"]
             )
-        return
+        return 0
 
     if args.metrics_csv:
-        metrics(
-            args.metrics_csv
-        )
-        return
+        metrics(args.metrics_csv)
+        return 0
 
-    out = Path(
-        args.out
-    )
+    if (
+        args.auto_publish
+        and not args.publish
+    ):
+        raise RuntimeError(
+            "--auto-publish requiere --publish"
+        )
+
+    if (
+        args.auto_publish
+        and args.episode_json
+    ):
+        raise RuntimeError(
+            "--auto-publish no admite "
+            "--episode-json"
+        )
+
+    out = Path(args.out)
 
     out.mkdir(
         parents=True,
@@ -5216,15 +4472,10 @@ def main():
 
     history = read_json(
         history_path,
-        {
-            "items": []
-        }
+        {"items": []}
     )
 
-    # ----------------------------------------
-    # HISTORIAL EDITORIAL REMOTO
-    # ----------------------------------------
-
+    # Leer historial editorial remoto.
     if (
         os.getenv("GH_TOKEN")
         and os.getenv("GITHUB_REPOSITORY")
@@ -5233,24 +4484,21 @@ def main():
             gh = Github()
 
             raw, _ = gh.read(
-                "dataviral/sismos_editorial.json"
+                EDITORIAL_PATH
             )
 
             if raw:
-                history = json.loads(
-                    raw
-                )
+                history = json.loads(raw)
 
         except Exception as exc:
-            print(
-                "Historial remoto no disponible:",
-                str(exc)[:140],
-                flush=True
+            log(
+                "Historial editorial no disponible:",
+                safe_error(exc)
             )
 
-    # ----------------------------------------
-    # TEMAS PUBLICADOS / EN PROCESO
-    # ----------------------------------------
+    history.setdefault(
+        "items", []
+    )
 
     published_topics = set()
 
@@ -5264,48 +4512,25 @@ def main():
         live_state = (
             json.loads(raw_state)
             if raw_state
-            else {
-                "episodes": {}
-            }
+            else {"episodes": {}}
         )
 
-        published_topics = remote_published_topics(
-            live_state,
-            history
+        published_topics = (
+            remote_published_topics(
+                live_state,
+                history
+            )
         )
 
-        print(
+        log(
             "ANTIDUPLICADOS:",
-            sorted(published_topics),
-            flush=True
+            sorted(published_topics)
         )
 
-    if (
-        args.auto_publish
-        and not args.publish
-    ):
-        raise RuntimeError(
-            "--auto-publish requiere --publish"
-        )
-
-    if args.publish:
         verify_instagram_account()
 
         if not args.no_facebook:
             verify_facebook_page()
-
-    if (
-        args.auto_publish
-        and args.episode_json
-    ):
-        raise RuntimeError(
-            "No usar --episode-json "
-            "con --auto-publish"
-        )
-
-    # ----------------------------------------
-    # SELECCIÓN DE TEMAS Y FOTOGRAFÍAS
-    # ----------------------------------------
 
     tried_visual = set()
 
@@ -5319,8 +4544,8 @@ def main():
             if (
                 not isinstance(ep, dict)
                 or not all(
-                    ep.get(x)
-                    for x in (
+                    ep.get(field)
+                    for field in (
                         "episode_id",
                         "title",
                         "script",
@@ -5331,76 +4556,88 @@ def main():
                 )
             ):
                 raise RuntimeError(
-                    "JSON del episodio inválido"
+                    "JSON de episodio invalido"
                 )
 
             if not str(
                 ep["episode_id"]
             ).startswith("sismos-"):
                 raise RuntimeError(
-                    "Solo episodios sísmicos SISMONAUTA"
+                    "Episodio ajeno a SISMONAUTA"
                 )
 
-            topic = {
-                "id": ep.get(
-                    "id",
-                    "revisado"
-                )
+            topic_data = {
+                "id": ep.get("id", "revisado")
             }
 
         else:
             try:
-                topic = choose_topic(
+                topic_data = choose_topic(
                     history,
                     args.topic,
-                    published_topics | tried_visual,
+                    published_topics | tried_visual
                 )
 
             except RuntimeError as exc:
                 if (
                     tried_visual
                     and not args.topic
+                    and "CATALOGO_AGOTADO" in str(exc)
                 ):
-                    raise RuntimeError(
-                        "No fue posible encontrar "
-                        "ninguna fotografía válida "
-                        "para los temas inéditos probados. "
-                        "Temas descartados: "
-                        + ", ".join(
-                            sorted(tried_visual)
-                        )
-                    ) from exc
+                    report = {
+                        "status": (
+                            "skipped_no_valid_images"
+                        ),
+                        "reason": (
+                            "Sin fotografias verificadas "
+                            "para los temas ineditos"
+                        ),
+                        "discarded_topics": sorted(
+                            tried_visual
+                        ),
+                        "published": False,
+                        "checked_at": utcnow(),
+                    }
+
+                    write_json_atomic(
+                        out / "estado_ejecucion.json",
+                        report
+                    )
+
+                    log(
+                        "SIN PUBLICACION:",
+                        report["reason"]
+                    )
+
+                    log(
+                        "TEMAS DESCARTADOS:",
+                        report["discarded_topics"]
+                    )
+
+                    return 0
 
                 raise
 
             ep = generate_angle(
-                topic,
+                topic_data,
                 history,
-                use_ai=(
-                    not args.no_ai
-                    and not args.auto_publish
-                )
+                use_ai=not args.no_ai
             )
 
             ep["base_verified"] = bool(
                 args.auto_publish
-                and topic.get("source")
-                and topic.get("fact")
-                and topic.get("lesson")
+                and topic_data.get("source")
+                and topic_data.get("fact")
+                and topic_data.get("lesson")
             )
 
             ep["editorial_check"] = (
-                "Afirmaciones restringidas "
-                "a la base editorial; "
-                "no equivale a verificar "
-                "la página de origen en tiempo real."
-                if args.auto_publish
-                else "Requiere revisión de datos"
+                "Contenido basado en la base editorial "
+                "documentada. Fuentes no verificadas "
+                "en tiempo real."
             )
 
-        episode = ep[
-            "episode_id"
-        ]
+        episode = ep["episode_id"]
 
         write_json_atomic(
             out / (
@@ -5409,14 +4646,13 @@ def main():
             ep
         )
 
-        print(
+        log(
             "EPISODIO:",
             episode,
             "TEMA:",
             ep["title"],
             "FUENTE:",
-            ep["source"],
-            flush=True
+            ep["source"]
         )
 
         if (
@@ -5425,8 +4661,7 @@ def main():
             and args.approved_id != episode
         ):
             raise RuntimeError(
-                "No se publica sin "
-                "--approved-id "
+                "No se publica sin --approved-id "
                 + episode
             )
 
@@ -5440,8 +4675,7 @@ def main():
             )
         ):
             raise RuntimeError(
-                "Falta fuente o afirmación "
-                "editorial predefinida"
+                "Falta fuente editorial"
             )
 
         try:
@@ -5455,16 +4689,15 @@ def main():
             break
 
         except RuntimeError as exc:
-            message = str(
-                exc
-            )
+            message = str(exc)
 
             photo_issue = any(
                 text in message
                 for text in (
                     "No se encontraron fotografías auténticas",
                     "No hay fotografías auténticas",
-                    "Fotografías sin pertinencia sísmica suficiente",
+                    "Fotografías sin licencia",
+                    "Fotografías sin pertinencia",
                 )
             )
 
@@ -5477,22 +4710,14 @@ def main():
                 raise
 
             tried_visual.add(
-                topic["id"]
+                topic_data["id"]
             )
 
-            print(
-                "REINTENTO VISUAL: descartado",
-                topic["id"],
-                "por falta de fotografías pertinentes;",
-                "probando otro tema inédito.",
-                "Detalle:",
-                message,
-                flush=True
+            log(
+                "REINTENTO VISUAL:",
+                topic_data["id"],
+                safe_error(exc)
             )
-
-    # ----------------------------------------
-    # GUARDAR GUION Y CRÉDITOS
-    # ----------------------------------------
 
     ep["image_credits"] = credits
 
@@ -5504,14 +4729,14 @@ def main():
     )
 
     if not any(
-        entry.get("episode_id") == episode
-        for entry in history["items"]
+        item.get("episode_id") == episode
+        for item in history["items"]
     ):
         history["items"].append({
             "episode_id": episode,
-            "topic": topic["id"],
-            "style": ep["style"],
-            "angle": ep["angle"],
+            "topic": topic_data["id"],
+            "style": ep.get("style", ""),
+            "angle": ep.get("angle", ""),
             "time": utcnow(),
             "status": (
                 "preparado"
@@ -5525,10 +4750,6 @@ def main():
         history
     )
 
-    # ----------------------------------------
-    # PUBLICACIÓN EN META
-    # ----------------------------------------
-
     if args.publish:
         publish(
             ep,
@@ -5540,11 +4761,9 @@ def main():
             facebook=not args.no_facebook,
         )
 
-        for entry in history["items"]:
-            if entry.get(
-                "episode_id"
-            ) == episode:
-                entry["status"] = "publicado"
+        for item in history["items"]:
+            if item.get("episode_id") == episode:
+                item["status"] = "publicado"
 
         write_json_atomic(
             history_path,
@@ -5554,11 +4773,11 @@ def main():
         gh = Github()
 
         raw, sha = gh.read(
-            "dataviral/sismos_editorial.json"
+            EDITORIAL_PATH
         )
 
         gh.write(
-            "dataviral/sismos_editorial.json",
+            EDITORIAL_PATH,
             json.dumps(
                 history,
                 ensure_ascii=False,
@@ -5568,32 +4787,48 @@ def main():
         )
 
     else:
-        print(
-            "VISTA PREVIA: no se publicó nada.",
-            flush=True
+        log(
+            "VISTA PREVIA:",
+            "no se publico nada"
         )
 
-    print(
+    write_json_atomic(
+        out / "estado_ejecucion.json",
+        {
+            "status": (
+                "published"
+                if args.publish
+                else "preview_only"
+            ),
+            "episode_id": episode,
+            "topic": topic_data["id"],
+            "photos": len(credits),
+            "published": bool(args.publish),
+            "checked_at": utcnow(),
+        }
+    )
+
+    log(
         "OBJETIVO R7:",
         TARGET_R7,
-        "(experimental, nunca garantizado)",
-        flush=True
+        "(experimental)"
     )
+
+    return 0
 
 
 # ============================================================
-# 33. INICIO
+# 28. INICIO
 # ============================================================
 
 if __name__ == "__main__":
     try:
-        main()
+        sys.exit(main())
 
     except Exception as exc:
-        print(
+        log(
             "ERROR:",
-            str(exc),
-            file=sys.stderr
+            safe_error(exc)
         )
 
         sys.exit(1)
