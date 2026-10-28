@@ -44,7 +44,7 @@ IG_BASE = os.getenv('IG_GRAPH_BASE', 'https://graph.instagram.com').rstrip('/')
 FB_BASE = 'https://graph.facebook.com'
 STATE_FILE = 'sismonauta_noticias/state.json'
 ACCOUNT = 'sismonauta'
-LOOKBACK_HOURS = 24
+LOOKBACK_HOURS = 60
 MAX_ARTICLES = max(1, int(os.getenv('NEWS_MAX_ARTICLES', '100')))
 W, H = 1080, 1350
 MIN_SOURCE_WORDS = 100
@@ -202,11 +202,11 @@ def classify(title, description, source=''):
 def feed_items():
     cutoff, current = now()-timedelta(hours=LOOKBACK_HOURS), now()
     output = {}
-    audit = {'feeds_ok':0,'feeds_failed':0,'rss_items':0,'outside_24h':0,'missing_date':0,'earthquake_occurrence':0,'not_relevant':0,'invalid':0,'accepted':0}
+    audit = {'feeds_ok':0,'feeds_failed':0,'rss_items':0,'outside_window':0,'missing_date':0,'earthquake_occurrence':0,'not_relevant':0,'invalid':0,'accepted':0}
     for search_category, queries in SEARCH_GROUPS.items():
         for lang, query in queries:
             hl, gl, ceid = ('es-CL','CL','CL:es-419') if lang == 'es' else ('en-US','US','US:en')
-            feed = 'https://news.google.com/rss/search?' + urllib.parse.urlencode({'q':query+' when:1d','hl':hl,'gl':gl,'ceid':ceid})
+            feed = 'https://news.google.com/rss/search?' + urllib.parse.urlencode({'q':query+' when:3d','hl':hl,'gl':gl,'ceid':ceid})
             try:
                 root = ET.fromstring(get(feed, timeout=20).content)
                 audit['feeds_ok'] += 1
@@ -233,7 +233,7 @@ def feed_items():
                 except Exception:
                     audit['missing_date'] += 1; continue
                 if not (cutoff <= date <= current + timedelta(minutes=5)):
-                    audit['outside_24h'] += 1; continue
+                    audit['outside_window'] += 1; continue
                 if is_earthquake_occurrence(title,description,provider):
                     audit['earthquake_occurrence'] += 1
                     log('DESCARTADO - OCURRENCIA SISMICA:',title[:120]); continue
@@ -261,7 +261,7 @@ def priority(article):
         if term in text:
             score += value
     age = max(0,(now()-datetime.fromisoformat(article['date'])).total_seconds()/3600)
-    return score + max(0,24-age)*0.18 + min(5,words(article['description'])/12)
+    return score + max(0,LOOKBACK_HOURS-age)*0.18 + min(5,words(article['description'])/12)
 
 
 def ai_text(prompt,max_tokens=1300):
@@ -797,7 +797,7 @@ def main():
     if args.test_filter: return 0
     output=Path(args.out); output.mkdir(parents=True,exist_ok=True)
     (output/'estado_publicacion.json').unlink(missing_ok=True)
-    log('SISMONAUTA | NOTICIAS CON DESARROLLO | 24 HORAS | PUBLICAR:',args.publish)
+    log('SISMONAUTA | NOTICIAS CON DESARROLLO | 60 HORAS | PUBLICAR:',args.publish)
     gh=Github() if args.publish else None
     state=load_state(gh) if gh else {'stories':{}}
     articles=feed_items(); articles.sort(key=priority,reverse=True)
@@ -805,7 +805,7 @@ def main():
     article,photo,credit,description,reasons=select_news(articles,state)
     log('AUDITORIA SELECCION:',json.dumps(reasons,ensure_ascii=False))
     if article is None:
-        write_json(output/'estado_publicacion.json',{'status':'no_eligible_news','published':False,'lookback_hours':24,'articles_reviewed':min(len(articles),MAX_ARTICLES),'reasons':reasons,'checked_at':now().isoformat()})
+        write_json(output/'estado_publicacion.json',{'status':'no_eligible_news','published':False,'lookback_hours':LOOKBACK_HOURS,'articles_reviewed':min(len(articles),MAX_ARTICLES),'reasons':reasons,'checked_at':now().isoformat()})
         log('SIN NOTICIAS CON DESARROLLO SUFICIENTE'); return 0
     image_file=output/(article['id']+'.jpg')
     make_card(photo,article,image_file)
