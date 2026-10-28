@@ -265,7 +265,7 @@
     "sismos-ee063d239c4a": {
       "topic": "tsunami_rios",
       "reel": "publicado",
-      "updated_at": "2026-10-28T03:02:20.046458+00:00",
+      "updated_at": "2026-10-28T03:02:25.758221+00:00",
       "reel_id": "18385300039231554",
       "story": "publicado",
       "story_id": "18182372737427570",
@@ -273,7 +273,8 @@
       "facebook_reel_id": "1112669898269022",
       "facebook_story": "publicado",
       "facebook_story_id": "2024388684936128",
-      "facebook_feed": "enviando"
+      "facebook_feed": "publicado",
+      "facebook_feed_id": "1645387900462710"
     }
   }
 }
