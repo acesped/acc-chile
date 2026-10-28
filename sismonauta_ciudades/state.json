@@ -1,21 +1,4 @@
 {
   "events": {
-    "emsc_20261028_0000184": {
-      "magnitude": 4.1,
-      "place": "REGION METROPOLITANA, CHILE",
-      "time": "2026-10-28T12:52:13.080000+00:00",
-      "source": "EMSC-CSEM",
-      "targets": {
-        "instagram": {
-          "status": "published",
-          "id": "17913093738481193"
-        },
-        "facebook": {
-          "status": "published",
-          "id": "305263296226466_1137641115477786"
-        }
-      },
-      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_ciudades/images/emsc_20261028_0000184.jpg"
-    }
   }
 }
