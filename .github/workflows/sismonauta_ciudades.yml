@@ -19,7 +19,7 @@ on:
       - sismonauta-ciudades-emsc
 
 # La frecuencia de 5 minutos la gestiona cron-job.org.
-# No agregar schedule para evitar ejecuciones duplicadas.
+# No utilizar simultaneamente schedule de GitHub.
 
 # ============================================================
 # PERMISOS
@@ -28,7 +28,9 @@ on:
 permissions:
   contents: write
 
-# Evitar ejecuciones simultaneas sobre el historial.
+# Serializar ejecuciones del mismo workflow.
+# GitHub Actions permite como maximo una ejecucion
+# activa y una pendiente por grupo de concurrencia.
 concurrency:
   group: sismonauta-ciudades-emsc
   cancel-in-progress: false
@@ -40,7 +42,7 @@ concurrency:
 jobs:
   monitoreo_emsc:
 
-    name: Monitorear EMSC - Ultimas 4 horas
+    name: Monitorear EMSC - Ultimos 10 minutos
 
     runs-on: ubuntu-24.04
 
@@ -70,9 +72,9 @@ jobs:
 
     steps:
 
-      # ======================================================
+      # ========================================
       # 1. DESCARGAR REPOSITORIO
-      # ======================================================
+      # ========================================
 
       - name: Descargar repositorio
         uses: actions/checkout@v4
@@ -80,18 +82,18 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
 
-      # ======================================================
+      # ========================================
       # 2. CONFIGURAR PYTHON
-      # ======================================================
+      # ========================================
 
       - name: Configurar Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      # ======================================================
+      # ========================================
       # 3. INSTALAR DEPENDENCIAS
-      # ======================================================
+      # ========================================
 
       - name: Instalar dependencias
         shell: bash
@@ -128,9 +130,9 @@ jobs:
           print("Dependencias instaladas correctamente")
           PYDEPS
 
-      # ======================================================
+      # ========================================
       # 4. VALIDAR SCRIPT PYTHON
-      # ======================================================
+      # ========================================
 
       - name: Validar Python
         shell: bash
@@ -142,21 +144,21 @@ jobs:
             exit 1
           fi
 
-          python -m py_compile sismonauta_ciudades.py
+          python -m py_compile \
+            sismonauta_ciudades.py
+
+          python sismonauta_ciudades.py --help
 
           echo "Script Python validado"
 
-      # ======================================================
+      # ========================================
       # 5. DETERMINAR MODO DE PUBLICACION
-      # ======================================================
+      # ========================================
 
-      # CORRECCION:
       # Manual: publicar por defecto, permite desactivar.
       # Externo: publicar automaticamente.
-      #
-      # IMPORTANTE:
-      # repository_dispatch se reserva exclusivamente
-      # para ejecuciones automaticas de publicacion.
+      # repository_dispatch se reserva para
+      # ejecuciones automaticas de publicacion.
 
       - name: Determinar modo
         id: modo
@@ -195,17 +197,17 @@ jobs:
           echo "Evento GitHub: $EVENT_NAME"
           echo "Publicar: $PUBLISH"
           echo "Fuente: EMSC-CSEM"
-          echo "Ventana: 4 horas"
-          echo "Duracion: 240 minutos"
+          echo "Ventana: 10 minutos"
+          echo "Duracion: 600 segundos"
           echo "Magnitudes: M4.0 a M6.9"
           echo "Radio: 100 km"
           echo "Ciudades monitoreadas: 15"
           echo "Mapa: satelital con respaldo"
           echo "=================================="
 
-      # ======================================================
+      # ========================================
       # 6. VERIFICAR CREDENCIALES
-      # ======================================================
+      # ========================================
 
       - name: Verificar credenciales
         if: ${{ steps.modo.outputs.publish == 'true' }}
@@ -230,9 +232,9 @@ jobs:
 
           echo "Credenciales disponibles"
 
-      # ======================================================
+      # ========================================
       # 7. PREPARAR DIRECTORIO
-      # ======================================================
+      # ========================================
 
       - name: Preparar directorio
         shell: bash
@@ -243,9 +245,9 @@ jobs:
 
           echo "Directorio output_ciudades preparado"
 
-      # ======================================================
+      # ========================================
       # 8. CONSULTAR EMSC Y PUBLICAR
-      # ======================================================
+      # ========================================
 
       - name: Monitorear EMSC y publicar
         id: monitoreo
@@ -258,7 +260,7 @@ jobs:
 
           args=(
             --out output_ciudades
-            --lookback-hours 4
+            --lookback-minutes 10
           )
 
           if [[ "$PUBLISH" == "true" ]]; then
@@ -268,8 +270,8 @@ jobs:
           echo "=================================="
           echo "SISMONAUTA - CONSULTA EMSC"
           echo "=================================="
-          echo "Ventana: ultimas 4 horas"
-          echo "Muestreo: 240 minutos"
+          echo "Ventana: ultimos 10 minutos"
+          echo "Duracion: 600 segundos"
           echo "Publicacion habilitada: $PUBLISH"
           echo "=================================="
 
@@ -285,13 +287,13 @@ jobs:
             echo "::warning::El script reporto un error"
           fi
 
-          # La validacion posterior determina
-          # el resultado definitivo del workflow.
+          # El paso siguiente determina si el
+          # workflow debe terminar con error.
           exit 0
 
-      # ======================================================
-      # 9. VERIFICAR RESULTADOS Y PUBLICACIONES
-      # ======================================================
+      # ========================================
+      # 9. VERIFICAR RESULTADO
+      # ========================================
 
       - name: Verificar recibo y publicaciones
         if: ${{ steps.monitoreo.conclusion == 'success' }}
@@ -326,16 +328,21 @@ jobs:
           minutes = receipt.get("lookback_minutes")
           events = receipt.get("events") or []
 
-          code = int(os.getenv("SCRIPT_EXIT") or "1")
-          publish = os.getenv("PUBLISH") == "true"
+          code = int(
+              os.getenv("SCRIPT_EXIT") or "1"
+          )
+
+          publish = (
+              os.getenv("PUBLISH") == "true"
+          )
 
           print("==================================")
           print("VERIFICACION SISMONAUTA")
           print("==================================")
           print("Fuente:", source)
           print("Estado:", status)
-          print("Ventana:", hours, "horas")
-          print("Duracion:", minutes, "minutos")
+          print("Ventana:", minutes, "minutos")
+          print("Duracion:", minutes * 60, "segundos")
           print("Publicar:", publish)
           print("Codigo Python:", code)
           print("Eventos procesados:", len(events))
@@ -351,40 +358,50 @@ jobs:
                   "::error::Fuente inesperada"
               )
 
-          if hours != 4 or minutes != 240:
+          if hours != 0 or minutes != 10:
               raise SystemExit(
-                  "::error::Ventana de consulta incorrecta"
+                  "::error::La ventana no corresponde "
+                  "a los ultimos 10 minutos"
               )
 
-          # No hay nuevos eventos.
+          if receipt.get("publish_requested") != publish:
+              raise SystemExit(
+                  "::error::Modo de publicacion inconsistente"
+              )
+
+          # Sin nuevos eventos.
           if status == "no_new_event":
               if events:
                   raise SystemExit(
                       "::error::Recibo inconsistente"
                   )
 
-              print("::notice::Sin nuevos eventos")
+              print(
+                  "::notice::Sin nuevos eventos"
+              )
               raise SystemExit(0)
 
           # Vista previa sin publicacion.
           if status == "preview_only":
               if publish:
                   raise SystemExit(
-                      "::error::Publicacion solicitada "
-                      "pero solo se genero vista previa"
+                      "::error::Se esperaba publicacion"
                   )
 
-              print("::notice::Vista previa generada")
+              print(
+                  "::notice::Vista previa generada"
+              )
               raise SystemExit(0)
 
-          # Resultado incierto.
+          # Resultado parcial o incierto.
           if status == "partial_or_uncertain":
               raise SystemExit(
                   "::error::Publicacion parcial o incierta. "
-                  "Revisar Instagram, Facebook y state.json."
+                  "Revisar Meta y state.json antes de "
+                  "reintentar."
               )
 
-          # Se esperaba publicacion.
+          # Se esperaba publicacion confirmada.
           if status != "published":
               raise SystemExit(
                   "::error::Estado inesperado: "
@@ -396,7 +413,7 @@ jobs:
                   "::error::Recibo de publicacion invalido"
               )
 
-          # Verificar cada plataforma.
+          # Confirmar cada plataforma.
           for event in events:
 
               event_id = event.get("id")
@@ -407,7 +424,7 @@ jobs:
                   "already_published",
               ):
                   raise SystemExit(
-                      "::error::Evento sin confirmar: "
+                      "::error::Evento no confirmado: "
                       + str(event_id)
                   )
 
@@ -423,7 +440,7 @@ jobs:
                       or not target.get("id")
                   ):
                       raise SystemExit(
-                          "::error::Publicacion no confirmada "
+                          "::error::Falta confirmacion "
                           + platform
                           + " para "
                           + str(event_id)
@@ -437,13 +454,13 @@ jobs:
                   )
 
           print("==================================")
-          print("SISMONAUTA: PUBLICACION VERIFICADA")
+          print("SISMONAUTA: RESULTADO VERIFICADO")
           print("==================================")
           PYVERIFY
 
-      # ======================================================
+      # ========================================
       # 10. RESUMEN DE EJECUCION
-      # ======================================================
+      # ========================================
 
       - name: Crear resumen
         if: always()
@@ -454,8 +471,8 @@ jobs:
           {
             echo "## SISMONAUTA | EMSC-CSEM"
             echo ""
-            echo "- Consulta: ultimas 4 horas"
-            echo "- Duracion: 240 minutos"
+            echo "- Consulta: ultimos 10 minutos"
+            echo "- Duracion: 600 segundos"
             echo "- Frecuencia externa: cada 5 minutos"
             echo "- Magnitudes: M4.0 a M6.9"
             echo "- Radio: 100 km"
@@ -537,15 +554,74 @@ jobs:
 
           fi
 
-      # ======================================================
-      # 11. GUARDAR IMAGENES Y REGISTROS
-      # ======================================================
+      # ========================================
+      # 11. DIAGNOSTICO DE PUBLICACION
+      # ========================================
 
-      # CORRECCION:
-      # El parametro path es obligatorio.
-      #
-      # Guardar los archivos aun cuando falle
-      # alguna etapa del workflow.
+      - name: Diagnosticar publicacion SISMONAUTA
+        if: always()
+        shell: bash
+        env:
+          PUBLISH: ${{ steps.modo.outputs.publish }}
+          SCRIPT_EXIT: ${{ steps.monitoreo.outputs.exit_code }}
+        run: |
+          set -euo pipefail
+
+          echo "=================================="
+          echo "DIAGNOSTICO SISMONAUTA"
+          echo "=================================="
+
+          echo "Modo publicar: ${PUBLISH:-no determinado}"
+          echo "Codigo Python: ${SCRIPT_EXIT:-no disponible}"
+
+          python - <<'PYDIAG'
+          import json
+          from pathlib import Path
+
+          path = Path(
+              "output_ciudades/estado_publicacion.json"
+          )
+
+          if not path.exists():
+              print("ERROR: Recibo no generado")
+              raise SystemExit(0)
+
+          try:
+              receipt = json.loads(
+                  path.read_text(encoding="utf-8")
+              )
+          except Exception as exc:
+              print("ERROR leyendo recibo:", str(exc))
+              raise SystemExit(0)
+
+          print("Estado general:", receipt.get("status"))
+          print("Error general:", receipt.get("error", "Ninguno"))
+          print("Ventana:", receipt.get("lookback_minutes"), "min")
+
+          events = receipt.get("events", [])
+
+          for event in events:
+              print("--------------------------------")
+              print("Evento:", event.get("id"))
+              print("Estado:", event.get("status"))
+
+              for platform, data in (
+                  event.get("targets") or {}
+              ).items():
+                  print("Plataforma:", platform)
+                  print("Estado:", data.get("status"))
+                  print("ID publicado:", data.get("id"))
+                  print("Error:", data.get("error"))
+
+          if not events:
+              print("No hay eventos en el recibo")
+
+          print("==================================")
+          PYDIAG
+
+      # ========================================
+      # 12. GUARDAR EVIDENCIAS
+      # ========================================
 
       - name: Guardar imagenes y registros
         if: always()
