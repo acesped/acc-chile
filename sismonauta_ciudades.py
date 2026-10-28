@@ -4,9 +4,9 @@
 
 """
 SISMONAUTA | ALERTAS SISMICAS POR CIUDADES
-Version EMSC-CSEM / 4 horas / mapa mejorado
+Version EMSC-CSEM / 10 minutos / mapa mejorado
 
-- Ultimas 4 horas (240 minutos)
+- Ultimos 10 minutos (600 segundos)
 - Magnitudes M4.0 <= M < M7.0
 - 100 km alrededor de 15 ciudades
 - Mapa satelital con respaldo cartografico
@@ -19,7 +19,8 @@ Version EMSC-CSEM / 4 horas / mapa mejorado
 Uso:
     python sismonauta_ciudades.py
     python sismonauta_ciudades.py --publish
-    python sismonauta_ciudades.py --lookback-hours 4
+    python sismonauta_ciudades.py --lookback-minutes 10
+    python sismonauta_ciudades.py --lookback-minutes 10 --publish
 
 El registro sismico puede ser revisado por EMSC.
 No constituye una alerta oficial.
@@ -73,9 +74,8 @@ MAX_MAG = 7.0
 
 RADIUS_KM = 100.0
 
-# CAMBIO PRINCIPAL: CUATRO HORAS
-LOOKBACK_HOURS = 4
-LOOKBACK_MINUTES = 240
+LOOKBACK_HOURS = 0
+LOOKBACK_MINUTES = 10
 
 MAX_EVENTS_PER_RUN = 30
 
@@ -354,7 +354,7 @@ def matching_cities(lat, lon):
 
 
 # ============================================================
-# CONSULTA EMSC - ULTIMAS 4 HORAS
+# CONSULTA EMSC - ULTIMOS 10 MINUTOS
 # ============================================================
 
 def fetch_events():
@@ -362,17 +362,17 @@ def fetch_events():
     end = now_utc()
 
     start = end - timedelta(
-        hours=LOOKBACK_HOURS
+        minutes=LOOKBACK_MINUTES
     )
 
     duration = (
         end - start
     ).total_seconds()
 
-    if duration != 14400:
+    if duration != 600:
         raise RuntimeError(
             "La consulta no comprende "
-            "exactamente cuatro horas"
+            "exactamente diez minutos"
         )
 
     log("=" * 52)
@@ -622,7 +622,7 @@ def fetch_events():
             "km",
         )
         log(
-            "DENTRO DE 240 MIN:",
+            "DENTRO DE 10 MIN:",
             within_time,
         )
         log(
@@ -1282,7 +1282,7 @@ def make_image(event, path):
         )
     else:
         line_two = (
-            "SISMO REGISTRADO CERCA DE "
+            "CERCA DE "
             + city[0].upper()
         )
 
@@ -1407,32 +1407,12 @@ def make_caption(event):
 
         f"{description}\n\n"
 
-        f"📍 Epicentro: {event['place']}\n"
-
-        f"📏 Distancia a {city[0]}: "
-        f"{event['distance_km']:.1f} km\n"
-
-        f"📊 Magnitud: "
-        f"{event['mag']:.1f}\n"
-
-        f"⬇️ Profundidad: "
-        f"{depth_text(event['depth'])}\n"
-
-        f"🕒 Fecha y hora local: "
-        f"{local_time:%d/%m/%Y – %H:%M}\n"
-
-        f"🌐 Coordenadas: "
-        f"{event['lat']:.3f}, "
-        f"{event['lon']:.3f}\n\n"
-
         "💬 ¿Sentiste el movimiento? "
         "¡Coméntanos!\n\n"
 
         "📲 Sigue a @sismonauta para "
         "conocer los últimos registros "
         "sísmicos.\n\n"
-
-        "Fuente: EMSC-CSEM\n\n"
 
         "#SISMONAUTA #UltimoMinuto "
         "#Sismo #Terremoto "
@@ -2154,7 +2134,7 @@ def process_event(
 def main():
     parser = argparse.ArgumentParser(
         description=(
-            "SISMONAUTA EMSC - 4 HORAS"
+            "SISMONAUTA EMSC - 10 MINUTOS"
         )
     )
 
@@ -2169,10 +2149,10 @@ def main():
     )
 
     parser.add_argument(
-        "--lookback-hours",
+        "--lookback-minutes",
         type=int,
-        choices=[4],
-        default=4,
+        choices=[10],
+        default=10,
     )
 
     args = parser.parse_args()
@@ -2195,8 +2175,8 @@ def main():
         "source": "EMSC-CSEM",
         "checked_at": iso(now_utc()),
         "publish_requested": args.publish,
-        "lookback_hours": 4,
-        "lookback_minutes": 240,
+        "lookback_hours": 0,
+        "lookback_minutes": 10,
         "radius_km": RADIUS_KM,
         "min_magnitude": MIN_MAG,
         "max_magnitude_exclusive": MAX_MAG,
@@ -2207,7 +2187,7 @@ def main():
         log("=" * 52)
         log("SISMONAUTA - EMSC-CSEM")
         log("CIUDADES:", len(CITIES))
-        log("VENTANA: 240 MINUTOS")
+        log("VENTANA: 10 MINUTOS")
         log("RADIO:", RADIUS_KM, "KM")
         log("MAGNITUDES: M4.0 A M6.9")
         log("PUBLICAR:", args.publish)
