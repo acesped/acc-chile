@@ -264,8 +264,9 @@
     },
     "sismos-ee063d239c4a": {
       "topic": "tsunami_rios",
-      "reel": "enviando",
-      "updated_at": "2026-10-28T03:00:46.747023+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-10-28T03:01:15.381636+00:00",
+      "reel_id": "18385300039231554"
     }
   }
 }
