@@ -235,6 +235,39 @@
         }
       }
     },
+    "cbb939871c7536ee4bb3": {
+      "article": {
+        "category": "sismos",
+        "date": "2026-10-28T16:35:46+00:00",
+        "description": "Volcanes, erupciones y terremotos en Nevada - Datos e información Volcano Discovery",
+        "explanation": "Volcanes, erupciones y terremotos en Nevada - Datos e información Volcano Discovery.",
+        "id": "cbb939871c7536ee4bb3",
+        "lang": "es",
+        "original_title": "Volcanoes, Eruptions and Earthquakes in Nevada - Facts and Information",
+        "scientific_advance": true,
+        "search_category": "volcanes",
+        "source": "Volcano Discovery",
+        "title": "Volcanes, erupciones y terremotos en Nevada - Datos e información",
+        "url": "https://news.google.com/rss/articles/CBMiV0FVX3lxTE1HVDkzRWNqdmZ0cXBWTU11cVltZmM4T09OTEgzcnRXOFNlNnVHZ01jVVpjRkU2VlN1ZXlBb3FrbTdRYjBfakRXNFk4Wmo5TXlyNlVscmlzdw?oc=5"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "earthquake fault landscape",
+        "source": "https://commons.wikimedia.org/wiki/File:San_Francisco_STS058-083-023.jpg",
+        "title": "File:San Francisco STS058-083-023.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3a/San_Francisco_STS058-083-023.jpg/1920px-San_Francisco_STS058-083-023.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/cbb939871c7536ee4bb3.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "e8f5dea1fe3203bd2e92": {
       "article": {
         "category": "sismos",
