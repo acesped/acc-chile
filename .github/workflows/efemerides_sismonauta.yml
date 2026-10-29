@@ -1,11 +1,8 @@
 name: SISMONAUTA - Efemerides sismicas (cron)
 
 on:
-  # Cron nativo de GitHub Actions, siempre expresado en UTC.
   schedule:
-    - cron: '15 13 * * *'  # Diariamente a las 13:15 UTC
-
-  # Permite ejecutar pruebas y publicaciones manuales.
+    - cron: '15 13 * * *'
   workflow_dispatch:
     inputs:
       publish:
@@ -24,7 +21,6 @@ on:
         required: false
         default: '8.0'
 
-# Requiere acceso de escritura para guardar el historial en el repositorio.
 permissions:
   contents: write
 
@@ -37,7 +33,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
-      GH_TOKEN: ${{ secrets.GH_TOKEN || github.token }}
+      # Usar token nativo: disponible automaticamente para el repositorio.
+      # NO utilizar secrets.GH_TOKEN cuando ese secreto este vacio.
+      GH_TOKEN: ${{ github.token }}
       GITHUB_REPOSITORY: ${{ github.repository }}
       GITHUB_REF_NAME: ${{ github.event.repository.default_branch }}
       INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
@@ -59,8 +57,26 @@ jobs:
       - name: Instalar dependencias
         run: python -m pip install --disable-pip-version-check requests pillow
 
-      - name: Verificar logica y ejemplos
+      - name: Pruebas del filtro historico
         run: python efemerides_sismonauta.py --test
+
+      - name: Verificar autorizacion GitHub
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${GH_TOKEN:-}" ]]; then
+            echo 'ERROR: GitHub Actions no proporciono token de acceso.' >&2
+            exit 1
+          fi
+          status="$(curl --silent --output /dev/null --write-out '%{http_code}' \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}")"
+          if [[ "$status" != "200" ]]; then
+            echo "ERROR: autenticacion GitHub HTTP ${status}. Revisar permisos contents: write y configuracion de Actions." >&2
+            exit 1
+          fi
+          echo 'Acceso autenticado al repositorio: OK'
 
       - name: Buscar efemeride y publicar si corresponde
         shell: bash
