@@ -206,6 +206,9 @@ DIRECT_FEEDS = (
     ('NASA Tierra', 'https://www.nasa.gov/earth/feed/'),
     ('NASA ciencia', 'https://science.nasa.gov/feed/'),
     ('NASA tecnología', 'https://www.nasa.gov/technology/feed/'),
+    ('NOAA noticias', 'https://www.noaa.gov/rss.xml'),
+    ('ESA noticias', 'https://www.esa.int/rssfeed/Our_Activities/Space_News'),
+    ('ESA ciencia espacial', 'https://www.esa.int/rssfeed/ESC'),
 )
 
 
@@ -331,7 +334,7 @@ def priority(article):
         if term in text:
             score += value
     age = max(0,(now()-datetime.fromisoformat(article['date'])).total_seconds()/3600)
-    return score + max(0,LOOKBACK_HOURS-age)*0.18 + min(5,words(article['description'])/12) + (18 if source_text_sufficient(article.get('source_body','')) else 0)
+    return score + max(0,LOOKBACK_HOURS-age)*0.18 + min(5,words(article['description'])/12) + (7 if source_text_sufficient(article.get('source_body','')) else 0)
 
 
 def ai_text(prompt,max_tokens=1300):
@@ -770,6 +773,51 @@ def has_uncertain(entry):
     return any(entry.get('targets',{}).get(p,{}).get('status')=='uncertain' for p in ('instagram','facebook'))
 
 
+def recent_published_categories(state, limit=12):
+    """Categorías recientes efectivamente publicadas en las dos plataformas."""
+    rows = []
+    for entry in (state.get('stories') or {}).values():
+        if not isinstance(entry, dict) or not is_confirmed(entry):
+            continue
+        article = entry.get('article') or {}
+        category = article.get('category')
+        if category in SEARCH_GROUPS:
+            stamp = (entry.get('published_at') or entry.get('checked_at')
+                     or article.get('date') or '')
+            rows.append((str(stamp), category))
+    rows.sort(reverse=True)
+    return [category for _, category in rows[:limit]]
+
+
+def diverse_order(articles, state):
+    """Conserva prioridad científica, pero favorece temas no publicados recientemente.
+
+    No excluye NASA, ni impone cuotas si faltan noticias verificables.
+    """
+    recent = recent_published_categories(state)
+    recent_counts = {name: recent.count(name) for name in SEARCH_GROUPS}
+    last = recent[0] if recent else None
+    def rank(article):
+        cat = article.get('category')
+        score = priority(article)
+        score -= 9 * recent_counts.get(cat, 0)
+        if article.get('search_category') == 'direct' and not article.get('source', '').startswith('NASA'):
+            score += 7
+        if cat == last:
+            score -= 18
+        if cat not in recent:
+            score += 16
+        # Una ficha con cuerpo accesible es preferible, sin monopolizar el ranking.
+        return score
+    ordered = sorted(articles, key=rank, reverse=True)
+    log('DIVERSIDAD EDITORIAL:', json.dumps({
+        'ultimas_categorias': recent[:8],
+        'candidatos_por_categoria': {name: sum(a.get('category') == name for a in articles) for name in SEARCH_GROUPS},
+        'primeras_categorias': [a.get('category') for a in ordered[:12]],
+    }, ensure_ascii=False))
+    return ordered
+
+
 def select_news(articles,state):
     reasons={'earthquake_occurrence':0,'already_published':0,'uncertain_previous':0,'translation_failed':0,'source_too_short':0,'no_development':0,'invalid_caption':0,'generated_backgrounds':0}
     for original in articles[:MAX_ARTICLES]:
@@ -791,7 +839,7 @@ def select_news(articles,state):
         source_text=full_article_text(original)
         if not source_text_sufficient(source_text):
             reasons['source_too_short']+=1
-            log('DESCARTADA: artículo fuente sin al menos 100 palabras y cuatro oraciones'); continue
+            log('DESCARTADA: artículo fuente sin al menos 85 palabras y cuatro oraciones'); continue
         # Traducir el cuerpo completo solo si se redactara sin IA.
         development=obtain_development(article,source_text)
         # Un respaldo extractivo en ingles requiere traduccion confirmada.
@@ -870,16 +918,23 @@ def main():
     parser.add_argument('--publish',action='store_true')
     parser.add_argument('--out',default='output_noticias')
     parser.add_argument('--test-filter',action='store_true')
+    parser.add_argument('--test-diversity',action='store_true')
     args=parser.parse_args()
     test_earthquake_filter()
     if args.test_filter: return 0
+    if args.test_diversity:
+        dummy={'stories': {str(i): {'article': {'category': 'espacio', 'date': '2026-10-%02dT10:00:00+00:00' % (10+i)}, 'targets': {'instagram': {'status': 'published'}, 'facebook': {'status': 'published'}}} for i in range(5)}}
+        sample=[{'category': category, 'title':'Nuevo estudio de ciencia de la Tierra', 'description':'Nuevas mediciones geofísicas y descubrimientos científicos', 'date':now().isoformat(), 'source_body':'', 'source':'Prueba', 'search_category':'rss'} for category in ('espacio','volcanes','oceanos')]
+        assert diverse_order(sample, dummy)[0]['category'] != 'espacio'
+        assert diverse_order(sample, {'stories': {}})[0]['category'] in SEARCH_GROUPS
+        log('PRUEBAS DE DIVERSIDAD APROBADAS'); return 0
     output=Path(args.out); output.mkdir(parents=True,exist_ok=True)
     (output/'estado_publicacion.json').unlink(missing_ok=True)
     log('SISMONAUTA | NOTICIAS CON DESARROLLO | 60 HORAS | PUBLICAR:',args.publish)
     log('MAX_ARTICLES:',MAX_ARTICLES,'| FUENTES DIRECTAS:',len(DIRECT_FEEDS))
     gh=Github() if args.publish else None
     state=load_state(gh) if gh else {'stories':{}}
-    articles=feed_items(); articles.sort(key=priority,reverse=True)
+    articles=diverse_order(feed_items(), state)
     log('NOTICIAS CANDIDATAS:',len(articles))
     article,photo,credit,description,reasons=select_news(articles,state)
     log('AUDITORIA SELECCION:',json.dumps(reasons,ensure_ascii=False))
