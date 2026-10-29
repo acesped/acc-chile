@@ -1,82 +1,90 @@
-name: SISMONAUTA - Efemerides sismicas
+name: SISMONAUTA - Efemerides sismicas (cron)
 
 on:
+  # Cron nativo de GitHub Actions, siempre expresado en UTC.
   schedule:
-    # 13:15 UTC; la fecha efectiva se calcula en America/Santiago.
-    # GitHub puede retrasar la ejecución cron.
-    - cron: '15 13 * * *'
+    - cron: '15 13 * * *'  # Diariamente a las 13:15 UTC
+
+  # Permite ejecutar pruebas y publicaciones manuales.
   workflow_dispatch:
     inputs:
       publish:
-        description: 'Publicar en Instagram y Facebook (false = vista previa)'
+        description: 'Publicar en Instagram y Facebook'
         type: boolean
+        required: false
         default: false
       date:
-        description: 'Fecha YYYY-MM-DD; vacío utiliza el día actual en Chile'
-        required: false
+        description: 'Fecha YYYY-MM-DD; vacio = hoy en Chile'
         type: string
+        required: false
+        default: ''
       min_magnitude:
-        description: 'Magnitud mínima (por defecto 8.0)'
+        description: 'Magnitud minima'
+        type: string
         required: false
         default: '8.0'
-        type: string
 
+# Requiere acceso de escritura para guardar el historial en el repositorio.
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: sismonauta-efemerides
   cancel-in-progress: false
 
 jobs:
-  efemeride:
+  publicar-efemeride:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     env:
-      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      GH_TOKEN: ${{ secrets.GH_TOKEN || github.token }}
       GITHUB_REPOSITORY: ${{ github.repository }}
       GITHUB_REF_NAME: ${{ github.event.repository.default_branch }}
       INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
       INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
       FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
       FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
-      IG_GRAPH_VERSION: v25.0
       EFEMERIDES_TIMEZONE: America/Santiago
+      IG_GRAPH_VERSION: v25.0
 
     steps:
-      - name: Checkout
+      - name: Obtener repositorio
         uses: actions/checkout@v4
 
-      - name: Python 3.11
+      - name: Preparar Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Instalar dependencias
-        run: pip install --disable-pip-version-check requests pillow
+        run: python -m pip install --disable-pip-version-check requests pillow
 
-      - name: Pruebas de datos y formato
+      - name: Verificar logica y ejemplos
         run: python efemerides_sismonauta.py --test
 
-      - name: Generar y publicar efemeride
+      - name: Buscar efemeride y publicar si corresponde
         shell: bash
         env:
+          EVENT_NAME: ${{ github.event_name }}
           INPUT_DATE: ${{ inputs.date || '' }}
-          INPUT_MIN_MAG: ${{ inputs.min_magnitude || '8.0' }}
+          INPUT_MAG: ${{ inputs.min_magnitude || '8.0' }}
           INPUT_PUBLISH: ${{ inputs.publish || false }}
         run: |
-          args=(--out output_efemerides --min-mag "$INPUT_MIN_MAG")
-          if [[ -n "$INPUT_DATE" ]]; then args+=(--date "$INPUT_DATE"); fi
-          if [[ "${{ github.event_name }}" == "schedule" || "$INPUT_PUBLISH" == "true" ]]; then
+          set -euo pipefail
+          args=(--out output_efemerides --min-mag "$INPUT_MAG")
+          if [[ -n "$INPUT_DATE" ]]; then
+            args+=(--date "$INPUT_DATE")
+          fi
+          if [[ "$EVENT_NAME" == "schedule" || "$INPUT_PUBLISH" == "true" ]]; then
             args+=(--publish)
           fi
           python efemerides_sismonauta.py "${args[@]}"
 
-      - name: Guardar salida y auditoria
+      - name: Guardar imagenes y auditoria
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: sismonauta-efemerides-${{ github.run_number }}
+          name: efemerides-${{ github.run_number }}
           path: |
             output_efemerides/*.jpg
             output_efemerides/*.json
