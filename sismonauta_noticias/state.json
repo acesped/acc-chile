@@ -1,5 +1,38 @@
 {
   "stories": {
+    "1f6bd6cc7d0b2fc6fb2b": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-10-29T14:49:27+00:00",
+        "description": "Una galaxia barrada de gran tamaño ocupa el centro de la escena en esta imagen del 22 de octubre de 2026, pero el lente gravitacional en la esquina inferior derecha es el verdadero objetivo. Esta observación es una de las muchas imágenes de lente gravitacional tomadas por el Telescopio Espacial Hubble de la NASA en preparación para la ciencia con el nuevo Telescopio Espacial Nancy Grace Roman. Los astrónomos utilizarán estos […]",
+        "explanation": "**TITULAR: El Hubble de la NASA marca el camino para el telescopio espacial Roman**\n\nEl telescopio espacial Hubble de la NASA ha capturado imágenes que servirán como base para las futuras observaciones del telescopio Nancy Grace Roman, programado para su lanzamiento en 2027. En una imagen reciente, tomada el 22 de octubre de 2026, se observa una galaxia espiral con un lente gravitacional en la esquina inferior derecha, lo que permite a los astrónomos estudiar las distorsiones gravitacionales y su relación con la materia oscura.\n\nEstas imágenes son parte de una serie de observaciones que Hubble ha realizado para preparar el terreno para el Roman, que se enfocará en investigar la estructura del universo y la naturaleza de la materia oscura. Los científicos esperan que la colaboración entre ambos telescopios proporcione una visión más completa del cosmos, permitiendo avances significativos en la comprensión de fenómenos astronómicos.\n\nEl telescopio Roman, con su capacidad para observar grandes áreas del cielo, complementará las observaciones detalladas de Hubble, ofreciendo nuevas oportunidades para explorar el universo y responder preguntas fundamentales sobre su composición y evolución.",
+        "id": "1f6bd6cc7d0b2fc6fb2b",
+        "lang": "en",
+        "original_title": "NASA’s Hubble Marks Way for Roman Space Telescope",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "A sinuous spiral galaxy (center) appears in the same field of view as a vivid gravitational lens (right corner) in this Hubble image. NASA, ESA, and X. Huang (University of San Francisco); Processing: Gladys Kober (NASA/Catholic University of America) A sweeping barred galaxy takes center stage in this Oct. 22, 2026, image, but the gravitational lensing at bottom right is the real target. This observation is one of many gravitational lensing images taken by NASA’s Hubble Space Telescope in preparation for science with the new Nancy Grace Roman Space Telescope . Astronomers will use these images to analyze gravitational distortions to learn more about dark matter in the foreground galaxies and to lay the groundwork for future Roman observations. Images like this offer a glimpse of how Hubble and Roman will work together to build an even more comprehensive picture of the cosmos. Image credit: NASA, ESA, and X. Huang (University of San Francisco); Processing: Gladys Kober (NASA/Catholic University of America)",
+        "title": "El Hubble de la NASA marca el camino para el telescopio espacial Roman.",
+        "url": "https://www.nasa.gov/image-article/nasas-hubble-marks-way-for-roman-space-telescope/"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "source": "https://commons.wikimedia.org/wiki/File:The_Sounds_of_Earth_Record_Cover_-_GPN-2000-001978.jpg",
+        "title": "File:The Sounds of Earth Record Cover - GPN-2000-001978.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/56/The_Sounds_of_Earth_Record_Cover_-_GPN-2000-001978.jpg/1920px-The_Sounds_of_Earth_Record_Cover_-_GPN-2000-001978.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/1f6bd6cc7d0b2fc6fb2b.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "387d174500fb09b687b7": {
       "article": {
         "date": "2026-10-27T03:05:05+00:00",
