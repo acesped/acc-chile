@@ -1,0 +1,66 @@
+name: SISMONAUTA - Responder comentarios Facebook
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Responder realmente en Facebook (false = vista previa)'
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sismonauta-facebook-comments
+  cancel-in-progress: false
+
+jobs:
+  comentarios:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      GITHUB_REF_NAME: ${{ github.event.repository.default_branch }}
+      FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+      FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      FB_GRAPH_VERSION: v25.0
+      MAX_COMMENT_REPLIES: '20'
+      MAX_RECENT_POSTS: '25'
+      MAX_COMMENTS_PER_POST: '80'
+      COMMENT_LOOKBACK_DAYS: '7'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install requirements
+        run: pip install --disable-pip-version-check requests
+      - name: Self tests
+        run: python comentarios_sismonauta.py --test
+      - name: Respond or preview
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_PUBLISH: ${{ inputs.publish }}
+        run: |
+          args=(--out output_comentarios)
+          if [[ "$EVENT_NAME" == "schedule" || "$INPUT_PUBLISH" == "true" ]]; then
+            args+=(--publish)
+          fi
+          python comentarios_sismonauta.py "${args[@]}"
+      - name: Upload run report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reporte-comentarios-${{ github.run_id }}
+          path: output_comentarios/resumen.json
+          if-no-files-found: ignore
+          retention-days: 7
