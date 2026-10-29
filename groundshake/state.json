@@ -306,8 +306,9 @@
     },
     "sismos-962a6530761d": {
       "topic": "tsunami_inundacion",
-      "reel": "enviando",
-      "updated_at": "2026-10-29T03:00:51.489371+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-10-29T03:01:20.426373+00:00",
+      "reel_id": "17886014241689775"
     }
   }
 }
