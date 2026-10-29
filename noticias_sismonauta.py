@@ -7,8 +7,7 @@ Prueba: python noticias_sismonauta.py --test-filter
 Previsualizar: python noticias_sismonauta.py --out output_noticias
 Publicar: python noticias_sismonauta.py --publish --out output_noticias
 
-No publica fichas de ocurrencias sísmicas. La imagen contiene titular y
-un desarrollo de 45-75 palabras; la descripción contiene el texto completo.
+No publica fichas de ocurrencias sísmicas. La imagen contiene solamente el titular; la descripción contiene el desarrollo completo.
 No se muestra la fuente en el pie de la imagen ni en la descripción.
 La URL y el medio se conservan en noticia.json para auditoría.
 """
@@ -594,47 +593,35 @@ def image_summary(text,min_words=45,max_words=75):
 
 
 def make_card(image,article,path):
-    """Tarjeta con titular + desarrollo; ningún pie con la fuente."""
+    """Tarjeta solo con titular. El desarrollo va exclusivamente en el pie."""
     canvas=ImageOps.fit(image,(W,H),Image.Resampling.LANCZOS,centering=(0.5,0.44)).convert('RGBA')
     veil=Image.new('RGBA',(W,H),(0,0,0,0)); draw=ImageDraw.Draw(veil)
     draw.rectangle((0,0,W,112),fill=(4,21,46,245))
     draw.text((54,32),'SISMONAUTA  |  ACTUALIDAD',font=font(36,True),fill='white')
-    title=clean(article['title']); development=image_summary(article['explanation'])
-    # Panel amplio para lograr 45-75 palabras legibles.
-    top=560; bottom=H-90
+    title=clean(article['title'])
+    top=640; bottom=H-90
     draw.rectangle((0,top,W,bottom),fill=(3,29,58,244))
     draw.rectangle((0,top,W,top+10),fill=(36,163,255,255))
     title_font=None; title_lines=[]; title_step=0
-    for size in range(58,25,-2):
-        ft=font(size,True); lines=wrap(draw,title,ft,W-112); step=int(size*1.18)
-        if len(lines)<=5 and len(lines)*step<=255:
+    for size in range(72,28,-2):
+        ft=font(size,True); lines=wrap(draw,title,ft,W-120); step=int(size*1.20)
+        if len(lines)<=6 and len(lines)*step<=((bottom-top)-90):
             title_font,title_lines,title_step=ft,lines,step; break
     if title_font is None: raise ValueError('Titular demasiado largo para tarjeta')
-    y=top+38
+    block_height=len(title_lines)*title_step
+    y=top+((bottom-top)-block_height)//2
     for line in title_lines:
-        bbox=draw.textbbox((0,0),line,font=title_font,stroke_width=2)
+        bbox=draw.textbbox((0,0),line,font=title_font,stroke_width=3)
         x=(W-(bbox[2]-bbox[0]))/2
-        draw.text((x,y),line,font=title_font,fill='white',stroke_width=2,stroke_fill='black')
+        draw.text((x,y),line,font=title_font,fill='white',stroke_width=3,stroke_fill='black')
         y+=title_step
-    y+=22
-    draw.line((65,y,W-65,y),fill=(93,177,230,200),width=2)
-    y+=25
-    available=bottom-38-y
-    detail_font=None; detail_lines=[]; detail_step=0
-    for size in range(31,18,-1):
-        ft=font(size,False); lines=wrap(draw,development,ft,W-130); step=int(size*1.29)
-        if len(lines)*step<=available:
-            detail_font,detail_lines,detail_step=ft,lines,step; break
-    if detail_font is None: raise ValueError('Desarrollo no cabe en la imagen')
-    for line in detail_lines:
-        draw.text((65,y),line,font=detail_font,fill=(240,247,255,255))
-        y+=detail_step
     draw.rectangle((0,H-90,W,H),fill=(3,24,49,245))
     category={'sismos':'CIENCIA SÍSMICA','volcanes':'VOLCANES','meteorologia':'METEOROLOGÍA','climatologia':'CLIMA','oceanos':'OCÉANOS','espacio':'ESPACIO','desastres':'NATURALEZA','geologia':'GEOLOGÍA'}.get(article['category'],'CIENCIA')
     draw.text((54,H-63),'CIENCIA  •  '+category,font=font(27,True),fill='white')
     result=Image.alpha_composite(canvas,veil).convert('RGB')
     path=Path(path); path.parent.mkdir(parents=True,exist_ok=True)
     result.save(path,'JPEG',quality=91,optimize=True)
+
 
 
 CATEGORY_HASHTAGS={
@@ -650,19 +637,23 @@ CATEGORY_HASHTAGS={
 
 
 def caption(article,credit):
-    """La fuente no se muestra ni en el pie ni en la descripción."""
-    explanation=article.get('explanation','').strip()
+    """La fuente no se muestra y el titular aparece una sola vez."""
+    explanation=clean(article.get('explanation',''))
     if words(explanation)<MIN_DEVELOPMENT_WORDS: raise ValueError('Falta desarrollo de 80 palabras')
     category=article['category']
     label={'sismos':'CIENCIA SÍSMICA','volcanes':'ACTUALIDAD VOLCÁNICA','meteorologia':'METEOROLOGÍA','climatologia':'CLIMATOLOGÍA','oceanos':'CIENCIAS DEL OCÉANO','espacio':'CIENCIA ESPACIAL','desastres':'RIESGOS NATURALES','geologia':'CIENCIAS DE LA TIERRA'}.get(category,'ACTUALIDAD CIENTÍFICA')
-    header='🌎 SISMONAUTA | '+label+'\n\n'+clean(article['title'])+'\n\n'
+    title=clean(article['title'])
+    if normalized(explanation).startswith(normalized(title)):
+        explanation=clean(explanation[len(title):]).lstrip(':-–— ')
     footer='\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n'+HASHTAGS+' '+CATEGORY_HASHTAGS.get(category,'')
+    header='🌎 SISMONAUTA | '+label+'\n\n'+title+'\n\n'
     available=2200-len(header)-len(footer)
     if available<300: raise ValueError('Titular demasiado largo')
     if len(explanation)>available:
         explanation=explanation[:available].rsplit(' ',1)[0].rstrip(',;:')+'.'
     if words(explanation)<MIN_DEVELOPMENT_WORDS: raise ValueError('Descripción no permite desarrollo válido')
     return header+explanation+footer
+
 
 
 class Github:
