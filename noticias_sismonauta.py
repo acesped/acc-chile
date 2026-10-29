@@ -591,6 +591,21 @@ def image_summary(text,min_words=45,max_words=75):
         summary=' '.join(clean(text).split()[:max_words]).rstrip(',;:')+'…'
     return summary
 
+def sanitize_explanation(text,title=''):
+    text=clean(text)
+    if not text:
+        return ''
+    text=re.sub(r'^\*\*\s*TITULAR\s*:\s*', '', text, flags=re.I)
+    text=re.sub(r'^TITULAR\s*:\s*', '', text, flags=re.I)
+    text=re.sub(r'^\*\*\s*', '', text)
+    text=re.sub(r'\s*\*\*\s*', ' ', text)
+    text=clean(text)
+    if title:
+        title_clean=clean(title)
+        escaped=re.escape(title_clean)
+        text=re.sub(r'^(?:\*\*\s*)?(?:TITULAR\s*:\s*)?'+escaped+r'(?:\s*\*\*)?[\s:–—.-]*', '', text, flags=re.I)
+    return clean(text)
+
 
 def make_card(image,article,path):
     """Tarjeta solo con titular. El desarrollo va exclusivamente en el pie."""
@@ -638,13 +653,11 @@ CATEGORY_HASHTAGS={
 
 def caption(article,credit):
     """La fuente no se muestra y el titular aparece una sola vez."""
-    explanation=clean(article.get('explanation',''))
+    title=clean(article['title'])
+    explanation=sanitize_explanation(article.get('explanation',''),title)
     if words(explanation)<MIN_DEVELOPMENT_WORDS: raise ValueError('Falta desarrollo de 80 palabras')
     category=article['category']
     label={'sismos':'CIENCIA SÍSMICA','volcanes':'ACTUALIDAD VOLCÁNICA','meteorologia':'METEOROLOGÍA','climatologia':'CLIMATOLOGÍA','oceanos':'CIENCIAS DEL OCÉANO','espacio':'CIENCIA ESPACIAL','desastres':'RIESGOS NATURALES','geologia':'CIENCIAS DE LA TIERRA'}.get(category,'ACTUALIDAD CIENTÍFICA')
-    title=clean(article['title'])
-    if normalized(explanation).startswith(normalized(title)):
-        explanation=clean(explanation[len(title):]).lstrip(':-–— ')
     footer='\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n'+HASHTAGS+' '+CATEGORY_HASHTAGS.get(category,'')
     header='🌎 SISMONAUTA | '+label+'\n\n'+title+'\n\n'
     available=2200-len(header)-len(footer)
