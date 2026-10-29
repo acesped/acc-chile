@@ -231,6 +231,16 @@
       "angle": "Lo que muestran los datos",
       "time": "2026-10-29T03:00:47.342462+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-515a8498ebcc",
+      "topic": "tectonica:subduccion:impacto",
+      "topic_key": "subduccion",
+      "title": "¿Qué importancia tiene comprender la subducción?",
+      "style": "descubrimiento",
+      "angle": "impacto",
+      "time": "2026-10-29T23:43:34.397896+00:00",
+      "status": "publicado"
     }
   ]
 }
