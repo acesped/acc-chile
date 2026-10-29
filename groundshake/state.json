@@ -307,14 +307,15 @@
     "sismos-962a6530761d": {
       "topic": "tsunami_inundacion",
       "reel": "publicado",
-      "updated_at": "2026-10-29T03:03:08.225163+00:00",
+      "updated_at": "2026-10-29T03:03:09.198489+00:00",
       "reel_id": "17886014241689775",
       "story": "publicado",
       "story_id": "18092408441242086",
       "facebook_reel": "publicado",
       "facebook_reel_id": "1997421207593386",
       "facebook_story": "publicado",
-      "facebook_story_id": "4713579632300778"
+      "facebook_story_id": "4713579632300778",
+      "facebook_feed": "enviando"
     }
   }
 }
