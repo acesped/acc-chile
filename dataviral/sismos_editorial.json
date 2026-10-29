@@ -223,6 +223,14 @@
       "angle": "La pregunta que importa",
       "time": "2026-10-28T23:00:53.328672+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-962a6530761d",
+      "topic": "tsunami_inundacion",
+      "style": "mapa_explicado",
+      "angle": "Lo que muestran los datos",
+      "time": "2026-10-29T03:00:47.342462+00:00",
+      "status": "publicado"
     }
   ]
 }
