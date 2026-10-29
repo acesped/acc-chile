@@ -445,6 +445,39 @@
         }
       }
     },
+    "dec9f077a7f855246f29": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-10-29T15:06:40+00:00",
+        "description": "Cuando las empresas comenzaron a acercarse al Centro de Investigación Langley de la NASA, pidiendo ser incluidas en el Estado de Juego de Servicios, Ensamblaje y Fabricación en el Espacio (ISAM) para acceder a inteligencia competitiva, el equipo supo que habían cruzado un punto de inflexión. “Hemos tenido algunas empresas no nombradas que preguntan si tenemos alguna información confidencial”, dice Dale Arney, líder senior del equipo […]",
+        "explanation": "**TITULAR: Estado Actual del ISAM de la NASA: El Estándar de la Industria para el Servicio, Ensamblaje y Fabricación en el Espacio**\n\nEl In-Space Servicing, Assembly, and Manufacturing (ISAM) de la NASA ha alcanzado un hito significativo en su desarrollo, según el último informe publicado en octubre de 2026. Este documento, que abarca 368 páginas, detalla las capacidades actuales de ISAM en 11 áreas funcionales, incluyendo manipulación robótica y reabastecimiento, y se ha convertido en un recurso esencial para la industria espacial.\n\nDesde su lanzamiento en 2021, el ISAM State of Play ha evolucionado, reflejando un crecimiento exponencial en el campo. Dale Arney, líder del equipo de tecnología ISAM en el Centro de Investigación Langley de la NASA, destacó que el documento no solo sirve como una enciclopedia, sino también como una hoja de ruta para las tecnologías que permitirán el servicio y ensamblaje de naves espaciales en órbita.\n\nEl informe se basa en criterios estrictos de entrada, asegurando que solo se incluyan tecnologías que existan físicamente, ya sea como prototipos en tierra o demostraciones en vuelo. Esto garantiza que el ISAM State of Play sea un recurso confiable para empresas que buscan entender y participar en este ecosistema en expansión.\n\nCon la mirada puesta en misiones futuras más ambiciosas, el ISAM State of Play se posiciona como un documento clave que proporciona un vocabulario compartido y una base de capacidades necesarias para el desarrollo de infraestructuras lunares y manufactura en órbita.",
+        "id": "dec9f077a7f855246f29",
+        "lang": "en",
+        "original_title": "NASA’s ISAM State of Play: The Industry Standard for Space Servicing, Assembly, and Manufacturing",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "3 min read Preparations for Next Moonwalk Simulations Underway (and Underwater) When companies began approaching NASA’s Langley Research Center, asking to be included in the In-Space Servicing, Assembly, and Manufacturing (ISAM) State of Play for access to competitive intelligence, the team knew they had crossed an inflection point. “We’ve had some unnamed companies ask if we have any proprietary information,” says Dale Arney, senior team lead for the ISAM Technology Portfolio at NASA Langley. The answer is “no,” but that impartiality is precisely what makes the State of Play invaluable to an industry trying to understand a rapidly expanding field. The cover of the ISAM State of Play, featuring Astronaut F. Story Musgrave, anchored on the Space Shuttle Endeavor’s robotic arm, preparing to be elevated to the top of the Hubble Space Telescope during Hubble’s first servicing mission in 1993. Credit: NASA Published since 2021, the 2026 edition has grown to 368 pages documenting current ISAM capabilities across 11 functional areas, from robotic manipulation to refueling and structural assembly. The document serves as both encyclopedia and roadmap for the technologies that will enable spacecraft to be serviced, assembled, and manufactured in orbit rather than launched as integrated systems. “The field itself has expanded more than linearly since we started,” Arney explains. What began as a tool to ensure NASA centers shared a common reference point has become the industry’s go-to resource for understanding what’s possible versus what’s still conceptual. The State of Play team maintains strict entry criteria: hardware must physically exist, either as ground prototypes or in-flight demonstrations. “We get people who will send their PowerPoint presentation of their technology idea,” Arney notes. “There’s no real indication they’ve done any work on the technology itself yet.” Those concepts don’t make the cut until the following year’s review. This rigor matters, because ISAM capabilities will enable missions impossible with traditional single-launch approaches. Future missions will require telescopes larger than any launch vehicle fairing, persistent national security assets that are mobile and resilient, and commercial systems that can upgrade to the latest technology on orbit without full replacement. The document is intentionally collaborative. “We like to refer to it as kind of a crowdsource document,” says team member John Mulvaney. Each year brings more interviews with industry partners to ensure accuracy and completeness. Contributions come from NASA centers including Ames, Glenn, Marshall, Kennedy, and Johnson, along with international developers meeting the hardware criteria. The result is more than a technical reference. The 2026 edition includes developer profiles and facilities documentation, providing mission designers with not just what’s possible but who’s doing it and where the work happens. For companies entering the ISAM ecosystem or expanding their capabilities, it offers both competitive context and collaboration opportunities. As the space industry moves toward more ambitious missions, from lunar infrastructure to on-orbit manufacturing, the ISAM State of Play provides the shared vocabulary and capability baseline that emerging ecosystems require. It’s not speculation about the future; it’s documentation of what exists now and where the hardware is heading next. The 2026 ISAM State of Play is available for download at NASA.gov Read More Share Details Last Updated Oct 29, 2026 Related Terms Commercial Space The Future of Commercial Space Explore More 7 min read From the Corps to the Cosmos, featuring Jaden Caradine Article 2 months ago 3 min read NASA’s LRO Images Falcon 9 Crater on Moon, Learns New Details Between Aug. 11 and 12, NASA’s Lunar Reconnaissance Orbiter (LRO) captured a series of images… Article 2 months ago 3 min read NASA Will Attempt to Observe Rocket Part’s Lunar Impact Article 3 months ago Keep Exploring Discover Related Topics Missions Humans in Space Climate Change Solar System",
+        "title": "Estado Actual del ISAM de la NASA: El Estándar de la Industria para el Servicio, Ensamblaje y Fabricación en el Espacio",
+        "url": "https://www.nasa.gov/humans-in-space/commercial-space/nasas-isam-state-of-play-the-industry-standard-for-space-servicing-assembly-and-manufacturing/"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "source": "https://commons.wikimedia.org/wiki/File:The_Sounds_of_Earth_Record_Cover_-_GPN-2000-001978.jpg",
+        "title": "File:The Sounds of Earth Record Cover - GPN-2000-001978.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/56/The_Sounds_of_Earth_Record_Cover_-_GPN-2000-001978.jpg/1920px-The_Sounds_of_Earth_Record_Cover_-_GPN-2000-001978.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/dec9f077a7f855246f29.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "e8f5dea1fe3203bd2e92": {
       "article": {
         "category": "sismos",
