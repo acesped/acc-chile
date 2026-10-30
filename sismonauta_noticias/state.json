@@ -481,6 +481,41 @@
         }
       }
     },
+    "c03a78ab09de5bffbcfe": {
+      "article": {
+        "category": "climatologia",
+        "date": "2026-10-30T11:55:30+00:00",
+        "description": "What Women in Indonesia and Malaysia Want From Research on Climate and Health The Diplomat – Asia-Pacific Current Affairs Magazine",
+        "editorial_mode": "headline_digest",
+        "explanation": "Esta información fue difundida el 30/10/2026. Por ahora, no se ha podido recuperar el desarrollo completo del artículo. El dato principal comunicado es el que aparece en el titular; los detalles adicionales permanecen sin verificación en esta publicación.",
+        "id": "c03a78ab09de5bffbcfe",
+        "image_headline": "Lo que las mujeres en Indonesia y Malasia quieren de la investigación sobre el clima y la salud",
+        "lang": "en",
+        "original_title": "What Women in Indonesia and Malaysia Want From Research on Climate and Health",
+        "search_category": "climatologia",
+        "source": "The Diplomat – Asia-Pacific Current Affairs Magazine",
+        "source_evidence_kind": "publisher_rss_headline",
+        "title": "Lo que las mujeres en Indonesia y Malasia quieren de la investigación sobre el clima y la salud",
+        "url": "https://news.google.com/rss/articles/CBMirwFBVV95cUxObUg4SHVPUTRPZll2X3ZQUFVpNktydHlFaEZHR1lWUEZpMkFpbEdydktOMzVTZklvZEdFblowcGxoUURuRXNrSFNRNzdyb3hoTlQ0R0dsWUtlUGsxemtwY0NSWFVqN3o2RklhZmN3Z3pVOFBsdVQ4VXd5NmxUakVBWExlTmNxVVl3S2lkOTh0TEo2SHNGTnI0d2Nrc04tRnh5dXI0RTBBRTlqZnRCdEhR?oc=5"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "glacier landscape",
+        "source": "https://commons.wikimedia.org/wiki/File:Glacier_National_Park_valley,_snow_covered_mountains.jpg",
+        "title": "File:Glacier National Park valley, snow covered mountains.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/4/41/Glacier_National_Park_valley%2C_snow_covered_mountains.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/c03a78ab09de5bffbcfe.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "cbb939871c7536ee4bb3": {
       "article": {
         "category": "sismos",
