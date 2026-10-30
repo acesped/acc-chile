@@ -261,22 +261,96 @@ def choose_topic(history,requested='',excluded_topics=None,state=None,limit=None
     pool=[e for e in candidates if counts.get(e['topic_key'],0)<=least+1]
     return RNG.choice(pool)
 
+# Rótulos semánticos: extraídos de la voz de cada escena y de los hechos
+# del episodio. Sin frases editoriales fijas ni llamadas externas de IA.
+OVERLAY_STOPWORDS = set(('el la los las un una unos unas de del al en por para con sin sobre '
+    'que como cual cuales donde cuando porque y o a se su sus es son fue fueron puede pueden '
+    'podria podrían este esta estos estas lo le les hay ser estar entre durante desde hasta '
+    'tambien mas muy bajo ante respecto otro otra otros otras ello eso ese esa sus').split())
+OVERLAY_GENERIC = {
+    '¿SABÍAS ESTO?', 'LA CIENCIA LO EXPLICA', 'EL DATO CIENTÍFICO',
+    'LO QUE DEBES SABER', 'SIGUE APRENDIENDO', 'UNA PISTA SOBRE EL PLANETA',
+}
+
+def phrase_tokens(value):
+    return [w for w in re.findall(r'[a-záéíóúñü0-9]+', norm(value))
+            if len(w) >= 3 and w not in OVERLAY_STOPWORDS]
+
+def overlay_for_speech(narration, subject='', taken=None, max_words=12):
+    """Rótulo descriptivo que cita palabras de la narración, no inventa hechos.
+
+    Selecciona un segmento compacto con términos científicos distintivos.
+    Si coincide con otro rótulo del mismo episodio, usa otro segmento.
+    """
+    taken = taken if taken is not None else set()
+    speech = clean(narration).strip(' .!¿?')
+    speech = re.sub(r'^(?:f[ií]jate en este detalle|la clave est[aá] en entender|en resumen|observa esto)\s*[:：,]\s*', '', speech, flags=re.I)
+    speech = re.sub(r'^(?:¿?qu[eé] |¿?por qu[eé] |¿?c[oó]mo |¿?cu[aá]l es |¿?qu[eé] ocurre cuando )', '', speech, flags=re.I)
+    tokens = speech.split()
+    if not tokens:
+        raise ValueError('Narración vacía')
+    windows = []
+    for n in range(min(max_words, len(tokens)), max(2, min(4, len(tokens))-1), -1):
+        for i in range(len(tokens)-n+1):
+            candidate = ' '.join(tokens[i:i+n]).strip(' .,;:¿?¡!')
+            semantic = phrase_tokens(candidate)
+            if not semantic:
+                continue
+            # Preferir el tramo con más palabras informativas y que no sea
+            # igual a un rótulo que ya aparece en el storyboard.
+            score = len(set(semantic))*3 + sum(len(x)>6 for x in semantic) - i*.06
+            if norm(candidate) in taken:
+                score -= 1000
+            if candidate.upper() in OVERLAY_GENERIC:
+                score -= 1000
+            windows.append((score, candidate))
+    windows.sort(key=lambda x: x[0], reverse=True)
+    for _, candidate in windows:
+        if norm(candidate) not in taken:
+            return candidate.upper()
+    # Segmentos cortos (p.ej. «Las ondas S no atraviesan líquidos»).
+    alternative=' '.join(tokens[:max_words]).strip(' .,;:¿?¡!').upper()
+    if norm(alternative) in taken:
+        raise ValueError('Rótulos idénticos para escenas diferentes')
+    return alternative
+
+
 def build_storyboard(ep):
-    """Cinco escenas originales por episodio sin hechos añadidos."""
-    title=ep['title'].rstrip('?.!')
-    fact=ep['fact'].rstrip('.')+'.'; lesson=ep['lesson'].rstrip('.')+'.'
-    bridge=ep['bridge'].rstrip('.')+'.'
-    pieces=[
-        (ep['title'],'¿SABÍAS ESTO?'),
-        ('Para comprenderlo, primero observa el fenómeno.','LA CIENCIA LO EXPLICA'),
-        (fact,'EL DATO CIENTÍFICO'),
-        (lesson,'LO QUE DEBES SABER'),
-        (bridge,'SIGUE APRENDIENDO'),
-        ('Dale me gusta y comparte para seguir aprendiendo ciencia con SISMONAUTA. ¡Muchas gracias!','DALE LIKE'),
+    """Narración y rótulos vinculados al concepto científico del episodio."""
+    title=clean(ep['title']); fact=clean(ep['fact']).rstrip('.')+'.'
+    lesson=clean(ep['lesson']).rstrip('.')+'.'
+    subject=clean(SUBJECTS.get(ep.get('topic_key',''), ep.get('title','este fenómeno')))
+    # El speech es específico en todas las escenas; no se repite una frase
+    # abstracta de la misma plantilla a lo largo de cientos de vídeos.
+    spoken=[
+        title,
+        f'Para entender {subject}, hay un detalle fundamental.',
+        fact,
+        lesson,
+        f'En resumen: {lesson}',
+        'Dale me gusta y comparte para seguir aprendiendo ciencia con SISMONAUTA. ¡Muchas gracias!',
     ]
     stages=('pregunta','intriga','revelacion','explicacion','cierre','cta')
-    queries=ep['queries']
-    return [dict(narration=n,overlay=o,query=queries[min(i,len(queries)-1)],stage=stages[i]) for i,(n,o) in enumerate(pieces)]
+    queries=ep.get('queries') or ['geological landscape']
+    taken=set()
+    result=[]
+    for i,(narration,stage) in enumerate(zip(spoken,stages)):
+        if stage=='cta':
+            overlay='DALE LIKE'
+        elif stage=='intriga':
+            overlay=overlay_for_speech(f'El detalle fundamental de {subject}',subject,taken)
+        elif stage=='cierre':
+            # Evitar que la conclusión duplique visualmente la escena 4.
+            # La última idea combina palabras de los dos hechos documentados.
+            overlay=overlay_for_speech(f'{subject}: {lesson}',subject,taken)
+        else:
+            overlay=overlay_for_speech(narration,subject,taken)
+        if len(overlay.split())>12:
+            raise ValueError('Rótulo demasiado largo')
+        taken.add(norm(overlay))
+        result.append(dict(narration=narration,overlay=overlay,
+                           query=queries[min(i,len(queries)-1)],stage=stage))
+    return result
 
 def generate_angle(topic_data,history,use_ai=True):
     ep=dict(topic_data)
@@ -630,18 +704,6 @@ def fb_publish_story(page,token,movie):
     if result.get('success') is not True: raise RuntimeError('Facebook Story: finalización incierta')
     return video_id
 
-def fb_publish_feed_video(page,token,movie,caption,episode_id):
-    url=f'https://graph.facebook.com/{GRAPH_VERSION}/{page}/videos'
-    with movie.open('rb') as fh:
-        r=requests.post(url,data={'access_token':token,'description':caption[:5000],'title':str(episode_id)[:200],'published':'true'},files={'source':(movie.name,fh,'video/mp4')},timeout=360)
-    try: result=r.json()
-    except ValueError: raise RuntimeError('Facebook Feed: respuesta no JSON')
-    if not r.ok or result.get('error'):
-        error=result.get('error') or {}; raise RuntimeError('Facebook Feed: '+str(error.get('message',result))[:250])
-    video_id=str(result.get('id') or '')
-    if not video_id.isdigit(): raise RuntimeError('Facebook Feed sin ID')
-    return video_id
-
 def remote_published_topics(state,history):
     return history_signatures(state,history)[1]
 
@@ -661,7 +723,10 @@ def publish(ep,movie,approval,story=False,auto=False,out_dir=None,facebook=True)
         if old_id!=episode_id and old_row.get('topic')==ep['id'] and any(old_row.get(k) in ('publicado','enviando','incierto') for k in ('reel','story','facebook_reel','facebook_story','facebook_feed')):
             raise RuntimeError('Enfoque editorial duplicado')
     row.setdefault('topic',ep['id']); row.setdefault('topic_key',ep['topic_key']); row.setdefault('title',ep['title'])
-    destinations=['reel']+(['story'] if story else [])+(['facebook_reel']+(['facebook_story'] if story else [])+['facebook_feed'] if facebook else [])
+    # Facebook: un solo Reel y, opcionalmente, una Story.
+    # No se vuelve a subir el mismo MP4 a /{page}/videos (Feed).
+    # Los registros facebook_feed antiguos permanecen en el historial.
+    destinations=['reel']+(['story'] if story else [])+(['facebook_reel']+(['facebook_story'] if story else []) if facebook else [])
     for dest in destinations:
         status=row.get(dest)
         if status in ('enviando','incierto'): raise RuntimeError(f'{dest}: envío anterior incierto')
@@ -703,13 +768,13 @@ def publish(ep,movie,approval,story=False,auto=False,out_dir=None,facebook=True)
         confirmed(which,media_id)
     if facebook:
         page,fb_token=verify_facebook_page()
-        for which in ('facebook_reel','facebook_story','facebook_feed'):
+        for which in ('facebook_reel','facebook_story'):
             if which not in destinations or row.get(which)=='publicado': continue
             save(which,'enviando')
             try:
                 if which=='facebook_reel': mid=fb_publish_reel(page,fb_token,movie,caption,episode_id)
                 elif which=='facebook_story': mid=fb_publish_story(page,fb_token,movie)
-                else: mid=fb_publish_feed_video(page,fb_token,movie,caption,episode_id)
+                else: raise RuntimeError('Destino Facebook no permitido: '+which)
             except BaseException: save(which,'incierto'); raise
             confirmed(which,mid)
     log('PUBLICACIONES SOLICITADAS A META; recibo:',receipt_path)
@@ -733,6 +798,17 @@ def test_discovery():
             seen.add(ep['episode_id'])
             assert len(build_storyboard(ep))==6 and ep['source'].startswith('https://')
     assert len(seen)>=1000, f'Banco insuficiente: {len(seen)}'
+    old={'¿SABÍAS ESTO?','LA CIENCIA LO EXPLICA','EL DATO CIENTÍFICO','LO QUE DEBES SABER','SIGUE APRENDIENDO'}
+    for fact in FACT_BANK:
+        ep=make_candidate(fact,ANGLES[0],'microdocumental')
+        scenes=build_storyboard(ep)
+        labels=[row['overlay'] for row in scenes[:5]]
+        assert len(set(labels))==5,(ep['topic_key'],labels)
+        for row in scenes[:5]:
+            assert row['overlay'] not in old, row
+            assert len(row['overlay'].split())<=12, row
+            assert phrase_tokens(row['overlay']), row
+    log('RÓTULOS SEMÁNTICOS: cinco por episodio, sin plantillas genéricas')
     sample=make_candidate(FACT_BANK[0],ANGLES[0],'microdocumental')
     state['episodes'][sample['episode_id']]={'topic':sample['id'],'reel':'publicado'}
     ids,topics,_=history_signatures(state,history)
