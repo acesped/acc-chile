@@ -18,6 +18,7 @@ import base64
 import hashlib
 import html
 import io
+import ast
 import json
 import math
 import os
@@ -31,6 +32,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from html.parser import HTMLParser
+from urllib.parse import urlparse, urljoin
 from pathlib import Path
 
 import requests
@@ -47,6 +49,9 @@ LOOKBACK_HOURS = 60
 MAX_ARTICLES = max(1, int(os.getenv('NEWS_MAX_ARTICLES', '350')))
 W, H = 1080, 1350
 MIN_SOURCE_WORDS = 85
+FALLBACK_SOURCE_WORDS = 35
+FALLBACK_DEVELOPMENT_WORDS = 35
+# Una noticia breve respaldada documentalmente es preferible a inventar relleno.
 MIN_DEVELOPMENT_WORDS = 80
 HASHTAGS = '#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica'
 
@@ -337,17 +342,54 @@ def priority(article):
     return score + max(0,LOOKBACK_HOURS-age)*0.18 + min(5,words(article['description'])/12) + (7 if source_text_sufficient(article.get('source_body','')) else 0)
 
 
+_AI_DISABLED = set()
+
+_AI_DISABLED = set()
+_GEMINI_MODEL_CACHE = None
+
+def gemini_models(key):
+    """Descubre modelos disponibles para esta clave sin asumir que un nombre sigue vigente."""
+    global _GEMINI_MODEL_CACHE
+    if _GEMINI_MODEL_CACHE is not None:
+        return _GEMINI_MODEL_CACHE
+    names = []
+    try:
+        response = HTTP.get('https://generativelanguage.googleapis.com/v1beta/models',
+                            headers={'x-goog-api-key': key}, timeout=18)
+        response.raise_for_status()
+        models = response.json().get('models', [])
+        names = [m['name'].removeprefix('models/') for m in models
+                 if 'generateContent' in m.get('supportedGenerationMethods', [])]
+    except Exception as exc:
+        log('Gemini: catálogo de modelos no disponible:', safe_error(exc)[:100])
+    preferred = os.getenv('GEMINI_NEWS_MODEL', 'gemini-2.5-flash').removeprefix('models/')
+    names.sort(key=lambda m: (m != preferred, 'flash' not in m, m))
+    _GEMINI_MODEL_CACHE = names[:6]
+    return _GEMINI_MODEL_CACHE
+
 def ai_text(prompt,max_tokens=1300):
     key=os.getenv('GEMINI_API_KEY','').strip()
-    if key:
-        try:
-            model=os.getenv('GEMINI_NEWS_MODEL','gemini-2.5-flash')
-            response=HTTP.post('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent',headers={'x-goog-api-key':key},json={'contents':[{'parts':[{'text':prompt}]}],'generationConfig':{'temperature':0.15,'maxOutputTokens':max_tokens}},timeout=65)
-            response.raise_for_status()
-            result='\n\n'.join(p.get('text','') for p in response.json()['candidates'][0]['content']['parts']).strip()
-            if result: return result
-        except Exception as exc:
-            log('Gemini no disponible:',safe_error(exc)[:115])
+    if key and 'gemini' not in _AI_DISABLED:
+        models = gemini_models(key)
+        if not models:
+            _AI_DISABLED.add('gemini')
+        for model in models:
+            try:
+                response=HTTP.post('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent',
+                                   headers={'x-goog-api-key':key},
+                                   json={'contents':[{'parts':[{'text':prompt}]}],
+                                         'generationConfig':{'temperature':0.15,'maxOutputTokens':max_tokens}},timeout=48)
+                if response.status_code in (400,404):
+                    log('GEMINI:',model,'no disponible:',response.status_code)
+                    continue
+                if response.status_code in (401,403):
+                    _AI_DISABLED.add('gemini')
+                response.raise_for_status()
+                result='\n\n'.join(p.get('text','') for p in response.json()['candidates'][0]['content']['parts']).strip()
+                if result: return result
+            except Exception as exc:
+                log('Gemini no disponible:',safe_error(exc)[:115])
+        _AI_DISABLED.add('gemini')
     key=os.getenv('OPENROUTER_API_KEY','').strip()
     if key:
         try:
@@ -401,25 +443,173 @@ class ArticleParser(HTMLParser):
         if self.in_p and self.block==0: self.parts.append(data)
 
 
+# Opcional: pip install trafilatura googlenewsdecoder
+# Se mantiene también un extractor HTML/JSON-LD sin dependencias extra.
+_ARTICLE_CACHE = {}
+_GOOGLE_NEWS_HOSTS = {'news.google.com', 'news.googleusercontent.com'}
+
+
+def _safe_article_url(url):
+    try:
+        u = urlparse(str(url))
+        return u.scheme == 'https' and bool(u.hostname) and not u.username and not u.password
+    except ValueError:
+        return False
+
+
+def resolve_article_url(url):
+    """Intenta obtener el enlace editorial real, nunca utiliza Google News como texto fuente."""
+    if not _safe_article_url(url):
+        return ''
+    if urlparse(url).hostname not in _GOOGLE_NEWS_HOSTS:
+        return url
+    try:
+        from googlenewsdecoder import gnewsdecoder
+        result = gnewsdecoder(url, interval=0)
+        decoded = result.get('decoded_url') if isinstance(result, dict) else None
+        if decoded and _safe_article_url(decoded) and urlparse(decoded).hostname not in _GOOGLE_NEWS_HOSTS:
+            return decoded
+    except Exception:
+        pass
+    try:
+        response = HTTP.get(url, timeout=12, allow_redirects=True)
+        if _safe_article_url(response.url) and urlparse(response.url).hostname not in _GOOGLE_NEWS_HOSTS:
+            return response.url
+        # Google News puede devolver una página intermedia, no el artículo.
+        # No tomar enlaces arbitrarios de esa página como si fueran la noticia.
+    except requests.RequestException:
+        pass
+    return ''
+
+
+def _jsonld_articles(page):
+    segments = []
+    for raw in re.findall(r'<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>', page, flags=re.I | re.S):
+        try:
+            parsed = json.loads(html.unescape(raw))
+        except (ValueError, TypeError):
+            continue
+        items = parsed if isinstance(parsed, list) else [parsed]
+        while items:
+            item = items.pop()
+            if not isinstance(item, dict):
+                continue
+            items.extend(v for v in (item.get('@graph'),) if isinstance(v, list))
+            kind = item.get('@type', '')
+            kinds = kind if isinstance(kind, list) else [kind]
+            if any('Article' in str(k) or 'Report' in str(k) for k in kinds):
+                body = item.get('articleBody') or item.get('text')
+                if isinstance(body, str):
+                    segments.append(clean(body))
+    return ' '.join(segments)
+
+
+def extract_article_html(page):
+    choices = []
+    try:
+        import trafilatura
+        result = trafilatura.extract(page, include_comments=False, include_tables=False,
+                                     favor_recall=True, deduplicate=True)
+        if result:
+            choices.append(clean(result))
+    except ImportError:
+        pass
+    except Exception:
+        pass
+    ld = _jsonld_articles(page)
+    if ld:
+        choices.append(ld)
+    # Primero etiquetas de artículo, después el extractor clásico.
+    match = re.search(r'<article(?:\s[^>]*)?>(.*?)</article>', page, flags=re.I | re.S)
+    for markup in ([match.group(1)] if match else []) + [page]:
+        parser = ArticleParser()
+        try:
+            parser.feed(markup)
+            paragraphs = []
+            seen = set()
+            for paragraph in parser.paragraphs:
+                if re.search(r'cookies|privacy policy|subscribe|advertisement', paragraph, re.I):
+                    continue
+                key = normalized(paragraph)
+                if key not in seen:
+                    paragraphs.append(paragraph)
+                    seen.add(key)
+            if paragraphs:
+                choices.append(' '.join(paragraphs))
+        except Exception:
+            continue
+    choices.sort(key=lambda v: (source_text_sufficient(v), words(v)), reverse=True)
+    return choices[0][:18000] if choices else ''
+
+
 def full_article_text(article):
     direct = article.get('source_body', '')
     if source_text_sufficient(direct):
         return direct[:18000]
-    url=article.get('url','')
-    if not url.startswith('https://'): return ''
-    try:
-        response=get(url,timeout=20,headers={'Accept':'text/html'})
-        if 'html' not in response.headers.get('Content-Type','').lower() or len(response.content)>3_000_000: return ''
-        parser=ArticleParser(); parser.feed(response.text)
-        paras=[]; seen=set()
-        for paragraph in parser.paragraphs:
-            key=normalized(paragraph)[:100]
-            if key in seen or re.search(r'cookies|privacy policy|subscribe|advertisement',paragraph,re.I): continue
-            seen.add(key); paras.append(paragraph)
-        return ' '.join(paras)[:18000]
-    except Exception as exc:
-        log('ARTICULO NO ACCESIBLE:',type(exc).__name__)
+    url = article.get('url', '')
+    if not _safe_article_url(url):
         return ''
+    if url in _ARTICLE_CACHE:
+        return _ARTICLE_CACHE[url]
+    final_url = resolve_article_url(url)
+    if not final_url:
+        _ARTICLE_CACHE[url] = ''
+        return ''
+    try:
+        response = get(final_url, timeout=15, headers={'Accept': 'text/html,application/xhtml+xml'})
+        if 'html' not in response.headers.get('Content-Type', '').lower() or len(response.content) > 3_000_000:
+            result = ''
+        else:
+            result = extract_article_html(response.text)
+        if result and source_text_sufficient(result):
+            article['resolved_source_url'] = response.url
+        _ARTICLE_CACHE[url] = result
+        return result
+    except Exception as exc:
+        log('ARTICULO NO ACCESIBLE:',type(exc).__name__,urlparse(final_url).hostname)
+        _ARTICLE_CACHE[url] = ''
+        return ''
+
+
+def short_source_sufficient(text):
+    """Modo breve: al menos 35 palabras y dos oraciones informativas diferentes."""
+    if words(text) < FALLBACK_SOURCE_WORDS:
+        return False
+    sentences = [clean(x) for x in re.split(r'(?<=[.!?])\s+', clean(text)) if words(x) >= 7]
+    return len(set(normalized(x) for x in sentences)) >= 2
+
+
+def brief_development(article, text):
+    """Extrae únicamente afirmaciones presentes en la fuente, sin contenido inventado."""
+    if not short_source_sufficient(text):
+        return None
+    # Se conserva el orden y se eliminan repeticiones y material promocional.
+    sentences = []
+    seen = set()
+    for raw in re.split(r'(?<=[.!?])\s+', clean(text)):
+        phrase = clean(raw)
+        key = normalized(phrase)
+        if words(phrase) < 7 or key in seen or re.search(r'cookie|subscribe|advertis|privacy|suscr[ií]b',phrase,re.I):
+            continue
+        sentences.append(phrase)
+        seen.add(key)
+        if len(sentences) == 8 or sum(words(x) for x in sentences) >= 140:
+            break
+    result = ' '.join(sentences)
+    return result if words(result) >= FALLBACK_DEVELOPMENT_WORDS and len(sentences) >= 2 else None
+
+
+def source_for_fallback(article, recovered):
+    """Nunca usa un mero titular como prueba; prioriza el cuerpo real del medio."""
+    if short_source_sufficient(recovered):
+        return recovered, 'article_short'
+    direct = clean(article.get('source_body',''))
+    if short_source_sufficient(direct):
+        return direct, 'direct_rss_body'
+    # Solo sumarios extensos de feeds directos, no HTML de agregadores.
+    if article.get('search_category') == 'direct' and short_source_sufficient(article.get('description','')):
+        return article['description'], 'direct_rss_summary'
+    return '', ''
 
 
 def source_text_sufficient(text):
@@ -446,11 +636,11 @@ def deterministic_development(text):
 def validate_development(article,source_text):
     title=normalized(article.get('title',''))
     explanation=clean(article.get('explanation',''))
-    if not source_text_sufficient(source_text): return False,'Fuente sin contenido suficiente'
-    if words(explanation)<MIN_DEVELOPMENT_WORDS: return False,'Desarrollo inferior a 80 palabras'
+    if not (source_text_sufficient(source_text) or (article.get('editorial_mode') == 'documented_brief' and short_source_sufficient(source_text))): return False,'Fuente sin contenido suficiente'
+    if words(explanation)<(FALLBACK_DEVELOPMENT_WORDS if article.get('editorial_mode') == 'documented_brief' else MIN_DEVELOPMENT_WORDS): return False,'Desarrollo demasiado corto'
     if normalized(explanation)==title: return False,'El desarrollo repite el titular'
     sentences=[s for s in re.split(r'(?<=[.!?])\s+',explanation) if words(s)>=5]
-    if len({normalized(s) for s in sentences})<3: return False,'Faltan hechos desarrollados'
+    if len({normalized(s) for s in sentences})<(2 if article.get('editorial_mode') == 'documented_brief' else 3): return False,'Faltan hechos desarrollados'
     if 'INSUFICIENTE' in explanation.upper(): return False,'Contenido insuficiente'
     return True,'Desarrollo informativo válido'
 
@@ -746,7 +936,7 @@ def caption(article,credit):
     title=clean(article.get('image_headline') or article['title'])
     explanation=sanitize_explanation(article.get('explanation',''),article.get('title',''))
     explanation=sanitize_explanation(explanation,title)
-    if words(explanation)<MIN_DEVELOPMENT_WORDS: raise ValueError('Falta desarrollo de 80 palabras')
+    if words(explanation)<(FALLBACK_DEVELOPMENT_WORDS if article.get('editorial_mode') == 'documented_brief' else MIN_DEVELOPMENT_WORDS): raise ValueError('Falta desarrollo documental')
     category=article['category']
     label={'sismos':'CIENCIA SÍSMICA','volcanes':'ACTUALIDAD VOLCÁNICA','meteorologia':'METEOROLOGÍA','climatologia':'CLIMATOLOGÍA','oceanos':'CIENCIAS DEL OCÉANO','espacio':'CIENCIA ESPACIAL','desastres':'RIESGOS NATURALES','geologia':'CIENCIAS DE LA TIERRA'}.get(category,'ACTUALIDAD CIENTÍFICA')
     footer='\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n'+HASHTAGS+' '+CATEGORY_HASHTAGS.get(category,'')
@@ -755,7 +945,7 @@ def caption(article,credit):
     if available<300: raise ValueError('Titular demasiado largo')
     if len(explanation)>available:
         explanation=explanation[:available].rsplit(' ',1)[0].rstrip(',;:')+'.'
-    if words(explanation)<MIN_DEVELOPMENT_WORDS: raise ValueError('Descripción no permite desarrollo válido')
+    if words(explanation)<(FALLBACK_DEVELOPMENT_WORDS if article.get('editorial_mode') == 'documented_brief' else MIN_DEVELOPMENT_WORDS): raise ValueError('Descripción no permite desarrollo válido')
     return header+explanation+footer
 
 
@@ -915,23 +1105,28 @@ def select_news(articles,state):
         if existing and is_confirmed(existing): reasons['already_published']+=1; continue
         if existing and has_uncertain(existing): reasons['uncertain_previous']+=1; continue
         article=dict(original)
-        if article['lang']=='en':
-            translated=translate_es(article['title'])
-            if not translated: reasons['translation_failed']+=1; continue
-            article['original_title']=article['title']; article['title']=translated
-            article['description']=translate_es(article['description']) or article['description']
-        if is_earthquake_occurrence(article['title'],article['description'],article.get('source','')):
-            reasons['earthquake_occurrence']+=1; continue
         log('EVALUANDO:',article['title'][:110],'| categoria:',article['category'])
-        # Nunca construir una noticia completa únicamente con el RSS.
-        source_text=full_article_text(original)
+        # Priorizar contenido comprobable. Evita dos llamadas de traducción y IA
+        # para cada noticia que luego se descarta por falta de texto.
+        source_text=full_article_text(article)
         if not source_text_sufficient(source_text):
             reasons['source_too_short']+=1
-            log('DESCARTADA: artículo fuente sin al menos 85 palabras y cuatro oraciones'); continue
-        # Traducir el cuerpo completo solo si se redactara sin IA.
+            log('DESCARTADA: no se recuperó texto periodístico verificable (mínimo 85 palabras, cuatro oraciones)')
+            continue
+        if article['lang']=='en':
+            translated=translate_es(article['title'])
+            if not translated:
+                reasons['translation_failed']+=1
+                continue
+            article['original_title']=article['title']
+            article['title']=translated
+            article['description']=translate_es(article['description']) or article['description']
+        if is_earthquake_occurrence(article['title'],article['description'],article.get('source','')):
+            reasons['earthquake_occurrence']+=1
+            continue
         development=obtain_development(article,source_text)
         # Un respaldo extractivo en ingles requiere traduccion confirmada.
-        if development and original['lang']=='en' and not (os.getenv('GEMINI_API_KEY') or os.getenv('OPENROUTER_API_KEY') or os.getenv('GROQ_API_KEY')):
+        if development and original['lang']=='en' and any(phrase in normalized(development) for phrase in (' the ', ' and ', ' with ', ' according to ', ' researchers ')):
             development=translate_es(development)
         if not development:
             reasons['no_development']+=1; log('DESCARTADA: desarrollo informativo insuficiente'); continue
@@ -949,6 +1144,53 @@ def select_news(articles,state):
         except ValueError as exc:
             reasons['invalid_caption']+=1; log('DESCARTADA:',str(exc)); continue
         return article,photo,credit,description,reasons
+    # SEGUNDA PASADA: noticia breve documentada. No impone un desarrollo
+    # ficticio de 80 palabras cuando el material fuente solo permite menos.
+    log('MODO RECUPERACIÓN: buscando noticia breve con hechos documentados')
+    for original in articles[:MAX_ARTICLES]:
+        if is_earthquake_occurrence(original['title'], original.get('description',''),original.get('source','')):
+            continue
+        existing=state.get('stories',{}).get(original['id'])
+        if existing and (is_confirmed(existing) or has_uncertain(existing)):
+            continue
+        article=dict(original)
+        # Los artículos revisados durante la primera pasada quedan en caché.
+        source_text=full_article_text(article)
+        evidence, evidence_kind=source_for_fallback(original,source_text)
+        if not evidence:
+            continue
+        if article['lang']=='en':
+            spanish_title=translate_es(article['title'])
+            if not spanish_title:
+                continue
+            article['original_title']=article['title']
+            article['title']=spanish_title
+            article['description']=translate_es(article['description']) or article['description']
+        if is_earthquake_occurrence(article['title'],article['description'],article.get('source','')):
+            continue
+        explanation=brief_development(article,evidence)
+        if explanation and original['lang']=='en':
+            explanation=translate_es(explanation)
+        if not explanation:
+            continue
+        article['editorial_mode']='documented_brief'
+        article['source_evidence_kind']=evidence_kind
+        article['explanation']=explanation
+        valid,why=validate_development(article,evidence)
+        if not valid:
+            log('BREVE DESCARTADA:',why)
+            continue
+        article['image_headline']=factual_headline(article,evidence)
+        photo,credit=commons_photo(original)
+        if photo is None:
+            photo,credit=original_background(article)
+            reasons['generated_backgrounds']+=1
+        try:
+            description=caption(article,credit)
+        except ValueError:
+            continue
+        log('NOTICIA BREVE DOCUMENTADA:',article['title'],'| palabras:',words(explanation),'| soporte:',evidence_kind)
+        return article,photo,credit,description,reasons
     return None,None,None,None,reasons
 
 
@@ -956,7 +1198,7 @@ def publish_article(gh,state,article,image_file,credit,description,output):
     for title in (article.get('original_title'),article['title']):
         if title and is_earthquake_occurrence(title,article.get('description',''),article.get('source','')):
             raise RuntimeError('PUBLICACION BLOQUEADA: reporte de ocurrencia sísmica')
-    if words(article.get('explanation',''))<MIN_DEVELOPMENT_WORDS:
+    if words(article.get('explanation',''))<(FALLBACK_DEVELOPMENT_WORDS if article.get('editorial_mode') == 'documented_brief' else MIN_DEVELOPMENT_WORDS):
         raise RuntimeError('PUBLICACION BLOQUEADA: desarrollo insuficiente')
     instagram_id,instagram_token=ig_check()
     facebook_id,facebook_token=fb_check()
@@ -1002,6 +1244,34 @@ def publish_article(gh,state,article,image_file,credit,description,output):
     return receipt
 
 
+def test_extraction():
+    fixture = '<html><body><article>' + ''.join(
+        '<p>La investigación reunió datos de observatorios regionales y mediciones instrumentales. '
+        'Los resultados muestran cambios documentados en la zona estudiada y permiten comparar registros históricos número %s.</p>' % i
+        for i in range(6)
+    ) + '</article></body></html>'
+    extracted = extract_article_html(fixture)
+    assert source_text_sufficient(extracted), 'No extrajo el artículo de prueba'
+    assert not source_text_sufficient('Un titular y un resumen corto.'), 'Admitió solo el titular'
+    assert resolve_article_url('https://example.com/estudio') == 'https://example.com/estudio'
+    log('PRUEBAS EXTRACCION APROBADAS')
+
+
+def test_fallback():
+    example = ('El observatorio informó una nueva medición de la actividad de un volcán activo. '
+               'Los instrumentos registraron cambios en las emisiones y continúan las observaciones. '
+               'El equipo explicó que la evaluación se actualizará con nuevos datos sobre el fenómeno. '
+               'Las autoridades publicaron el resumen para informar a las comunidades de la zona.')
+    assert not source_text_sufficient(example)
+    assert short_source_sufficient(example)
+    article={'title':'Observatorio estudia los cambios del volcán', 'editorial_mode':'documented_brief',
+             'explanation':brief_development({}, example)}
+    assert validate_development(article,example)[0]
+    assert not short_source_sufficient('Un titular breve sobre un volcán.')
+    assert not brief_development({},'Un titular breve sobre un volcán.')
+    log('PRUEBAS DE RECUPERACIÓN EDITORIAL APROBADAS')
+
+
 def main():
     parser=argparse.ArgumentParser(description='SISMONAUTA noticias con desarrollo informativo')
     parser.add_argument('--publish',action='store_true')
@@ -1009,11 +1279,17 @@ def main():
     parser.add_argument('--test-filter',action='store_true')
     parser.add_argument('--test-diversity',action='store_true')
     parser.add_argument('--test-headlines',action='store_true')
+    parser.add_argument('--test-extraction',action='store_true')
+    parser.add_argument('--test-fallback',action='store_true')
     args=parser.parse_args()
     test_earthquake_filter()
     if args.test_filter: return 0
     if args.test_headlines:
         test_headlines(); return 0
+    if args.test_extraction:
+        test_extraction(); return 0
+    if args.test_fallback:
+        test_fallback(); return 0
     if args.test_diversity:
         dummy={'stories': {str(i): {'article': {'category': 'espacio', 'date': '2026-10-%02dT10:00:00+00:00' % (10+i)}, 'targets': {'instagram': {'status': 'published'}, 'facebook': {'status': 'published'}}} for i in range(5)}}
         sample=[{'category': category, 'title':'Nuevo estudio de ciencia de la Tierra', 'description':'Nuevas mediciones geofísicas y descubrimientos científicos', 'date':now().isoformat(), 'source_body':'', 'source':'Prueba', 'search_category':'rss'} for category in ('espacio','volcanes','oceanos')]
@@ -1032,11 +1308,11 @@ def main():
     log('AUDITORIA SELECCION:',json.dumps(reasons,ensure_ascii=False))
     if article is None:
         write_json(output/'estado_publicacion.json',{'status':'no_eligible_news','published':False,'lookback_hours':LOOKBACK_HOURS,'articles_reviewed':min(len(articles),MAX_ARTICLES),'reasons':reasons,'checked_at':now().isoformat()})
-        log('SIN NOTICIAS CON DESARROLLO SUFICIENTE: no es posible garantizar una noticia verificable; no se publicará contenido inventado'); return 0
+        log('SIN NOTICIAS CON RESPALDO DOCUMENTAL SUFICIENTE: no se fabrican hechos ni se reenvían noticias publicadas'); return 0
     image_file=output/(article['id']+'.jpg')
     make_card(photo,article,image_file)
     # La fuente se guarda solamente en los metadatos, nunca en pie ni caption.
-    write_json(output/'noticia.json',{'article':article,'image':credit,'caption':description,'source_url':article.get('url'),'source_name':article.get('source')})
+    write_json(output/'noticia.json',{'article':article,'image':credit,'caption':description,'source_url':article.get('resolved_source_url') or article.get('url'),'source_name':article.get('source')})
     log('TITULAR PARA IMAGEN:',article.get('image_headline',article['title']))
     log('NOTICIA:',article['title'],'| DESARROLLO:',words(article['explanation']),'palabras')
     if not args.publish:
