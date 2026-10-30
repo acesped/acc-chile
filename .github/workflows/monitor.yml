@@ -1,40 +1,42 @@
-name: SISMONAUTA - Reels sismicos sincronizados
+name: SISMONAUTA - Monitor cientifico (Reels y Stories)
 
+# Activacion manual. Si el workflow anterior tenia un cron, conserva
+# su bloque schedule original para evitar cambiar horas de publicacion.
 on:
   workflow_dispatch:
     inputs:
+      publish:
+        description: 'Publicar en Meta (desactivado = vista previa)'
+        type: boolean
+        required: true
+        default: false
+      story:
+        description: 'Publicar Stories en Instagram y Facebook'
+        type: boolean
+        required: true
+        default: true
       topic:
-        description: 'ID de tema opcional; vacio = seleccion automatica'
+        description: 'Tema/concepto opcional; vacio = seleccion automatica'
+        type: string
         required: false
         default: ''
-        type: string
-      publish:
-        description: 'Publicar el Reel automaticamente'
-        required: true
-        default: true
-        type: boolean
-      story:
-        description: 'Publicar tambien Story'
-        required: true
-        default: true
-        type: boolean
-
-  repository_dispatch:
-    types: [sismonauta_publicar]
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: sismonauta-instagram-facebook
+  group: sismonauta-monitor-publicacion
   cancel-in-progress: false
 
 jobs:
-  generar-y-publicar:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 55
+  sismonauta:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
     env:
       PYTHONUNBUFFERED: '1'
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      GITHUB_REF_NAME: ${{ github.ref_name }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
@@ -42,75 +44,38 @@ jobs:
       INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
       FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
       FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
-      FACEBOOK_EXPECTED_USERNAME: 'sismonauta'
-      GITHUB_REPOSITORY: ${{ github.repository }}
-      IG_GRAPH_VERSION: 'v25.0'
-      IG_EXPECTED_USERNAME: 'sismonauta'
-      GH_TOKEN: ${{ github.token }}
-      GITHUB_REF_NAME: ${{ github.event.repository.default_branch }}
-      DV_VOICE: 'es-CL-CatalinaNeural'
+      FACEBOOK_EXPECTED_USERNAME: sismonauta
+      IG_EXPECTED_USERNAME: sismonauta
+      IG_GRAPH_VERSION: v25.0
+      DV_VOICE: es-CL-CatalinaNeural
+      PUBLISH: ${{ inputs.publish }}
+      STORY: ${{ inputs.story }}
+      TOPIC: ${{ inputs.topic }}
+
     steps:
       - name: Descargar repositorio
         uses: actions/checkout@v4
 
-      - name: Configurar Python 3.11
+      - name: Preparar Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Instalar dependencias y FFmpeg sin APT
-        shell: bash
-        timeout-minutes: 10
+      - name: Instalar FFmpeg y dependencias
         run: |
           set -euo pipefail
-          python -m pip install --disable-pip-version-check --retries 3 --timeout 45 \
-            'Pillow>=10,<13' 'requests>=2.31,<3' 'edge-tts>=6,<8' \
-            'mutagen>=1.47,<2' 'imageio-ffmpeg>=0.6,<1'
-          mkdir -p "$RUNNER_TEMP/sismonauta-bin"
-          FFMPEG_BIN="$(python - <<'PY'
-          import imageio_ffmpeg
-          print(imageio_ffmpeg.get_ffmpeg_exe())
-          PY
-          )"
-          ln -sf "$FFMPEG_BIN" "$RUNNER_TEMP/sismonauta-bin/ffmpeg"
-          echo "$RUNNER_TEMP/sismonauta-bin" >> "$GITHUB_PATH"
-          "$FFMPEG_BIN" -hide_banner -version | head -n 1
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg fonts-dejavu-core
+          python -m pip install --upgrade pip
+          python -m pip install pillow requests edge-tts mutagen imageio-ffmpeg
 
-      - name: Verificar programa y FFmpeg
-        shell: bash
+      - name: Verificar sintaxis y descubrimiento
         run: |
           set -euo pipefail
-          test -f monitor.py || { echo '::error::Falta monitor.py en la raiz'; exit 1; }
           python -m py_compile monitor.py
-          command -v ffmpeg >/dev/null || { echo '::error::Falta FFmpeg'; exit 1; }
-          ffmpeg -hide_banner -encoders > "$RUNNER_TEMP/encoders.txt" 2>&1
-          grep -q 'libx264' "$RUNNER_TEMP/encoders.txt" || { echo '::error::Falta libx264'; exit 1; }
-          echo 'monitor.py y FFmpeg listos.'
+          python monitor.py --test-discovery
 
-      - name: Comprobar secretos necesarios
-        if: ${{ github.event_name == 'repository_dispatch' || inputs.publish }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          [[ -n "${INSTAGRAM_TOKEN:-}" && -n "${INSTAGRAM_USER_ID:-}" ]] || {
-            echo '::error::Faltan secretos INSTAGRAM_TOKEN o INSTAGRAM_USER_ID'; exit 1;
-          }
-          [[ "$INSTAGRAM_USER_ID" =~ ^[0-9]+$ ]] || {
-            echo '::error::INSTAGRAM_USER_ID debe ser numerico'; exit 1;
-          }
-          [[ -n "${FACEBOOK_PAGE_ID:-}" && -n "${FACEBOOK_PAGE_TOKEN:-}" ]] || {
-            echo '::error::Faltan FACEBOOK_PAGE_ID o FACEBOOK_PAGE_TOKEN'; exit 1;
-          }
-          [[ "$FACEBOOK_PAGE_ID" =~ ^[0-9]+$ ]] || { echo '::error::FACEBOOK_PAGE_ID debe ser numerico'; exit 1; }
-          echo 'Secretos Instagram y Facebook presentes. monitor.py verificara ambas identidades.'
-
-      - name: Crear Reel y publicar automaticamente
-        shell: bash
-        timeout-minutes: 37
-        env:
-          PUBLISH: ${{ github.event_name == 'repository_dispatch' && 'true' || (inputs.publish && 'true' || 'false') }}
-          STORY: ${{ github.event_name == 'repository_dispatch' && 'true' || (inputs.story && 'true' || 'false') }}
-          TOPIC: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.topic || inputs.topic || '' }}
+      - name: Generar y opcionalmente publicar
         run: |
           set -euo pipefail
           args=(--out output_sismos)
@@ -119,57 +84,76 @@ jobs:
             args+=(--publish --auto-publish)
             if [[ "$STORY" == 'true' ]]; then args+=(--story); fi
           fi
-          echo "Destinos: Instagram Reel+Story; Facebook Reel+Story+Feed | publicacion=$PUBLISH | story=$STORY"
-          echo "Video con voz individual, rotulo y foto por escena"
+          echo "Destinos: Instagram Reel+Story; Facebook Reel+Story (sin Feed independiente)"
+          echo "Publicacion=$PUBLISH | Story=$STORY | Tema=${TOPIC:-automatico}"
           python monitor.py "${args[@]}"
 
-      - name: Confirmar publicacion efectiva con identificador Meta
-        if: ${{ github.event_name == 'repository_dispatch' || inputs.publish }}
-        shell: bash
+      - name: Confirmar publicaciones requeridas
+        if: ${{ env.PUBLISH == 'true' }}
         env:
-          REQUIRE_STORY: ${{ github.event_name == 'repository_dispatch' && 'true' || (inputs.story && 'true' || 'false') }}
+          REQUIRE_STORY: ${{ env.STORY }}
         run: |
           set -euo pipefail
           python - <<'PYCODE'
           import json
-          from pathlib import Path
-          receipt = Path('output_sismos/publicacion_confirmada.json')
-          if not receipt.exists():
-              raise SystemExit('::error::No existe recibo de Meta; el workflow no puede declararse publicado')
-          data = json.loads(receipt.read_text(encoding='utf-8'))
-          if data.get('account') != 'sismonauta' or not data.get('reel_published') or not str(data.get('reel_id') or '').isdigit():
-              raise SystemExit('::error::Recibo Reel invalido; no se confirma publicacion')
           import os
-          if not data.get('facebook_reel_published') or not str(data.get('facebook_reel_id') or '').isdigit():
-              raise SystemExit('::error::Facebook Reel no confirmado; Instagram puede estar publicado, evitar reintento automatico')
-          print('FACEBOOK REEL CONFIRMADO:', data['facebook_reel_id'])
-          if not data.get('facebook_feed_published') or not str(data.get('facebook_feed_id') or '').isdigit():
-              raise SystemExit('::error::Facebook Feed no confirmado; evitar reintentar automáticamente las otras publicaciones')
-          print('FACEBOOK FEED VIDEO ACEPTADO:', data['facebook_feed_id'])
-          if os.environ.get('REQUIRE_STORY') == 'true':
-              if not data.get('facebook_story_published') or not str(data.get('facebook_story_id') or '').isdigit():
-                  raise SystemExit('::error::Facebook Story no confirmada; revisar la página antes de reintentar')
-              print('FACEBOOK STORY ACEPTADA:', data['facebook_story_id'])
-          if os.environ.get('REQUIRE_STORY') == 'true' and (not data.get('story_published') or not str(data.get('story_id') or '').isdigit()):
-              raise SystemExit('::error::Reel confirmado, pero Story no confirmada; revisar en Instagram antes de reintentar')
-          print('PUBLICACION CONFIRMADA @sismonauta: Reel ID', data['reel_id'])
-          if data.get('story_published'):
-              print('STORY CONFIRMADA: ID', data['story_id'])
+          from pathlib import Path
+
+          out = Path('output_sismos')
+          execution_file = out / 'estado_ejecucion.json'
+          receipt_file = out / 'publicacion_confirmada.json'
+
+          if not execution_file.exists():
+              raise SystemExit('::error::Falta estado_ejecucion.json; revisar antes de reintentar')
+          execution = json.loads(execution_file.read_text(encoding='utf-8'))
+          status = execution.get('status')
+
+          # El motor puede omitir la publicacion de forma deliberada si no hay
+          # un tema inedito o fotos validas; no equivale a un error Meta.
+          if status in ('no_new_topics', 'skipped_no_valid_images'):
+              print('SIN PUBLICACION, OMISION SEGURA:', status)
+              raise SystemExit(0)
+
+          if status != 'published':
+              raise SystemExit(f'::error::Ejecucion no confirmada: {status!r}')
+          if not receipt_file.exists():
+              raise SystemExit('::error::Falta recibo de Meta; revisar antes de reintentar')
+
+          receipt = json.loads(receipt_file.read_text(encoding='utf-8'))
+          if receipt.get('account') != 'sismonauta':
+              raise SystemExit('::error::El recibo no pertenece a @sismonauta')
+          if receipt.get('episode_id') != execution.get('episode_id'):
+              raise SystemExit('::error::El recibo y la ejecucion indican episodios diferentes')
+
+          def require_media(key, label):
+              media_id = str(receipt.get(key + '_id') or '')
+              if receipt.get(key + '_published') is not True or not media_id.isdigit():
+                  raise SystemExit(
+                      f'::error::{label} no confirmado; revisar Meta e historial antes de reintentar'
+                  )
+              print(f'{label} CONFIRMADO: {media_id}')
+
+          require_media('reel', 'INSTAGRAM REEL')
+          require_media('facebook_reel', 'FACEBOOK REEL')
+          if os.environ.get('REQUIRE_STORY', '').lower() == 'true':
+              require_media('story', 'INSTAGRAM STORY')
+              require_media('facebook_story', 'FACEBOOK STORY')
+
+          # No exigir ningun recibo del Feed independiente.
+          # El Reel puede aparecer en el Feed por distribucion de Meta.
+          print('PUBLICACIONES REQUERIDAS CONFIRMADAS: @sismonauta')
           PYCODE
 
-      - name: Guardar videos guiones e imagenes
+      - name: Guardar evidencias
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: sismonauta-${{ github.run_id }}-${{ github.run_attempt }}
+          name: sismonauta-monitor-${{ github.run_id }}
           path: |
-            output_sismos/**/*.json
-            output_sismos/**/*.mp4
-            output_sismos/**/*.jpg
-            output_sismos/**/*.png
-            output_sismos/*.json
-            output_sismos/*.mp4
-            output_sismos/*.jpg
-            output_sismos/*.png
+            output_sismos/estado_ejecucion.json
+            output_sismos/publicacion_confirmada.json
+            output_sismos/*_guion.json
+            output_sismos/*_portada.jpg
+            output_sismos/*/storyboard.json
           if-no-files-found: warn
-          retention-days: 14
+          retention-days: 7
