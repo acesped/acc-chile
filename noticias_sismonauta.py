@@ -45,12 +45,13 @@ IG_BASE = os.getenv('IG_GRAPH_BASE', 'https://graph.instagram.com').rstrip('/')
 FB_BASE = 'https://graph.facebook.com'
 STATE_FILE = 'sismonauta_noticias/state.json'
 ACCOUNT = 'sismonauta'
-LOOKBACK_HOURS = 60
+LOOKBACK_HOURS = max(60, int(os.getenv("NEWS_LOOKBACK_HOURS", "336")))
 MAX_ARTICLES = max(1, int(os.getenv('NEWS_MAX_ARTICLES', '350')))
 W, H = 1080, 1350
 MIN_SOURCE_WORDS = 85
 FALLBACK_SOURCE_WORDS = 35
 FALLBACK_DEVELOPMENT_WORDS = 35
+MIN_VERIFIED_BRIEF_WORDS = 18
 # Una noticia breve respaldada documentalmente es preferible a inventar relleno.
 MIN_DEVELOPMENT_WORDS = 80
 HASHTAGS = '#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica'
@@ -280,7 +281,7 @@ def feed_items():
     for search_category, queries in SEARCH_GROUPS.items():
         for lang, query in queries:
             hl, gl, ceid = ('es-CL','CL','CL:es-419') if lang == 'es' else ('en-US','US','US:en')
-            feed = 'https://news.google.com/rss/search?' + urllib.parse.urlencode({'q':query+' when:3d','hl':hl,'gl':gl,'ceid':ceid})
+            feed = 'https://news.google.com/rss/search?' + urllib.parse.urlencode({'q':query+' when:14d','hl':hl,'gl':gl,'ceid':ceid})
             try:
                 root = ET.fromstring(get(feed, timeout=20).content)
                 audit['feeds_ok'] += 1
@@ -637,7 +638,7 @@ def validate_development(article,source_text):
     title=normalized(article.get('title',''))
     explanation=clean(article.get('explanation',''))
     if not (source_text_sufficient(source_text) or (article.get('editorial_mode') == 'documented_brief' and short_source_sufficient(source_text))): return False,'Fuente sin contenido suficiente'
-    if words(explanation)<(FALLBACK_DEVELOPMENT_WORDS if article.get('editorial_mode') == 'documented_brief' else MIN_DEVELOPMENT_WORDS): return False,'Desarrollo demasiado corto'
+    if words(explanation)<(MIN_VERIFIED_BRIEF_WORDS if article.get('editorial_mode') == 'verified_summary' else FALLBACK_DEVELOPMENT_WORDS if article.get('editorial_mode') == 'documented_brief' else MIN_DEVELOPMENT_WORDS): return False,'Desarrollo demasiado corto'
     if normalized(explanation)==title: return False,'El desarrollo repite el titular'
     sentences=[s for s in re.split(r'(?<=[.!?])\s+',explanation) if words(s)>=5]
     if len({normalized(s) for s in sentences})<(2 if article.get('editorial_mode') == 'documented_brief' else 3): return False,'Faltan hechos desarrollados'
@@ -936,7 +937,7 @@ def caption(article,credit):
     title=clean(article.get('image_headline') or article['title'])
     explanation=sanitize_explanation(article.get('explanation',''),article.get('title',''))
     explanation=sanitize_explanation(explanation,title)
-    if words(explanation)<(FALLBACK_DEVELOPMENT_WORDS if article.get('editorial_mode') == 'documented_brief' else MIN_DEVELOPMENT_WORDS): raise ValueError('Falta desarrollo documental')
+    if words(explanation)<(MIN_VERIFIED_BRIEF_WORDS if article.get('editorial_mode') == 'verified_summary' else FALLBACK_DEVELOPMENT_WORDS if article.get('editorial_mode') == 'documented_brief' else MIN_DEVELOPMENT_WORDS): raise ValueError('Falta desarrollo documental')
     category=article['category']
     label={'sismos':'CIENCIA SÍSMICA','volcanes':'ACTUALIDAD VOLCÁNICA','meteorologia':'METEOROLOGÍA','climatologia':'CLIMATOLOGÍA','oceanos':'CIENCIAS DEL OCÉANO','espacio':'CIENCIA ESPACIAL','desastres':'RIESGOS NATURALES','geologia':'CIENCIAS DE LA TIERRA'}.get(category,'ACTUALIDAD CIENTÍFICA')
     footer='\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n'+HASHTAGS+' '+CATEGORY_HASHTAGS.get(category,'')
@@ -945,7 +946,7 @@ def caption(article,credit):
     if available<300: raise ValueError('Titular demasiado largo')
     if len(explanation)>available:
         explanation=explanation[:available].rsplit(' ',1)[0].rstrip(',;:')+'.'
-    if words(explanation)<(FALLBACK_DEVELOPMENT_WORDS if article.get('editorial_mode') == 'documented_brief' else MIN_DEVELOPMENT_WORDS): raise ValueError('Descripción no permite desarrollo válido')
+    if words(explanation)<(MIN_VERIFIED_BRIEF_WORDS if article.get('editorial_mode') == 'verified_summary' else FALLBACK_DEVELOPMENT_WORDS if article.get('editorial_mode') == 'documented_brief' else MIN_DEVELOPMENT_WORDS): raise ValueError('Descripción no permite desarrollo válido')
     return header+explanation+footer
 
 
@@ -1194,11 +1195,70 @@ def select_news(articles,state):
     return None,None,None,None,reasons
 
 
+
+def verified_summary_candidate(article):
+    """Último respaldo: una síntesis breve fiel del RSS del editor original.
+
+    No acepta snippets de Google News: suelen mezclar títulos y enlaces de
+    terceros, y no constituyen suficiente prueba para una noticia completa.
+    """
+    if article.get('search_category') != 'direct':
+        return None
+    description = clean(article.get('description', ''))
+    if words(description) < MIN_VERIFIED_BRIEF_WORDS:
+        return None
+    if not article.get('url', '').startswith('https://'):
+        return None
+    if is_earthquake_occurrence(article.get('title',''), description, article.get('source','')):
+        return None
+    if SPAM.search(description) or MISLEADING.search(description):
+        return None
+    if normalized(description) == normalized(article.get('title','')):
+        return None
+    return description
+
+
+def select_verified_brief(articles, state):
+    """Tercer nivel: comunicar el resumen editorial existente, sin expandirlo."""
+    for original in articles[:MAX_ARTICLES]:
+        entry = (state.get('stories') or {}).get(original['id'], {})
+        if is_confirmed(entry) or has_uncertain(entry):
+            continue
+        if is_earthquake_occurrence(original['title'], original.get('description',''), original.get('source','')):
+            continue
+        evidence = verified_summary_candidate(original)
+        if not evidence:
+            continue
+        article = dict(original)
+        article['editorial_mode'] = 'verified_summary'
+        article['source_evidence_kind'] = 'direct_rss_summary'
+        if article.get('lang') == 'en':
+            translated_title = translate_es(article['title'])
+            translated_evidence = translate_es(evidence)
+            if not translated_title or not translated_evidence:
+                continue
+            article['original_title'] = article['title']
+            article['title'] = translated_title
+            evidence = translated_evidence
+        article['explanation'] = evidence
+        article['image_headline'] = article['title']
+        try:
+            photo, credit = commons_photo(original)
+            if photo is None:
+                photo, credit = original_background(article)
+            description = caption(article, credit)
+        except (ValueError, RuntimeError) as exc:
+            log('RESUMEN BREVE DESCARTADO:', safe_error(exc))
+            continue
+        log('RESUMEN EDITORIAL VERIFICADO:', article['title'], '|', words(evidence), 'palabras')
+        return article, photo, credit, description
+    return None, None, None, None
+
 def publish_article(gh,state,article,image_file,credit,description,output):
     for title in (article.get('original_title'),article['title']):
         if title and is_earthquake_occurrence(title,article.get('description',''),article.get('source','')):
             raise RuntimeError('PUBLICACION BLOQUEADA: reporte de ocurrencia sísmica')
-    if words(article.get('explanation',''))<(FALLBACK_DEVELOPMENT_WORDS if article.get('editorial_mode') == 'documented_brief' else MIN_DEVELOPMENT_WORDS):
+    if words(article.get('explanation',''))<(MIN_VERIFIED_BRIEF_WORDS if article.get('editorial_mode') == 'verified_summary' else FALLBACK_DEVELOPMENT_WORDS if article.get('editorial_mode') == 'documented_brief' else MIN_DEVELOPMENT_WORDS):
         raise RuntimeError('PUBLICACION BLOQUEADA: desarrollo insuficiente')
     instagram_id,instagram_token=ig_check()
     facebook_id,facebook_token=fb_check()
@@ -1298,17 +1358,20 @@ def main():
         log('PRUEBAS DE DIVERSIDAD APROBADAS'); return 0
     output=Path(args.out); output.mkdir(parents=True,exist_ok=True)
     (output/'estado_publicacion.json').unlink(missing_ok=True)
-    log('SISMONAUTA | NOTICIAS CON DESARROLLO | 60 HORAS | PUBLICAR:',args.publish)
+    log('SISMONAUTA | NOTICIAS CON DESARROLLO |',LOOKBACK_HOURS,'HORAS | PUBLICAR:',args.publish)
     log('MAX_ARTICLES:',MAX_ARTICLES,'| FUENTES DIRECTAS:',len(DIRECT_FEEDS))
     gh=Github() if args.publish else None
     state=load_state(gh) if gh else {'stories':{}}
     articles=diverse_order(feed_items(), state)
     log('NOTICIAS CANDIDATAS:',len(articles))
     article,photo,credit,description,reasons=select_news(articles,state)
+    if article is None:
+        log('TERCER NIVEL: resúmenes editoriales de fuentes directas')
+        article,photo,credit,description=select_verified_brief(articles,state)
     log('AUDITORIA SELECCION:',json.dumps(reasons,ensure_ascii=False))
     if article is None:
         write_json(output/'estado_publicacion.json',{'status':'no_eligible_news','published':False,'lookback_hours':LOOKBACK_HOURS,'articles_reviewed':min(len(articles),MAX_ARTICLES),'reasons':reasons,'checked_at':now().isoformat()})
-        log('SIN NOTICIAS CON RESPALDO DOCUMENTAL SUFICIENTE: no se fabrican hechos ni se reenvían noticias publicadas'); return 0
+        log('SIN NOTICIAS CON RESPALDO DOCUMENTAL SUFICIENTE: no se fabrican hechos ni se reenvían noticias publicadas'); return 1 if args.publish else 0
     image_file=output/(article['id']+'.jpg')
     make_card(photo,article,image_file)
     # La fuente se guarda solamente en los metadatos, nunca en pie ni caption.
