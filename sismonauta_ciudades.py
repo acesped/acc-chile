@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """SISMONAUTA | Sismos cerca de 15 ciudades, EMSC-CSEM.
 
-Consulta retrospectiva ampliada (90 min por defecto), ejecución sugerida cada
+Consulta retrospectiva ampliada (300 min por defecto), ejecución sugerida cada
 10 min, magnitud 4.0 <= M < 7.0, radio 100 km. Registro por evento/plataforma
 para no reenviar publicaciones confirmadas ni resultados inciertos.
 
@@ -214,11 +214,12 @@ def make_image(event,path):
     image,kind=build_map(event); draw=ImageDraw.Draw(image); city=event['city']
     banner,foreground,category=magnitude_colors(event['mag'])
     draw.rounded_rectangle((22,24,1058,268),radius=25,fill=banner,outline='#FFFFFF',width=4)
-    draw_centered(draw,'ALERTA' if is_recent_event(event) else 'SISMO REGISTRADO',90,940,94,99 if is_recent_event(event) else 76,foreground)
+    draw_centered(draw,'ALERTA' if is_recent_event(event) else 'SISMO DETECTADO',90,940,94,99 if is_recent_event(event) else 76,foreground)
     draw.line((83,148,997,148),fill=foreground,width=3)
-    draw_centered(draw,'ÚLTIMO MINUTO' if is_recent_event(event) else 'REPORTE SÍSMICO',207,965,85,74,foreground)
+    if is_recent_event(event):
+        draw_centered(draw,'ÚLTIMO MINUTO',207,965,85,74,foreground)
     draw.rounded_rectangle((18,1000,1062,1328),radius=25,fill=banner,outline='#FFFFFF',width=4)
-    draw_centered(draw,f"SISMO DE MAGNITUD {event['mag']:.1f}",1057,985,76,64,foreground)
+    draw_centered(draw,f"MAGNITUD {event['mag']:.1f}",1057,985,76,64,foreground)
     line_two=('SE HA PERCIBIDO EN ' if event.get('felt_confirmed',False) else 'CERCA DE ')+city[0].upper()
     draw_centered(draw,line_two,1160,985,72,54,foreground)
     draw_centered(draw,'¿LO SENTISTE?',1262,970,75,67,foreground)
@@ -232,12 +233,11 @@ def make_caption(event):
     description=(f"Un sismo de magnitud {event['mag']:.1f} se ha percibido en las cercanías de {city[0]}, {city[1]}." if event.get('felt_confirmed',False) else f"Un sismo de magnitud {event['mag']:.1f} se ha registrado en las cercanías de {city[0]}, {city[1]}.")
     if 0<=age<=10: description+=' Hace instantes.'
     city_tag=re.sub(r'[^A-Za-z]','',city[0]); country_tag=re.sub(r'[^A-Za-z]','',city[1])
-    heading='🚨 ¡ÚLTIMO MINUTO!' if 0<=age<=10 else '📍 SISMO REGISTRADO'
+    heading='🚨 ¡ÚLTIMO MINUTO!' if 0<=age<=10 else '📍 SISMO DETECTADO'
     caption=(f"{heading} | SISMO DE MAGNITUD {event['mag']:.1f} CERCA DE {city[0].upper()}, {city[1].upper()} {city[2]}\n\n"
              f"{description}\n\n🕒 Hora de origen: {local:%d/%m/%Y %H:%M:%S} ({city[5]}).\n"
              f"📏 Distancia aproximada a {city[0]}: {event['distance_km']:.1f} km.\n"
              f"📍 Profundidad: {depth_text(event.get('depth'))}. Fuente: EMSC-CSEM.\n"
-             'ℹ️ El registro puede revisarse. No es una alerta sísmica oficial.\n\n'
              '💬 ¿Sentiste el movimiento? ¡Coméntanos!\n\n'
              '📲 Sigue a @sismonauta para conocer los últimos registros sísmicos.\n\n'
              f'#SISMONAUTA #Sismo #Terremoto #{country_tag} #{city_tag} #EMSC #Sismologia')
