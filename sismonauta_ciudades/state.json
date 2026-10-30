@@ -1,3 +1,4 @@
+
 {
   "events": {
     "emsc_20261028_0000184": {
@@ -16,23 +17,6 @@
         }
       },
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_ciudades/images/emsc_20261028_0000184.jpg"
-    },
-    "emsc_20261030_0000185": {
-      "magnitude": 4.0,
-      "place": "TARAPACA, CHILE",
-      "time": "2026-10-30T12:57:48.540000+00:00",
-      "source": "EMSC-CSEM",
-      "targets": {
-        "instagram": {
-          "status": "published",
-          "id": "18116613101325076"
-        },
-        "facebook": {
-          "status": "published",
-          "id": "305263296226466_1139683318606899"
-        }
-      },
-      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_ciudades/images/emsc_20261030_0000185.jpg"
     }
   }
 }
