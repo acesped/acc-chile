@@ -591,6 +591,41 @@
         }
       }
     },
+    "ccfbded3aa792543297c": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-10-21T04:01:00+00:00",
+        "description": "El potente sistema de baja presión se formó sobre el Atlántico Norte a partir de los remanentes del huracán Isaias.",
+        "explanation": "**TITULAR: Ciclón extratropical azota Islandia a su paso**\n\nUn ciclón extratropical, originado a partir de los restos del huracán Isaias, ha impactado Islandia con fuerza, dejando a su paso vientos huracanados y condiciones climáticas severas. El fenómeno meteorológico se intensificó rápidamente, con una caída de presión de más de 50 hectopascales en solo 24 horas, lo que podría haber establecido un nuevo récord de presión barométrica para octubre en el país, superando una marca que se mantenía desde 1963.\n\nEl 14 de octubre de 2026, el ciclón tocó la costa islandesa, registrando ráfagas de hasta 205 kilómetros por hora cerca del volcán Eyjafjallajökull. En una pequeña isla cercana, se reportaron vientos sostenidos de 150 kilómetros por hora. Las condiciones adversas no solo afectaron el sur de Islandia, sino que también se extendieron hacia el norte, donde los residentes enfrentaron aguanieve y nieve.\n\nAdemás, el impacto del ciclón se sintió en el noroeste de Escocia, donde se registraron ráfagas de hasta 90 kilómetros por hora, lo que provocó la cancelación de varias rutas de ferry. Este evento meteorológico resalta la creciente intensidad de los fenómenos climáticos en la región, generando preocupación entre los meteorólogos y las autoridades locales.",
+        "id": "ccfbded3aa792543297c",
+        "image_headline": "Un ciclón extratropical impacta Islandia con vientos de hasta 205 km/h, sugiriendo un récord de presión en octubre.",
+        "lang": "en",
+        "original_title": "Extratropical Cyclone Whips Past Iceland",
+        "search_category": "direct",
+        "source": "NASA Tierra",
+        "source_body": "Earth Observatory Science Earth Observatory Extratropical Cyclone Whips… Earth Earth Observatory Image of the Day EO Explorer Topics All Topics Atmosphere Land Heat & Radiation Life on Earth Human Dimensions Natural Events Oceans Remote Sensing Technology Snow & Ice Water More Content Collections Global Maps World of Change Articles Earth Matters Blog Blue Marble: Next Generation EO Kids Mission: Biomes About About Us Subscribe 🛜 RSS Contact Us Search Hurricane Isaias—the only Atlantic hurricane to date in 2026—made landfall in Florida as a Category 2 storm on October 9. After delivering a rainy, windy blow to the U.S. Gulf Coast and drenching much of the Eastern Seaboard, the weather system had more in store. Riding the jet stream east over the North Atlantic, Isaias’s remnants developed into a powerful storm known as an extratropical cyclone . These low-pressure systems often feature asymmetrical, comma-shaped cloud patterns and can strike with hurricane-force winds, rain, and blizzard-like conditions. The VIIRS (Visible Infrared Imaging Radiometer Suite) on the NOAA-21 satellite captured this image of the extratropical cyclone brushing past Iceland on the afternoon of October 14. During its journey, the system’s air pressure plummeted by more than 50 hectopascals over a 24-hour period, according to reports —approximately double the criteria for explosive cyclogenesis, or bombogenesis . Some meteorologists believe the storm may have set a new October low for barometric pressure in Iceland, after correcting for altitude, likely breaking a record that has stood since 1963. The cyclone lashed Iceland with high winds as it grazed the coast. A gust of 205 kilometers (128 miles) per hour was recorded near Eyjafjallajökull volcano in the country’s south, while a small island just offshore saw sustained winds of 150 kilometers (93 miles) per hour. Damaging winds extended into northern parts of the country, where residents also braced for sleet and snow. Farther across the Atlantic, northwestern Scotland received gusts up to 90 kilometers (55 miles) per hour on October 14, according to news reports , resulting in cancellations on several ferry routes. NASA Earth Observatory image by Michala Garrison, using VIIRS data from NASA EOSDIS LANCE , GIBS/Worldview , and the Joint Polar Satellite System (JPSS). Story by Lindsey Doermann. Downloads October 14, 2026 JPEG (3.38 MB) References & Resources BBC (2026, October 14) Gales and heavy rain to impact UK as yellow wind warning issued . Accessed October 20, 2026. CIMSS Satellite Blog (2026, October 14) Rapidly-intensifying hurricane force midlatitude cyclone passes over Iceland . Accessed October 20, 2026. NASA Earth Observatory (2016, September 9) The Evolution of Hurricane Hermine . Accessed October 20, 2026. NASA Earth Observatory (2013, March 7) Storms Come in Many Forms . Accessed October 20, 2026. NOAA National Ocean Service (2026, September 23) What is bombogenesis? Accessed October 20, 2026. RÚV (2026, October 14) Storm moves north . Accessed October 20, 2026. Weather & Radar (2026, October 14) Former hurricane to record storm . Accessed October 20, 2026. You may also be interested in: Stay up-to-date with the latest content from NASA as we explore the universe and discover more about our home planet. Powerful Storms Continue to Prowl the Pacific 4 min read Hurricanes Polo and Nolo sent destructive effects ashore amid an active season in the northeastern and central Pacific. Article Hurricane Simon Lurks Off the Mexican Coast 3 min read Though it remained offshore, the storm lashed coastal areas with high winds and flooding—and produced remarkable rippling patterns in the… Article Tropical Storm Arthur 2 min read The first named storm of the 2026 Atlantic hurricane season brought intense rainfall and the threat of flash flooding to… Article 1 2 3 4 Next Keep Exploring Discover More from NASA Earth Science Subscribe to Earth Observatory Newsletters Subscribe to the Earth Observatory and get the Earth in your inbox. Earth Observatory Image of the Day NASA’s Earth Observatory brings you the Earth, every day, with in-depth stories and stunning imagery. Explore Earth Science Earth Science Data Open access to NASA’s archive of Earth science data",
+        "title": "Ciclón extratropical azota Islandia a su paso",
+        "url": "https://science.nasa.gov/earth/earth-observatory/extratropical-cyclone-whips-past-iceland/"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "ocean coastline",
+        "sha256": "d13991b9a597cbd55acdd375b83ab999811ca9a250092ddead63775709b8188d",
+        "source": "https://commons.wikimedia.org/wiki/File:Ocean_coastline_waves_water.jpg",
+        "title": "File:Ocean coastline waves water.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/a/a0/Ocean_coastline_waves_water.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/ccfbded3aa792543297c.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "dec9f077a7f855246f29": {
       "article": {
         "category": "espacio",
