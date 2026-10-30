@@ -663,6 +663,42 @@
         }
       }
     },
+    "df783cbb84b04f27cb18": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-10-26T08:50:24+00:00",
+        "description": "El hielo marino ártico de invierno podría desaparecer mucho más rápido de lo que los científicos esperaban anteriormente, según una",
+        "explanation": "El Ártico podría perder aproximadamente un millón de kilómetros cuadrados más de hielo marino invernal de lo que los científicos habían predicho anteriormente, según una nueva investigación que se basa en evidencia de un Ártico más cálido hace 6,000 años. Al utilizar registros climáticos antiguos para refinar los modelos computacionales modernos, los investigadores han producido estimaciones más confiables sobre cuánto hielo podría desaparecer en las próximas décadas. Los hallazgos, publicados en Nature Geoscience, también podrían tener importantes consecuencias para el clima invernal en el Reino Unido y otras partes de Europa. Gran parte de la atención en torno a la pérdida de hielo en el Ártico se ha centrado en el dramático retroceso del hielo marino en verano. Sin embargo, el hielo invernal ha recibido considerablemente menos escrutinio, a pesar de que los modelos climáticos muestran sus mayores desacuerdos al predecir cuánto hielo cubrirá el Ártico durante los meses más fríos. El hielo marino invernal influye en el clima mucho más allá del Ártico al controlar cuánto calor y humedad escapan del océano a la atmósfera. La disminución de la cobertura de hielo se ha asociado con inviernos más fríos y un aumento de las nevadas en el Reino Unido, el norte de Europa y América del Norte.",
+        "id": "df783cbb84b04f27cb18",
+        "image_headline": "Investigación revela que el Ártico podría perder un millón de kilómetros cuadrados más de hielo invernal del previsto.",
+        "lang": "en",
+        "original_title": "Scientists discover Arctic sea ice loss could be far worse than predicted",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/10/261022081259.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "Científicos descubren que la pérdida de hielo marino en el Ártico podría ser mucho peor de lo previsto.",
+        "url": "https://www.sciencedaily.com/releases/2026/10/261022081259.htm"
+      },
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "ocean coastline",
+        "sha256": "20f3b353da6cb7d71f16de700951d1fe89791092c14da1295ea95781be0ed5e0",
+        "source": "https://commons.wikimedia.org/wiki/File:The_Soutuern_Ocean_coastline_facing_East_Mount_Barren_near_Hopetoun,_WA_02.jpg",
+        "title": "File:The Soutuern Ocean coastline facing East Mount Barren near Hopetoun, WA 02.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ee/The_Soutuern_Ocean_coastline_facing_East_Mount_Barren_near_Hopetoun%2C_WA_02.jpg/1920px-The_Soutuern_Ocean_coastline_facing_East_Mount_Barren_near_Hopetoun%2C_WA_02.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/df783cbb84b04f27cb18.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "e8f5dea1fe3203bd2e92": {
       "article": {
         "category": "sismos",
