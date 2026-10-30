@@ -55,6 +55,10 @@ MIN_VERIFIED_BRIEF_WORDS = 18
 MIN_HEADLINE_DIGEST_WORDS = 14  # Respaldo mínimo: noticia breve sin inventar detalles.
 # Una noticia breve respaldada documentalmente es preferible a inventar relleno.
 MIN_DEVELOPMENT_WORDS = 80
+
+# Calidad editorial: un titular aislado no equivale a una noticia desarrollada.
+NEWS_ALLOW_HEADLINE_ONLY = os.getenv('NEWS_ALLOW_HEADLINE_ONLY', 'false').lower() == 'true'
+MIN_EDITORIAL_RELEVANCE = int(os.getenv('NEWS_MIN_EDITORIAL_RELEVANCE', '3'))
 HASHTAGS = '#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica'
 
 SEARCH_GROUPS = {
@@ -333,10 +337,52 @@ def feed_items():
     return list(output.values())
 
 
+# Afinidad con el enfoque SISMONAUTA: geociencias, fenómenos terrestres,
+# vulcanología, oceanografía, monitoreo, investigación y riesgos naturales.
+EDITORIAL_CORE = re.compile(
+    r"sism|seism|earthquake|terremot|tect[oó]nic|subducci[oó]n|fault|falla geol|"
+    r"volc[aá]n|volcan|erupci[oó]n|eruption|magma|lava|geof[ií]sic|geophys|"
+    r"geolog|ge[oó]log|oceanograf|oceanograph|tsunami|maremoto|"
+    r"deslizamiento|landslide|alud|inundaci[oó]n|flood|tornado|"
+    r"hurac[aá]n|hurricane|cyclone|cicl[oó]n|glaciar|glacier", re.I)
+EDITORIAL_SCIENCE = re.compile(
+    r"investig|research|estudio|study|studies|cient[ií]fic|scientist|"
+    r"descubr|discover|observatori|observatory|medici[oó]n|measurement|"
+    r"modelo|model|instrument|sat[eé]lit|satellite|monitore|monitor|"
+    r"alerta temprana|early warning|nueva escala|new scale|"
+    r"predicci[oó]n|prediction|evidencia|evidence", re.I)
+EDITORIAL_LOW_VALUE = re.compile(
+    r"(clima en|weather in|hor[oó]scopo|pron[oó]stico del d[ií]a|"
+    r"sports?|f[uú]tbol|stock market|finance|fundraising|"
+    r"appointments?|designan|nombran|galas?|seminar|webinar|"
+    r"review:|op-ed:|opin[iioó]n|elections?|candidates?)", re.I)
+
+def editorial_relevance(article):
+    """Evalúa el TITULAR: una palabra fortuita del cuerpo no basta."""
+    title = clean(article.get('original_title') or article.get('title',''))
+    category = article.get('category','')
+    if is_earthquake_occurrence(title, article.get('description',''), article.get('source','')):
+        return -100
+    if EDITORIAL_LOW_VALUE.search(title) or SPAM.search(title) or MISLEADING.search(title):
+        return -100
+    core = bool(EDITORIAL_CORE.search(title))
+    science = bool(EDITORIAL_SCIENCE.search(title))
+    # No se acepta una coincidencia temática solo dentro del snippet RSS.
+    if not core and not (science and category in ('sismos','volcanes','geologia','oceanos','desastres')):
+        return 0
+    score = 2 if core else 1
+    if science: score += 2
+    if category in ('sismos','volcanes','geologia','oceanos','desastres'): score += 2
+    if category in ('meteorologia','climatologia') and not science: score -= 1
+    return score
+
+def editorial_eligible(article):
+    return editorial_relevance(article) >= MIN_EDITORIAL_RELEVANCE
+
 def priority(article):
     weight = {'sismos':9,'volcanes':8,'oceanos':7,'desastres':7,'meteorologia':6,'climatologia':6,'geologia':6,'espacio':5}
     text = normalized(article['title']+' '+article['description'])
-    score = weight.get(article['category'],0)
+    score = weight.get(article['category'],0) + editorial_relevance(article)*12
     for term,value in [('investigacion',5),('research',5),('descubrimiento',5),('discovery',5),('nasa',4),('noaa',4),('tecnologia',4),('technology',4),('estudio',4),('study',4),('volcan',3),('eruption',3),('huracan',3),('tsunami',3)]:
         if term in text:
             score += value
@@ -1109,6 +1155,8 @@ def diverse_order(articles, state):
 def select_news(articles,state):
     reasons={'earthquake_occurrence':0,'already_published':0,'uncertain_previous':0,'translation_failed':0,'source_too_short':0,'no_development':0,'invalid_caption':0,'generated_backgrounds':0}
     for original in articles[:MAX_ARTICLES]:
+        if not editorial_eligible(original):
+            continue
         if is_earthquake_occurrence(original['title'],original.get('description',''),original.get('source','')):
             reasons['earthquake_occurrence']+=1; continue
         existing=state.get('stories',{}).get(original['id'])
@@ -1158,6 +1206,8 @@ def select_news(articles,state):
     # ficticio de 80 palabras cuando el material fuente solo permite menos.
     log('MODO RECUPERACIÓN: buscando noticia breve con hechos documentados')
     for original in articles[:MAX_ARTICLES]:
+        if not editorial_eligible(original):
+            continue
         if is_earthquake_occurrence(original['title'], original.get('description',''),original.get('source','')):
             continue
         existing=state.get('stories',{}).get(original['id'])
@@ -1211,6 +1261,8 @@ def verified_summary_candidate(article):
     No acepta snippets de Google News: suelen mezclar títulos y enlaces de
     terceros, y no constituyen suficiente prueba para una noticia completa.
     """
+    if not editorial_eligible(article):
+        return None
     if article.get('search_category') != 'direct':
         return None
     description = clean(article.get('description', ''))
@@ -1230,6 +1282,8 @@ def verified_summary_candidate(article):
 def select_verified_brief(articles, state):
     """Tercer nivel: comunicar el resumen editorial existente, sin expandirlo."""
     for original in articles[:MAX_ARTICLES]:
+        if not editorial_eligible(original):
+            continue
         entry = (state.get('stories') or {}).get(original['id'], {})
         if is_confirmed(entry) or has_uncertain(entry):
             continue
@@ -1272,6 +1326,8 @@ def select_headline_digest(articles, state):
     que no dice. Se indica expresamente la limitación documental al lector.
     """
     for original in articles[:MAX_ARTICLES]:
+        if not editorial_eligible(original):
+            continue
         previous=(state.get('stories') or {}).get(original['id'], {})
         if is_confirmed(previous) or has_uncertain(previous):
             continue
@@ -1455,10 +1511,11 @@ def main():
     if article is None:
         log('TERCER NIVEL: resúmenes editoriales de fuentes directas')
         article,photo,credit,description=select_verified_brief(articles,state)
-    if article is None:
-        log('CUARTO NIVEL: noticia breve basada en titular RSS atribuido; sin inventar desarrollo')
+    if article is None and NEWS_ALLOW_HEADLINE_ONLY:
+        log('CUARTO NIVEL: respaldo experimental por titular habilitado explícitamente')
         article,photo,credit,description=select_headline_digest(articles,state)
     log('AUDITORIA SELECCION:',json.dumps(reasons,ensure_ascii=False))
+    log('CALIDAD EDITORIAL: noticias con afinidad temática:', sum(editorial_eligible(a) for a in articles), '| TITULAR SOLO:', NEWS_ALLOW_HEADLINE_ONLY)
     if article is None:
         write_json(output/'estado_publicacion.json',{'status':'no_eligible_news','published':False,'lookback_hours':LOOKBACK_HOURS,'articles_reviewed':min(len(articles),MAX_ARTICLES),'reasons':reasons,'checked_at':now().isoformat()})
         log('SIN NOTICIAS CON RESPALDO DOCUMENTAL SUFICIENTE: no se fabrican hechos ni se reenvían noticias publicadas'); return 1 if args.publish else 0
