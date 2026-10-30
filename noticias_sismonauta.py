@@ -610,13 +610,100 @@ def sanitize_explanation(text,title=''):
     return clean(text)
 
 
+# ============================================================
+# TITULARES DE IMPACTO, SIN CLICKBAIT NI DATOS INVENTADOS
+# ============================================================
+
+HEADLINE_MIN_WORDS = 5
+HEADLINE_MAX_WORDS = 19
+HEADLINE_MAX_CHARS = 128
+HEADLINE_FORBIDDEN = re.compile(
+    r'(?i)\b(?:no\s+vas\s+a\s+creer|incre[ií]ble|impactante|'
+    r'shock|aterrador|apocalipsis|la\s+verdad\s+oculta|'
+    r'nadie\s+te\s+cuenta|te\s+dejar[aá]\s+sin\s+palabras)\b'
+)
+
+
+def headline_numbers(text):
+    # Compara las cifras de modo conservador; no autoriza números nuevos.
+    return set(re.findall(r'(?<!\w)\d+(?:[.,]\d+)?(?!\w)', clean(text)))
+
+
+def headline_valid(candidate, article, source_text):
+    candidate = clean(candidate).strip('\"“”«»*# ')
+    if not (HEADLINE_MIN_WORDS <= words(candidate) <= HEADLINE_MAX_WORDS):
+        return False
+    if len(candidate) > HEADLINE_MAX_CHARS or '\n' in candidate:
+        return False
+    if HEADLINE_FORBIDDEN.search(candidate) or 'TITULAR:' in candidate.upper():
+        return False
+    if re.search(r'https?://|#[A-Za-z]|\b(?:urgente|última hora)\b', candidate, re.I):
+        return False
+    original = article.get('original_title') or article.get('title') or ''
+    evidence = ' '.join((original, article.get('description', ''), source_text))
+    if not headline_numbers(candidate).issubset(headline_numbers(evidence)):
+        return False
+    if is_earthquake_occurrence(candidate, article.get('description',''), article.get('source','')):
+        return False
+    return True
+
+
+def factual_headline(article, source_text):
+    """Prioriza una noticia concreta y comprobada, no un titular genérico.
+
+    Si la IA falla, conserva el título periodístico existente: evita fabricar
+    afirmaciones por medio de plantillas o preguntas especulativas.
+    """
+    original = clean(article.get('title', ''))
+    prompt = (
+        'Eres editor de titulares científicos de SISMONAUTA para Instagram. '
+        'Reescribe el titular como una frase de impacto informativo, precisa y '
+        'muy clara, de 7 a 16 palabras (máximo 128 caracteres). '
+        'La primera lectura debe contar QUÉ sucedió y POR QUÉ importa. '
+        'Prioriza el resultado concreto, el descubrimiento, una cifra documentada '
+        'o la consecuencia demostrada. Usa verbos activos y lenguaje sencillo. '
+        'Mantén la cautela científica (podría, sugiere, según el estudio). '
+        'NO exageres, NO inventes cifras, peligros, conclusiones ni predicciones, '
+        'NO uses preguntas vacías, sensacionalismo, hashtags, comillas ni emojis. '
+        'No conviertas investigaciones sísmicas en avisos de terremotos ocurridos. '
+        'Responde ÚNICAMENTE con el titular final, en una sola línea.\n\n'
+        'TITULAR PERIODÍSTICO: ' + original + '\n'
+        'DESCRIPCIÓN DOCUMENTADA: ' + clean(article.get('description',''))[:850] + '\n'
+        'DESARROLLO VERIFICADO: ' + clean(article.get('explanation',''))[:2600] + '\n'
+        'FUENTE DOCUMENTAL: ' + clean(source_text)[:4300]
+    )
+    result = ai_text(prompt, 170)
+    if result:
+        candidate = clean(result.splitlines()[0]).strip('\"“”«»*# ')
+        candidate = re.sub(r'^(?:titular|título|headline)\s*:\s*', '', candidate, flags=re.I)
+        if headline_valid(candidate, article, source_text):
+            log('TITULAR DE IMPACTO VALIDADO:', candidate)
+            return candidate
+        log('TITULAR IA DESCARTADO: no cumple longitud, seguridad o cifras')
+    log('TITULAR ORIGINAL CONSERVADO: sin reescritura verificable')
+    return original
+
+
+def test_headlines():
+    base = dict(title='Investigadores estudian el comportamiento de los glaciares',
+                description='El estudio observa el retroceso de glaciares',
+                category='climatologia', source='Instituto científico')
+    evidence = 'Un estudio documentó el retroceso de los glaciares en las últimas décadas.'
+    assert headline_valid('El estudio documenta el retroceso de los glaciares', base, evidence)
+    assert not headline_valid('Los glaciares retroceden 89 kilómetros en una semana', base, evidence)
+    assert not headline_valid('No vas a creer lo que ocurre con los glaciares', base, evidence)
+    assert not headline_valid('Terremoto magnitud 6.5 cerca de Santiago', base, evidence)
+    assert not headline_valid('¡Impactante!', base, evidence)
+    log('PRUEBAS TITULARES: seguridad, hechos y legibilidad correctos')
+
+
 def make_card(image,article,path):
     """Tarjeta solo con titular. El desarrollo va exclusivamente en el pie."""
     canvas=ImageOps.fit(image,(W,H),Image.Resampling.LANCZOS,centering=(0.5,0.44)).convert('RGBA')
     veil=Image.new('RGBA',(W,H),(0,0,0,0)); draw=ImageDraw.Draw(veil)
     draw.rectangle((0,0,W,112),fill=(4,21,46,245))
     draw.text((54,32),'SISMONAUTA  |  ACTUALIDAD',font=font(36,True),fill='white')
-    title=clean(article['title'])
+    title=clean(article.get('image_headline') or article['title'])
     top=640; bottom=H-90
     draw.rectangle((0,top,W,bottom),fill=(3,29,58,244))
     draw.rectangle((0,top,W,top+10),fill=(36,163,255,255))
@@ -656,8 +743,9 @@ CATEGORY_HASHTAGS={
 
 def caption(article,credit):
     """La fuente no se muestra y el titular aparece una sola vez."""
-    title=clean(article['title'])
-    explanation=sanitize_explanation(article.get('explanation',''),title)
+    title=clean(article.get('image_headline') or article['title'])
+    explanation=sanitize_explanation(article.get('explanation',''),article.get('title',''))
+    explanation=sanitize_explanation(explanation,title)
     if words(explanation)<MIN_DEVELOPMENT_WORDS: raise ValueError('Falta desarrollo de 80 palabras')
     category=article['category']
     label={'sismos':'CIENCIA SÍSMICA','volcanes':'ACTUALIDAD VOLCÁNICA','meteorologia':'METEOROLOGÍA','climatologia':'CLIMATOLOGÍA','oceanos':'CIENCIAS DEL OCÉANO','espacio':'CIENCIA ESPACIAL','desastres':'RIESGOS NATURALES','geologia':'CIENCIAS DE LA TIERRA'}.get(category,'ACTUALIDAD CIENTÍFICA')
@@ -851,6 +939,7 @@ def select_news(articles,state):
         valid,reason=validate_development(article,source_text)
         if not valid:
             reasons['no_development']+=1; log('DESCARTADA:',reason); continue
+        article['image_headline']=factual_headline(article,source_text)
         photo,credit=commons_photo(original)
         if photo is None:
             photo,credit=original_background(article)
@@ -919,9 +1008,12 @@ def main():
     parser.add_argument('--out',default='output_noticias')
     parser.add_argument('--test-filter',action='store_true')
     parser.add_argument('--test-diversity',action='store_true')
+    parser.add_argument('--test-headlines',action='store_true')
     args=parser.parse_args()
     test_earthquake_filter()
     if args.test_filter: return 0
+    if args.test_headlines:
+        test_headlines(); return 0
     if args.test_diversity:
         dummy={'stories': {str(i): {'article': {'category': 'espacio', 'date': '2026-10-%02dT10:00:00+00:00' % (10+i)}, 'targets': {'instagram': {'status': 'published'}, 'facebook': {'status': 'published'}}} for i in range(5)}}
         sample=[{'category': category, 'title':'Nuevo estudio de ciencia de la Tierra', 'description':'Nuevas mediciones geofísicas y descubrimientos científicos', 'date':now().isoformat(), 'source_body':'', 'source':'Prueba', 'search_category':'rss'} for category in ('espacio','volcanes','oceanos')]
@@ -945,6 +1037,7 @@ def main():
     make_card(photo,article,image_file)
     # La fuente se guarda solamente en los metadatos, nunca en pie ni caption.
     write_json(output/'noticia.json',{'article':article,'image':credit,'caption':description,'source_url':article.get('url'),'source_name':article.get('source')})
+    log('TITULAR PARA IMAGEN:',article.get('image_headline',article['title']))
     log('NOTICIA:',article['title'],'| DESARROLLO:',words(article['explanation']),'palabras')
     if not args.publish:
         write_json(output/'estado_publicacion.json',{'status':'preview_only','published':False,'article_id':article['id'],'image':str(image_file),'checked_at':now().isoformat()})
