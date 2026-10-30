@@ -52,6 +52,7 @@ MIN_SOURCE_WORDS = 85
 FALLBACK_SOURCE_WORDS = 35
 FALLBACK_DEVELOPMENT_WORDS = 35
 MIN_VERIFIED_BRIEF_WORDS = 18
+MIN_HEADLINE_DIGEST_WORDS = 14  # Respaldo mínimo: noticia breve sin inventar detalles.
 # Una noticia breve respaldada documentalmente es preferible a inventar relleno.
 MIN_DEVELOPMENT_WORDS = 80
 HASHTAGS = '#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica'
@@ -638,7 +639,7 @@ def validate_development(article,source_text):
     title=normalized(article.get('title',''))
     explanation=clean(article.get('explanation',''))
     if not (source_text_sufficient(source_text) or (article.get('editorial_mode') == 'documented_brief' and short_source_sufficient(source_text))): return False,'Fuente sin contenido suficiente'
-    if words(explanation)<(MIN_VERIFIED_BRIEF_WORDS if article.get('editorial_mode') == 'verified_summary' else FALLBACK_DEVELOPMENT_WORDS if article.get('editorial_mode') == 'documented_brief' else MIN_DEVELOPMENT_WORDS): return False,'Desarrollo demasiado corto'
+    if words(explanation)<min_caption_words(article): return False,'Desarrollo demasiado corto'
     if normalized(explanation)==title: return False,'El desarrollo repite el titular'
     sentences=[s for s in re.split(r'(?<=[.!?])\s+',explanation) if words(s)>=5]
     if len({normalized(s) for s in sentences})<(2 if article.get('editorial_mode') == 'documented_brief' else 3): return False,'Faltan hechos desarrollados'
@@ -932,12 +933,20 @@ CATEGORY_HASHTAGS={
 }
 
 
+def min_caption_words(article):
+    mode=article.get('editorial_mode')
+    if mode == 'headline_digest': return MIN_HEADLINE_DIGEST_WORDS
+    if mode == 'verified_summary': return MIN_VERIFIED_BRIEF_WORDS
+    if mode == 'documented_brief': return FALLBACK_DEVELOPMENT_WORDS
+    return MIN_DEVELOPMENT_WORDS
+
+
 def caption(article,credit):
     """La fuente no se muestra y el titular aparece una sola vez."""
     title=clean(article.get('image_headline') or article['title'])
     explanation=sanitize_explanation(article.get('explanation',''),article.get('title',''))
     explanation=sanitize_explanation(explanation,title)
-    if words(explanation)<(MIN_VERIFIED_BRIEF_WORDS if article.get('editorial_mode') == 'verified_summary' else FALLBACK_DEVELOPMENT_WORDS if article.get('editorial_mode') == 'documented_brief' else MIN_DEVELOPMENT_WORDS): raise ValueError('Falta desarrollo documental')
+    if words(explanation)<min_caption_words(article): raise ValueError('Falta desarrollo documental')
     category=article['category']
     label={'sismos':'CIENCIA SÍSMICA','volcanes':'ACTUALIDAD VOLCÁNICA','meteorologia':'METEOROLOGÍA','climatologia':'CLIMATOLOGÍA','oceanos':'CIENCIAS DEL OCÉANO','espacio':'CIENCIA ESPACIAL','desastres':'RIESGOS NATURALES','geologia':'CIENCIAS DE LA TIERRA'}.get(category,'ACTUALIDAD CIENTÍFICA')
     footer='\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n'+HASHTAGS+' '+CATEGORY_HASHTAGS.get(category,'')
@@ -946,7 +955,7 @@ def caption(article,credit):
     if available<300: raise ValueError('Titular demasiado largo')
     if len(explanation)>available:
         explanation=explanation[:available].rsplit(' ',1)[0].rstrip(',;:')+'.'
-    if words(explanation)<(MIN_VERIFIED_BRIEF_WORDS if article.get('editorial_mode') == 'verified_summary' else FALLBACK_DEVELOPMENT_WORDS if article.get('editorial_mode') == 'documented_brief' else MIN_DEVELOPMENT_WORDS): raise ValueError('Descripción no permite desarrollo válido')
+    if words(explanation)<min_caption_words(article): raise ValueError('Descripción no permite desarrollo válido')
     return header+explanation+footer
 
 
@@ -1254,11 +1263,69 @@ def select_verified_brief(articles, state):
         return article, photo, credit, description
     return None, None, None, None
 
+
+
+def select_headline_digest(articles, state):
+    """Respaldo extremo: únicamente el hecho explícito en el título RSS.
+
+    No reconstruye artículos cerrados ni usa un título como prueba de detalles
+    que no dice. Se indica expresamente la limitación documental al lector.
+    """
+    for original in articles[:MAX_ARTICLES]:
+        previous=(state.get('stories') or {}).get(original['id'], {})
+        if is_confirmed(previous) or has_uncertain(previous):
+            continue
+        title=clean(original.get('title',''))
+        provider=clean(original.get('source',''))
+        if not provider or not original.get('url','').startswith('https://'):
+            continue
+        if words(title)<9 or len(title)>190 or re.search(r'\b(?:en vivo|live updates|breaking|watch|video|photos|fotos)\b',title,re.I):
+            continue
+        if is_earthquake_occurrence(title,original.get('description',''),provider):
+            continue
+        if SPAM.search(title) or MISLEADING.search(title):
+            continue
+        if not classify(title,original.get('description',''),provider):
+            continue
+        article=dict(original)
+        if article.get('lang')=='en':
+            translation=translate_es(title)
+            if not translation: continue
+            article['original_title']=title
+            article['title']=translation
+        title=clean(article['title'])
+        try:
+            published_at=datetime.fromisoformat(article['date']).astimezone(timezone.utc)
+            published_date=published_at.strftime('%d/%m/%Y')
+        except (ValueError,TypeError,KeyError):
+            continue
+        # El titular se imprime una sola vez, arriba de la descripción.
+        # La descripción no presenta inferencias como hechos confirmados.
+        explanation=(
+            f'Esta información fue difundida el {published_date}. '
+            'Por ahora, no se ha podido recuperar el desarrollo completo del artículo. '
+            'El dato principal comunicado es el que aparece en el titular; '
+            'los detalles adicionales permanecen sin verificación en esta publicación.'
+        )
+        article['editorial_mode']='headline_digest'
+        article['source_evidence_kind']='publisher_rss_headline'
+        article['explanation']=explanation
+        article['image_headline']=title
+        try:
+            photo,credit=commons_photo(original)
+            if photo is None: photo,credit=original_background(article)
+            description=caption(article,credit)
+        except (ValueError,RuntimeError) as exc:
+            log('TITULAR RSS DESCARTADO:',safe_error(exc)); continue
+        log('PUBLICACIÓN BREVE DE ÚLTIMO RESPALDO:',title,'| MEDIO:',provider)
+        return article,photo,credit,description
+    return None,None,None,None
+
 def publish_article(gh,state,article,image_file,credit,description,output):
     for title in (article.get('original_title'),article['title']):
         if title and is_earthquake_occurrence(title,article.get('description',''),article.get('source','')):
             raise RuntimeError('PUBLICACION BLOQUEADA: reporte de ocurrencia sísmica')
-    if words(article.get('explanation',''))<(MIN_VERIFIED_BRIEF_WORDS if article.get('editorial_mode') == 'verified_summary' else FALLBACK_DEVELOPMENT_WORDS if article.get('editorial_mode') == 'documented_brief' else MIN_DEVELOPMENT_WORDS):
+    if words(article.get('explanation',''))<min_caption_words(article):
         raise RuntimeError('PUBLICACION BLOQUEADA: desarrollo insuficiente')
     instagram_id,instagram_token=ig_check()
     facebook_id,facebook_token=fb_check()
@@ -1317,6 +1384,23 @@ def test_extraction():
     log('PRUEBAS EXTRACCION APROBADAS')
 
 
+def test_headline_digest():
+    candidate={'id':'test-rss-title','title':'Investigadores detectan nuevos cambios en glaciares del sur de Chile',
+               'description':'','category':'climatologia','lang':'es',
+               'source':'Medio científico','search_category':'rss',
+               'url':'https://example.org/actualidad', 'date':now().isoformat()}
+    from unittest.mock import patch
+    with patch(__name__+'.commons_photo', return_value=(None,None)):
+        article, photo, credit, text=select_headline_digest([candidate],{'stories':{}})
+    assert article and article['editorial_mode']=='headline_digest'
+    assert text.count(candidate['title'])==1
+    with patch(__name__+'.commons_photo', return_value=(None,None)):
+        result=select_headline_digest([candidate],{'stories':{candidate['id']:{'targets':{
+            'instagram':{'status':'published'},'facebook':{'status':'published'}}}}})
+    assert result[0] is None
+    log('PRUEBA RESPALDO TITULAR RSS APROBADA')
+
+
 def test_fallback():
     example = ('El observatorio informó una nueva medición de la actividad de un volcán activo. '
                'Los instrumentos registraron cambios en las emisiones y continúan las observaciones. '
@@ -1341,6 +1425,7 @@ def main():
     parser.add_argument('--test-headlines',action='store_true')
     parser.add_argument('--test-extraction',action='store_true')
     parser.add_argument('--test-fallback',action='store_true')
+    parser.add_argument('--test-headline-digest',action='store_true')
     args=parser.parse_args()
     test_earthquake_filter()
     if args.test_filter: return 0
@@ -1350,6 +1435,8 @@ def main():
         test_extraction(); return 0
     if args.test_fallback:
         test_fallback(); return 0
+    if args.test_headline_digest:
+        test_headline_digest(); return 0
     if args.test_diversity:
         dummy={'stories': {str(i): {'article': {'category': 'espacio', 'date': '2026-10-%02dT10:00:00+00:00' % (10+i)}, 'targets': {'instagram': {'status': 'published'}, 'facebook': {'status': 'published'}}} for i in range(5)}}
         sample=[{'category': category, 'title':'Nuevo estudio de ciencia de la Tierra', 'description':'Nuevas mediciones geofísicas y descubrimientos científicos', 'date':now().isoformat(), 'source_body':'', 'source':'Prueba', 'search_category':'rss'} for category in ('espacio','volcanes','oceanos')]
@@ -1368,6 +1455,9 @@ def main():
     if article is None:
         log('TERCER NIVEL: resúmenes editoriales de fuentes directas')
         article,photo,credit,description=select_verified_brief(articles,state)
+    if article is None:
+        log('CUARTO NIVEL: noticia breve basada en titular RSS atribuido; sin inventar desarrollo')
+        article,photo,credit,description=select_headline_digest(articles,state)
     log('AUDITORIA SELECCION:',json.dumps(reasons,ensure_ascii=False))
     if article is None:
         write_json(output/'estado_publicacion.json',{'status':'no_eligible_news','published':False,'lookback_hours':LOOKBACK_HOURS,'articles_reviewed':min(len(articles),MAX_ARTICLES),'reasons':reasons,'checked_at':now().isoformat()})
