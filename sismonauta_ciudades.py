@@ -213,11 +213,16 @@ def is_recent_event(event,at=None):
 def make_image(event,path):
     image,kind=build_map(event); draw=ImageDraw.Draw(image); city=event['city']
     banner,foreground,category=magnitude_colors(event['mag'])
+    recent=is_recent_event(event)
     draw.rounded_rectangle((22,24,1058,268),radius=25,fill=banner,outline='#FFFFFF',width=4)
-    draw_centered(draw,'ALERTA' if is_recent_event(event) else 'SISMO DETECTADO',90,940,94,99 if is_recent_event(event) else 76,foreground)
-    draw.line((83,148,997,148),fill=foreground,width=3)
-    if is_recent_event(event):
+    if recent:
+        draw_centered(draw,'ALERTA',90,940,94,99,foreground)
+        draw.line((83,148,997,148),fill=foreground,width=3)
         draw_centered(draw,'ÚLTIMO MINUTO',207,965,85,74,foreground)
+    else:
+        # Para eventos recuperados, el encabezado superior queda en una sola línea,
+        # sin divisor horizontal y con el texto solicitado por el usuario.
+        draw_centered(draw,'SISMOS DETECTADO!',145,965,120,72,foreground)
     draw.rounded_rectangle((18,1000,1062,1328),radius=25,fill=banner,outline='#FFFFFF',width=4)
     draw_centered(draw,f"MAGNITUD {event['mag']:.1f}",1057,985,76,64,foreground)
     line_two=('SE HA PERCIBIDO EN ' if event.get('felt_confirmed',False) else 'CERCA DE ')+city[0].upper()
@@ -226,7 +231,7 @@ def make_image(event,path):
     attribution='Imagen: Esri / proveedores' if kind=='satellite' else 'Mapa: Natural Earth'
     draw.rounded_rectangle((15,965,410,995),radius=5,fill='#102030'); draw.text((24,968),attribution,font=get_font(17),fill='white')
     path=Path(path); path.parent.mkdir(parents=True,exist_ok=True); image.save(path,'JPEG',quality=95,optimize=True)
-    log('IMAGEN CREADA:',path,'| BANNER:',category,'| MAPA:',kind,'| OPORTUNIDAD:', 'reciente' if is_recent_event(event) else 'recuperado')
+    log('IMAGEN CREADA:',path,'| BANNER:',category,'| MAPA:',kind,'| OPORTUNIDAD:', 'reciente' if recent else 'recuperado')
 
 def make_caption(event):
     city=event['city']; local=event['time'].astimezone(ZoneInfo(city[5])); age=(now_utc()-event['time']).total_seconds()/60
@@ -359,7 +364,7 @@ def test_recovery():
 def main():
     parser=argparse.ArgumentParser(description='SISMONAUTA EMSC - consulta retrospectiva con recuperación')
     parser.add_argument('--publish',action='store_true'); parser.add_argument('--out',default='output_ciudades')
-    parser.add_argument('--lookback-minutes',type=int,choices=[10],default=10,help='Ciclo nominal; la consulta recupera 90 min por defecto')
+    parser.add_argument('--lookback-minutes',type=int,choices=[10],default=10,help='Ciclo nominal; la consulta recupera 300 min por defecto')
     parser.add_argument('--test',action='store_true',help='Pruebas locales sin consultar EMSC ni publicar')
     args=parser.parse_args()
     if args.test: test_recovery(); return 0
