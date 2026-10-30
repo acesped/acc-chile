@@ -25,7 +25,7 @@ EMSC_API='https://www.seismicportal.eu/fdsnws/event/1/query'
 SATELLITE_API='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export'
 MIN_MAG=4.0; MAX_MAG=7.0; RADIUS_KM=100.0
 LOOKBACK_HOURS=0; LOOKBACK_MINUTES=10
-EMSC_RECOVERY_MINUTES=max(10,int(os.getenv('EMSC_RECOVERY_MINUTES','90')))
+EMSC_RECOVERY_MINUTES=max(10,int(os.getenv('EMSC_RECOVERY_MINUTES','300')))
 MAX_EVENTS_PER_RUN=30; WIDTH=1080; HEIGHT=1350; MAP_HALF_WIDTH_M=135000
 OUT=Path('output_ciudades'); STATE_PATH='sismonauta_ciudades/state.json'; IMAGE_DIR='sismonauta_ciudades/images'
 GRAPH_VERSION=os.getenv('META_GRAPH_VERSION','v25.0')
