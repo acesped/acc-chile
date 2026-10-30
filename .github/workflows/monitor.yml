@@ -1,466 +1,108 @@
-
-name: SISMONAUTA - Monitor cientifico Reels y Stories
-
-# Ejecucion manual.
-# Para publicaciones programadas, agregar el schedule
-# original del proyecto sin modificar sus horarios.
+name: SISMONAUTA - Videos cientificos
 
 on:
   workflow_dispatch:
     inputs:
       publish:
-        description: 'Publicar automaticamente en Instagram y Facebook'
-        required: true
-        type: boolean
-        default: false
-
-      story:
-        description: 'Publicar Stories en Instagram y Facebook'
+        description: 'Publicar en Instagram y Facebook (false = solo previsualizar)'
         required: true
         type: boolean
         default: true
+      story:
+        description: 'Publicar tambien Stories de Instagram y Facebook'
+        required: true
+        type: boolean
+        default: true
+  # Para habilitar ejecuciones automaticas, descomenta estas lineas.
+  # schedule:
+  #   - cron: '0 15 * * *'  # 15:00 UTC todos los dias
 
-      topic:
-        description: 'Tema especifico (vacio = automatico)'
-        required: false
-        type: string
-        default: ''
-
-# Permite leer y escribir el historial y los MP4
 permissions:
   contents: write
 
-# Evita ejecuciones simultaneas del monitor
+# Evita ejecuciones simultaneas que publiquen el mismo episodio.
 concurrency:
   group: sismonauta-monitor-publicacion
   cancel-in-progress: false
 
 jobs:
-  monitor:
-    name: Generar y publicar SISMONAUTA
-    runs-on: ubuntu-latest
+  crear-y-publicar:
+    name: Crear video y publicar
+    runs-on: ubuntu-24.04
     timeout-minutes: 90
-
     env:
       PYTHONUNBUFFERED: '1'
-
-      # =========================================
-      # GITHUB - TOKEN AUTOMATICO
-      # =========================================
-
-      GH_TOKEN: ${{ github.token }}
-      GITHUB_REPOSITORY: ${{ github.repository }}
-      GITHUB_REF_NAME: ${{ github.ref_name }}
-
-      # =========================================
-      # INTELIGENCIA ARTIFICIAL
-      # =========================================
-
+      GH_TOKEN: ${{ secrets.GH_TOKEN || github.token }}
+      INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
+      INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
+      FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+      FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-
-      # =========================================
-      # INSTAGRAM
-      # =========================================
-
-      INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
-      INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
       IG_EXPECTED_USERNAME: sismonauta
-      IG_GRAPH_VERSION: v25.0
-
-      # =========================================
-      # FACEBOOK
-      # =========================================
-
-      FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
-      FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
       FACEBOOK_EXPECTED_USERNAME: sismonauta
-
-      # =========================================
-      # CONFIGURACION DE VIDEO
-      # =========================================
-
       DV_VOICE: es-CL-CatalinaNeural
-
-      # =========================================
-      # OPCIONES DE PUBLICACION
-      # =========================================
-
-      PUBLISH: ${{ inputs.publish }}
-      STORY: ${{ inputs.story }}
-      TOPIC: ${{ inputs.topic }}
+      DISCOVERY_USE_AI: 'true'
+      ENABLE_OPENVERSE: 'true'
+      DISCOVERY_MAX_ATTEMPTS: '15'
 
     steps:
-
-      # =========================================
-      # 1. DESCARGAR REPOSITORIO
-      # =========================================
-
       - name: Descargar repositorio
         uses: actions/checkout@v4
         with:
           persist-credentials: false
 
-      # =========================================
-      # 2. PREPARAR PYTHON
-      # =========================================
-
-      - name: Configurar Python 3.11
+      - name: Instalar Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      # =========================================
-      # 3. INSTALAR DEPENDENCIAS
-      # =========================================
-
       - name: Instalar FFmpeg y fuentes
         run: |
-          set -euo pipefail
-
-          sudo apt-get update -qq
-
-          sudo apt-get install -y -qq \
-            ffmpeg \
-            fonts-dejavu-core
-
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-dejavu-core fonts-liberation
           ffmpeg -version | head -n 1
 
       - name: Instalar dependencias Python
         run: |
-          set -euo pipefail
-
           python -m pip install --upgrade pip
+          python -m pip install requests pillow edge-tts mutagen imageio-ffmpeg
 
-          python -m pip install \
-            pillow \
-            requests \
-            edge-tts \
-            mutagen \
-            imageio-ffmpeg
-
-      # =========================================
-      # 4. VERIFICAR GITHUB
-      # =========================================
-
-      - name: Verificar autenticacion GitHub
+      - name: Verificar sintaxis y descubrimiento
         run: |
-          set -euo pipefail
-
-          echo "=================================="
-          echo "VERIFICACION DE GITHUB"
-          echo "=================================="
-
-          if [[ -z "${GH_TOKEN:-}" ]]; then
-            echo "::error::Token GitHub vacio"
-            exit 1
-          fi
-
-          status=$(curl -sS \
-            -o /tmp/gh_repo_check.json \
-            -w "%{http_code}" \
-            -H "Authorization: Bearer $GH_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}")
-
-          if [[ "$status" != "200" ]]; then
-            echo "::error::No se pudo acceder al repositorio. HTTP $status"
-            exit 1
-          fi
-
-          python - <<'PYCODE'
-          import json
-          import os
-
-          with open(
-              '/tmp/gh_repo_check.json',
-              encoding='utf-8'
-          ) as fh:
-              repo = json.load(fh)
-
-          expected = os.environ['GITHUB_REPOSITORY']
-
-          if repo.get('full_name', '').lower() != expected.lower():
-              raise SystemExit(
-                  '::error::Repositorio GitHub incorrecto'
-              )
-
-          if repo.get('private'):
-              raise SystemExit(
-                  '::error::El repositorio debe ser publico '
-                  'para alojar videos destinados a Instagram'
-              )
-
-          permissions = repo.get('permissions') or {}
-
-          print('REPOSITORIO:', repo.get('full_name'))
-          print('PUBLICO:', not repo.get('private'))
-
-          if permissions.get('push') is False:
-              raise SystemExit(
-                  '::error::El token no tiene permisos '
-                  'de escritura sobre el repositorio'
-              )
-
-          print('AUTENTICACION GITHUB CORRECTA')
-          print(
-              'Permiso contents:write solicitado por el workflow'
-          )
-          PYCODE
-
-      # =========================================
-      # 5. COMPROBAR HISTORIAL
-      # =========================================
-
-      - name: Comprobar acceso al historial
-        run: |
-          set -euo pipefail
-
-          status=$(curl -sS \
-            -o /dev/null \
-            -w "%{http_code}" \
-            -H "Authorization: Bearer $GH_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/contents/groundshake/state.json?ref=${GITHUB_REF_NAME}")
-
-          case "$status" in
-            200)
-              echo "Historial remoto encontrado"
-              ;;
-            404)
-              echo "Historial aun no creado"
-              ;;
-            *)
-              echo "::error::No se pudo leer el historial: HTTP $status"
-              exit 1
-              ;;
-          esac
-
-      # =========================================
-      # 6. VERIFICAR MONITOR
-      # =========================================
-
-      - name: Verificar script Python
-        run: |
-          set -euo pipefail
-
-          test -f monitor.py || {
-            echo "::error::No existe monitor.py"
-            exit 1
-          }
-
           python -m py_compile monitor.py
-
           python monitor.py --test-discovery
 
-      # =========================================
-      # 7. GENERAR Y PUBLICAR VIDEO
-      # =========================================
+      - name: Comprobar credenciales para publicar
+        if: ${{ github.event_name == 'schedule' || inputs.publish == true }}
+        run: |
+          test -n "$INSTAGRAM_TOKEN" || { echo 'Falta INSTAGRAM_TOKEN'; exit 1; }
+          test -n "$INSTAGRAM_USER_ID" || { echo 'Falta INSTAGRAM_USER_ID'; exit 1; }
+          test -n "$FACEBOOK_PAGE_ID" || { echo 'Falta FACEBOOK_PAGE_ID'; exit 1; }
+          test -n "$FACEBOOK_PAGE_TOKEN" || { echo 'Falta FACEBOOK_PAGE_TOKEN'; exit 1; }
+          test -n "$GH_TOKEN" || { echo 'Falta GH_TOKEN'; exit 1; }
 
-      - name: Generar y publicar SISMONAUTA
+      - name: Generar y publicar (o previsualizar)
+        env:
+          SHOULD_PUBLISH: ${{ github.event_name == 'schedule' || inputs.publish == true }}
+          SHOULD_STORY: ${{ github.event_name == 'schedule' || inputs.story == true }}
         run: |
           set -euo pipefail
-
           args=(--out output_sismos)
-
-          if [[ -n "$TOPIC" ]]; then
-            args+=(--topic "$TOPIC")
-          fi
-
-          if [[ "$PUBLISH" == "true" ]]; then
+          if [[ "$SHOULD_PUBLISH" == 'true' ]]; then
             args+=(--publish --auto-publish)
-
-            if [[ "$STORY" == "true" ]]; then
-              args+=(--story)
-            fi
           fi
-
-          echo "=================================="
-          echo "SISMONAUTA - MONITOR CIENTIFICO"
-          echo "=================================="
-          echo "Instagram Reel: SI"
-          echo "Instagram Story: $STORY"
-          echo "Facebook Reel: SI"
-          echo "Facebook Story: $STORY"
-          echo "Facebook Feed independiente: NO"
-          echo "Publicar: $PUBLISH"
-          echo "Tema: ${TOPIC:-automatico}"
-          echo "=================================="
-
+          if [[ "$SHOULD_STORY" == 'true' ]]; then
+            args+=(--story)
+          fi
           python monitor.py "${args[@]}"
 
-      # =========================================
-      # 8. VALIDACION DE PUBLICACION
-      # =========================================
-
-      - name: Confirmar publicaciones Meta
-        if: ${{ env.PUBLISH == 'true' }}
-        env:
-          REQUIRE_STORY: ${{ env.STORY }}
-        run: |
-          set -euo pipefail
-
-          python - <<'PYCODE'
-          import json
-          import os
-          from pathlib import Path
-
-          folder = Path('output_sismos')
-
-          execution_path = folder / 'estado_ejecucion.json'
-          receipt_path = folder / 'publicacion_confirmada.json'
-
-          if not execution_path.exists():
-              raise SystemExit(
-                  '::error::Falta estado_ejecucion.json'
-              )
-
-          execution = json.loads(
-              execution_path.read_text(encoding='utf-8')
-          )
-
-          status = execution.get('status')
-
-          if status in (
-              'no_new_topics',
-              'skipped_no_valid_images'
-          ):
-              print(
-                  'SIN PUBLICACION: omision editorial controlada'
-              )
-              print('Estado:', status)
-              raise SystemExit(0)
-
-          if status != 'published':
-              raise SystemExit(
-                  f'::error::Estado de ejecucion invalido: {status}'
-              )
-
-          if not receipt_path.exists():
-              raise SystemExit(
-                  '::error::No existe recibo Meta'
-              )
-
-          receipt = json.loads(
-              receipt_path.read_text(encoding='utf-8')
-          )
-
-          if receipt.get('account') != 'sismonauta':
-              raise SystemExit(
-                  '::error::Cuenta del recibo incorrecta'
-              )
-
-          if (
-              receipt.get('episode_id')
-              != execution.get('episode_id')
-          ):
-              raise SystemExit(
-                  '::error::El recibo no corresponde al episodio'
-              )
-
-          def check_publication(key, label):
-              published = receipt.get(
-                  key + '_published'
-              ) is True
-
-              media_id = str(
-                  receipt.get(key + '_id') or ''
-              )
-
-              if not published or not media_id.isdigit():
-                  raise SystemExit(
-                      f'::error::{label} no confirmado. '
-                      'Revisar Meta antes de ejecutar nuevamente.'
-                  )
-
-              print(f'{label} CONFIRMADO: {media_id}')
-
-          # Instagram Reel
-          check_publication(
-              'reel',
-              'INSTAGRAM REEL'
-          )
-
-          # Facebook Reel
-          check_publication(
-              'facebook_reel',
-              'FACEBOOK REEL'
-          )
-
-          # Stories opcionales
-          if (
-              os.environ.get('REQUIRE_STORY', '')
-              .lower() == 'true'
-          ):
-              check_publication(
-                  'story',
-                  'INSTAGRAM STORY'
-              )
-
-              check_publication(
-                  'facebook_story',
-                  'FACEBOOK STORY'
-              )
-
-          # Facebook Feed independiente:
-          # NO se publica ni se exige confirmacion.
-
-          print('==================================')
-          print('PUBLICACIONES CONFIRMADAS')
-          print('CUENTA: @sismonauta')
-          print('SIN DUPLICACION DE FACEBOOK FEED')
-          print('==================================')
-
-          PYCODE
-
-      # =========================================
-      # 9. DIAGNOSTICO DE ARCHIVOS
-      # =========================================
-
-      - name: Mostrar archivos generados
-        if: always()
-        run: |
-          echo "=================================="
-          echo "ARCHIVOS DE SISMONAUTA"
-          echo "=================================="
-
-          if [[ -d output_sismos ]]; then
-            find output_sismos \
-              -maxdepth 2 \
-              -type f \
-              -printf '%p | %s bytes\n' \
-              | head -n 60
-
-            echo "=================================="
-            echo "TAMANO DE VIDEOS"
-            echo "=================================="
-
-            find output_sismos \
-              -maxdepth 1 \
-              -name '*.mp4' \
-              -exec ls -lh {} \;
-          else
-            echo "No existe directorio de salida"
-          fi
-
-      # =========================================
-      # 10. GUARDAR EVIDENCIAS
-      # =========================================
-
-      - name: Guardar evidencias de ejecucion
+      - name: Guardar video, storyboard y resultados
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: sismonauta-${{ github.run_id }}
-          path: |
-            output_sismos/estado_ejecucion.json
-            output_sismos/publicacion_confirmada.json
-            output_sismos/*_guion.json
-            output_sismos/*_portada.jpg
-            output_sismos/*/storyboard.json
-            output_sismos/*/duraciones_escenas.json
-            output_sismos/*/creditos.json
-
-          if-no-files-found: warn
+          path: output_sismos/
+          if-no-files-found: ignore
           retention-days: 7
