@@ -271,6 +271,16 @@
       "angle": "errores",
       "time": "2026-10-30T13:59:24.959975+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-fff78249437f",
+      "topic": "ondas:ondas_p:diferencia",
+      "topic_key": "ondas_p",
+      "title": "¿Cómo distinguir las ondas P de otros fenómenos?",
+      "style": "microdocumental",
+      "angle": "diferencia",
+      "time": "2026-10-30T15:42:44.428398+00:00",
+      "status": "publicado"
     }
   ]
 }
