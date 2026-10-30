@@ -261,6 +261,16 @@
       "angle": "clave",
       "time": "2026-10-30T07:00:45.336086+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-5ffa5c1de447",
+      "topic": "ondas:ondas_p:errores",
+      "topic_key": "ondas_p",
+      "title": "¿Qué errores conviene evitar al explicar las ondas P?",
+      "style": "microdocumental",
+      "angle": "errores",
+      "time": "2026-10-30T13:59:24.959975+00:00",
+      "status": "publicado"
     }
   ]
 }
