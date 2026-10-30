@@ -736,8 +736,29 @@ def commons_license_accepted(meta):
     return any(x in combined for x in ('cc0','public domain','publicdomain','pdm','pd-old','pd-us','pd-self'))
 
 
-def commons_photo(article):
-    candidates=[]; seen=set()
+def used_photo_keys(state):
+    """Fotos ya enviadas a Meta, incluidas publicaciones parciales/inciertas."""
+    used=set()
+    for entry in (state.get('stories') or {}).values():
+        if not isinstance(entry,dict): continue
+        targets=entry.get('targets') or {}
+        if not any((targets.get(platform) or {}).get('status') in ('published','uncertain')
+                   for platform in ('instagram','facebook')): continue
+        meta=entry.get('image') or {}
+        if not isinstance(meta,dict) or meta.get('generated'): continue
+        for field in ('source','title','sha256'):
+            value=str(meta.get(field) or '').strip().casefold()
+            if value: used.add(field+':'+value)
+    return used
+
+
+def photo_is_used(meta,used):
+    return any(field+':'+str(meta.get(field) or '').strip().casefold() in used
+               for field in ('source','title','sha256') if meta.get(field))
+
+
+def commons_photo(article,state=None):
+    candidates=[]; seen=set(); used=used_photo_keys(state or {})
     for query in PHOTO_QUERIES.get(article['category'],PHOTO_QUERIES['geologia']):
         params={'action':'query','format':'json','formatversion':2,'generator':'search','gsrsearch':query,'gsrnamespace':6,'gsrlimit':40,'prop':'imageinfo','iiprop':'url|extmetadata|mime|size','iiurlwidth':1500}
         continuation={}
@@ -764,15 +785,20 @@ def commons_photo(article):
                 candidates.append({'title':title,'url':url,'source':info.get('descriptionurl',''),'license':clean((meta.get('LicenseShortName') or {}).get('value','')),'generated':False,'query':query})
             continuation=data.get('continue')
             if not continuation: break
-        if candidates: break
-    for item in candidates[:18]:
+        # Buscar también las siguientes consultas si las fotos iniciales ya se usaron.
+    for item in candidates:
+        if photo_is_used(item,used):
+            log('FOTO YA UTILIZADA, DESCARTADA:',item['title'][:75]); continue
         try:
             response=get(item['url'],timeout=30)
             if len(response.content)>15_000_000: continue
             with Image.open(io.BytesIO(response.content)) as im:
                 image=im.convert('RGB')
             if min(image.size)<450: continue
-            log('FOTO COMMONS:',item['title'][:90]); return image,item
+            item['sha256']=hashlib.sha256(response.content).hexdigest()
+            if photo_is_used(item,used):
+                log('FOTO CON CONTENIDO REPETIDO:',item['title'][:75]); continue
+            log('FOTO COMMONS NUEVA:',item['title'][:90]); return image,item
         except Exception: continue
     return None,None
 
@@ -1193,7 +1219,7 @@ def select_news(articles,state):
         if not valid:
             reasons['no_development']+=1; log('DESCARTADA:',reason); continue
         article['image_headline']=factual_headline(article,source_text)
-        photo,credit=commons_photo(original)
+        photo,credit=commons_photo(original,state)
         if photo is None:
             photo,credit=original_background(article)
             reasons['generated_backgrounds']+=1
@@ -1241,7 +1267,7 @@ def select_news(articles,state):
             log('BREVE DESCARTADA:',why)
             continue
         article['image_headline']=factual_headline(article,evidence)
-        photo,credit=commons_photo(original)
+        photo,credit=commons_photo(original,state)
         if photo is None:
             photo,credit=original_background(article)
             reasons['generated_backgrounds']+=1
@@ -1306,7 +1332,7 @@ def select_verified_brief(articles, state):
         article['explanation'] = evidence
         article['image_headline'] = article['title']
         try:
-            photo, credit = commons_photo(original)
+            photo, credit = commons_photo(original,state)
             if photo is None:
                 photo, credit = original_background(article)
             description = caption(article, credit)
@@ -1368,7 +1394,7 @@ def select_headline_digest(articles, state):
         article['explanation']=explanation
         article['image_headline']=title
         try:
-            photo,credit=commons_photo(original)
+            photo,credit=commons_photo(original,state)
             if photo is None: photo,credit=original_background(article)
             description=caption(article,credit)
         except (ValueError,RuntimeError) as exc:
