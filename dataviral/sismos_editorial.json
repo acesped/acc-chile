@@ -291,6 +291,16 @@
       "angle": "errores",
       "time": "2026-10-30T23:26:42.498559+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-a3f8fd27bebb",
+      "topic": "tectonica:transformantes:escala",
+      "topic_key": "transformantes",
+      "title": "¿Por qué la escala importa al estudiar las fallas transformantes?",
+      "style": "descubrimiento",
+      "angle": "escala",
+      "time": "2026-10-30T23:37:03.953549+00:00",
+      "status": "publicado"
     }
   ]
 }
