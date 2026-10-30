@@ -281,6 +281,16 @@
       "angle": "diferencia",
       "time": "2026-10-30T15:42:44.428398+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-b784eeec7fed",
+      "topic": "riesgo:deslizamientos:errores",
+      "topic_key": "deslizamientos",
+      "title": "¿Qué errores conviene evitar al explicar los deslizamientos por sismos?",
+      "style": "mapa_explicado",
+      "angle": "errores",
+      "time": "2026-10-30T23:26:42.498559+00:00",
+      "status": "publicado"
     }
   ]
 }
