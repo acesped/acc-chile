@@ -220,6 +220,11 @@ DIRECT_FEEDS = (
     ('NOAA noticias', 'https://www.noaa.gov/rss.xml'),
     ('ESA noticias', 'https://www.esa.int/rssfeed/Our_Activities/Space_News'),
     ('ESA ciencia espacial', 'https://www.esa.int/rssfeed/ESC'),
+    # Feeds editoriales directos de ciencias de la Tierra (no pasan por Google News).
+    ('ScienceDaily Tierra y Clima', 'https://www.sciencedaily.com/rss/earth_climate.xml'),
+    ('ScienceDaily Ambiente', 'https://www.sciencedaily.com/rss/top/environment.xml'),
+    ('Phys.org Ciencias de la Tierra', 'https://phys.org/rss-feed/earth-news/earth-sciences/'),
+    ('Phys.org Medio Ambiente', 'https://phys.org/rss-feed/earth-news/environment/'),
 )
 
 
@@ -1161,8 +1166,14 @@ def diverse_order(articles, state):
         cat = article.get('category')
         score = priority(article)
         score -= 9 * recent_counts.get(cat, 0)
-        if article.get('search_category') == 'direct' and not article.get('source', '').startswith('NASA'):
-            score += 7
+        # Primero documentos del editor, para evitar cientos de enlaces
+        # Google News que no entregan un texto periodístico recuperable.
+        if article.get('search_category') == 'direct':
+            score += 55
+            if words(article.get('source_body','')) >= 35:
+                score += 35
+            elif words(article.get('description','')) >= MIN_VERIFIED_BRIEF_WORDS:
+                score += 22
         if cat == last:
             score -= 18
         if cat not in recent:
@@ -1195,7 +1206,14 @@ def select_news(articles,state):
         source_text=full_article_text(article)
         if not source_text_sufficient(source_text):
             reasons['source_too_short']+=1
-            log('DESCARTADA: no se recuperó texto periodístico verificable (mínimo 85 palabras, cuatro oraciones)')
+            detail = ('enlace intermediario Google News sin resolver' if
+                      urlparse(article.get('url','')).hostname in _GOOGLE_NEWS_HOSTS and
+                      not resolve_article_url(article.get('url','')) else
+                      'texto obtenido, pero insuficiente' if words(source_text)>0 else
+                      'sin texto accesible')
+            log('DESCARTADA: fuente insuficiente (85 palabras / cuatro oraciones):',
+                detail, '| texto:', words(source_text), '| resumen RSS:',
+                words(article.get('description','')))
             continue
         if article['lang']=='en':
             translated=translate_es(article['title'])
@@ -1498,6 +1516,26 @@ def test_fallback():
     log('PRUEBAS DE RECUPERACIÓN EDITORIAL APROBADAS')
 
 
+def test_direct_sources():
+    # Validación independiente de disponibilidad de los portales externos.
+    assert any('sciencedaily.com/rss/earth_climate.xml' in url for _,url in DIRECT_FEEDS)
+    assert any('phys.org/rss-feed/earth-news/' in url for _,url in DIRECT_FEEDS)
+    sample={'id':'verificacion-fuente-directa',
+            'title':'Researchers discover changes in volcanic magma beneath a mountain',
+            'description':('Researchers report new scientific observations of volcanic magma below '
+                           'a mountain system. Satellite measurements document the changes '
+                           'and provide a basis for further geological analysis and monitoring.'),
+            'category':'volcanes','lang':'en',
+            'source':'ScienceDaily Tierra y Clima','search_category':'direct',
+            'url':'https://www.sciencedaily.com/releases/example.htm',
+            'date':now().isoformat(),'source_body':''}
+    assert editorial_eligible(sample)
+    assert verified_summary_candidate(sample) is not None
+    assert diverse_order([sample,dict(sample,id='rss-example',search_category='rss')],
+                         {'stories':{}})[0]['search_category']=='direct'
+    log('PRUEBAS DE FUENTES DIRECTAS Y PRIORIZACIÓN APROBADAS')
+
+
 def main():
     parser=argparse.ArgumentParser(description='SISMONAUTA noticias con desarrollo informativo')
     parser.add_argument('--publish',action='store_true')
@@ -1508,9 +1546,11 @@ def main():
     parser.add_argument('--test-extraction',action='store_true')
     parser.add_argument('--test-fallback',action='store_true')
     parser.add_argument('--test-headline-digest',action='store_true')
+    parser.add_argument('--test-direct-sources',action='store_true')
     args=parser.parse_args()
     test_earthquake_filter()
     if args.test_filter: return 0
+    if args.test_direct_sources: test_direct_sources(); return 0
     if args.test_headlines:
         test_headlines(); return 0
     if args.test_extraction:
