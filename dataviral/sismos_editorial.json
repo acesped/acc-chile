@@ -251,6 +251,16 @@
       "angle": "mito",
       "time": "2026-10-30T03:00:43.929673+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-98c9c1559948",
+      "topic": "tectonica:divergencia:clave",
+      "topic_key": "divergencia",
+      "title": "¿Cuál es la clave para comprender la separación de placas?",
+      "style": "mito_realidad",
+      "angle": "clave",
+      "time": "2026-10-30T07:00:45.336086+00:00",
+      "status": "publicado"
     }
   ]
 }
