@@ -241,6 +241,16 @@
       "angle": "impacto",
       "time": "2026-10-29T23:43:34.397896+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-3406e542e139",
+      "topic": "fallas:escarpes:mito",
+      "topic_key": "escarpes",
+      "title": "¿Qué solemos confundir sobre un escarpe de falla?",
+      "style": "descubrimiento",
+      "angle": "mito",
+      "time": "2026-10-30T03:00:43.929673+00:00",
+      "status": "publicado"
     }
   ]
 }
