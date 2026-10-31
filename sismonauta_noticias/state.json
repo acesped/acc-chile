@@ -666,6 +666,42 @@
         }
       }
     },
+    "d4b3fdad4063c0ca50a2": {
+      "article": {
+        "category": "desastres",
+        "date": "2026-10-18T01:14:24+00:00",
+        "description": "El Niño está alimentando una peligrosa cascada de incendios forestales en los trópicos, con la selva amazónica ahora experimentando una quema generalizada y los científicos advirtiendo que lo peor podría estar aún por venir. Investigadores de la NASA están descubriendo docenas de incendios previamente no detectados, lo que sugiere que la destrucción podría ser incluso más extensa de lo que muestran los registros satelitales.",
+        "explanation": "**TITULAR: La NASA descubre incendios ocultos ardiendo bajo la selva amazónica**\n\nLa selva amazónica enfrenta una crisis creciente debido a una ola de incendios forestales, exacerbada por la sequía severa vinculada al fenómeno de El Niño. Desde septiembre de 2026, se ha observado un aumento significativo en la actividad de incendios y emisiones de humo en la región central y oriental de la Amazonía, especialmente alrededor de Manaus y Santarém, dos importantes centros comerciales en Brasil.\n\nEl 12 de octubre de 2026, imágenes del satélite Aqua de la NASA mostraron grandes columnas de humo elevándose a ambos lados del río Amazonas, afectando gravemente la calidad del aire en Manaus, donde las concentraciones de material particulado PM2.5 superaron los 135 microgramos por metro cúbico. Esto colocó a la ciudad en la segunda categoría más alta de un índice de calidad del aire regional, provocando el cierre de escuelas y la cancelación de eventos públicos.\n\nDouglas Morton, científico del sistema terrestre en el Centro de Vuelo Espacial Goddard de la NASA, advirtió que estos incendios son parte de un patrón más amplio, donde la sequía en Indonesia inicia un efecto dominó que afecta a la Amazonía. Con condiciones de sequía extrema, se estima que entre 50 y 70 incendios no controlados están activos en la zona de Santarém, lo que podría indicar un número aún mayor de incendios no detectados por los sistemas de monitoreo convencionales.",
+        "id": "d4b3fdad4063c0ca50a2",
+        "image_headline": "La NASA detecta incendios ocultos en la Amazonía, sugiriendo una crisis ambiental más grave de lo esperado.",
+        "lang": "en",
+        "original_title": "NASA discovers hidden fires burning beneath the Amazon rainforest",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/10/261016070633.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "La NASA descubre incendios ocultos ardiendo bajo la selva amazónica.",
+        "url": "https://www.sciencedaily.com/releases/2026/10/261016070633.htm"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "landslide mountain",
+        "sha256": "4a775a7c80a85566f2a60b04aaee2df727e262650b20f050ebe36e58419f6076",
+        "source": "https://commons.wikimedia.org/wiki/File:June_2011_Landslide_Scars_in_Taiwan.jpg",
+        "title": "File:June 2011 Landslide Scars in Taiwan.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/64/June_2011_Landslide_Scars_in_Taiwan.jpg/1920px-June_2011_Landslide_Scars_in_Taiwan.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/d4b3fdad4063c0ca50a2.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "dec9f077a7f855246f29": {
       "article": {
         "category": "espacio",
