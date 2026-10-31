@@ -341,6 +341,16 @@
       "angle": "preguntas_frecuentes",
       "time": "2026-10-31T12:00:57.174807+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-5dc1c90f0fd2",
+      "topic": "medicion:profundidad:mecanismo",
+      "topic_key": "profundidad",
+      "title": "¿Cómo funciona la profundidad de los sismos?",
+      "style": "mapa_explicado",
+      "angle": "mecanismo",
+      "time": "2026-10-31T15:01:09.158549+00:00",
+      "status": "publicado"
     }
   ]
 }
