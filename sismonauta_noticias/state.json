@@ -1,5 +1,41 @@
 {
   "stories": {
+    "10b5dc935e5c079f158d": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-10-21T04:08:28+00:00",
+        "description": "Un misterio de décadas bajo el Mar del Norte finalmente ha sido resuelto. Los científicos han confirmado que el Cráter Silverpit, enterrado a 700 metros debajo del lecho marino, fue creado cuando un asteroide de 160 metros de ancho chocó contra la Tierra hace aproximadamente entre 43 y 46 millones de años. La violenta colisión lanzó una cortina de roca y agua de 1.5 kilómetros hacia el aire y provocó un tsunami de más de 100 metros de altura.",
+        "explanation": "**TITULAR: Un asteroide masivo impactó en el Mar del Norte y desató un tsunami de 330 pies**\n\nUn equipo de investigadores liderado por el Dr. Uisdean Nicholson de la Universidad Heriot-Watt en Edimburgo ha confirmado que un asteroide de aproximadamente 160 metros de ancho impactó en el Mar del Norte hace entre 43 y 46 millones de años, creando el cráter Silverpit. Este evento generó un tsunami que alcanzó más de 100 metros de altura, equivalente a un edificio de más de 30 pisos.\n\nEl cráter, que se encuentra a unos 700 metros bajo el lecho marino, fue descubierto en 2002, pero su origen había sido objeto de debate durante más de dos décadas. Algunos geólogos sostenían que su formación se debía a procesos geológicos, mientras que otros defendían la hipótesis del impacto. La reciente investigación, publicada en Nature Communications, combina imágenes sísmicas avanzadas y análisis de muestras de roca, revelando minerales que solo se forman bajo presiones extremas.\n\nLos modelos numéricos sugieren que el impacto desplazó grandes cantidades de roca y agua, creando una cortina de escombros que generó el tsunami. Este descubrimiento no solo resuelve una controversia científica, sino que también ofrece una oportunidad única para estudiar los efectos de impactos de alta velocidad en la geología terrestre.",
+        "id": "10b5dc935e5c079f158d",
+        "image_headline": "Un asteroide de 160 metros impactó el Mar del Norte, creando un tsunami de más de 100 metros.",
+        "lang": "en",
+        "original_title": "A massive asteroid slammed into the North Sea and unleashed a 330-foot tsunami",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/10/261020085727.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "Un asteroide masivo impactó en el Mar del Norte y desató un tsunami de 330 pies.",
+        "url": "https://www.sciencedaily.com/releases/2026/10/261020085727.htm"
+      },
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "ocean coastline",
+        "sha256": "ca233b7f9fc08359e2423936b654c94a12feaa132b590266742cd7aacb98dd5b",
+        "source": "https://commons.wikimedia.org/wiki/File:The_Soutuern_Ocean_coastline_facing_East_Mount_Barren_near_Hopetoun,_WA_01.jpg",
+        "title": "File:The Soutuern Ocean coastline facing East Mount Barren near Hopetoun, WA 01.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/91/The_Soutuern_Ocean_coastline_facing_East_Mount_Barren_near_Hopetoun%2C_WA_01.jpg/1920px-The_Soutuern_Ocean_coastline_facing_East_Mount_Barren_near_Hopetoun%2C_WA_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/10b5dc935e5c079f158d.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "1f6bd6cc7d0b2fc6fb2b": {
       "article": {
         "category": "espacio",
