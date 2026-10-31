@@ -311,6 +311,43 @@
         }
       }
     },
+    "5369b47357c8fc78b765": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-10-29T22:30:01+00:00",
+        "description": "Por más de 30 años, la tecnología de MBARI ha registrado datos en tiempo real sobre la bahía de Monterey,",
+        "editorial_mode": "documented_brief",
+        "explanation": "Durante más de 30 años, la tecnología de MBARI ha registrado datos en tiempo real sobre la Bahía de Monterey, desde las condiciones oceanográficas en la superficie hasta los estudios biológicos en las profundidades del Cañón de Monterey. Estos datos son fundamentales para entender nuestro océano cambiante y sustentan los esfuerzos del instituto para monitorear los impactos del próximo El Niño, que se ha predicho que será uno de los más fuertes desde el comienzo de la oceanografía moderna.",
+        "id": "5369b47357c8fc78b765",
+        "image_headline": "Investigadores observan la llegada de El Niño a la bahía de Monterey.",
+        "lang": "en",
+        "original_title": "Researchers observe the arrival of El Niño in Monterey Bay",
+        "search_category": "direct",
+        "source": "Phys.org Medio Ambiente",
+        "source_body": "",
+        "source_evidence_kind": "direct_rss_summary",
+        "title": "Investigadores observan la llegada de El Niño a la bahía de Monterey.",
+        "url": "https://phys.org/news/2026-10-el-nio-monterey-bay.html"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "ocean coastline",
+        "sha256": "e9a38b9ce337b657fb83cda8f1c1f6627ac8908a6d6813f375ef38eeac6658d5",
+        "source": "https://commons.wikimedia.org/wiki/File:Beaches_ocean_coastline.jpg",
+        "title": "File:Beaches ocean coastline.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/d/d8/Beaches_ocean_coastline.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/5369b47357c8fc78b765.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "543381d4798b0c66704e": {
       "article": {
         "category": "espacio",
