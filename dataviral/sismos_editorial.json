@@ -351,6 +351,16 @@
       "angle": "mecanismo",
       "time": "2026-10-31T15:01:09.158549+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-debb71b0d6a9",
+      "topic": "geologia:rocas_deformadas:lectura",
+      "topic_key": "rocas_deformadas",
+      "title": "¿Cómo leer las pistas que deja la deformación de las rocas?",
+      "style": "mapa_explicado",
+      "angle": "lectura",
+      "time": "2026-10-31T18:01:11.780682+00:00",
+      "status": "publicado"
     }
   ]
 }
