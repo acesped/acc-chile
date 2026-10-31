@@ -301,6 +301,16 @@
       "angle": "escala",
       "time": "2026-10-30T23:37:03.953549+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-ea987be00584",
+      "topic": "medicion:epicentro:fundamentos",
+      "topic_key": "epicentro",
+      "title": "¿Qué principios científicos ayudan a explicar el epicentro?",
+      "style": "pregunta_respuesta",
+      "angle": "fundamentos",
+      "time": "2026-10-31T03:01:22.997278+00:00",
+      "status": "publicado"
     }
   ]
 }
