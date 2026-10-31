@@ -38,6 +38,43 @@
         }
       }
     },
+    "14ab3b82f300abe8a689": {
+      "article": {
+        "category": "geologia",
+        "date": "2026-10-26T12:00:01+00:00",
+        "description": "The cliffs that comprise much of California's coastline are constantly being reshaped by rain, waves and other geologic forces. The erosion of cliffs threatens critical infrastructure such as highways, railways, homes, parklands, public access points and more.",
+        "editorial_mode": "verified_summary",
+        "explanation": "Los acantilados que comprenden gran parte de la costa de California están siendo constantemente remodelados por la lluvia, las olas y otras fuerzas geológicas. La erosión de los acantilados amenaza la infraestructura crítica como carreteras, ferrocarriles, viviendas, áreas verdes, puntos de acceso público y más.",
+        "id": "14ab3b82f300abe8a689",
+        "image_headline": "Nuevo estudio estatal de lidar identifica puntos críticos para el retroceso de acantilados costeros en California.",
+        "lang": "en",
+        "original_title": "New statewide lidar study identifies hot spots for California coastal cliff retreat",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "source_evidence_kind": "direct_rss_summary",
+        "title": "Nuevo estudio estatal de lidar identifica puntos críticos para el retroceso de acantilados costeros en California.",
+        "url": "https://phys.org/news/2026-10-statewide-lidar-hot-california-coastal.html"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "rock formations landscape",
+        "sha256": "734c2dd5c8834e14db76e68c7bbc827cb45a8fcdfcdb08600d568272a099986e",
+        "source": "https://commons.wikimedia.org/wiki/File:Sandstone_Rock_Formations_Garden_of_the_Gods_by_William_Henry_Jackson.jpg",
+        "title": "File:Sandstone Rock Formations Garden of the Gods by William Henry Jackson.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/e/e2/Sandstone_Rock_Formations_Garden_of_the_Gods_by_William_Henry_Jackson.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/14ab3b82f300abe8a689.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "1f6bd6cc7d0b2fc6fb2b": {
       "article": {
         "category": "espacio",
