@@ -363,6 +363,42 @@
         }
       }
     },
+    "7edc804b9963a688ab0e": {
+      "article": {
+        "category": "volcanes",
+        "date": "2026-10-29T01:13:05+00:00",
+        "description": "Los científicos han descubierto que el magma en el interior de la Tierra puede almacenar sorprendentes cantidades de oxígeno adicional, lo que podría revelar un contribuyente oculto a la atmósfera rica en oxígeno de nuestro planeta. Los hallazgos sugieren que antiguas erupciones volcánicas pueden haber ayudado a transformar la atmósfera de la Tierra hace miles de millones de años, con implicaciones para entender la vida en otros planetas.",
+        "explanation": "**Científicos descubren un reservorio de oxígeno oculto en las profundidades de la Tierra**\n\nInvestigadores han revelado que el magma en las profundidades de la Tierra puede almacenar mucho más oxígeno de lo que se pensaba anteriormente. Este hallazgo, liderado por el Dr. Yanhao Lin y el Dr. Ho-kwang Mao del Centro de Ciencia y Tecnología de Alta Presión (HPSTAR), desafía creencias arraigadas sobre la composición del magma y sugiere que el oxígeno liberado desde el interior del planeta pudo haber influido en la transformación de la atmósfera terrestre hace miles de millones de años.\n\nA través de experimentos de alta presión y simulaciones computacionales, los científicos descubrieron que el magma puede absorber oxígeno adicional, más allá de lo que su composición química habitual permitiría. En condiciones extremas, como presiones de hasta 7 gigapascales y temperaturas entre 1200 y 1800 °C, se encontró que el oxígeno adicional podía representar más del 5% del peso de las muestras analizadas.\n\nEste descubrimiento plantea interrogantes sobre el papel del magma en la historia de la Tierra, sugiriendo que podría haber transportado oxígeno desde el interior hacia la superficie, contribuyendo así a la oxidación de la atmósfera. Los investigadores estiman que, si el magma liberara solo el 0.27% de su peso en oxígeno, podría igualar la cantidad total de oxígeno presente en la atmósfera actual. Estos hallazgos podrían tener implicaciones significativas en la comprensión de la evolución atmosférica de la Tierra y otros planetas rocosos.",
+        "id": "7edc804b9963a688ab0e",
+        "image_headline": "Científicos descubren un reservorio de oxígeno oculto en las profundidades de la Tierra.",
+        "lang": "en",
+        "original_title": "Scientists discover a hidden oxygen reservoir deep inside Earth",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/10/261027063702.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "Científicos descubren un reservorio de oxígeno oculto en las profundidades de la Tierra.",
+        "url": "https://www.sciencedaily.com/releases/2026/10/261027063702.htm"
+      },
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "volcano landscape",
+        "sha256": "ce2b3fb74bcbc4db88ce09b147a3245c2034e8a9a6dd34f3923c29319041bf28",
+        "source": "https://commons.wikimedia.org/wiki/File:Katla_Volcano_from_the_South.jpg",
+        "title": "File:Katla Volcano from the South.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e5/Katla_Volcano_from_the_South.jpg/1920px-Katla_Volcano_from_the_South.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/7edc804b9963a688ab0e.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "98384a5fc56d1bf69496": {
       "article": {
         "date": "2026-10-28T13:17:12+00:00",
