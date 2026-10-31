@@ -501,6 +501,13 @@
       "facebook_reel_id": "1132174556076176",
       "facebook_story": "publicado",
       "facebook_story_id": "1179594924740211"
+    },
+    "sismos-5dc1c90f0fd2": {
+      "topic": "medicion:profundidad:mecanismo",
+      "topic_key": "profundidad",
+      "title": "¿Cómo funciona la profundidad de los sismos?",
+      "reel": "enviando",
+      "updated_at": "2026-10-31T15:01:12.246008+00:00"
     }
   }
 }
