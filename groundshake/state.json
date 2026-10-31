@@ -478,8 +478,9 @@
       "topic": "medicion:epicentro:contexto",
       "topic_key": "epicentro",
       "title": "¿En qué contexto aparece el epicentro?",
-      "reel": "enviando",
-      "updated_at": "2026-10-31T09:00:58.309882+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-10-31T09:01:37.319875+00:00",
+      "reel_id": "18000592959035442"
     }
   }
 }
