@@ -331,6 +331,16 @@
       "angle": "contexto",
       "time": "2026-10-31T09:00:55.416806+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-0ee82933ce29",
+      "topic": "fallas:grietas:preguntas_frecuentes",
+      "topic_key": "grietas",
+      "title": "¿Qué pregunta frecuente surge al hablar de las grietas del terreno?",
+      "style": "descubrimiento",
+      "angle": "preguntas_frecuentes",
+      "time": "2026-10-31T12:00:57.174807+00:00",
+      "status": "publicado"
     }
   ]
 }
