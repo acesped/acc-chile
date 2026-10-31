@@ -311,6 +311,16 @@
       "angle": "fundamentos",
       "time": "2026-10-31T03:01:22.997278+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-59f497ea984d",
+      "topic": "tectonica:divergencia:evidencia",
+      "topic_key": "divergencia",
+      "title": "¿Qué señales deja la separación de placas?",
+      "style": "mito_realidad",
+      "angle": "evidencia",
+      "time": "2026-10-31T06:00:59.645730+00:00",
+      "status": "publicado"
     }
   ]
 }
