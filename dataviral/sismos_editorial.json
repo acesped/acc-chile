@@ -361,6 +361,16 @@
       "angle": "lectura",
       "time": "2026-10-31T18:01:11.780682+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-aca7983a6c0d",
+      "topic": "geologia:rocas_deformadas:pregunta",
+      "topic_key": "rocas_deformadas",
+      "title": "¿Qué deberíamos preguntarnos sobre la deformación de las rocas?",
+      "style": "descubrimiento",
+      "angle": "pregunta",
+      "time": "2026-10-31T21:01:49.764095+00:00",
+      "status": "publicado"
     }
   ]
 }
