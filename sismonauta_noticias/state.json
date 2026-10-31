@@ -961,6 +961,43 @@
           "status": "published"
         }
       }
+    },
+    "fa98e57b6928b6c73a22": {
+      "article": {
+        "category": "sismos",
+        "date": "2026-10-27T12:40:06+00:00",
+        "description": "People living in coastal communities sometimes have only minutes to reach a safe spot after an earthquake-triggered tsunami. But will the evacuation route that they've chosen lead them to safety?",
+        "editorial_mode": "verified_summary",
+        "explanation": "Las personas que viven en comunidades costeras a veces tienen solo minutos para llegar a una zona de seguridad tras un tsunami provocado por un terremoto. Pero, ¿la ruta de evacuación",
+        "id": "fa98e57b6928b6c73a22",
+        "image_headline": "Una herramienta de bajo costo puede ayudar a las personas a planificar rutas de evacuación exitosas durante un tsunami.",
+        "lang": "en",
+        "original_title": "A low-cost tool can help people plan successful evacuation routes during a tsunami",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "source_evidence_kind": "direct_rss_summary",
+        "title": "Una herramienta de bajo costo puede ayudar a las personas a planificar rutas de evacuación exitosas durante un tsunami.",
+        "url": "https://phys.org/news/2026-10-tool-people-successful-evacuation-routes.html"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "earthquake fault landscape",
+        "sha256": "906b147b5c8162a8ee551546d9bbda93385b3ee1f8aa8c27154204c10b7c05bd",
+        "source": "https://commons.wikimedia.org/wiki/File:Lusi_Mud_Volcano,_Indonesia_2009-10-20.jpg",
+        "title": "File:Lusi Mud Volcano, Indonesia 2009-10-20.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/2/23/Lusi_Mud_Volcano%2C_Indonesia_2009-10-20.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/fa98e57b6928b6c73a22.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
     }
   }
 }
