@@ -401,6 +401,16 @@
       "angle": "origen",
       "time": "2026-11-01T06:01:19.733985+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-bf0d728b5ed1",
+      "topic": "tectonica:transformantes:significado",
+      "topic_key": "transformantes",
+      "title": "¿Qué nos enseña las fallas transformantes?",
+      "style": "mito_realidad",
+      "angle": "significado",
+      "time": "2026-11-01T09:00:59.866262+00:00",
+      "status": "publicado"
     }
   ]
 }
