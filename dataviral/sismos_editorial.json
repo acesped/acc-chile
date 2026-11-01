@@ -431,6 +431,16 @@
       "angle": "limites",
       "time": "2026-11-01T15:01:04.684163+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-4fd9f9697b28",
+      "topic": "fallas:escarpes:aprendizaje",
+      "topic_key": "escarpes",
+      "title": "¿Qué podemos aprender hoy acerca de un escarpe de falla?",
+      "style": "descubrimiento",
+      "angle": "aprendizaje",
+      "time": "2026-11-01T18:00:59.579154+00:00",
+      "status": "publicado"
     }
   ]
 }
