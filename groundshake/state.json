@@ -562,8 +562,9 @@
       "topic": "ondas:atenuacion:datos",
       "topic_key": "atenuacion",
       "title": "¿Qué información necesitamos para estudiar la propagación de las ondas?",
-      "reel": "enviando",
-      "updated_at": "2026-11-01T03:01:07.907585+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-01T03:02:18.519412+00:00",
+      "reel_id": "18131259013835569"
     }
   }
 }
