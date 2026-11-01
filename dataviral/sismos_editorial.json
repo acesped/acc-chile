@@ -411,6 +411,16 @@
       "angle": "significado",
       "time": "2026-11-01T09:00:59.866262+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-c2efcb3d8270",
+      "topic": "fallas:ruptura_superficie:datos",
+      "topic_key": "ruptura_superficie",
+      "title": "¿Qué información necesitamos para estudiar la ruptura superficial?",
+      "style": "microdocumental",
+      "angle": "datos",
+      "time": "2026-11-01T12:01:10.500238+00:00",
+      "status": "publicado"
     }
   ]
 }
