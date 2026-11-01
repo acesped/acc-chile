@@ -599,6 +599,13 @@
       "facebook_reel_id": "1800090387865033",
       "facebook_story": "publicado",
       "facebook_story_id": "1146138091802371"
+    },
+    "sismos-c2efcb3d8270": {
+      "topic": "fallas:ruptura_superficie:datos",
+      "topic_key": "ruptura_superficie",
+      "title": "¿Qué información necesitamos para estudiar la ruptura superficial?",
+      "reel": "enviando",
+      "updated_at": "2026-11-01T12:01:13.510036+00:00"
     }
   }
 }
