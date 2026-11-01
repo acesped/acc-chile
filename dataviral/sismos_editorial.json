@@ -441,6 +441,16 @@
       "angle": "aprendizaje",
       "time": "2026-11-01T18:00:59.579154+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-ddc8cb623774",
+      "topic": "geologia:levantamiento:interpretacion",
+      "topic_key": "levantamiento",
+      "title": "¿Cómo interpretar correctamente el levantamiento de montañas?",
+      "style": "pregunta_respuesta",
+      "angle": "interpretacion",
+      "time": "2026-11-01T21:01:05.479877+00:00",
+      "status": "publicado"
     }
   ]
 }
