@@ -612,6 +612,43 @@
         }
       }
     },
+    "a0b9e90b71b4a6c90ec0": {
+      "article": {
+        "category": "volcanes",
+        "date": "2026-10-18T12:36:21+00:00",
+        "description": "Una erupción volcánica catastrófica hace 7.300 años devastó Japón, pero una",
+        "editorial_mode": "documented_brief",
+        "explanation": "Una masiva erupción volcánica que golpeó Japón hace unos 7,300 años tuvo un impacto devastador en las comunidades prehistóricas, pero sus consecuencias fueron mucho más complicadas de lo que los científicos creían anteriormente. Mientras que algunas poblaciones disminuyeron o desaparecieron de las áreas afectadas, otras continuaron creciendo a pesar de la destrucción. Un equipo de investigación internacional liderado por la Universidad de Lund investigó cómo la erupción Kikai-Akahoya cambió los patrones de población en Japón. Sus hallazgos desafían la idea de que el desastre o bien aniquiló completamente a las comunidades cercanas o las dejó en gran medida sin afectar. En cambio, los investigadores descubrieron una sorprendente mezcla de disminución de la población, migración, adaptación y crecimiento. Cuando el volcán Kikai-Akahoya erupcionó bajo el mar aproximadamente hace 7,300 años, Japón era hogar de comunidades Jomon que dependían de la caza y la recolección para sobrevivir. \"Esta erupción debió ser devastadora, explotando desde el lecho marino con poca advertencia. Golpeó las islas japonesas con poderosos terremotos y enormes tsunamis, y luego cubrió el paisaje con metros de ceniza volcánica\", explica el autor principal Peter Jordan, profesor de arqueología en la Universidad de Lund.",
+        "id": "a0b9e90b71b4a6c90ec0",
+        "image_headline": "Investigación revela que la erupción Kikai-Akahoya hace 7,300 años alteró patrones poblacionales en Japón.",
+        "lang": "en",
+        "original_title": "Scientists discover a surprising twist in Japan's 7,300-year-old volcanic apocalypse",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "source_evidence_kind": "article_short",
+        "title": "Científicos descubren un giro sorprendente en el apocalipsis volcánico de hace 7.300 años en Japón.",
+        "url": "https://www.sciencedaily.com/releases/2026/10/261017230023.htm"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "volcano landscape",
+        "sha256": "d9210454ac82d2ee6c08b856b0850f1c58046e56b5f942f20db7b84a919c704f",
+        "source": "https://commons.wikimedia.org/wiki/File:Landscape_with_Flaming_Volcano,_South_America_LACMA_M.77.174.2.jpg",
+        "title": "File:Landscape with Flaming Volcano, South America LACMA M.77.174.2.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2a/Landscape_with_Flaming_Volcano%2C_South_America_LACMA_M.77.174.2.jpg/1920px-Landscape_with_Flaming_Volcano%2C_South_America_LACMA_M.77.174.2.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/a0b9e90b71b4a6c90ec0.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "a21f397fbffbc36e85fb": {
       "article": {
         "category": "sismos",
