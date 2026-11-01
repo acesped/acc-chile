@@ -557,6 +557,13 @@
       "facebook_reel_id": "1480694724038391",
       "facebook_story": "publicado",
       "facebook_story_id": "29041237742184045"
+    },
+    "sismos-746f665aa6cf": {
+      "topic": "ondas:atenuacion:datos",
+      "topic_key": "atenuacion",
+      "title": "¿Qué información necesitamos para estudiar la propagación de las ondas?",
+      "reel": "enviando",
+      "updated_at": "2026-11-01T03:01:07.907585+00:00"
     }
   }
 }
