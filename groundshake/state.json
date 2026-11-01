@@ -604,8 +604,9 @@
       "topic": "fallas:ruptura_superficie:datos",
       "topic_key": "ruptura_superficie",
       "title": "¿Qué información necesitamos para estudiar la ruptura superficial?",
-      "reel": "enviando",
-      "updated_at": "2026-11-01T12:01:13.510036+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-01T12:01:41.693838+00:00",
+      "reel_id": "17939812791441929"
     }
   }
 }
