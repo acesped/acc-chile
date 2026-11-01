@@ -391,6 +391,16 @@
       "angle": "datos",
       "time": "2026-11-01T03:01:05.339948+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-116e14932a4a",
+      "topic": "riesgo:peligro_riesgo:origen",
+      "topic_key": "peligro_riesgo",
+      "title": "¿Qué procesos explican la amenaza y el riesgo sísmico?",
+      "style": "mito_realidad",
+      "angle": "origen",
+      "time": "2026-11-01T06:01:19.733985+00:00",
+      "status": "publicado"
     }
   ]
 }
