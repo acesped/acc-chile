@@ -517,6 +517,42 @@
         }
       }
     },
+    "849835f3e2edc3a3aa59": {
+      "article": {
+        "category": "sismos",
+        "date": "2026-10-23T11:23:19+00:00",
+        "description": "Profundamente bajo la caldera Kikai de Japón, un masivo reservorio de magma se está reabasteciendo 7,300 años después de una de las erupciones volcánicas más poderosas en la reciente historia geológica de la Tierra. Los científicos utilizaron encuestas sísmicas submarinas para revelar un vasto almacén de magma que parece haberse acumulado desde la antigua catástrofe. El descubrimiento podría ayudar a explicar cómo los supervolcanes como Yellowstone y Toba reconstruyen sus suministros de magma.",
+        "explanation": "**TITULAR: Uno de los supervolcanes más poderosos de la Tierra se está rellenando con magma fresco**\n\nInvestigadores de la Universidad de Kobe han descubierto que el supervolcán Kikai, ubicado en Japón, está acumulando magma fresco en su enorme reservorio subterráneo, miles de años después de una de las erupciones más devastadoras de la historia geológica reciente. Esta erupción ocurrió hace aproximadamente 7,300 años y fue la más grande del Holoceno.\n\nEl estudio, publicado en Communications Earth & Environment, revela que el magma actual no es simplemente material residual de la erupción anterior. Se ha identificado un nuevo domo de lava en desarrollo en el centro de la caldera, lo que sugiere que el magma proviene de inyecciones recientes de roca fundida desde las profundidades de la corteza terrestre. Los investigadores utilizaron técnicas sísmicas avanzadas para mapear el reservorio, encontrando una región significativa con alta proporción de magma justo debajo del sitio de la erupción histórica.\n\nEste hallazgo no indica que una nueva erupción sea inminente, sino que proporciona una visión crucial sobre cómo los supervolcanes pueden recargar sus reservas de magma a lo largo de miles de años. Comprender este proceso es vital para anticipar el comportamiento de otros supervolcanes, como Yellowstone y Toba.",
+        "id": "849835f3e2edc3a3aa59",
+        "image_headline": "El supervolcán Kikai en Japón acumula magma fresco, revelando cómo se recargan estos gigantes.",
+        "lang": "en",
+        "original_title": "One of Earth’s most powerful supervolcanoes is refilling with fresh magma",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/10/261023003214.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "Uno de los supervolcanes más poderosos de la Tierra se está rellenando con magma fresco.",
+        "url": "https://www.sciencedaily.com/releases/2026/10/261023003214.htm"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "earthquake fault landscape",
+        "sha256": "02d1c7dfba1ff73905379fa7eeddad73749fa4d891e7769b090373aa58544582",
+        "source": "https://commons.wikimedia.org/wiki/File:-conservationlands15_Social_Media_Takeover,_Oct_15th,_King_Range_in_California_(22182816986).jpg",
+        "title": "File:-conservationlands15 Social Media Takeover, Oct 15th, King Range in California (22182816986).jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/1/19/-conservationlands15_Social_Media_Takeover%2C_Oct_15th%2C_King_Range_in_California_%2822182816986%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/849835f3e2edc3a3aa59.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "98384a5fc56d1bf69496": {
       "article": {
         "date": "2026-10-28T13:17:12+00:00",
