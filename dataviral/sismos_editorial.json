@@ -421,6 +421,16 @@
       "angle": "datos",
       "time": "2026-11-01T12:01:10.500238+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-8e4c9dfd2414",
+      "topic": "tsunamis:primera_ola:limites",
+      "topic_key": "primera_ola",
+      "title": "¿Qué no podemos concluir solamente a partir de la primera ola de un tsunami?",
+      "style": "mapa_explicado",
+      "angle": "limites",
+      "time": "2026-11-01T15:01:04.684163+00:00",
+      "status": "publicado"
     }
   ]
 }
