@@ -1180,7 +1180,24 @@ def diverse_order(articles, state):
             score += 16
         # Una ficha con cuerpo accesible es preferible, sin monopolizar el ranking.
         return score
-    ordered = sorted(articles, key=rank, reverse=True)
+    # Prioridad ESTRUCTURAL, no solo una bonificación numérica: los feeds
+    # directos se examinan antes de Google News. Una noticia publicada por
+    # el propio editor tiene más posibilidades de aportar texto verificable.
+    # El ranking científico/diversidad sigue determinando el orden dentro
+    # de cada grupo. Esto evita que MAX_ARTICLES se agote en enlaces puente.
+    ordered = sorted(articles, key=lambda a: (
+        a.get('search_category') == 'direct',
+        source_text_sufficient(a.get('source_body', '')),
+        short_source_sufficient(a.get('source_body', '')),
+        rank(a),
+    ), reverse=True)
+    log('PRIORIZACION FUENTES:', json.dumps({
+        'directas_totales': sum(a.get('search_category') == 'direct' for a in articles),
+        'directas_en_ventana': sum(a.get('search_category') == 'direct' for a in ordered[:MAX_ARTICLES]),
+        'google_news_en_ventana': sum(a.get('search_category') != 'direct' for a in ordered[:MAX_ARTICLES]),
+        'directas_con_cuerpo_85': sum(a.get('search_category') == 'direct' and source_text_sufficient(a.get('source_body','')) for a in ordered[:MAX_ARTICLES]),
+        'directas_con_cuerpo_35': sum(a.get('search_category') == 'direct' and short_source_sufficient(a.get('source_body','')) for a in ordered[:MAX_ARTICLES]),
+    }, ensure_ascii=False))
     log('DIVERSIDAD EDITORIAL:', json.dumps({
         'ultimas_categorias': recent[:8],
         'candidatos_por_categoria': {name: sum(a.get('category') == name for a in articles) for name in SEARCH_GROUPS},
@@ -1363,6 +1380,122 @@ def select_verified_brief(articles, state):
 
 
 
+
+# Nivel final de selección: elige el mejor resumen con hechos verificables.
+# No representa un titular aislado como si fuera un artículo completo.
+def evidence_score(article):
+    """Puntaje transparente: procedencia, desarrollo, ciencia y novedad."""
+    body = clean(article.get('source_body', ''))
+    snippet = clean(article.get('description', ''))
+    direct = article.get('search_category') == 'direct'
+    score = max(-100, editorial_relevance(article)) * 30
+    score += 45 if direct else 0
+    score += min(90, words(body)) * 1.3 if direct else 0
+    score += min(65, words(snippet)) * (1.1 if direct else 0.35)
+    score += {'sismos':24,'volcanes':22,'geologia':22,'oceanos':19,
+              'desastres':16,'climatologia':12,'meteorologia':10,'espacio':8}.get(article.get('category'), 0)
+    science = bool(EDITORIAL_SCIENCE.search(clean(article.get('title',''))))
+    score += 28 if science else 0
+    score += min(20, max(0, priority(article))/10)
+    return round(score, 2)
+
+
+def select_best_available(articles, state):
+    """Elige al más sólido cuando los modos de artículo desarrollado fallaron.
+
+    Exige RSS directo, resumen textual distinto del título, fecha, URL y
+    relevancia. Nunca fabrica hechos. No recicla publicaciones confirmadas.
+    """
+    ranked = []
+    for original in articles:  # no limitar aquí a MAX_ARTICLES
+        if original.get('search_category') != 'direct':
+            continue
+        if not editorial_eligible(original):
+            continue
+        if not original.get('url', '').startswith('https://') or not original.get('date'):
+            continue
+        previous = (state.get('stories') or {}).get(original.get('id'), {})
+        if is_confirmed(previous) or has_uncertain(previous):
+            continue
+        if is_earthquake_occurrence(original['title'], original.get('description',''), original.get('source','')):
+            continue
+        if SPAM.search(original['title']) or MISLEADING.search(original['title']):
+            continue
+        body = clean(original.get('source_body', ''))
+        snippet = clean(original.get('description', ''))
+        # Si existe cuerpo en RSS se prefiere: es información publicada por
+        # la fuente, no extrapolación de un titular de Google News.
+        evidence = body if words(body) >= 12 else snippet
+        if words(evidence) < 9 or normalized(evidence) == normalized(original['title']):
+            continue
+        if SPAM.search(evidence) or MISLEADING.search(evidence):
+            continue
+        ranked.append((evidence_score(original), original, evidence))
+    ranked.sort(key=lambda row: row[0], reverse=True)
+    log('SELECCION MEJOR DISPONIBLE:', len(ranked), 'candidatos con resumen de fuente directa')
+    for score, original, evidence in ranked:
+        article = dict(original)
+        if article.get('lang') == 'en':
+            title_es = translate_es(article['title'])
+            evidence_es = translate_es(evidence)
+            if not title_es or not evidence_es:
+                continue
+            article['original_title'] = article['title']
+            article['title'] = title_es
+            evidence = evidence_es
+        # La transparencia sobre la evidencia es parte del texto publicado.
+        explanation = clean(evidence)
+        if words(explanation) > 120:
+            explanation = ' '.join(explanation.split()[:120]).rstrip(',;:') + '…'
+        if normalized(explanation) == normalized(article['title']):
+            continue
+        explanation = ('Según la información publicada por ' +
+                       clean(original.get('source') or 'la fuente original') +
+                       ', ' + explanation[0].lower() + explanation[1:] +
+                       ' El texto íntegro no estuvo disponible para esta edición; '
+                       'por ello no añadimos cifras, causas ni consecuencias ajenas al resumen de la fuente.')
+        article['editorial_mode'] = 'verified_summary'
+        article['source_evidence_kind'] = 'direct_rss_best_available'
+        article['evidence_score'] = score
+        article['explanation'] = explanation
+        article['image_headline'] = article['title']
+        try:
+            photo, credit = commons_photo(original, state)
+            if photo is None:
+                photo, credit = original_background(article)
+            description = caption(article, credit)
+        except (ValueError, RuntimeError) as exc:
+            log('MEJOR CANDIDATO NO APTO:', safe_error(exc))
+            continue
+        log('APROBADA MEJOR NOTICIA:', article['title'], '| PUNTOS:', score,
+            '| RESPALDO: RSS directo | palabras fuente:', words(evidence))
+        return article, photo, credit, description
+    return None, None, None, None
+
+
+def test_best_available():
+    from unittest.mock import patch
+    date = now().isoformat()
+    def item(identifier, title, summary, category='volcanes'):
+        return dict(id=identifier,title=title,description=summary,
+            source='Instituto geocientífico',url='https://example.org/'+identifier,
+            date=date,lang='es',category=category,search_category='direct',source_body='')
+    a=item('a','Investigación sobre monitoreo del volcán activo',
+           'El equipo desarrolla un sistema científico para estudiar la dinámica volcánica y mejorar las mediciones locales.')
+    b=item('b','Científicos descubren nuevo sistema de monitoreo volcánico',
+           'Investigadores documentan nuevas mediciones de magma y volcanes mediante instrumentos geofísicos que permiten seguir las variaciones detectadas durante la investigación.')
+    assert evidence_score(b)>evidence_score(a)
+    with patch(__name__+'.commons_photo', return_value=(None,None)), \
+         patch(__name__+'.original_background', return_value=('mock-image','fondo original')):
+        article, photo, credit, description = select_best_available([a,b],{'stories':{}})
+        assert article and article['id']=='b'
+        assert article['editorial_mode']=='verified_summary'
+        assert 'no añadimos cifras' in description
+        entry={'stories':{'b':{'targets':{'instagram':{'status':'published'},'facebook':{'status':'published'}}}}}
+        article2,_,_,_=select_best_available([a,b],entry)
+        assert article2 and article2['id']=='a'
+    log('PRUEBAS MEJOR CANDIDATO APROBADAS')
+
 def select_headline_digest(articles, state):
     """Respaldo extremo: únicamente el hecho explícito en el título RSS.
 
@@ -1536,6 +1669,22 @@ def test_direct_sources():
     log('PRUEBAS DE FUENTES DIRECTAS Y PRIORIZACIÓN APROBADAS')
 
 
+def test_priority_direct():
+    """Regresión: 1.500 Google News no deben desplazar 72 fuentes directas."""
+    base={'title':'Investigación de monitoreo volcánico y riesgos naturales',
+          'description':'Investigadores estudian el monitoreo de volcanes y fallas geológicas',
+          'category':'volcanes','source':'Prueba','lang':'es','date':now().isoformat(),
+          'url':'https://example.org/article','source_body':''}
+    google=[dict(base,id='google-%04d'%i,search_category='volcanes') for i in range(1500)]
+    direct=[dict(base,id='direct-%04d'%i,search_category='direct') for i in range(72)]
+    ordered=diverse_order(google+direct, {'stories':{}})
+    assert len(ordered)==1572
+    assert all(a['search_category']=='direct' for a in ordered[:72])
+    assert sum(a['search_category']=='direct' for a in ordered[:MAX_ARTICLES])==min(72,MAX_ARTICLES)
+    assert all(a['search_category']!='direct' for a in ordered[72:])
+    log('PRUEBA PRIORIDAD FUENTES APROBADA: 72 directas antes de 1500 Google News')
+
+
 def main():
     parser=argparse.ArgumentParser(description='SISMONAUTA noticias con desarrollo informativo')
     parser.add_argument('--publish',action='store_true')
@@ -1547,9 +1696,13 @@ def main():
     parser.add_argument('--test-fallback',action='store_true')
     parser.add_argument('--test-headline-digest',action='store_true')
     parser.add_argument('--test-direct-sources',action='store_true')
+    parser.add_argument('--test-priority-direct',action='store_true')
+    parser.add_argument('--test-best-available',action='store_true')
     args=parser.parse_args()
     test_earthquake_filter()
     if args.test_filter: return 0
+    if args.test_priority_direct: test_priority_direct(); return 0
+    if args.test_best_available: test_best_available(); return 0
     if args.test_direct_sources: test_direct_sources(); return 0
     if args.test_headlines:
         test_headlines(); return 0
@@ -1577,6 +1730,9 @@ def main():
     if article is None:
         log('TERCER NIVEL: resúmenes editoriales de fuentes directas')
         article,photo,credit,description=select_verified_brief(articles,state)
+    if article is None:
+        log('CUARTO NIVEL: aprobando la noticia mejor respaldada por RSS directo')
+        article,photo,credit,description=select_best_available(articles,state)
     if article is None and NEWS_ALLOW_HEADLINE_ONLY:
         log('CUARTO NIVEL: respaldo experimental por titular habilitado explícitamente')
         article,photo,credit,description=select_headline_digest(articles,state)
