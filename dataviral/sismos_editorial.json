@@ -531,6 +531,16 @@
       "angle": "explicacion",
       "time": "2026-11-02T18:01:19.531390+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-3222d334d841",
+      "topic": "tsunamis:retroceso_mar:interpretacion",
+      "topic_key": "retroceso_mar",
+      "title": "¿Cómo interpretar correctamente el retroceso del mar?",
+      "style": "microdocumental",
+      "angle": "interpretacion",
+      "time": "2026-11-02T18:26:01.546037+00:00",
+      "status": "publicado"
     }
   ]
 }
