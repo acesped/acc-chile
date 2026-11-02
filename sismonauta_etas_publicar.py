@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""SISMONAUTA ETAS CHILE | modelo experimental y publicador unificado.
+"""SISMONAUTA ETAS MULTIPAÍS | modelo experimental y publicador unificado.
 
 Uso:
  python sismonauta_etas_publicar.py --out output_etas
  python sismonauta_etas_publicar.py --out output_etas --publish
  python sismonauta_etas_publicar.py --test-narration
 
-Conserva mapas 25 horarios, heatmaps JET, tres zonas, narración chilena,
+Rotación Chile, México, Perú y Colombia por ejecución; conserva mapas 25 horarios, heatmaps JET, tres zonas, narración chilena,
 música, animación de cierre, Reel, Instagram/Facebook, YouTube Short/video e historial GitHub.
 ETAS experimental, no calibrado prospectivamente; NO es una alerta sísmica.
 """
 from __future__ import annotations
 import argparse, asyncio, base64, io, json, math, os, re, shutil, subprocess, sys, tempfile, time, zipfile
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from pathlib import Path
 from urllib.parse import quote, urlparse
 import numpy as np
@@ -45,10 +46,90 @@ MAX_GRID_CELLS=15000; W=1080; H=1350; VOICE_RATE='+0%'
 ORIGINAL_VIDEO_NAME='ETAS_DOBLE_HEATMAP_CON_LIKE.mp4'; REEL_NAME='sismonauta_etas_reel_9x16.mp4'
 GRAPH_VERSION=os.getenv('META_GRAPH_VERSION','v25.0'); IG_BASE=os.getenv('IG_GRAPH_BASE','https://graph.instagram.com').rstrip('/')
 FB_BASE='https://graph.facebook.com/'+GRAPH_VERSION; GH_API='https://api.github.com'
-HTTP=requests.Session(); HTTP.headers['User-Agent']='Sismonauta-ETAS-Chile/5.2'
+HTTP=requests.Session(); HTTP.headers['User-Agent']='Sismonauta-ETAS-Multicountry/6.0'
 CUTOFF=None; COUNTRY_GEOM=None; LAT0=LAT1=LON0=LON1=GRID=None; LATS=LONS=XX=YY=None
 CITY=[]; CITY_SOURCE=''; CAPITAL_CITY=None; _DETAIL_CACHE=None
 OUT=Path(os.getenv('ETAS_OUTPUT_DIR','output_etas')).resolve()
+
+# Rotación persistente, compartida por las cuatro ejecuciones diarias.
+# Orden predeterminado: Chile -> México -> Perú -> Colombia.
+COUNTRY_ROTATION = (
+    ('Chile','CHL','America/Santiago'),
+    ('México','MEX','America/Mexico_City'),
+    ('Perú','PER','America/Lima'),
+    ('Colombia','COL','America/Bogota'),
+)
+COUNTRY_TZ='America/Santiago'
+ROTATION_STATE_PATH='sismonauta_etas/rotacion_paises.json'
+
+def country_by_name(value):
+    key=str(value).strip().lower()
+    for item in COUNTRY_ROTATION:
+        if key in (item[0].lower(),item[1].lower(),{'México':'mexico','Perú':'peru'}.get(item[0],'')): return item
+    raise RuntimeError('País no admitido. Usar Chile, México, Perú o Colombia')
+
+def select_country(run_id, requested=''):
+    """Asigna país sin repetir dentro del ciclo de cuatro ejecuciones.
+
+    La asignación se guarda ANTES de analizar, y las reejecuciones con igual
+    GITHUB_RUN_ID conservan su país. El contador usa el día en Chile. Requiere
+    GH_TOKEN, GITHUB_REPOSITORY y permisos contents:write en GitHub Actions.
+    """
+    global COUNTRY_NAME, COUNTRY_ISO, COUNTRY_TZ, CITY, CITY_SOURCE, CAPITAL_CITY, _DETAIL_CACHE
+    override=(requested or os.getenv('ETAS_COUNTRY_OVERRIDE','')).strip()
+    today=datetime.now(ZoneInfo('America/Santiago')).strftime('%Y-%m-%d')
+    if override:
+        country=country_by_name(override)
+        log('PAÍS FIJADO MANUALMENTE:',country[0]); origin='override'
+    elif os.getenv('GITHUB_REPOSITORY') and os.getenv('GH_TOKEN'):
+        country=claim_country_github(str(run_id),today); origin='github_rotation'
+    else:
+        # Prueba local con rotación persistente; no modifica la selección GitHub.
+        local=OUT/'.rotacion_paises_local.json'
+        data=json.loads(local.read_text()) if local.is_file() else {}
+        assignments=data.get('assignments',{}) if data.get('date')==today else {}
+        if str(run_id) in assignments:
+            country=country_by_name(assignments[str(run_id)])
+        else:
+            if len(assignments)>=len(COUNTRY_ROTATION):
+                raise RuntimeError('Ya se asignaron los cuatro países de hoy; no se repetirá un quinto país')
+            country=COUNTRY_ROTATION[len(assignments)]
+            assignments[str(run_id)]=country[0]
+        atomic_json(local,{'date':today,'assignments':assignments})
+        origin='local_rotation'
+    COUNTRY_NAME,COUNTRY_ISO,COUNTRY_TZ=country
+    CITY=[]; CITY_SOURCE=''; CAPITAL_CITY=None; _DETAIL_CACHE=None
+    HTTP.headers['User-Agent']='Sismonauta-ETAS-Multicountry/6.0'
+    log('ROTACIÓN:',today,'país:',COUNTRY_NAME,'ISO:',COUNTRY_ISO,'origen:',origin)
+    return country,origin
+
+def claim_country_github(run_id,today):
+    repo=os.environ['GITHUB_REPOSITORY']; branch=os.getenv('GITHUB_REF_NAME','main')
+    endpoint=f'/repos/{repo}/contents/{quote(ROTATION_STATE_PATH,safe="/")}'
+    for retry in range(8):
+        history,sha=state_read(ROTATION_STATE_PATH)
+        assignments=history.get('assignments',{}) if history.get('date')==today else {}
+        if run_id in assignments:
+            return country_by_name(assignments[run_id])
+        if len(assignments)>=len(COUNTRY_ROTATION):
+            raise RuntimeError('Ya se asignaron cuatro países hoy; no se repetirá un quinto país')
+        country=COUNTRY_ROTATION[len(assignments)]
+        assignments[run_id]=country[0]
+        # Limitar tamaño y asegurar que la rotación nunca use fechas anteriores.
+        new={'date':today,'assignments':assignments,'updated_at':utcnow()}
+        payload={'message':'SISMONAUTA ETAS: reservar país '+country[0],
+                 'content':base64.b64encode(json.dumps(new,ensure_ascii=False,indent=2).encode()).decode(),
+                 'branch':branch}
+        if sha: payload['sha']=sha
+        try:
+            github_api('PUT',endpoint,json=payload)
+            return country
+        except RuntimeError as exc:
+            if 'HTTP 409' not in str(exc) and 'HTTP 422' not in str(exc): raise
+            if retry==7: raise
+            time.sleep(min(2+retry,8))
+    raise RuntimeError('No fue posible asignar país en GitHub')
+
 
 def log(*args): print(*args,flush=True)
 def utcnow(): return datetime.now(timezone.utc).isoformat()
@@ -82,7 +163,7 @@ def setup_country():
     reader=shapereader.Reader(shp)
     geoms=[rec.geometry for rec in reader.records() if COUNTRY_ISO in [rec.attributes.get(key,'') for key in ('ADM0_A3','SOV_A3','ISO_A3','GU_A3','SU_A3')]]
     reader.close()
-    if not geoms: raise RuntimeError('No se encontró Chile en Natural Earth')
+    if not geoms: raise RuntimeError(f'No se encontró {COUNTRY_NAME} en Natural Earth')
     geom=unary_union(geoms); parts=list(geom.geoms) if hasattr(geom,'geoms') else [geom]
     polygons=[g for g in parts if g.geom_type=='Polygon']
     if polygons:
@@ -96,7 +177,7 @@ def setup_country():
     GRID=round(max(.20,math.sqrt((LAT1-LAT0)*(LON1-LON0)/MAX_GRID_CELLS)),3)
     LATS=np.arange(LAT0,LAT1+GRID/2,GRID); LONS=np.arange(LON0,LON1+GRID/2,GRID)
     XX,YY=np.meshgrid(LONS,LATS); COUNTRY_GEOM=geom
-    log(f'Chile: {XX.size:,} celdas | malla {GRID:.3f}°')
+    log(f'{COUNTRY_NAME}: {XX.size:,} celdas | malla {GRID:.3f}°')
     try:
         response=HTTP.get('https://download.geonames.org/export/dump/cities15000.zip',timeout=(15,50)); response.raise_for_status()
         with zipfile.ZipFile(io.BytesIO(response.content)) as z:
@@ -115,7 +196,7 @@ def setup_country():
                 name=matches[0][5].strip(); candidates=[c for c in CITY if c[0].casefold()==name.casefold()]
                 if candidates: CAPITAL_CITY=candidates[0]
                 else:
-                    place=Nominatim(user_agent='sismonauta-etas-capital/5.2',timeout=15).geocode(name+', Chile',exactly_one=True)
+                    place=Nominatim(user_agent='sismonauta-etas-capital/5.2',timeout=15).geocode(name+', '+COUNTRY_NAME,exactly_one=True)
                     if place: CAPITAL_CITY=(name,float(place.latitude),float(place.longitude))
                 log('Capital:',CAPITAL_CITY or name)
         except Exception as exc: log('Capital no disponible:',str(exc)[:100])
@@ -139,7 +220,7 @@ def nearest_city(lat,lon):
     return None,'localidad no identificada'
 
 def catalog_usgs():
-    session=requests.Session(); session.headers['User-Agent']='Sismonauta-ETAS-Chile/5.2'
+    session=requests.Session(); session.headers['User-Agent']='Sismonauta-ETAS-Multicountry/6.0'
     begin=pd.Timestamp(START,tz='UTC'); blocks=[]; frames=[]
     while begin<CUTOFF:
         end=min(begin+pd.DateOffset(months=1),CUTOFF); blocks.append((begin,end)); begin=end
@@ -389,7 +470,7 @@ def narration(final_info):
     if pieces and len(areas)<3: delta_text+=' No se identificaron otras zonas positivas suficientemente separadas.'
     magnitude=f'{final_info["mag"]:.1f}'.replace('.',',')
     return (
-        'Hola, a continuación te invitamos a revisar una actualización del modelo sísmico experimental en Chile para las próximas 24 horas. '
+        f'Hola, a continuación te invitamos a revisar una actualización del modelo sísmico experimental en {COUNTRY_NAME} para las próximas 24 horas. '
         'En el mapa de la izquierda, la celda con el valor modelado más alto tiene un índice de presentación de '
         +scaled_index(final_info['prob_val'])+'. '
         +location
@@ -589,7 +670,7 @@ def state_save(path,data):
     for attempt in range(4):
         prev,sha=state_read(path)
         if prev and prev.get('run_id') not in (None,data.get('run_id')): raise RuntimeError('Colisión del identificador de ejecución')
-        payload={'message':'SISMONAUTA ETAS Chile: actualizar estado individual','content':base64.b64encode(json.dumps(data,ensure_ascii=False,indent=2,default=str).encode()).decode(),'branch':branch}
+        payload={'message':'SISMONAUTA ETAS '+COUNTRY_NAME+': actualizar estado individual','content':base64.b64encode(json.dumps(data,ensure_ascii=False,indent=2,default=str).encode()).decode(),'branch':branch}
         if sha: payload['sha']=sha
         try:
             github_api('PUT',f'/repos/{repo}/contents/{quote(path,safe="/")}',json=payload); return
@@ -613,7 +694,7 @@ def verify_accounts():
 def release_video(video,persist,target):
     repo=os.environ['GITHUB_REPOSITORY']
     tag='sismonauta-etas-'+datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')+'-'+str(os.getenv('GITHUB_RUN_ID','local'))
-    release=github_api('POST',f'/repos/{repo}/releases',json={'tag_name':tag,'target_commitish':os.getenv('GITHUB_REF_NAME','main'),'name':'SISMONAUTA ETAS Chile','draft':False,'prerelease':True,'body':'Modelo experimental. No constituye alerta sísmica.'})
+    release=github_api('POST',f'/repos/{repo}/releases',json={'tag_name':tag,'target_commitish':os.getenv('GITHUB_REF_NAME','main'),'name':'SISMONAUTA ETAS '+COUNTRY_NAME,'draft':False,'prerelease':True,'body':'Modelo experimental. No constituye alerta sísmica.'})
     target['release_id']=str(release['id']); persist(); upload_url=release['upload_url'].split('{')[0]+'?name='+quote(video.name)
     with video.open('rb') as stream:
         asset=api('POST',upload_url,token=os.environ['GH_TOKEN'],timeout=(30,900),headers={'Accept':'application/vnd.github+json','Content-Type':'video/mp4'},data=stream)
@@ -651,7 +732,7 @@ def publish_instagram(reel,caption,target,persist):
 def publish_facebook(video,caption,target,persist):
     target['status']='uncertain'; persist()
     with video.open('rb') as stream:
-        result=api('POST',f'{FB_BASE}/{os.environ["FACEBOOK_PAGE_ID"]}/videos',token=os.environ['FACEBOOK_PAGE_TOKEN'],timeout=(30,900),data={'description':caption[:5000],'title':'SISMONAUTA | ETAS Chile experimental','published':'true'},files={'source':(video.name,stream,'video/mp4')})
+        result=api('POST',f'{FB_BASE}/{os.environ["FACEBOOK_PAGE_ID"]}/videos',token=os.environ['FACEBOOK_PAGE_TOKEN'],timeout=(30,900),data={'description':caption[:5000],'title':'SISMONAUTA | ETAS '+COUNTRY_NAME+' experimental','published':'true'},files={'source':(video.name,stream,'video/mp4')})
     mid=str(result.get('id') or '')
     if not mid.isdigit(): raise RuntimeError('Facebook no devolvió ID válido')
     target.update({'status':'published','id':mid}); persist(); log('FACEBOOK VIDEO ACEPTADO:',mid)
@@ -698,7 +779,7 @@ def yt_resumable_upload(movie, title, description, token, short=False):
     metadata={'snippet':{
         'title':title[:100], 'description':(description+suffix)[:5000],
         'categoryId':'27','defaultLanguage':'es',
-        'tags':['Sismonauta','Chile','ETAS','Sismologia','Ciencia']},
+        'tags':['Sismonauta',COUNTRY_NAME,'ETAS','Sismologia','Ciencia']},
         'status':{'privacyStatus':yt_privacy(),'selfDeclaredMadeForKids':False}}
     r=HTTP.post(YOUTUBE_UPLOAD,params={'uploadType':'resumable','part':'snippet,status'},
         headers={'Authorization':'Bearer '+token,'X-Upload-Content-Type':'video/mp4',
@@ -778,12 +859,14 @@ def make_youtube_video(original):
 def publish_youtube(movie,meta,target,persist,token,kind):
     if target.get('status') in ('uncertain','published'):
         raise RuntimeError('YouTube '+kind+': estado previo requiere revisión; no duplicar carga')
-    cutoff=pd.Timestamp(meta['cutoff_utc'])
-    if cutoff.tzinfo is None: cutoff=cutoff.tz_localize('UTC')
-    local=cutoff.tz_convert('America/Santiago')
-    period=local.strftime('%d/%m/%Y %H:%M')
-    title=(f'SISMONAUTA ETAS Chile | Actualización {period} | Modelo experimental')
-    target.update(status='uncertain',requested_privacy=yt_privacy(),file=str(movie))
+    # Fecha real al momento de publicar, según el huso horario de Chile.
+    # Se utiliza el mismo formato para Shorts y videos tradicionales.
+    fecha_actual = datetime.now(ZoneInfo(COUNTRY_TZ)).strftime('%d/%m/%Y')
+    pais = str(meta.get('country') or COUNTRY_NAME).strip()
+    title = f'Actualización Riesgo Sísmico {pais} {fecha_actual}'
+    if len(title) > 100:
+        raise RuntimeError('Título de YouTube supera los 100 caracteres')
+    target.update(status='uncertain',requested_privacy=yt_privacy(),file=str(movie),title=title)
     persist()  # Estado durable ANTES de cualquier solicitud de subida.
     mid=yt_resumable_upload(movie,title,caption(meta),token,short=(kind=='short'))
     target.update(status='published',id=mid,url='https://www.youtube.com/watch?v='+mid,
@@ -795,25 +878,34 @@ def publish_youtube(movie,meta,target,persist,token,kind):
 def caption(metadata):
     cutoff=pd.Timestamp(metadata['cutoff_utc'])
     if cutoff.tzinfo is None: cutoff=cutoff.tz_localize('UTC')
-    local=cutoff.tz_convert('America/Santiago'); day=local.strftime('%d/%m/%Y'); clock=local.strftime('%H:%M'); mag=float(metadata['magnitude_target'])
-    return (f'🌎 SISMONAUTA | Actualización: {day}, {clock} h (Chile)\n\n'
+    local=cutoff.tz_convert(COUNTRY_TZ); day=local.strftime('%d/%m/%Y'); clock=local.strftime('%H:%M'); mag=float(metadata['magnitude_target'])
+    return (f'🌎 SISMONAUTA | Actualización: {day}, {clock} h ({COUNTRY_NAME})\n\n'
             'ETAS (Epidemic-Type Aftershock Sequence) es un modelo estadístico que evalúa la tasa sísmica de fondo y la influencia temporal de los terremotos, permitiendo explorar patrones de actividad sísmica.\n\n'
             'El mapa de la izquierda muestra la probabilidad modelada por celda para las próximas 24 horas. El mapa derecho muestra las zonas con mayor aumento respecto al inicio del período analizado. '
             f'Umbral analizado: magnitud M≥{mag:.2f}.\n\n'
             '⚠️ IMPORTANTE: ETAS es un modelo experimental. No constituye una predicción de terremotos ni una alerta sísmica oficial.\n\n'
-            '#Sismonauta #Chile #Sismologia #ETAS #Terremotos #Ciencia')
+            f'#Sismonauta #{COUNTRY_NAME.replace("é","e").replace("ú","u")} #Sismologia #ETAS #Terremotos #Ciencia')
 
 def main():
     global OUT
-    parser=argparse.ArgumentParser(description='SISMONAUTA ETAS Chile unificado')
+    parser=argparse.ArgumentParser(description='SISMONAUTA ETAS multipaís unificado')
     parser.add_argument('--out',default=os.getenv('ETAS_OUTPUT_DIR','output_etas'))
     parser.add_argument('--publish',action='store_true',help='Publicar en Instagram, Facebook y YouTube')
+    parser.add_argument('--country',default='',help='Sobrescribir país (Chile, México, Perú, Colombia); desactiva rotación en esta ejecución')
+    parser.add_argument('--test-rotation',action='store_true',help='Comprobar la configuración de cuatro países sin red')
     parser.add_argument('--original',default='',help=argparse.SUPPRESS)
     parser.add_argument('--test-narration',action='store_true',help='Probar ciudad y distancia en speech sin acceder a la red')
     args=parser.parse_args()
     if args.test_narration: test_narration(); return
+    if args.test_rotation:
+        assert [c[0] for c in COUNTRY_ROTATION]==['Chile','México','Perú','Colombia']
+        assert len({c[1] for c in COUNTRY_ROTATION})==4
+        assert country_by_name('Mexico')[1]=='MEX'
+        log('ROTACIÓN DE CUATRO PAÍSES VALIDADA'); return
     OUT=Path(args.out).resolve(); OUT.mkdir(parents=True,exist_ok=True); binary('ffmpeg'); binary('ffprobe')
-    receipt={'status':'starting','country':COUNTRY_NAME,'created_at':utcnow(),'run_id':os.getenv('GITHUB_RUN_ID') or datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%f'),'targets':{'instagram':{'status':'pending'},'facebook':{'status':'pending'},'youtube_short':{'status':'pending'},'youtube_video':{'status':'pending'}}}
+    run_id=os.getenv('GITHUB_RUN_ID') or datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%f')
+    _,selection_origin=select_country(run_id,args.country)
+    receipt={'status':'starting','country':COUNTRY_NAME,'created_at':utcnow(),'run_id':run_id,'selection_origin':selection_origin,'targets':{'instagram':{'status':'pending'},'facebook':{'status':'pending'},'youtube_short':{'status':'pending'},'youtube_video':{'status':'pending'}}}
     individual_path=state_path(receipt['run_id'])
     def persist():
         atomic_json(OUT/'estado_publicacion.json',receipt)
