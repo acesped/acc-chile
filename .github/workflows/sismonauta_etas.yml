@@ -1,4 +1,4 @@
-name: SISMONAUTA - ETAS Chile (cron-job.org)
+name: SISMONAUTA - ETAS 4 países (cron-job.org)
 
 # Ejecución externa: cron-job.org -> workflow_dispatch.
 # Un único script: sismonauta_etas_publicar.py
@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   generar_y_publicar:
-    name: Generar ETAS Chile y publicar
+    name: Generar ETAS multipaís y publicar
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     defaults:
@@ -48,7 +48,7 @@ jobs:
       YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
       YT_CHANNEL_ID: ${{ secrets.YT_CHANNEL_ID }}
       YT_PRIVACY: 'public'
-      ETAS_COUNTRY: 'Chile'
+      ETAS_COUNTRY: 'auto'
       ETAS_OUTPUT_DIR: 'output_etas'
       ETAS_TIMEOUT_SECONDS: '16500'
 
@@ -137,6 +137,7 @@ jobs:
           set -euo pipefail
           test -f sismonauta_etas_publicar.py || { echo '::error::Falta sismonauta_etas_publicar.py'; exit 1; }
           python -m py_compile sismonauta_etas_publicar.py
+          python sismonauta_etas_publicar.py --test-rotation
           python - <<'PY'
           import ast
           from pathlib import Path
@@ -167,7 +168,7 @@ jobs:
           [[ "$GITHUB_EVENT_NAME" == 'workflow_dispatch' ]] || { echo '::error::Evento no autorizado'; exit 1; }
           if [[ "$REQUESTED_PUBLISH" == 'true' ]]; then PUBLISH=true; else PUBLISH=false; fi
           echo "publish=$PUBLISH" >> "$GITHUB_OUTPUT"
-          echo "SISMONAUTA ETAS | Chile | Publicar: $PUBLISH"
+          echo "SISMONAUTA ETAS | Rotación Chile, México, Perú, Colombia | Publicar: $PUBLISH"
           date -u
           TZ=America/Santiago date
 
@@ -188,7 +189,7 @@ jobs:
           print('Canal YouTube autorizado; privacidad solicitada:', etas.yt_privacy())
           PY
 
-      - name: Ejecutar ETAS Chile
+      - name: Ejecutar ETAS multipaís
         id: ejecutar
         timeout-minutes: 310
         env:
@@ -220,7 +221,7 @@ jobs:
           data = json.loads(receipt.read_text(encoding='utf-8'))
           status, code = data.get('status'), int(os.environ.get('EXIT_CODE') or '1')
           print('País:', data.get('country'), '| Estado:', status, '| Salida Python:', code)
-          if data.get('country') != 'Chile': raise SystemExit('::error::País diferente de Chile')
+          if data.get('country') not in ('Chile','México','Perú','Colombia'): raise SystemExit('::error::País fuera de rotación')
           if code: raise SystemExit('::error::El script ETAS terminó con error')
           paths = [
             (output/'ETAS_DOBLE_HEATMAP_CON_LIKE.mp4', 1080, 1350),
