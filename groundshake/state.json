@@ -660,8 +660,9 @@
       "topic": "fallas:ruptura_superficie:relacion",
       "topic_key": "ruptura_superficie",
       "title": "¿Cómo se relaciona la ruptura superficial con otros procesos de la Tierra?",
-      "reel": "enviando",
-      "updated_at": "2026-11-02T00:01:18.359365+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-02T00:02:30.788694+00:00",
+      "reel_id": "17989940079087380"
     }
   }
 }
