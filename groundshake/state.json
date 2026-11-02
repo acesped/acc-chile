@@ -798,8 +798,9 @@
       "topic": "tsunamis:inundacion:lectura",
       "topic_key": "inundacion",
       "title": "¿Cómo leer las pistas que deja la inundación por tsunami?",
-      "reel": "enviando",
-      "updated_at": "2026-11-02T19:09:29.365367+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-02T19:10:18.929197+00:00",
+      "reel_id": "18118622560801400"
     }
   }
 }
