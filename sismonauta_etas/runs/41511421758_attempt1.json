@@ -16,7 +16,9 @@
       "id": "1886409139366566"
     },
     "youtube_short": {
-      "status": "pending"
+      "status": "uncertain",
+      "requested_privacy": "public",
+      "file": "/home/runner/work/acc-chile/acc-chile/output_etas/sismonauta_etas_reel_9x16.mp4"
     },
     "youtube_video": {
       "status": "pending"
