@@ -551,6 +551,16 @@
       "angle": "lectura",
       "time": "2026-11-02T19:09:26.118253+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-e5f05f9b2355",
+      "topic": "ondas:ondas_superficiales:comparacion",
+      "topic_key": "ondas_superficiales",
+      "title": "¿Qué hace especial a las ondas superficiales dentro de la geología?",
+      "style": "pregunta_respuesta",
+      "angle": "comparacion",
+      "time": "2026-11-02T21:01:16.784679+00:00",
+      "status": "publicado"
     }
   ]
 }
