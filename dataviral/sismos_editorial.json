@@ -511,6 +511,16 @@
       "angle": "mito",
       "time": "2026-11-02T15:01:20.385070+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-6845a6a370ce",
+      "topic": "tsunamis:primera_ola:riesgo",
+      "topic_key": "primera_ola",
+      "title": "¿Por qué conviene conocer mejor la primera ola de un tsunami?",
+      "style": "microdocumental",
+      "angle": "riesgo",
+      "time": "2026-11-02T17:52:10.963531+00:00",
+      "status": "publicado"
     }
   ]
 }
