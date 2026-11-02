@@ -1449,11 +1449,9 @@ def select_best_available(articles, state):
             explanation = ' '.join(explanation.split()[:120]).rstrip(',;:') + '…'
         if normalized(explanation) == normalized(article['title']):
             continue
-        explanation = ('Según la información publicada por ' +
-                       clean(original.get('source') or 'la fuente original') +
-                       ', ' + explanation[0].lower() + explanation[1:] +
-                       ' El texto íntegro no estuvo disponible para esta edición; '
-                       'por ello no añadimos cifras, causas ni consecuencias ajenas al resumen de la fuente.')
+        # Solo contenido informativo del medio: ninguna nota de procesos internos.
+        # La atribución y enlace se mantienen en metadatos para trazabilidad.
+        explanation = clean(explanation)
         article['editorial_mode'] = 'verified_summary'
         article['source_evidence_kind'] = 'direct_rss_best_available'
         article['evidence_score'] = score
@@ -1481,7 +1479,7 @@ def test_best_available():
             source='Instituto geocientífico',url='https://example.org/'+identifier,
             date=date,lang='es',category=category,search_category='direct',source_body='')
     a=item('a','Investigación sobre monitoreo del volcán activo',
-           'El equipo desarrolla un sistema científico para estudiar la dinámica volcánica y mejorar las mediciones locales.')
+           'El equipo desarrolla un sistema científico para estudiar la dinámica volcánica y mejorar mediciones locales mediante estaciones y observaciones.')
     b=item('b','Científicos descubren nuevo sistema de monitoreo volcánico',
            'Investigadores documentan nuevas mediciones de magma y volcanes mediante instrumentos geofísicos que permiten seguir las variaciones detectadas durante la investigación.')
     assert evidence_score(b)>evidence_score(a)
@@ -1490,7 +1488,8 @@ def test_best_available():
         article, photo, credit, description = select_best_available([a,b],{'stories':{}})
         assert article and article['id']=='b'
         assert article['editorial_mode']=='verified_summary'
-        assert 'no añadimos cifras' in description
+        assert 'no añadimos cifras' not in description
+        assert 'texto íntegro' not in description
         entry={'stories':{'b':{'targets':{'instagram':{'status':'published'},'facebook':{'status':'published'}}}}}
         article2,_,_,_=select_best_available([a,b],entry)
         assert article2 and article2['id']=='a'
@@ -1527,19 +1526,22 @@ def select_headline_digest(articles, state):
             article['original_title']=title
             article['title']=translation
         title=clean(article['title'])
-        try:
-            published_at=datetime.fromisoformat(article['date']).astimezone(timezone.utc)
-            published_date=published_at.strftime('%d/%m/%Y')
-        except (ValueError,TypeError,KeyError):
+        if not article.get('date'):
             continue
-        # El titular se imprime una sola vez, arriba de la descripción.
-        # La descripción no presenta inferencias como hechos confirmados.
-        explanation=(
-            f'Esta información fue difundida el {published_date}. '
-            'Por ahora, no se ha podido recuperar el desarrollo completo del artículo. '
-            'El dato principal comunicado es el que aparece en el titular; '
-            'los detalles adicionales permanecen sin verificación en esta publicación.'
-        )
+        # Un titular no es desarrollo periodístico. Incluso con modo experimental
+        # habilitado, solo se publica si existe texto informativo independiente.
+        evidence = clean(original.get('source_body') or original.get('description') or '')
+        if words(evidence) < MIN_HEADLINE_DIGEST_WORDS or normalized(evidence) == normalized(title):
+            continue
+        if SPAM.search(evidence) or MISLEADING.search(evidence):
+            continue
+        if article.get('lang') == 'en':
+            evidence = translate_es(evidence)
+            if not evidence:
+                continue
+        explanation = clean(evidence)
+        if words(explanation) > 115:
+            explanation = ' '.join(explanation.split()[:115]).rstrip(',;:') + '…'
         article['editorial_mode']='headline_digest'
         article['source_evidence_kind']='publisher_rss_headline'
         article['explanation']=explanation
@@ -1619,7 +1621,7 @@ def test_extraction():
 
 def test_headline_digest():
     candidate={'id':'test-rss-title','title':'Investigadores detectan nuevos cambios en glaciares del sur de Chile',
-               'description':'','category':'climatologia','lang':'es',
+               'description':'El equipo de investigación analizó mediciones de superficie y observaciones satelitales para estudiar los cambios detectados en glaciares. Los resultados permitirán mejorar las comparaciones científicas regionales.','category':'climatologia','lang':'es',
                'source':'Medio científico','search_category':'rss',
                'url':'https://example.org/actualidad', 'date':now().isoformat()}
     from unittest.mock import patch
