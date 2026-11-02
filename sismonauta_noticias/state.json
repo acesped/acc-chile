@@ -1117,6 +1117,41 @@
         }
       }
     },
+    "f640dfa51b31c8466e53": {
+      "article": {
+        "category": "volcanes",
+        "date": "2026-10-31T04:05:00+00:00",
+        "description": "APOD Ciencia APOD APOD: 31 de octubre de 2026 –… Índice de Envíos del Archivo APOD de Hoy Búsqueda Calendario RSS Educación Acerca de Discutir APOD Imagen Astronómica del Día ¡Descubre el cosmos! Cada día se presenta una imagen o fotografía diferente de nuestro fascinante universo, junto con una breve explicación escrita por un astrónomo profesional. Noche en un […]",
+        "explanation": "**TITULAR: Noche en un planeta espeluznante: Auroras y actividad geotérmica en Islandia**\n\nEn la noche del 31 de octubre de 2026, un fenómeno natural deslumbrante iluminó el cielo de Hverir, un área geotérmicamente activa en el noreste de Islandia. La combinación de tormentas geomagnéticas, provocadas por la actividad solar, generó auroras boreales que danzaron sobre el paisaje volcánico, creando un espectáculo visual que evocó la atmósfera de Halloween.\n\nLas partículas energéticas, atrapadas en el campo magnético terrestre, penetraron la atmósfera en latitudes altas, produciendo un despliegue de luces verdes y moradas. Este fenómeno se intensificó debido a que el Sol se encuentra en las primeras fases de declive de su ciclo de actividad solar, lo que sugiere que la actividad auroral podría continuar en los próximos días.\n\nLos fumaroles de Hverir, que emiten vapor y gases, se convirtieron en un telón de fondo perfecto para las luces del norte, creando una escena casi fantasmagórica. Este evento no solo atrae a turistas y fotógrafos, sino que también resalta la interconexión entre la actividad solar y los fenómenos geológicos en nuestro planeta.",
+        "id": "f640dfa51b31c8466e53",
+        "image_headline": "Auroras boreales iluminan el cielo de Islandia gracias a tormentas geomagnéticas provocadas por la actividad solar.",
+        "lang": "en",
+        "original_title": "APOD: 2026 October 31 – Night on a Spooky Planet",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "APOD Science APOD APOD: 2026 October 31 –… Today’s APOD Archive Submissions Index Search Calendar RSS Education About Discuss APOD Astronomy Picture of the Day Discover the cosmos! Each day a different image or photograph of our fascinating universe is featured, along with a brief explanation written by a professional astronomer. Night on a Spooky Planet Explanation: What spooky planet is this? Planet Earth on a dark and stormy night, of course. The ghostly scene was photographed at Hverir , a geothermally active area found along northeastern Iceland’s volcanic landscape . Triggered by solar activity , geomagnetic storms have unleashed energetic particles trapped in Earth’s magnetic field. Penetrating the planet’s upper atmosphere at high latitudes, the particles create auroral displays in the starry night sky. Ghostly towers of steam and gas are venting from local fumaroles to dance against the eerie, greenish northern lights. For now, auroral activity on planet Earth remains in a high state as the Sun is only in early phases of decline from the peak of its solar activity cycle . And soon, other ghostly apparitions may dance in your neighborhood. Happy Halloween ! Tomorrow’s picture: many moons Date: October 31, 2026 Credit & Copyright: Stéphane Vetter ( Nuits sacrées ) Authors & editors: Jerry Bonnell, Cecilia Chirenti, Robert Nemiroff, Keighley Rockcliffe A service of: ASD at NASA / GSFC , NASA Science Activation & Michigan Tech. U. Random APOD Generator Yesterday’s Image APOD: 2026 October 30 – Haunting the Cepheus Flare Tomorrow’s Image",
+        "title": "APOD: 31 de octubre de 2026 – Noche en un planeta espeluznante",
+        "url": "https://science.nasa.gov/image-article/apod-2026-october-31-night-on-a-spooky-planet/"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "volcano landscape",
+        "sha256": "56137e6af82665932abc62bf32d8a2f9a6f039a178eca126e03da0f2151a0209",
+        "source": "https://commons.wikimedia.org/wiki/File:Crater_of_Santa_Maria_volcano,_Guatemala,_1903.png",
+        "title": "File:Crater of Santa Maria volcano, Guatemala, 1903.png",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/8/89/Crater_of_Santa_Maria_volcano%2C_Guatemala%2C_1903.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/f640dfa51b31c8466e53.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "fa98e57b6928b6c73a22": {
       "article": {
         "category": "sismos",
