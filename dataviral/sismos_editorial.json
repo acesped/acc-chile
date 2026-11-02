@@ -461,6 +461,16 @@
       "angle": "relacion",
       "time": "2026-11-02T00:01:15.295030+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-9390d23fc588",
+      "topic": "medicion:magnitud_intensidad:observacion",
+      "topic_key": "magnitud_intensidad",
+      "title": "¿Qué observan los científicos al estudiar la magnitud y la intensidad?",
+      "style": "descubrimiento",
+      "angle": "observacion",
+      "time": "2026-11-02T03:01:25.932785+00:00",
+      "status": "publicado"
     }
   ]
 }
