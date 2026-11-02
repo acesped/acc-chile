@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: 'Publicar en Instagram y Facebook (false = solo previsualizar)'
+        description: 'Publicar en Instagram, Facebook y YouTube (false = solo previsualizar)'
         required: true
         type: boolean
         default: true
@@ -13,14 +13,13 @@ on:
         required: true
         type: boolean
         default: true
-  # Para habilitar ejecuciones automaticas, descomenta estas lineas.
+  # Activa esta programación cuando OAuth y las subidas se hayan probado.
   # schedule:
-  #   - cron: '0 15 * * *'  # 15:00 UTC todos los dias
+  #   - cron: '0 15 * * *'
 
 permissions:
   contents: write
 
-# Evita ejecuciones simultaneas que publiquen el mismo episodio.
 concurrency:
   group: sismonauta-monitor-publicacion
   cancel-in-progress: false
@@ -40,6 +39,11 @@ jobs:
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+      YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+      YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+      YT_CHANNEL_ID: ${{ secrets.YT_CHANNEL_ID }}
+      YT_PRIVACY: private
       IG_EXPECTED_USERNAME: sismonauta
       FACEBOOK_EXPECTED_USERNAME: sismonauta
       DV_VOICE: es-CL-CatalinaNeural
@@ -76,17 +80,31 @@ jobs:
 
       - name: Comprobar credenciales para publicar
         if: ${{ github.event_name == 'schedule' || inputs.publish == true }}
+        shell: bash
         run: |
-          test -n "$INSTAGRAM_TOKEN" || { echo 'Falta INSTAGRAM_TOKEN'; exit 1; }
-          test -n "$INSTAGRAM_USER_ID" || { echo 'Falta INSTAGRAM_USER_ID'; exit 1; }
-          test -n "$FACEBOOK_PAGE_ID" || { echo 'Falta FACEBOOK_PAGE_ID'; exit 1; }
-          test -n "$FACEBOOK_PAGE_TOKEN" || { echo 'Falta FACEBOOK_PAGE_TOKEN'; exit 1; }
-          test -n "$GH_TOKEN" || { echo 'Falta GH_TOKEN'; exit 1; }
+          set -euo pipefail
+          for name in INSTAGRAM_TOKEN INSTAGRAM_USER_ID FACEBOOK_PAGE_ID FACEBOOK_PAGE_TOKEN GH_TOKEN YT_CLIENT_ID YT_CLIENT_SECRET YT_REFRESH_TOKEN YT_CHANNEL_ID; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::Falta el secreto/valor $name"
+              exit 1
+            fi
+          done
+
+      - name: Verificar OAuth y canal de YouTube
+        if: ${{ github.event_name == 'schedule' || inputs.publish == true }}
+        run: |
+          python - <<'PY'
+          import monitor
+          token = monitor.yt_token()
+          monitor.yt_verify_channel(token)
+          print('YouTube OAuth y canal verificados; privacidad solicitada:', monitor.yt_privacy())
+          PY
 
       - name: Generar y publicar (o previsualizar)
         env:
           SHOULD_PUBLISH: ${{ github.event_name == 'schedule' || inputs.publish == true }}
           SHOULD_STORY: ${{ github.event_name == 'schedule' || inputs.story == true }}
+        shell: bash
         run: |
           set -euo pipefail
           args=(--out output_sismos)
