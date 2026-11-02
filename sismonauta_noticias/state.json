@@ -593,6 +593,44 @@
         }
       }
     },
+    "9516f95dceb2e7f19838": {
+      "article": {
+        "category": "volcanes",
+        "date": "2026-10-19T12:35:09+00:00",
+        "description": "Scientists have discovered evidence of two hidden magma sources beneath Nicaragua’s Masaya volcano, where satellite observations revealed mysterious ground movements suggesting magma is shifting deep underground. The findings could improve eruption forecasting for the active volcano, which sits near 2 million people and attracts tourists to its spectacular lava lake.",
+        "editorial_mode": "verified_summary",
+        "evidence_score": 248.64,
+        "explanation": "Según la información publicada por ScienceDaily Tierra y Clima, científicos han descubierto evidencia de dos fuentes de magma ocultas bajo el volcán Masaya de Nicaragua, donde observaciones sat El texto íntegro no estuvo disponible para esta edición; por ello no añadimos cifras, causas ni consecuencias ajenas al resumen de la fuente.",
+        "id": "9516f95dceb2e7f19838",
+        "image_headline": "Algo raro está pasando bajo un volcán cerca de 2 millones de personas.",
+        "lang": "en",
+        "original_title": "Something strange is happening beneath a volcano near 2 million people",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "source_evidence_kind": "direct_rss_best_available",
+        "title": "Algo raro está pasando bajo un volcán cerca de 2 millones de personas.",
+        "url": "https://www.sciencedaily.com/releases/2026/10/261018205039.htm"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "volcano landscape",
+        "sha256": "acb0809570a97ce5da7067d2c562f12c48542f71bbdcc7bdde121827e3e23dec",
+        "source": "https://commons.wikimedia.org/wiki/File:Boardwalk_at_Mud_Volcano_in_winter.jpg",
+        "title": "File:Boardwalk at Mud Volcano in winter.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d3/Boardwalk_at_Mud_Volcano_in_winter.jpg/1920px-Boardwalk_at_Mud_Volcano_in_winter.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/9516f95dceb2e7f19838.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "98384a5fc56d1bf69496": {
       "article": {
         "date": "2026-10-28T13:17:12+00:00",
