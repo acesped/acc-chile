@@ -491,6 +491,16 @@
       "angle": "errores",
       "time": "2026-11-02T09:01:15.507774+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-83fcd19b4953",
+      "topic": "tectonica:placas_movimiento:explicacion",
+      "topic_key": "placas_movimiento",
+      "title": "La ciencia detrás de el movimiento de las placas",
+      "style": "mito_realidad",
+      "angle": "explicacion",
+      "time": "2026-11-02T12:01:01.589086+00:00",
+      "status": "publicado"
     }
   ]
 }
