@@ -471,6 +471,16 @@
       "angle": "observacion",
       "time": "2026-11-02T03:01:25.932785+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-f0a86fad5e0e",
+      "topic": "tsunamis:inundacion:significado",
+      "topic_key": "inundacion",
+      "title": "¿Qué nos enseña la inundación por tsunami?",
+      "style": "descubrimiento",
+      "angle": "significado",
+      "time": "2026-11-02T06:01:14.376331+00:00",
+      "status": "publicado"
     }
   ]
 }
