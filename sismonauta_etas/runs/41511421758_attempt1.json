@@ -16,9 +16,14 @@
       "id": "1886409139366566"
     },
     "youtube_short": {
-      "status": "uncertain",
+      "status": "published",
       "requested_privacy": "public",
-      "file": "/home/runner/work/acc-chile/acc-chile/output_etas/sismonauta_etas_reel_9x16.mp4"
+      "file": "/home/runner/work/acc-chile/acc-chile/output_etas/sismonauta_etas_reel_9x16.mp4",
+      "id": "TL8ZvgxPGs4",
+      "url": "https://www.youtube.com/watch?v=TL8ZvgxPGs4",
+      "uploaded_at": "2026-11-02T19:40:23.747738+00:00",
+      "actual_privacy": "public",
+      "processing_status": "processing"
     },
     "youtube_video": {
       "status": "pending"
