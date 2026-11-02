@@ -481,6 +481,16 @@
       "angle": "significado",
       "time": "2026-11-02T06:01:14.376331+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-36c634bc12cc",
+      "topic": "geologia:valle_rift:errores",
+      "topic_key": "valle_rift",
+      "title": "¿Qué errores conviene evitar al explicar los valles de rift?",
+      "style": "descubrimiento",
+      "angle": "errores",
+      "time": "2026-11-02T09:01:15.507774+00:00",
+      "status": "publicado"
     }
   ]
 }
