@@ -382,7 +382,31 @@ def editorial_relevance(article):
     return score
 
 def editorial_eligible(article):
-    return editorial_relevance(article) >= MIN_EDITORIAL_RELEVANCE
+    """No excluir investigaciones de fuentes directas solo por un titular breve.
+
+    El RSS directo puede contener un artículo científico desarrollado aunque
+    su titular omita los vocablos usados por el filtro de Google News.
+    La excepción exige evidencia extensa y relación temática en título/resumen.
+    """
+    relevance = editorial_relevance(article)
+    if relevance >= MIN_EDITORIAL_RELEVANCE:
+        return True
+    if relevance < 0 or article.get('search_category') != 'direct':
+        return False
+    title = clean(article.get('title', ''))
+    description = clean(article.get('description', ''))
+    if len(title.split()) < 4:
+        return False
+    if article.get('category') not in SEARCH_GROUPS:
+        return False
+    if not source_text_sufficient(article.get('source_body', '')):
+        return False
+    if not any(pattern.search(title + ' ' + description)
+               for pattern in CATEGORY_PATTERNS.values()):
+        return False
+    if SPAM.search(title + ' ' + description) or MISLEADING.search(title + ' ' + description):
+        return False
+    return True
 
 def priority(article):
     weight = {'sismos':9,'volcanes':8,'oceanos':7,'desastres':7,'meteorologia':6,'climatologia':6,'geologia':6,'espacio':5}
@@ -1671,6 +1695,24 @@ def test_direct_sources():
     log('PRUEBAS DE FUENTES DIRECTAS Y PRIORIZACIÓN APROBADAS')
 
 
+def test_direct_editorial_recovery():
+    """Regresión: una fuente científica directa extensa no debe desaparecer silenciosamente."""
+    body = ('Las observaciones satelitales documentaron cambios medibles en la superficie oceánica. '
+            'Los investigadores compararon registros instrumentales obtenidos durante varios años. '
+            'El estudio describe una metodología para medir variaciones mediante sensores remotos. '
+            'Los resultados permiten comprender mejor la evolución de procesos naturales. ')*4
+    sample = {'id':'direct-recovery-test','title':'New observations reveal changes in coastal waters',
+              'description':'Satellite observations of coastal waters inform ocean science research.',
+              'category':'oceanos','lang':'en','source':'Centro científico',
+              'url':'https://example.org/study','date':now().isoformat(),
+              'search_category':'direct','source_body':body}
+    assert source_text_sufficient(body)
+    assert editorial_eligible(sample), 'Se omitió un artículo directo con contenido extenso'
+    assert not editorial_eligible(dict(sample,search_category='rss')) if editorial_relevance(sample)<MIN_EDITORIAL_RELEVANCE else True
+    assert not editorial_eligible(dict(sample,source_body='',title='Quarterly staff appointment at institute'))
+    log('PRUEBA DE RECUPERACION EDITORIAL DIRECTA APROBADA')
+
+
 def test_priority_direct():
     """Regresión: 1.500 Google News no deben desplazar 72 fuentes directas."""
     base={'title':'Investigación de monitoreo volcánico y riesgos naturales',
@@ -1700,11 +1742,13 @@ def main():
     parser.add_argument('--test-direct-sources',action='store_true')
     parser.add_argument('--test-priority-direct',action='store_true')
     parser.add_argument('--test-best-available',action='store_true')
+    parser.add_argument('--test-direct-editorial',action='store_true')
     args=parser.parse_args()
     test_earthquake_filter()
     if args.test_filter: return 0
     if args.test_priority_direct: test_priority_direct(); return 0
     if args.test_best_available: test_best_available(); return 0
+    if args.test_direct_editorial: test_direct_editorial_recovery(); return 0
     if args.test_direct_sources: test_direct_sources(); return 0
     if args.test_headlines:
         test_headlines(); return 0
@@ -1728,6 +1772,36 @@ def main():
     state=load_state(gh) if gh else {'stories':{}}
     articles=diverse_order(feed_items(), state)
     log('NOTICIAS CANDIDATAS:',len(articles))
+    direct_stats = {'total':0,'eligible':0,'editorial_rejected':0,'confirmed':0,
+                    'uncertain':0,'eligible_with_body_85':0,'eligible_with_body_35':0,
+                    'eligible_with_description_18':0}
+    direct_examples = []
+    for item in articles:
+        if item.get('search_category') != 'direct':
+            continue
+        direct_stats['total'] += 1
+        if not editorial_eligible(item):
+            direct_stats['editorial_rejected'] += 1
+            if len(direct_examples)<8:
+                direct_examples.append({'title':item.get('title'), 'cause':'editorial',
+                    'relevance':editorial_relevance(item), 'body_words':words(item.get('source_body',''))})
+            continue
+        direct_stats['eligible'] += 1
+        old = (state.get('stories') or {}).get(item.get('id'), {})
+        if is_confirmed(old):
+            direct_stats['confirmed'] += 1
+            continue
+        if has_uncertain(old):
+            direct_stats['uncertain'] += 1
+            continue
+        if source_text_sufficient(item.get('source_body','')):
+            direct_stats['eligible_with_body_85'] += 1
+        if short_source_sufficient(item.get('source_body','')):
+            direct_stats['eligible_with_body_35'] += 1
+        if words(item.get('description','')) >= MIN_VERIFIED_BRIEF_WORDS:
+            direct_stats['eligible_with_description_18'] += 1
+    log('DIAGNOSTICO DIRECTAS TRAS FILTROS:',json.dumps(direct_stats,ensure_ascii=False))
+    log('EJEMPLOS DESCARTE DIRECTO:',json.dumps(direct_examples,ensure_ascii=False))
     article,photo,credit,description,reasons=select_news(articles,state)
     if article is None:
         log('TERCER NIVEL: resúmenes editoriales de fuentes directas')
