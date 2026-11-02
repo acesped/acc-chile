@@ -43,7 +43,7 @@ jobs:
       YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
       YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
       YT_CHANNEL_ID: ${{ secrets.YT_CHANNEL_ID }}
-      YT_PRIVACY: private
+      YT_PRIVACY: public
       IG_EXPECTED_USERNAME: sismonauta
       FACEBOOK_EXPECTED_USERNAME: sismonauta
       DV_VOICE: es-CL-CatalinaNeural
