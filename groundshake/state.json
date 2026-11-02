@@ -674,8 +674,9 @@
       "topic": "medicion:magnitud_intensidad:observacion",
       "topic_key": "magnitud_intensidad",
       "title": "¿Qué observan los científicos al estudiar la magnitud y la intensidad?",
-      "reel": "enviando",
-      "updated_at": "2026-11-02T03:01:29.128690+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-02T03:02:27.430225+00:00",
+      "reel_id": "17887388679623589"
     }
   }
 }
