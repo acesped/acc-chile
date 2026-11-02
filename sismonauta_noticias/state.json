@@ -314,6 +314,41 @@
         }
       }
     },
+    "4dad43665fc2e3d1168a": {
+      "article": {
+        "category": "meteorologia",
+        "date": "2026-11-01T04:05:00+00:00",
+        "description": "APOD Ciencia APOD APOD: 1 de noviembre de 2026 –… Índice de envíos del archivo APOD de hoy Búsqueda Calendario RSS Educación Acerca de Discutir APOD Imagen astronómica del día ¡Descubre el cosmos! Cada día se presenta una imagen o fotografía diferente de nuestro fascinante universo, junto con una breve explicación escrita por un astrónomo profesional. Colores de la […]",
+        "explanation": "**TITULAR: Colores de la Luna: Un fenómeno astronómico documentado en Chile**\n\nEl 1 de noviembre de 2026, la comunidad astronómica chilena se vio sorprendida por la variedad de colores que presentó la Luna en el cielo nocturno. Este fenómeno, que ha sido objeto de estudio por parte de astrofotógrafos, se debe a la interacción de la luz lunar con la atmósfera terrestre, la cual puede alterar la percepción del color del satélite natural.\n\nEn Chile, donde la observación astronómica es favorecida por su cielo despejado, se han registrado diferentes tonalidades de la Luna, desde un intenso rojo hasta un azul más raro. Estos colores son el resultado de la dispersión de la luz, especialmente cuando la Luna se encuentra cerca del horizonte, donde la atmósfera terrestre actúa como un filtro, eliminando ciertas longitudes de onda de luz.\n\nAstrofotógrafos locales han documentado estos cambios a lo largo de los años, contribuyendo a la comprensión de cómo factores como la presencia de polvo en la atmósfera pueden influir en la apariencia lunar. Este fenómeno no solo enriquece la experiencia visual de los observadores, sino que también abre nuevas líneas de investigación en meteorología y astronomía. La fascinación por estos colores invita a más chilenos a mirar hacia el cielo y explorar los misterios del universo.",
+        "id": "4dad43665fc2e3d1168a",
+        "image_headline": "La Luna mostró colores sorprendentes en Chile, revelando la influencia de la atmósfera en su apariencia.",
+        "lang": "en",
+        "original_title": "APOD: 2026 November 1 – Colors of the Moon",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "APOD Science APOD APOD: 2026 November 1 –… Today’s APOD Archive Submissions Index Search Calendar RSS Education About Discuss APOD Astronomy Picture of the Day Discover the cosmos! Each day a different image or photograph of our fascinating universe is featured, along with a brief explanation written by a professional astronomer. Colors of the Moon Explanation: What color is the Moon? It depends on the night — and the time. Outside of the Earth’s atmosphere , the dark Moon , which shines by reflected sunlight, appears a magnificent ly brown-tinged gray. The featured image highlights a collection of apparent colors of the full moon on Earth, documented by one astrophotographer over 10 years from different locations across Italy . A red – or yellow -colored moon usually indicates a moon seen near the horizon . There, some of the blue light has been scattered away by a long path through the Earth’s atmosphere , sometimes laden with fine dust. A blue-colored moon is more rare and can indicate an atmosphere carrying larger dust particles . What created the purple moon is unclear — it may be a combination of several effects. The last image captures the total lunar eclipse of 2018 July — where the moon, in Earth’s shadow , appeared a faint red — due to light refracted through air around the Earth. Have you ever seen an unusually colorful Moon? Tomorrow’s picture: open space Date: November 1, 2026 Credit & Copyright: Marcella Giulia Pace Authors & editors: Robert Nemiroff, Jerry Bonnell, Cecilia Chirenti, Keighley Rockcliffe A service of: ASD at NASA / GSFC , NASA Science Activation & Michigan Tech. U. Random APOD Generator Yesterday’s Image APOD: 2026 October 31 – Night on a Spooky Planet Tomorrow’s Image",
+        "title": "APOD: 1 de noviembre de 2026 – Colores de la Luna",
+        "url": "https://science.nasa.gov/image-article/apod-2026-november-1-colors-of-the-moon/"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "hurricane satellite",
+        "sha256": "eb29649f13d6d4d2df11bd18ecb825288e019a6cd11347c5d0944f78bd2c7c80",
+        "source": "https://commons.wikimedia.org/wiki/File:Dennis_2005-07-07_1550Z.jpg",
+        "title": "File:Dennis 2005-07-07 1550Z.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/86/Dennis_2005-07-07_1550Z.jpg/1920px-Dennis_2005-07-07_1550Z.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/4dad43665fc2e3d1168a.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "522c561656f9f3279fef": {
       "article": {
         "category": "desastres",
