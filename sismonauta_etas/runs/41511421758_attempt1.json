@@ -5,7 +5,8 @@
   "run_id": "41511421758",
   "targets": {
     "instagram": {
-      "status": "uncertain"
+      "status": "uncertain",
+      "release_id": "431889388"
     },
     "facebook": {
       "status": "pending"
