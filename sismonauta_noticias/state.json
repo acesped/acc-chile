@@ -150,6 +150,41 @@
         }
       }
     },
+    "224348141fff207934b3": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-02T20:47:41+00:00",
+        "description": "* *Self-Correction on \"half-sine\":* In engineering, \"media onda senoidal\" is",
+        "explanation": "Descargar la versión en PDF Una prueba con martillo instrumentado no requiere una forma de onda idealizada de media seno. Cuando se miden con precisión la fuerza y la respuesta completas, las ondulaciones en el pico y los contactos separados siguen siendo entradas conocidas. La forma de la fuerza cambia la excitación, pero no invalida inherentemente el registro. La adecuación depende de la precisión de la medición, el ancho de banda, la relación señal-ruido y la cobertura del objetivo de la prueba. Antecedentes: Lo que realmente mide el martillo Las pruebas con martillo apoyan el análisis modal [2–4] y pueden preceder a las pruebas de pyroshock [6]. La Figura 1 compara un medio seno, ondulaciones de contacto mantenido y contactos separados. Durante un intervalo de fuerza cero, la estructura continúa vibrando; el re-contacto actúa sobre esa vibración. Si un modelo exacto y un artículo de prueba reciben la misma fuerza y condiciones iniciales, la unicidad da respuestas idénticas para cada historia medida acotada. Un modelo aproximado puede mostrar diferentes errores a medida que las entradas excitan diferentes frecuencias, amplitudes o estados no lineales. Análisis: Un medio seno es de banda ancha, pero no plano La Figura 2 muestra que un medio seno finito es de banda ancha pero contiene ceros espectrales en f/fo = 3, 5, 7, …, con fo = 1/(2T) para la duración del pulso T.",
+        "id": "224348141fff207934b3",
+        "image_headline": "Las pruebas con martillo no requieren una forma de onda ideal, según un nuevo estudio.",
+        "lang": "en",
+        "original_title": "TB 26-09 Measured Hammer-Tap Inputs",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "For more information, contact Joel W. Sills, Langley Research Center, joel.w.sills@nasa.gov . Download the PDF version An instrumented hammer test does not require an idealized single half-sine waveform. When the complete force and response are measured accurately, crest ripples and separated contacts remain known inputs. Force shape changes excitation, but does not inherently invalidate the record. Adequacy depends on measurement accuracy, bandwidth, signal-to-noise ratio, and coverage of the test objective. Background: What the Hammer Actually Measures Hammer tests support modal analysis [2–4] and can precede pyroshock testing [6]. Figure 1 compares a half-sine, maintained-contact rippling, and separated contacts. During a zero-force interval, the structure continues to vibrate; re-contact acts on that vibration. If an exact model and test article receive the same force and initial conditions, uniqueness gives identical responses for each bounded measured history. An approximate model can show different errors as inputs excite different frequencies, amplitudes, or nonlinear states. See [1] for the exact-model derivation. Analysis: A Half-Sine Is Broadband, but Not Flat Figure 2 shows that a finite half-sine is broadband but contains spectral zeros at f/fo = 3, 5, 7, …, with fo = 1/(2T) for pulse duration T. Its appearance alone cannot establish adequate excitation. Analysis: Spectral Content Is Determined by the Measured Force History Figure 3 normalizes each spectrum to its own DC value. Crest rippling adds content and can fill half-sine notches. Timing between separated contacts creates deterministic interference. For adequacy, inspect the unnormalized measured spectrum and response signal-to-noise ratio. Recommended Practice: Evaluate Test Adequacy Against the Intended Objective • Measure the complete applied force with adequate bandwidth, calibration, dynamic range, and time synchronization. • Verify that the response measurements have adequate bandwidth and signal-to-noise ratio and are not clipped or saturated. • Confirm that the excitation covers the frequency, amplitude, and nonlinear-response ranges required by the intended test objective. • Reject or repeat a test only for an identified measurement, excitation, or coverage deficiency. Conclusion Half-sine appearance neither establishes validity nor guarantees adequacy. Judge each hammer test by its purpose and by accurate, complete force and response measurements over the required range. References 1. A. Majed, J. Sills, E. Henkel, V. Babuska, S. Yunis, D. Hamilton, J. Akers, and T. Kinney, Validity and Predictability of Measured Hammer Tap Inputs: Linear and Nonlinear Structural Systems, September 2026. 2. D. J. Ewins, Modal Testing: Theory, Practice and Application, 2nd ed., 2000. 3. ISO 7626-5:2019, Mechanical Vibration and Shock—Experimental Determination of Mechanical Mobility—Part 5 4. K. G. McConnell and P. S. Varoto, Vibration Testing: Theory and Practice, 2nd ed., 2008. 5. A. H. Nayfeh and D. T. Mook, Nonlinear Oscillations, 1979. 6. NASA-STD-7003, Pyroshock Test Criteria, 1999",
+        "title": "TB 26-09 Entradas medidas de golpe de martillo",
+        "url": "https://www.nasa.gov/centers-and-facilities/nesc/tb-26-09-measured-hammer-tap-inputs/"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "7707b7a45227764a2684624f171802831212938852fe80d412d9088539e396cb",
+        "source": "https://commons.wikimedia.org/wiki/File:Space_Shuttle_Columbia_launching.jpg",
+        "title": "File:Space Shuttle Columbia launching.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/41/Space_Shuttle_Columbia_launching.jpg/1920px-Space_Shuttle_Columbia_launching.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/224348141fff207934b3.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "387d174500fb09b687b7": {
       "article": {
         "date": "2026-10-27T03:05:05+00:00",
