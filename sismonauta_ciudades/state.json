@@ -33,6 +33,20 @@
         }
       },
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_ciudades/images/emsc_20261030_0000185.jpg"
+    },
+    "emsc_20261102_0000177": {
+      "magnitude": 4.1,
+      "place": "COQUIMBO, CHILE",
+      "time": "2026-11-02T14:08:02+00:00",
+      "source": "EMSC-CSEM",
+      "targets": {
+        "instagram": {
+          "status": "pending"
+        },
+        "facebook": {
+          "status": "pending"
+        }
+      }
     }
   }
 }
