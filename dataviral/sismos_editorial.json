@@ -501,6 +501,16 @@
       "angle": "explicacion",
       "time": "2026-11-02T12:01:01.589086+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-87a0d930d162",
+      "topic": "fallas:falla_normal:mito",
+      "topic_key": "falla_normal",
+      "title": "¿Qué solemos confundir sobre una falla normal?",
+      "style": "mapa_explicado",
+      "angle": "mito",
+      "time": "2026-11-02T15:01:20.385070+00:00",
+      "status": "publicado"
     }
   ]
 }
