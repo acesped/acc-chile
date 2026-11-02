@@ -521,6 +521,16 @@
       "angle": "riesgo",
       "time": "2026-11-02T17:52:10.963531+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-a9d4a789b3be",
+      "topic": "medicion:magnitud_intensidad:explicacion",
+      "topic_key": "magnitud_intensidad",
+      "title": "La ciencia detrás de la magnitud y la intensidad",
+      "style": "mapa_explicado",
+      "angle": "explicacion",
+      "time": "2026-11-02T18:01:19.531390+00:00",
+      "status": "publicado"
     }
   ]
 }
