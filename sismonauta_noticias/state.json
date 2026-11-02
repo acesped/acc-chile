@@ -112,6 +112,42 @@
         }
       }
     },
+    "212511352af5317444ac": {
+      "article": {
+        "category": "sismos",
+        "date": "2026-10-19T13:09:18+00:00",
+        "description": "Un derrumbe masivo en Alaska provocó el segundo tsunami más alto jamás registrado, lanzando agua y",
+        "explanation": "**TITULAR: El tsunami monstruoso de Alaska lanzó agua 1.580 pies montaña arriba**\n\nEl 9 de agosto de 2025, un deslizamiento de tierra en Alaska provocó el segundo tsunami más alto registrado en la historia, alcanzando una altura de 1.580 pies (481 metros) en el fiordo de Tracy Arm. El evento ocurrió doce horas después de que los pasajeros del crucero Hanse Explorer finalizaran su visita al glaciar South Sawyer. A las 5 de la mañana, el deslizamiento de tierra, causado por la combinación de la rápida pérdida de hielo y las intensas precipitaciones, colapsó en el fiordo, generando olas devastadoras que despojaron las paredes del fiordo hasta dejar la roca desnuda.\n\nEste fenómeno no es aislado; en los últimos años, se ha observado un patrón de deslizamientos de tierra en las terminaciones de glaciares en retroceso en la costa de Alaska. Investigadores del Alaska Earthquake Center advierten que la inestabilidad de estas montañas se agrava con el deshielo. Aunque no hubo barcos en la cercanía durante el evento, las consecuencias han llevado a algunas líneas de cruceros a evitar Tracy Arm.\n\nLos científicos sugieren que un sistema de alerta podría haber mitigado el riesgo, proporcionando advertencias a las embarcaciones y comunidades cercanas. Sin embargo, actualmente no existe un sistema de monitoreo de deslizamientos a esta escala en Estados Unidos, lo que resalta la necesidad de mejorar la vigilancia geofísica y meteorológica en estas áreas vulnerables.",
+        "id": "212511352af5317444ac",
+        "image_headline": "El tsunami monstruoso de Alaska lanzó agua 1.580 pies montaña arriba",
+        "lang": "en",
+        "original_title": "Alaska’s monster tsunami sent water 1,580 feet up a mountain",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/10/261018205047.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "El tsunami monstruoso de Alaska lanzó agua 1.580 pies montaña arriba",
+        "url": "https://www.sciencedaily.com/releases/2026/10/261018205047.htm"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "earthquake fault landscape",
+        "sha256": "1ea88a41d13acb434edd0f507a7d89daee5ed586bc0f70b22d7625a04af7c773",
+        "source": "https://commons.wikimedia.org/wiki/File:Earthquake_in_Eastern_Africa_(15855).jpg",
+        "title": "File:Earthquake in Eastern Africa (15855).jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/be/Earthquake_in_Eastern_Africa_%2815855%29.jpg/1920px-Earthquake_in_Eastern_Africa_%2815855%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/212511352af5317444ac.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "387d174500fb09b687b7": {
       "article": {
         "date": "2026-10-27T03:05:05+00:00",
