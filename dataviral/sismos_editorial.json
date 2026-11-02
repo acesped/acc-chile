@@ -541,6 +541,16 @@
       "angle": "interpretacion",
       "time": "2026-11-02T18:26:01.546037+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-e10211f02aee",
+      "topic": "tsunamis:inundacion:lectura",
+      "topic_key": "inundacion",
+      "title": "¿Cómo leer las pistas que deja la inundación por tsunami?",
+      "style": "mapa_explicado",
+      "angle": "lectura",
+      "time": "2026-11-02T19:09:26.118253+00:00",
+      "status": "publicado"
     }
   ]
 }
