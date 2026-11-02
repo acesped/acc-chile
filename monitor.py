@@ -39,7 +39,7 @@ def write_json(path,obj):
 
 def safe_error(e):
     s=str(e)
-    for key in ('GH_TOKEN','INSTAGRAM_TOKEN','FACEBOOK_PAGE_TOKEN','GEMINI_API_KEY','OPENROUTER_API_KEY','GROQ_API_KEY'):
+    for key in ('GH_TOKEN','INSTAGRAM_TOKEN','FACEBOOK_PAGE_TOKEN','GEMINI_API_KEY','OPENROUTER_API_KEY','GROQ_API_KEY','YT_CLIENT_ID','YT_CLIENT_SECRET','YT_REFRESH_TOKEN'):
         v=os.getenv(key,'')
         if v: s=s.replace(v,'***')
     return s[:350]
@@ -168,7 +168,7 @@ def history_signatures(state,history):
             if item.get('title'): texts.append(item['title'])
     for episode_id,row in (state.get('episodes') or {}).items():
         if not isinstance(row,dict): continue
-        if any(row.get(k) in ('publicado','enviando','incierto') for k in ('reel','story','facebook_reel','facebook_story','facebook_feed')):
+        if any(row.get(k) in ('publicado','enviando','incierto') for k in ('reel','story','facebook_reel','facebook_story','facebook_feed','youtube_short','youtube_video')):
             ids.add(episode_id)
             if row.get('topic'): topic_keys.add(str(row['topic']))
             old=legacy_topic_for_episode(episode_id)
@@ -614,6 +614,167 @@ def render(ep,out,photo_dir=None,voice=True):
     write_json(folder/'creditos.json',credits); write_json(folder/'duraciones_escenas.json',{'segundos':durations,'total':total,'sincronizacion':'voz separada por escena','musica':'instrumental_original','fotografias_distintas':len(photos)})
     log('VIDEO:',movie,'PORTADA:',cover,'VOZ:',voice); return movie,cover,credits
 
+
+# === SISMONAUTA / YOUTUBE DATA API v3 ===
+# OAuth: YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN
+# Recomendado: YT_CHANNEL_ID; YT_PRIVACY=public|unlisted|private.
+YOUTUBE_API='https://www.googleapis.com/youtube/v3'
+YOUTUBE_UPLOAD='https://www.googleapis.com/upload/youtube/v3/videos'
+
+def yt_token():
+    required=('YT_CLIENT_ID','YT_CLIENT_SECRET','YT_REFRESH_TOKEN')
+    missing=[k for k in required if not os.getenv(k,'').strip()]
+    if missing: raise RuntimeError('YouTube: faltan secretos '+', '.join(missing))
+    r=requests.post('https://oauth2.googleapis.com/token',data={
+        'client_id':os.environ['YT_CLIENT_ID'],
+        'client_secret':os.environ['YT_CLIENT_SECRET'],
+        'refresh_token':os.environ['YT_REFRESH_TOKEN'],
+        'grant_type':'refresh_token'},timeout=30)
+    if not r.ok: raise RuntimeError(f'YouTube OAuth HTTP {r.status_code}: '+r.text[:200])
+    token=r.json().get('access_token')
+    if not token: raise RuntimeError('YouTube OAuth sin access_token')
+    return token
+
+def yt_api_get(path,token,params):
+    r=requests.get(YOUTUBE_API+'/'+path,headers={'Authorization':'Bearer '+token},params=params,timeout=40)
+    if not r.ok: raise RuntimeError(f'YouTube API HTTP {r.status_code}: '+r.text[:200])
+    return r.json()
+
+def yt_verify_channel(token):
+    # Necesita también scope youtube.readonly o youtube.
+    info=yt_api_get('channels',token,{'part':'snippet','mine':'true','maxResults':10})
+    channels=info.get('items',[])
+    channel_id=os.getenv('YT_CHANNEL_ID','').strip()
+    if not channel_id: raise RuntimeError('Configure YT_CHANNEL_ID: se exige fijar el canal para evitar publicaciones accidentales')
+    matches=[x for x in channels if x.get('id')==channel_id]
+    if len(matches)!=1: raise RuntimeError('YouTube: OAuth no corresponde al YT_CHANNEL_ID esperado')
+    log('YOUTUBE CANAL VERIFICADO:',matches[0]['id'],matches[0].get('snippet',{}).get('title',''))
+    return channel_id
+
+def yt_privacy():
+    value=os.getenv('YT_PRIVACY','private').strip().lower()
+    if value not in ('public','unlisted','private'): raise RuntimeError('YT_PRIVACY debe ser public, unlisted o private')
+    return value
+
+def yt_wide_video(vertical,dest):
+    """Genera video horizontal real con fondo desenfocado, centro vertical intacto."""
+    vf=('[0:v]split=2[back][front];'
+        '[back]scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720,'
+        'boxblur=30:10,eq=brightness=-0.16[bg];'
+        '[front]scale=-2:720[fg];'
+        '[bg][fg]overlay=(W-w)/2:(H-h)/2:shortest=1,format=yuv420p[out]')
+    ffmpeg(['-i',vertical,'-filter_complex',vf,'-map','[out]','-map','0:a:0',
+            '-c:v','libx264','-preset','veryfast','-crf','23','-r',FPS,
+            '-pix_fmt','yuv420p','-c:a','aac','-b:a','160k','-movflags','+faststart',dest])
+    if not dest.exists() or dest.stat().st_size<10000: raise RuntimeError('No se creó video horizontal YouTube')
+    return dest
+
+def yt_upload(movie,title,description,token,kind):
+    """Subida reanudable sin bibliotecas Google adicionales. En caso incierto no repite automáticamente."""
+    privacy=yt_privacy()
+    marker='#Shorts' if kind=='short' else '#Sismonauta'
+    title=clean(title)[:100]
+    description=(description+'\n\n'+marker)[:5000]
+    metadata={'snippet':{'title':title,'description':description,'categoryId':'27',
+                         'defaultLanguage':'es','tags':['Sismonauta','Sismos','Sismología','Geología','Ciencia']},
+              'status':{'privacyStatus':privacy,'selfDeclaredMadeForKids':False}}
+    size=movie.stat().st_size
+    if size<=0: raise RuntimeError('Archivo YouTube vacío')
+    r=requests.post(YOUTUBE_UPLOAD,params={'uploadType':'resumable','part':'snippet,status'},
+        headers={'Authorization':'Bearer '+token,'X-Upload-Content-Type':'video/mp4',
+                 'X-Upload-Content-Length':str(size),'Content-Type':'application/json; charset=UTF-8'},
+        json=metadata,timeout=45,allow_redirects=False)
+    if not r.ok: raise RuntimeError('YouTube: inicio de carga HTTP '+str(r.status_code)+' '+r.text[:180])
+    session=r.headers.get('Location','')
+    parsed=urllib.parse.urlparse(session)
+    if parsed.scheme!='https' or parsed.hostname not in ('www.googleapis.com','youtube.googleapis.com'):
+        raise RuntimeError('YouTube: URL de sesión inesperada')
+    chunk=8*1024*1024; offset=0; retries=0
+    with movie.open('rb') as fh:
+        while offset<size:
+            fh.seek(offset)
+            data=fh.read(min(chunk,size-offset))
+            end=offset+len(data)-1
+            try:
+                r=requests.put(session,headers={'Authorization':'Bearer '+token,
+                    'Content-Type':'video/mp4','Content-Length':str(len(data)),
+                    'Content-Range':f'bytes {offset}-{end}/{size}'},data=data,timeout=180,allow_redirects=False)
+                if r.status_code in (200,201):
+                    response=r.json(); video_id=str(response.get('id') or '')
+                    if not re.fullmatch(r'[A-Za-z0-9_-]{11}',video_id): raise RuntimeError('YouTube: respuesta sin ID válido')
+                    return video_id
+                if r.status_code==308:
+                    rng=r.headers.get('Range','')
+                    match=re.search(r'bytes=0-(\d+)',rng)
+                    offset=int(match.group(1))+1 if match else 0
+                    retries=0
+                    continue
+                if r.status_code not in (429,500,502,503,504):
+                    raise RuntimeError('YouTube carga HTTP '+str(r.status_code)+' '+r.text[:160])
+            except (requests.Timeout,requests.ConnectionError):
+                pass
+            retries+=1
+            if retries>7: raise RuntimeError('YouTube: subida inconclusa; NO repetir sin comprobar el canal')
+            time.sleep(min(2**retries,30))
+            # Consultar estado antes de reintentar para evitar un upload duplicado.
+            try:
+                probe=requests.put(session,headers={'Authorization':'Bearer '+token,
+                    'Content-Length':'0','Content-Range':f'bytes */{size}'},timeout=40,allow_redirects=False)
+                if probe.status_code in (200,201):
+                    video_id=str(probe.json().get('id') or '')
+                    if re.fullmatch(r'[A-Za-z0-9_-]{11}',video_id): return video_id
+                if probe.status_code==308:
+                    match=re.search(r'bytes=0-(\d+)',probe.headers.get('Range',''))
+                    offset=int(match.group(1))+1 if match else 0
+                else:
+                    raise RuntimeError('YouTube: estado de sesión incierto; comprobación manual necesaria')
+            except requests.RequestException as exc:
+                raise RuntimeError('YouTube: no pudo consultarse sesión; comprobación manual necesaria') from exc
+    raise RuntimeError('YouTube: carga terminó sin confirmación')
+
+def yt_publish_episode(ep,movie,state,sha,gh,out_dir):
+    """Dos subidas: Short vertical y video horizontal. Estado durable por destino."""
+    token=yt_token(); yt_verify_channel(token)
+    episode_id=ep['episode_id']; row=state.setdefault('episodes',{}).setdefault(episode_id,{})
+    for name in ('youtube_short','youtube_video'):
+        status=row.get(name)
+        if status in ('enviando','incierto'):
+            raise RuntimeError(name+': estado anterior incierto; revisar YouTube Studio antes de reintentar')
+        if status=='publicado' and not re.fullmatch(r'[A-Za-z0-9_-]{11}',str(row.get(name+'_id') or '')):
+            raise RuntimeError(name+': publicado sin ID válido')
+        if status not in (None,'publicado'): raise RuntimeError(name+': estado desconocido')
+    receipt=Path(out_dir)/'publicacion_confirmada.json'
+    report=read_json(receipt,{})
+    def save(which,status,video_id=None):
+        nonlocal sha
+        if video_id: row[which+'_id']=video_id
+        row[which]=status; row['updated_at']=utcnow()
+        result=gh.write(STATE_PATH,json.dumps(state,ensure_ascii=False,indent=2).encode(),sha)
+        sha=result['content']['sha']
+        if video_id:
+            report[which+'_id']=video_id
+            report[which+'_url']='https://www.youtube.com/watch?v='+video_id
+            report[which+'_uploaded']=True
+            report[which+'_requested_privacy']=yt_privacy()
+            write_json(receipt,report)
+    base=episode_caption_base(ep)+'\n\n'+episode_hashtags(ep)
+    for name in ('youtube_short','youtube_video'):
+        if row.get(name)=='publicado': continue
+        target=movie
+        if name=='youtube_video':
+            target=Path(out_dir)/(episode_id+'_youtube_16x9.mp4')
+            if not target.exists(): yt_wide_video(movie,target)
+        save(name,'enviando')
+        try:
+            video_id=yt_upload(target,ep['title'],base,token,'short' if name=='youtube_short' else 'video')
+        except BaseException:
+            save(name,'incierto')
+            raise
+        save(name,'publicado',video_id)
+        log('YOUTUBE',name,'CONFIRMADO:',video_id)
+    return sha
+# === FIN SISMONAUTA / YOUTUBE ===
+
 class Github:
     def __init__(self):
         self.repo=os.environ['GITHUB_REPOSITORY']; self.token=os.environ['GH_TOKEN']; self.branch=os.getenv('GITHUB_REF_NAME','main')
@@ -707,7 +868,7 @@ def fb_publish_story(page,token,movie):
 def remote_published_topics(state,history):
     return history_signatures(state,history)[1]
 
-def publish(ep,movie,approval,story=False,auto=False,out_dir=None,facebook=True):
+def publish(ep,movie,approval,story=False,auto=False,out_dir=None,facebook=True,youtube=True):
     if not auto and approval!=ep['episode_id']: raise RuntimeError('Se requiere --approved-id')
     if auto and (not ep.get('base_verified') or not ep.get('source','').startswith('https://')): raise RuntimeError('Publicación automática sin base editorial')
     verify_instagram_account(); token=os.environ['INSTAGRAM_TOKEN']; user=os.environ['INSTAGRAM_USER_ID']
@@ -720,7 +881,7 @@ def publish(ep,movie,approval,story=False,auto=False,out_dir=None,facebook=True)
     # de un concepto ya publicado por esta versión.
     if ep['id'] in (old_topics-{row.get('topic')}): raise RuntimeError('Enfoque editorial ya publicado')
     for old_id,old_row in items.items():
-        if old_id!=episode_id and old_row.get('topic')==ep['id'] and any(old_row.get(k) in ('publicado','enviando','incierto') for k in ('reel','story','facebook_reel','facebook_story','facebook_feed')):
+        if old_id!=episode_id and old_row.get('topic')==ep['id'] and any(old_row.get(k) in ('publicado','enviando','incierto') for k in ('reel','story','facebook_reel','facebook_story','facebook_feed','youtube_short','youtube_video')):
             raise RuntimeError('Enfoque editorial duplicado')
     row.setdefault('topic',ep['id']); row.setdefault('topic_key',ep['topic_key']); row.setdefault('title',ep['title'])
     # Facebook: un solo Reel y, opcionalmente, una Story.
@@ -777,7 +938,10 @@ def publish(ep,movie,approval,story=False,auto=False,out_dir=None,facebook=True)
                 else: raise RuntimeError('Destino Facebook no permitido: '+which)
             except BaseException: save(which,'incierto'); raise
             confirmed(which,mid)
-    log('PUBLICACIONES SOLICITADAS A META; recibo:',receipt_path)
+    if youtube:
+        # Conservar el sha más reciente del state actualizado por Meta.
+        yt_publish_episode(ep,movie,state,sha,gh,Path(out_dir or movie.parent))
+    log('PUBLICACIONES SOLICITADAS; recibo:',receipt_path)
 
 def metrics(csv_path):
     import csv
@@ -826,6 +990,7 @@ def main():
     parser.add_argument('--auto-publish',action='store_true'); parser.add_argument('--approved-id',default=''); parser.add_argument('--story',action='store_true')
     parser.add_argument('--no-facebook',action='store_true'); parser.add_argument('--metrics-csv',default=''); parser.add_argument('--list',action='store_true')
     parser.add_argument('--episode-json',default=''); parser.add_argument('--test-discovery',action='store_true')
+    parser.add_argument('--no-youtube',action='store_true',help='No subir Shorts ni vídeos a YouTube')
     args=parser.parse_args()
     if args.test_discovery: test_discovery(); return 0
     if args.list:
@@ -852,6 +1017,9 @@ def main():
         log('ANTIDUPLICADOS:',sorted(remote_published_topics(live_state,history)))
         verify_instagram_account()
         if not args.no_facebook: verify_facebook_page()
+        if not args.no_youtube:
+            yt_verify_channel(yt_token())
+            yt_privacy()
     excluded=set(); failures=[]
     for attempt in range(max(1,int(os.getenv('DISCOVERY_MAX_ATTEMPTS','30')))):
         if args.episode_json:
@@ -883,7 +1051,7 @@ def main():
         history['items'].append({'episode_id':episode,'topic':ep['id'],'topic_key':ep['topic_key'],'title':ep['title'],'style':ep['style'],'angle':ep['angle'],'time':utcnow(),'status':'preparado' if args.publish else 'vista_previa'})
     write_json(history_path,history)
     if args.publish:
-        publish(ep,movie,args.approved_id,story=args.story,auto=args.auto_publish,out_dir=out,facebook=not args.no_facebook)
+        publish(ep,movie,args.approved_id,story=args.story,auto=args.auto_publish,out_dir=out,facebook=not args.no_facebook,youtube=not args.no_youtube)
         for item in history['items']:
             if item.get('episode_id')==episode: item['status']='publicado'
         write_json(history_path,history)
