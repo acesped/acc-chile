@@ -451,6 +451,16 @@
       "angle": "interpretacion",
       "time": "2026-11-01T21:01:05.479877+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-f8b14e48fa6f",
+      "topic": "fallas:ruptura_superficie:relacion",
+      "topic_key": "ruptura_superficie",
+      "title": "¿Cómo se relaciona la ruptura superficial con otros procesos de la Tierra?",
+      "style": "mapa_explicado",
+      "angle": "relacion",
+      "time": "2026-11-02T00:01:15.295030+00:00",
+      "status": "publicado"
     }
   ]
 }
