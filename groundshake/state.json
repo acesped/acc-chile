@@ -757,6 +757,13 @@
       "youtube_short_id": "zgy8t504340",
       "youtube_video": "publicado",
       "youtube_video_id": "FdwdNu6p-RE"
+    },
+    "sismos-a9d4a789b3be": {
+      "topic": "medicion:magnitud_intensidad:explicacion",
+      "topic_key": "magnitud_intensidad",
+      "title": "La ciencia detrás de la magnitud y la intensidad",
+      "reel": "enviando",
+      "updated_at": "2026-11-02T18:01:22.612726+00:00"
     }
   }
 }
