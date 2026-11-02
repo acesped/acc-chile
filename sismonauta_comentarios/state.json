@@ -47,9 +47,10 @@
       "updated_at": "2026-11-02T11:16:10.293856+00:00"
     },
     "1142599868315244_2171893376699202": {
-      "status": "uncertain",
-      "reply": "Es normal que un sismo de magnitud 4.1 no lo sientan todos, depende de la distancia, profundidad y suelo. Gracias por tu observación. ¡Sigue",
-      "updated_at": "2026-11-02T17:01:11.200308+00:00"
+      "status": "published",
+      "reply_id": "1142599868315244_2046305939407673",
+      "updated_at": "2026-11-02T17:06:11.636596+00:00",
+      "recovered_from_meta": true
     }
   }
 }
