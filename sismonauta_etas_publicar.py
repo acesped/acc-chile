@@ -394,7 +394,6 @@ def narration(final_info):
         +scaled_index(final_info['prob_val'])+'. '
         +location
         +f'El umbral evaluado corresponde a sismos de magnitud {magnitude} o superior durante las próximas 24 horas. '
-        'Este índice reescalado no es un porcentaje de probabilidad ni una predicción de un terremoto. '
         'En el gráfico de la derecha en tanto, observamos las zonas donde la probabilidad modelada aumentó más durante el período. '
         +delta_text
         +'\n\nIMPORTANTE: los resultados de este modelo son experimentales, no constituyen una alerta sísmica ni una predicción oficial.'
