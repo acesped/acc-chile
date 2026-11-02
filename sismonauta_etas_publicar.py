@@ -8,11 +8,11 @@ Uso:
  python sismonauta_etas_publicar.py --test-narration
 
 Conserva mapas 25 horarios, heatmaps JET, tres zonas, narración chilena,
-música, animación de cierre, Reel, Instagram/Facebook e historial GitHub.
+música, animación de cierre, Reel, Instagram/Facebook, YouTube Short/video e historial GitHub.
 ETAS experimental, no calibrado prospectivamente; NO es una alerta sísmica.
 """
 from __future__ import annotations
-import argparse, asyncio, base64, io, json, math, os, shutil, subprocess, sys, tempfile, time, zipfile
+import argparse, asyncio, base64, io, json, math, os, re, shutil, subprocess, sys, tempfile, time, zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import quote, urlparse
@@ -394,6 +394,7 @@ def narration(final_info):
         +scaled_index(final_info['prob_val'])+'. '
         +location
         +f'El umbral evaluado corresponde a sismos de magnitud {magnitude} o superior durante las próximas 24 horas. '
+        'Este índice reescalado no es un porcentaje de probabilidad ni una predicción de un terremoto. '
         'En el gráfico de la derecha en tanto, observamos las zonas donde la probabilidad modelada aumentó más durante el período. '
         +delta_text
         +'\n\nIMPORTANTE: los resultados de este modelo son experimentales, no constituyen una alerta sísmica ni una predicción oficial.'
@@ -655,6 +656,142 @@ def publish_facebook(video,caption,target,persist):
     if not mid.isdigit(): raise RuntimeError('Facebook no devolvió ID válido')
     target.update({'status':'published','id':mid}); persist(); log('FACEBOOK VIDEO ACEPTADO:',mid)
 
+# === YOUTUBE ETAS: OAuth, subida reanudable y comprobación independiente ===
+YOUTUBE_API = 'https://www.googleapis.com/youtube/v3'
+YOUTUBE_UPLOAD = 'https://www.googleapis.com/upload/youtube/v3/videos'
+
+def yt_privacy():
+    privacy = os.getenv('YT_PRIVACY', 'private').strip().lower()
+    if privacy not in ('public', 'unlisted', 'private'):
+        raise RuntimeError('YT_PRIVACY debe ser public, unlisted o private')
+    return privacy
+
+def yt_token():
+    needed = ('YT_CLIENT_ID', 'YT_CLIENT_SECRET', 'YT_REFRESH_TOKEN', 'YT_CHANNEL_ID')
+    absent = [k for k in needed if not os.getenv(k, '').strip()]
+    if absent: raise RuntimeError('YouTube: faltan variables '+', '.join(absent))
+    r = HTTP.post('https://oauth2.googleapis.com/token', data={
+        'client_id':os.environ['YT_CLIENT_ID'],
+        'client_secret':os.environ['YT_CLIENT_SECRET'],
+        'refresh_token':os.environ['YT_REFRESH_TOKEN'],
+        'grant_type':'refresh_token'},timeout=40)
+    if not r.ok: raise RuntimeError('YouTube OAuth HTTP '+str(r.status_code)+'; revisa la autorización y vigencia del refresh token')
+    token = r.json().get('access_token')
+    if not token: raise RuntimeError('YouTube OAuth no devolvió access_token')
+    return token
+
+def yt_verify_channel(token):
+    r=HTTP.get(YOUTUBE_API+'/channels',headers={'Authorization':'Bearer '+token},
+        params={'part':'snippet','mine':'true','maxResults':10},timeout=45)
+    if not r.ok: raise RuntimeError('YouTube channels.list HTTP '+str(r.status_code)+'; revisa permisos OAuth/API')
+    channels=r.json().get('items',[])
+    target=os.environ['YT_CHANNEL_ID'].strip()
+    matched=[c for c in channels if c.get('id')==target]
+    if len(matched)!=1: raise RuntimeError('YouTube OAuth corresponde a otro canal, no al YT_CHANNEL_ID configurado')
+    log('YOUTUBE CANAL VERIFICADO:',target,matched[0].get('snippet',{}).get('title',''))
+    return target
+
+def yt_resumable_upload(movie, title, description, token, short=False):
+    movie=Path(movie); total=movie.stat().st_size
+    if total < 10000: raise RuntimeError('Video YouTube vacío o incompleto')
+    suffix='\n\n#Shorts #Sismonauta #ETAS' if short else '\n\n#Sismonauta #ETAS #Chile'
+    metadata={'snippet':{
+        'title':title[:100], 'description':(description+suffix)[:5000],
+        'categoryId':'27','defaultLanguage':'es',
+        'tags':['Sismonauta','Chile','ETAS','Sismologia','Ciencia']},
+        'status':{'privacyStatus':yt_privacy(),'selfDeclaredMadeForKids':False}}
+    r=HTTP.post(YOUTUBE_UPLOAD,params={'uploadType':'resumable','part':'snippet,status'},
+        headers={'Authorization':'Bearer '+token,'X-Upload-Content-Type':'video/mp4',
+          'X-Upload-Content-Length':str(total),'Content-Type':'application/json; charset=UTF-8'},
+        json=metadata,timeout=60,allow_redirects=False)
+    if not r.ok: raise RuntimeError('YouTube inicio de subida HTTP '+str(r.status_code)+'; revisa permisos y cuota')
+    url=r.headers.get('Location','')
+    parsed=urlparse(url)
+    if parsed.scheme!='https' or parsed.hostname not in ('www.googleapis.com','youtube.googleapis.com'):
+        raise RuntimeError('YouTube devolvió URL de sesión inesperada')
+    offset=0; failures=0; chunk_size=8*1024*1024
+    with movie.open('rb') as f:
+        while offset<total:
+            f.seek(offset); chunk=f.read(min(chunk_size,total-offset))
+            try:
+                r=HTTP.put(url,headers={'Authorization':'Bearer '+token,'Content-Type':'video/mp4',
+                      'Content-Length':str(len(chunk)),
+                      'Content-Range':f'bytes {offset}-{offset+len(chunk)-1}/{total}'},
+                      data=chunk,timeout=240,allow_redirects=False)
+                if r.status_code in (200,201):
+                    video_id=str(r.json().get('id') or '')
+                    if not re.fullmatch(r'[A-Za-z0-9_-]{11}',video_id):
+                        raise RuntimeError('YouTube no confirmó un ID de video válido')
+                    return video_id
+                if r.status_code==308:
+                    match=re.search(r'bytes=0-(\d+)',r.headers.get('Range',''))
+                    offset=int(match.group(1))+1 if match else 0
+                    failures=0
+                    continue
+                if r.status_code not in (429,500,502,503,504):
+                    raise RuntimeError('YouTube upload HTTP '+str(r.status_code)+'; comprobar YouTube Studio antes de reintentar')
+            except (requests.Timeout,requests.ConnectionError):
+                pass
+            failures+=1
+            if failures>7: raise RuntimeError('YouTube sesión de subida incierta; revisión manual necesaria')
+            time.sleep(min(2**failures,30))
+            try:
+                check=HTTP.put(url,headers={'Authorization':'Bearer '+token,'Content-Length':'0',
+                    'Content-Range':f'bytes */{total}'},timeout=60,allow_redirects=False)
+            except requests.RequestException as e:
+                raise RuntimeError('No se pudo consultar la sesión de YouTube; resultado incierto') from e
+            if check.status_code in (200,201):
+                video_id=str(check.json().get('id') or '')
+                if re.fullmatch(r'[A-Za-z0-9_-]{11}',video_id): return video_id
+            if check.status_code!=308:
+                raise RuntimeError('YouTube no confirmó el estado de la subida; resultado incierto')
+            match=re.search(r'bytes=0-(\d+)',check.headers.get('Range',''))
+            offset=int(match.group(1))+1 if match else 0
+    raise RuntimeError('YouTube no confirmó carga completa')
+
+def yt_check_status(video_id,token):
+    r=HTTP.get(YOUTUBE_API+'/videos',headers={'Authorization':'Bearer '+token},
+        params={'part':'status,processingDetails','id':video_id},timeout=45)
+    if not r.ok: return {'status_check_error':'HTTP '+str(r.status_code)}
+    items=r.json().get('items') or []
+    if not items: return {'status_check_error':'Video todavía no visible en consulta API'}
+    data=items[0]
+    return {'actual_privacy':data.get('status',{}).get('privacyStatus','unknown'),
+            'processing_status':data.get('processingDetails',{}).get('processingStatus','unknown')}
+
+def make_youtube_video(original):
+    # El video original de ETAS ya es un lienzo informativo 1080x1350.
+    # Se conserva íntegro sobre fondo desenfocado a 1280x720: nada se recorta.
+    dest=OUT/'sismonauta_etas_youtube_16x9.mp4'
+    vf=('[0:v]split=2[bgsource][fgsource];'
+        '[bgsource]scale=1280:720:force_original_aspect_ratio=increase,'
+        'crop=1280:720,boxblur=25:8,eq=brightness=-0.24[bg];'
+        '[fgsource]scale=-2:720[fg];'
+        '[bg][fg]overlay=(W-w)/2:(H-h)/2:shortest=1,format=yuv420p[v]')
+    ffmpeg('-i',original,'-filter_complex',vf,'-map','[v]','-map','0:a:0',
+        '-c:v','libx264','-preset','veryfast','-crf','23','-r',str(FPS),
+        '-pix_fmt','yuv420p','-c:a','aac','-b:a','160k','-movflags','+faststart',dest)
+    data=probe(dest); vs=next(x for x in data['streams'] if x.get('codec_type')=='video')
+    if (vs.get('width'),vs.get('height'))!=(1280,720): raise RuntimeError('Video horizontal YouTube incorrecto')
+    return dest
+
+def publish_youtube(movie,meta,target,persist,token,kind):
+    if target.get('status') in ('uncertain','published'):
+        raise RuntimeError('YouTube '+kind+': estado previo requiere revisión; no duplicar carga')
+    cutoff=pd.Timestamp(meta['cutoff_utc'])
+    if cutoff.tzinfo is None: cutoff=cutoff.tz_localize('UTC')
+    local=cutoff.tz_convert('America/Santiago')
+    period=local.strftime('%d/%m/%Y %H:%M')
+    title=(f'SISMONAUTA ETAS Chile | Actualización {period} | Modelo experimental')
+    target.update(status='uncertain',requested_privacy=yt_privacy(),file=str(movie))
+    persist()  # Estado durable ANTES de cualquier solicitud de subida.
+    mid=yt_resumable_upload(movie,title,caption(meta),token,short=(kind=='short'))
+    target.update(status='published',id=mid,url='https://www.youtube.com/watch?v='+mid,
+        uploaded_at=utcnow())
+    target.update(yt_check_status(mid,token))
+    persist()
+    log('YOUTUBE',kind.upper(),'CARGADO:',mid,'privacidad:',target.get('actual_privacy','no confirmada'))
+
 def caption(metadata):
     cutoff=pd.Timestamp(metadata['cutoff_utc'])
     if cutoff.tzinfo is None: cutoff=cutoff.tz_localize('UTC')
@@ -670,20 +807,20 @@ def main():
     global OUT
     parser=argparse.ArgumentParser(description='SISMONAUTA ETAS Chile unificado')
     parser.add_argument('--out',default=os.getenv('ETAS_OUTPUT_DIR','output_etas'))
-    parser.add_argument('--publish',action='store_true',help='Publicar en Instagram y Facebook')
+    parser.add_argument('--publish',action='store_true',help='Publicar en Instagram, Facebook y YouTube')
     parser.add_argument('--original',default='',help=argparse.SUPPRESS)
     parser.add_argument('--test-narration',action='store_true',help='Probar ciudad y distancia en speech sin acceder a la red')
     args=parser.parse_args()
     if args.test_narration: test_narration(); return
     OUT=Path(args.out).resolve(); OUT.mkdir(parents=True,exist_ok=True); binary('ffmpeg'); binary('ffprobe')
-    receipt={'status':'starting','country':COUNTRY_NAME,'created_at':utcnow(),'run_id':os.getenv('GITHUB_RUN_ID') or datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%f'),'targets':{'instagram':{'status':'pending'},'facebook':{'status':'pending'}}}
+    receipt={'status':'starting','country':COUNTRY_NAME,'created_at':utcnow(),'run_id':os.getenv('GITHUB_RUN_ID') or datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%f'),'targets':{'instagram':{'status':'pending'},'facebook':{'status':'pending'},'youtube_short':{'status':'pending'},'youtube_video':{'status':'pending'}}}
     individual_path=state_path(receipt['run_id'])
     def persist():
         atomic_json(OUT/'estado_publicacion.json',receipt)
         if args.publish: state_save(individual_path,receipt)
     try:
         if args.publish:
-            verify_accounts(); log('MODO PRUEBAS: múltiples publicaciones diarias permitidas.'); log('Registro individual:',individual_path)
+            verify_accounts(); yt_access=yt_token(); yt_verify_channel(yt_access); log('MODO PRUEBAS: múltiples publicaciones diarias permitidas.'); log('Registro individual:',individual_path)
         receipt['status']='generating'; persist()
         video,metadata=run_scientific_etas(); duration=float(probe(video)['format']['duration'])
         if not 3<=duration<=900: raise RuntimeError(f'Duración no compatible con Reel: {duration:.1f}s')
@@ -700,10 +837,22 @@ def main():
                 target['error']=str(exc)[:400]
                 if target.get('status')!='published': target['status']='uncertain'
                 persist(); errors.append(name+': '+str(exc))
+        # YouTube: Short vertical + video tradicional horizontal, estados independientes.
+        for name,kind,path in (('youtube_short','short',reel),('youtube_video','video',None)):
+            target=receipt['targets'][name]
+            try:
+                if kind=='short' and duration > 180:
+                    raise RuntimeError('Duración mayor que 180 s: YouTube no clasificará este video como Short')
+                if kind=='video': path=make_youtube_video(video)
+                publish_youtube(path,metadata,target,persist,yt_access,kind)
+            except Exception as exc:
+                target['error']=str(exc)[:400]
+                if target.get('status')!='published': target['status']='uncertain'
+                persist(); errors.append(name+': '+str(exc))
         if errors:
             receipt['status']='partial_or_uncertain'; persist(); raise RuntimeError(' | '.join(errors))
         receipt['status']='published'; persist()
-        log('PUBLICACIONES ACEPTADAS POR META: Instagram',receipt['targets']['instagram']['id'],'| Facebook',receipt['targets']['facebook']['id'])
+        log('PUBLICACIONES COMPLETADAS: Instagram, Facebook, YouTube Short y YouTube video')
     except Exception as exc:
         uncertain=any(t.get('status') in ('published','uncertain') for t in receipt['targets'].values())
         if receipt['status']!='published': receipt['status']='partial_or_uncertain' if uncertain else 'error'
