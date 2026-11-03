@@ -858,6 +858,13 @@
       "facebook_story": "publicado",
       "facebook_story_id": "1100304646106507",
       "youtube_short": "incierto"
+    },
+    "sismos-4ad1f115ac5c": {
+      "topic": "ondas:resonancia_suelo:diferencia",
+      "topic_key": "resonancia_suelo",
+      "title": "¿Cómo distinguir el efecto del suelo de otros fenómenos?",
+      "reel": "enviando",
+      "updated_at": "2026-11-03T06:03:01.671727+00:00"
     }
   }
 }
