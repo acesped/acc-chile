@@ -561,6 +561,16 @@
       "angle": "comparacion",
       "time": "2026-11-02T21:01:16.784679+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-3cf606977792",
+      "topic": "tectonica:placas_movimiento:consecuencia",
+      "topic_key": "placas_movimiento",
+      "title": "¿Por qué importa el movimiento de las placas?",
+      "style": "microdocumental",
+      "angle": "consecuencia",
+      "time": "2026-11-03T00:01:19.251923+00:00",
+      "status": "publicado"
     }
   ]
 }
