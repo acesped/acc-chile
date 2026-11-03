@@ -878,8 +878,9 @@
       "topic": "riesgo:prediccion:contexto",
       "topic_key": "prediccion",
       "title": "¿En qué contexto aparece las predicciones sísmicas?",
-      "reel": "enviando",
-      "updated_at": "2026-11-03T09:01:18.304438+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-03T09:01:58.570905+00:00",
+      "reel_id": "17939160789127223"
     }
   }
 }
