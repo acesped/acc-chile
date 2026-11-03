@@ -571,6 +571,16 @@
       "angle": "consecuencia",
       "time": "2026-11-03T00:01:19.251923+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-7dd65dc5d216",
+      "topic": "tsunamis:origen_tsunami:limites",
+      "topic_key": "origen_tsunami",
+      "title": "¿Qué no podemos concluir solamente a partir de el origen de los tsunamis?",
+      "style": "microdocumental",
+      "angle": "limites",
+      "time": "2026-11-03T21:01:56.505303+00:00",
+      "status": "publicado"
     }
   ]
 }
