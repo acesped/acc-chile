@@ -1413,6 +1413,41 @@
         }
       }
     },
+    "efb065e7e45d060781bc": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-03T05:05:00+00:00",
+        "description": "APOD Ciencia APOD APOD: 3 de noviembre de 2026 –… Índice de Envíos del Archivo APOD de Hoy Buscar Calendario RSS Educación Acerca de Discutir APOD Imagen Astronómica del Día ¡Descubre el cosmos! Cada día se presenta una imagen o fotografía diferente de nuestro fascinante universo, junto con una breve explicación escrita por un astrónomo profesional. Cometa PanSTARRs y […]",
+        "explanation": "**TITULAR: El cometa PanSTARRS y un meteoro arcoíris iluminan el cielo de noviembre**\n\n**CATEGORÍA: espacio**\n\nEl 3 de noviembre de 2026, el fenómeno astronómico del cometa C/2025 R3 (PanSTARRS) y un meteoro arcoíris han capturado la atención de los astrónomos y entusiastas del cielo. Aunque el meteoro no se originó directamente del cometa, su aparición coincide con el pico de varias lluvias de meteoros, incluyendo las Tauridas del Sur, que alcanzan su cúspide en estos días.\n\nEl cometa PanSTARRS, que fue fotografiado en abril desde Hautacam, Francia, destaca por sus impresionantes colas de iones y polvo. Este cometa ha sido objeto de estudio debido a su trayectoria y composición, lo que ha llevado a la comunidad científica a investigar la relación entre cometas y meteoros. Sin embargo, la conexión entre el meteoro arcoíris y el cometa sigue siendo incierta, ya que miles de cometas han pasado por el Sistema Solar interno recientemente.\n\nDurante noviembre, los observadores del cielo también esperan la famosa lluvia de meteoros de los Leonidas, que alcanzará su máximo en aproximadamente dos semanas, ofreciendo más oportunidades para disfrutar de estos espectáculos celestiales.",
+        "id": "efb065e7e45d060781bc",
+        "image_headline": "El cometa PanSTARRS y un meteoro arcoíris deslumbran el cielo en noviembre, fascinando a astrónomos.",
+        "lang": "en",
+        "original_title": "APOD: 2026 November 3 – Comet PanSTARRs and Rainbow Meteor",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "APOD Science APOD APOD: 2026 November 3 –… Today’s APOD Archive Submissions Index Search Calendar RSS Education About Discuss APOD Astronomy Picture of the Day Discover the cosmos! Each day a different image or photograph of our fascinating universe is featured, along with a brief explanation written by a professional astronomer. Comet PanSTARRs and Rainbow Meteor Explanation: Did this meteor come from that comet? Probably not. Although many meteors do originate from comets, there are thousands of comets that have visited the inner Solar System recently, and matching meteors to them can be tricky. And to be clear, the pictured comet is far behind the streaking meteor . Comet C/2025 R3 (PanSTARRS) was captured from Hautacam , France in April when the giant space iceberg sported impressive ion (blue) and dust tails . Sand-sized rocky debris that enters Earth’s atmosphere typically appears as meteors , while the colorful foreground streak here may indicate a complicated composition. This month three notable meteor showers will reach their peaks. Over the next few days, the Southern Taurids will be reaching their apex, while the Northern Taurids will top out about a week later. Both originate from Comet 2P/Encke . November is most famous for the Leonids Meteor Shower , though, which originates from Comet 55P/Tempel-Tuttle and will reach its crescendo in about two weeks. Tomorrow’s picture: open space Date November 3, 2026 Credit & Copyright Eddy Metais Authors & editors: Robert Nemiroff, Jerry Bonnell, Cecilia Chirenti, Keighley Rockcliffe A service of: ASD at NASA / GSFC , NASA Science Activation & Michigan Tech. U. Random APOD Generator Yesterday’s Image APOD: 2026 November 2 – A Long Cloud on Mars Tomorrow’s Image",
+        "title": "APOD: 3 de noviembre de 2026 – El cometa PanSTARRs y un meteoro arcoíris",
+        "url": "https://science.nasa.gov/image-article/apod-2026-november-3-comet-panstarrs-and-rainbow-meteor/"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "436a3622a1b641238b02d0dc5c89b39118d0728bee585bf25d54ac82a019bc89",
+        "source": "https://commons.wikimedia.org/wiki/File:Earth_Eastern_Hemisphere.jpg",
+        "title": "File:Earth Eastern Hemisphere.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6f/Earth_Eastern_Hemisphere.jpg/1920px-Earth_Eastern_Hemisphere.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/efb065e7e45d060781bc.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "f640dfa51b31c8466e53": {
       "article": {
         "category": "volcanes",
