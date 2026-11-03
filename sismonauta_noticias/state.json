@@ -1531,6 +1531,43 @@
         }
       }
     },
+    "e42e9d5ec812d3e6adf0": {
+      "article": {
+        "category": "desastres",
+        "date": "2026-11-02T21:40:01+00:00",
+        "description": "If your home isn't in a federally designated flood zone, flooding might seem like someone else's problem. No one requires you to buy flood insurance, and the map suggests you're in the clear. But reality may be very different.",
+        "editorial_mode": "verified_summary",
+        "explanation": "Si tu hogar no está en una zona de inundación designada federalmente, la inundación podría parecer un problema de alguien más. Nadie te exige que compres un seguro contra inundaciones, y el mapa sugiere que estás a salvo. Pero la realidad puede ser muy diferente.",
+        "id": "e42e9d5ec812d3e6adf0",
+        "image_headline": "¿No estás en una zona de inundación de FEMA? Tu hogar aún podría estar en riesgo—y podrías sufrir más que tu vecino.",
+        "lang": "en",
+        "original_title": "Not in a FEMA flood zone? Your home could still be at risk—and you could suffer more than your neighbor",
+        "search_category": "direct",
+        "source": "Phys.org Medio Ambiente",
+        "source_body": "",
+        "source_evidence_kind": "direct_rss_summary",
+        "title": "¿No estás en una zona de inundación de FEMA? Tu hogar aún podría estar en riesgo—y podrías sufrir más que tu vecino.",
+        "url": "https://phys.org/news/2026-11-fema-zone-home-neighbor.html"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "landslide mountain",
+        "sha256": "8705f472318250772a42561f644f37f690111841742c9f5dee49558732e7e645",
+        "source": "https://commons.wikimedia.org/wiki/File:USGS_-_1989_Loma_Prieta_earthquake_-_Landslide_Debris_on_Highway.jpg",
+        "title": "File:USGS - 1989 Loma Prieta earthquake - Landslide Debris on Highway.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/1/19/USGS_-_1989_Loma_Prieta_earthquake_-_Landslide_Debris_on_Highway.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/e42e9d5ec812d3e6adf0.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "e8f5dea1fe3203bd2e92": {
       "article": {
         "category": "sismos",
