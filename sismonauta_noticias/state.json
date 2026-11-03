@@ -1,5 +1,40 @@
 {
   "stories": {
+    "00e4203a28c1b33abac6": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-02T05:05:00+00:00",
+        "description": "APODCienciaAPODAPOD: 2 de noviembre de 2026 – Una… El",
+        "explanation": "**TITULAR: APOD: 2 de noviembre de 2026 – Una nube larga en Marte**\n\nLa NASA y la ESA han destacado la presencia de la Arsia Mons Elongated Cloud (AMEC), una formación nubosa inusual en Marte. Este fenómeno fue registrado inicialmente en 1977 por el Viking Orbiter 2 de la NASA y capturado con mayor precisión en 2018 por la sonda Mars Express de la ESA.\n\nLa AMEC se compone de hielo de agua y se manifiesta únicamente durante las mañanas de las estaciones de primavera y verano. La nube se origina en las cercanías del volcán Arsia Mons, desde donde el viento la arrastra hacia el exterior, generando una cola que puede alcanzar una extensión superior a los 1500 kilómetros.\n\nLa investigación actual se centra en su origen, dado que la",
+        "id": "00e4203a28c1b33abac6",
+        "image_headline": "APOD: 2 de noviembre de 2026 – Una nube larga en Marte",
+        "lang": "en",
+        "original_title": "APOD: 2026 November 2 – A Long Cloud on Mars",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "APOD Science APOD APOD: 2026 November 2 – A… Today’s APOD Archive Submissions Index Search Calendar RSS Education About Discuss APOD Astronomy Picture of the Day Discover the cosmos! Each day a different image or photograph of our fascinating universe is featured, along with a brief explanation written by a professional astronomer. A Long Cloud on Mars Explanation: What’s causing this unusually long cloud on Mars ? Known as the Arsia Mons Elongated Cloud (AMEC) and first recorded by NASA’s Viking Orbiter 2 in 1977, the strange cloud has been imaged in greater detail more recently by ESA ’s robotic Mars Express spacecraft. The featured image is from 2018. The cloud forms only during spring and summer seasons and then only during morning hours. Made of water-ice, the most familiar process that causes cloud crystals to form around bits of dust would fail due to the thinness and lack of dust high in the Martian atmosphere . Leading speculation holds that dust is not involved. After the cloud forms near the volcano Arsia Mons , wind blows the cloud downstream — creating a tail that can extend over 1500 kilometers. Efforts to better understand AMEC s will continue, an understanding that may bolster a more complete view of cloud formation on Earth . Tomorrow’s picture: eyeing a cat Date: November 2, 2026 Credit: ESA , DLR , FU Berlin ; Processing & License : J. Cowart Authors & editors: Robert Nemiroff, Jerry Bonnell, Cecilia Chirenti, Keighley Rockcliffe A service of: ASD at NASA / GSFC , NASA Science Activation & Michigan Tech. U. Random APOD Generator Yesterday’s Image APOD: 2026 November 1 – Colors of the Moon Tomorrow’s Image",
+        "title": "APOD: 2 de noviembre de 2026 – Una nube larga en Marte",
+        "url": "https://science.nasa.gov/image-article/apod-2026-november-2-a-long-cloud-on-mars/"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "080b8c8cfdd797d8cbd1777789e419724a99d8b4a6165b9102469bb4af8b71eb",
+        "source": "https://commons.wikimedia.org/wiki/File:Balkan_Fires,_Earth_from_Aqua_(EOS_PM-1)_(2007-07-25).jpg",
+        "title": "File:Balkan Fires, Earth from Aqua (EOS PM-1) (2007-07-25).jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/16/Balkan_Fires%2C_Earth_from_Aqua_%28EOS_PM-1%29_%282007-07-25%29.jpg/1920px-Balkan_Fires%2C_Earth_from_Aqua_%28EOS_PM-1%29_%282007-07-25%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/00e4203a28c1b33abac6.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "10b5dc935e5c079f158d": {
       "article": {
         "category": "oceanos",
