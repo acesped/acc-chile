@@ -813,6 +813,41 @@
         }
       }
     },
+    "752344054d2d36671c2a": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-03T15:15:50+00:00",
+        "description": "Estudiantes de todo el país tendrán la oportunidad de conectarse directamente con la Estación Espacial Internacional durante una llamada en vivo e interactiva en vuelo con el astronauta de NASA Anil Menon y Mark Rober, creador de contenido STEM y fundador de ClassCrunchLabs Foundation. El evento, organizado por la Oficina de Compromiso STEM de NASA, celebra el Día Nacional de STEM al traer ciencia del mundo real, […]",
+        "explanation": "**TITULAR: Astronauta de la NASA y creador STEM se conectan con estudiantes para el Día STEM**\n\n**CATEGORIA: espacio**\n\nEl 4 de noviembre de 2026, estudiantes de todo Chile tendrán la oportunidad de conectarse directamente con la Estación Espacial Internacional (EEI) en una llamada en vivo con el astronauta de la NASA Anil Menon y el creador de contenido STEM Mark Rober. Este evento, organizado por la Oficina de Compromiso STEM de la NASA, celebra el Día Nacional STEM, promoviendo la ciencia, la ingeniería y la exploración en las aulas.\n\nLa llamada comenzará a las 11 a.m. EST y se transmitirá a través del canal de YouTube de la NASA. Desde la EEI, Menon responderá preguntas sobre la vida en microgravedad y el camino para convertirse en astronauta. Rober, quien se unirá desde California, compartirá su experiencia como ingeniero de la NASA y creador de contenido, destacando la importancia de la curiosidad y la resolución de problemas.\n\nEste evento también marca el inicio de una colaboración entre la NASA y la Fundación ClassCrunchLabs, con el objetivo de ampliar el acceso a experiencias de aprendizaje STEM. La iniciativa busca inspirar a más estudiantes a involucrarse en la ciencia y la ingeniería, preparándolos para futuras oportunidades en el sector aeroespacial y más allá.",
+        "id": "752344054d2d36671c2a",
+        "image_headline": "Estudiantes se conectarán en vivo con la EEI para aprender sobre ciencia y exploración espacial.",
+        "lang": "en",
+        "original_title": "NASA Astronaut, STEM Creator Connect with Students for STEM Day",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "NASA astronaut and Expedition 74 flight engineer Anil Menon is photographed on July 17, 2026, servicing a spacesuit and its components inside the International Space Station’s Quest airlock. Credit: NASA/Jessica Meir Students across the country will have the opportunity to connect directly with the International Space Station during a live, interactive in-flight call with NASA astronaut Anil Menon and Mark Rober STEM content creator and founder of ClassCrunchLabs Foundation. The event, hosted by NASA’s Office of STEM Engagement, celebrates National STEM Day by bringing real‑world science, engineering, and exploration into classrooms nationwide. The Earth-to-space call will begin at 11 a.m. EST on Wednesday, Nov. 4, and will be available to watch on the agency’s flagship YouTube with additional engagement across Learn With NASA channels. From aboard the space station, Menon will answer questions from students about living and working in microgravity, the path to becoming an astronaut, and the technologies that make human spaceflight possible. Rober, joining from California, will share how curiosity, creativity, and hands‑on problem‑solving shaped his career from NASA engineer to STEM creator. A look at STEM in action During the downlink, students will see the space station in real time as Menon demonstrates how everyday activities, from eating to experimenting, change in microgravity. The downlink supports NASA’s broader effort to connect students with authentic STEM experiences to help build technical skills and introduce aerospace careers to students. National STEM Day is an opportunity to recognize the power of hands‑on learning and to inspire the next generation of scientists, technicians, engineers, and innovators who will carry NASA’s exploration goals forward. A new collaboration to expand STEM access This downlink also marks the launch of a new collaboration between NASA and the ClassCrunchLabs Foundation. Together, the organizations will work to broaden access to STEM learning experiences for students across the country by aligning NASA’s mission‑driven educational resources with CrunchLabs’ hands‑on engineering content. Through shared programming and outreach, the partnership aims to inspire more learners to engage with science, engineering, and problem‑solving skills that prepare them for future opportunities in the aerospace sector and beyond. Educators and families are encouraged to tune in and celebrate National STEM Day with an inspiring conversation between a NASA astronaut in orbit and a STEM educator on Earth. For more information on NASA in-flight calls, visit: https://www.nasa.gov/stemonstation Share Details Last Updated Nov 03, 2026 Location NASA Headquarters Related Terms Learning Resources Humans in Space In-flight Education Downlinks",
+        "title": "Astronauta de la NASA y creador STEM se conectan con estudiantes para el Día STEM",
+        "url": "https://www.nasa.gov/learning-resources/nasa-astronaut-stem-creator-connect-with-students-for-stem-day/"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "e0c1cbc4fc49437c6f757c5f812a4d8a55653b3130f19dc40986f7c2073b83b7",
+        "source": "https://commons.wikimedia.org/wiki/File:STS-130_EVA3_Nicholas_Patrick_1.jpg",
+        "title": "File:STS-130 EVA3 Nicholas Patrick 1.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a8/STS-130_EVA3_Nicholas_Patrick_1.jpg/1920px-STS-130_EVA3_Nicholas_Patrick_1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/752344054d2d36671c2a.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "7edc804b9963a688ab0e": {
       "article": {
         "category": "volcanes",
