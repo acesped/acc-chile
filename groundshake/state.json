@@ -848,8 +848,9 @@
       "topic": "riesgo:prediccion:lectura",
       "topic_key": "prediccion",
       "title": "¿Cómo leer las pistas que deja las predicciones sísmicas?",
-      "reel": "enviando",
-      "updated_at": "2026-11-03T03:01:20.894894+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-03T03:02:02.436020+00:00",
+      "reel_id": "17879817327633651"
     }
   }
 }
