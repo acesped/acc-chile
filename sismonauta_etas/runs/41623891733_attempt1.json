@@ -20,7 +20,8 @@
       "status": "uncertain",
       "requested_privacy": "public",
       "file": "/home/runner/work/acc-chile/acc-chile/output_etas/sismonauta_etas_reel_9x16.mp4",
-      "title": "Actualización Riesgo Sísmico Chile 03/11/2026"
+      "title": "Actualización Riesgo Sísmico Chile 03/11/2026",
+      "error": "YouTube inicio de subida HTTP 400; revisa permisos y cuota"
     },
     "youtube_video": {
       "status": "pending"
