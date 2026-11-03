@@ -1163,7 +1163,8 @@
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/b67be9c31887155be4a7.jpg",
       "targets": {
         "facebook": {
-          "status": "uncertain"
+          "id": "305263296226466_1143877331520831",
+          "status": "published"
         },
         "instagram": {
           "id": "18034334747677282",
