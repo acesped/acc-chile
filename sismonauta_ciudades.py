@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """SISMONAUTA | Sismos cerca de 15 ciudades, EMSC-CSEM.
@@ -225,13 +226,27 @@ def make_image(event,path):
         draw_centered(draw,'SISMOS DETECTADO!',145,965,120,72,foreground)
     draw.rounded_rectangle((18,1000,1062,1328),radius=25,fill=banner,outline='#FFFFFF',width=4)
     draw_centered(draw,f"MAGNITUD {event['mag']:.1f}",1057,985,76,64,foreground)
-    line_two=('SE HA PERCIBIDO EN ' if event.get('felt_confirmed',False) else 'CERCA DE ')+city[0].upper()
+
+    # MEJORA: incluir siempre ciudad y país en la franja inferior.
+    # Ejemplo: CERCA DE CALI, COLOMBIA.
+    # Se conserva el texto "SE HA PERCIBIDO EN" solamente si
+    # existe una confirmación explícita en felt_confirmed.
+    location_text=f"{city[0]}, {city[1]}".upper()
+    line_two=(
+        'SE HA PERCIBIDO EN '
+        if event.get('felt_confirmed',False)
+        else 'CERCA DE '
+    )+location_text
+
+    # draw_centered ajusta automáticamente el tamaño de letra.
     draw_centered(draw,line_two,1160,985,72,54,foreground)
+
     draw_centered(draw,'¿LO SENTISTE?',1262,970,75,67,foreground)
     attribution='Imagen: Esri / proveedores' if kind=='satellite' else 'Mapa: Natural Earth'
     draw.rounded_rectangle((15,965,410,995),radius=5,fill='#102030'); draw.text((24,968),attribution,font=get_font(17),fill='white')
     path=Path(path); path.parent.mkdir(parents=True,exist_ok=True); image.save(path,'JPEG',quality=95,optimize=True)
     log('IMAGEN CREADA:',path,'| BANNER:',category,'| MAPA:',kind,'| OPORTUNIDAD:', 'reciente' if recent else 'recuperado')
+    log('UBICACIÓN EN IMAGEN:',line_two)
 
 def make_caption(event):
     city=event['city']; local=event['time'].astimezone(ZoneInfo(city[5])); age=(now_utc()-event['time']).total_seconds()/60
