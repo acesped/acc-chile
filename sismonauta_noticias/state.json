@@ -187,6 +187,41 @@
         }
       }
     },
+    "2c10a43bcd09ea295b06": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-10-20T18:11:33+00:00",
+        "description": "Destinado a Marte y más allá, el Space Reactor-1 (SR-1) Freedom de la NASA será la",
+        "explanation": "**TITULAR: El SR-1 Freedom de la NASA avanza con progresos en el módulo de energía nuclear** **CATEGORÍA: espacio** La NASA ha dado un paso significativo en el desarrollo del Space Reactor-1 (SR-1) Freedom, el primer spacecraft que utilizará energía de fisión fuera de la órbita terrestre. Este ambicioso proyecto, anunciado durante el evento \"Ignition\", tiene como objetivo demostrar la propulsión eléctrica nuclear en el espacio profundo, con un lanzamiento programado para finales de 2028. El módulo de energía nuclear, ubicado en el extremo del brazo del SR-1, incluye un reactor que genera calor a través de la fisión nuclear y un sistema de conversión de energía que transforma ese calor en electricidad. Sierra Lobo Inc. será responsable del sistema de conversión de ciclo Brayton cerrado, esencial para la propulsión eléctrica del spacecraft. Este trabajo se enmarca dentro del contrato Space Flight Systems Development and Operations Contract III, otorgado en 2024. Además, el diseño del reactor está a cargo del Laboratorio Nacional de Idaho del Departamento de Energía, que asegura que se cumplan rigurosos estándares de seguridad. La misión SR-1 Freedom también llevará el proyecto SkyFall, que incluye tres helicópteros para Marte, destinados a recolectar datos científicos y explorar posibles fuentes de agua. Este avance marca un hito en la exploración espacial y el desarrollo de sistemas de energía nuclear para futuras misiones.",
+        "id": "2c10a43bcd09ea295b06",
+        "image_headline": "NASA avanza en el desarrollo del SR-1 Freedom, el primer spacecraft con energía nuclear para Marte.",
+        "lang": "en",
+        "original_title": "NASA’s SR-1 Freedom Advances with Progress on Nuclear Power Module",
+        "search_category": "direct",
+        "source": "NASA tecnología",
+        "source_body": "2 min read Preparations for Next Moonwalk Simulations Underway (and Underwater) Space Reactor-1 Freedom will be the first spacecraft ever to demonstrate fission power beyond Earth’s orbit, traveling to Mars to deliver a science payload called SkyFall. NASA/Alberto Bertolin Destined for Mars and beyond, NASA’s Space Reactor-1 (SR-1) Freedom will be humanity’s first fission-powered spacecraft to travel outside Earth’s orbit. Announced during NASA’s “ Ignition ” event, this mission will demonstrate nuclear electric propulsion in deep space, and progress is underway on its key element: the nuclear power module. To expedite development of the spacecraft, NASA and its partners have mutually agreed to key contract actions that will advance the SR‑1 Freedom mission. “These contract actions not only reduce technical risk and help us maintain momentum toward our 2028 launch, but they also strengthen collaboration across our partners,” said Steve Sinacore, SR-1 Freedom program director. “These actions keep SR‑1 Freedom on track and ensure we’re building the strongest possible foundation for NASA’s first fission‑powered voyage beyond Earth orbit while developing technology extensible to a vibrant space nuclear future.” Space Reactor-1 Freedom’s nuclear power module, located at the end of the spacecraft’s boom, consists of a reactor that generates heat through nuclear fission and a power conversion system that converts that heat into electricity to power systems and electric propulsion. NASA/Alberto Bertolin Sierra Lobo Inc. will provide the nuclear power module’s closed Brayton cycle power conversion system, which converts thermal energy from its fission reactor into electrical power needed for SR-1 Freedom’s nuclear electric propulsion demonstration. The work will be conducted under the Space Flight Systems Development and Operations Contract III, awarded in 2024 , to support spaceflight hardware design, development, testing, and operations at NASA’s Glenn Research Center in Cleveland. The power conversion system will be integrated with the fission reactor, which is being designed and developed by the Department of Energy (DOE)’s Idaho National Laboratory to complete the nuclear power module. NASA and DOE incorporate thorough safety standards throughout the design and development of the SR-1 Freedom spacecraft, including interagency safety reviews, continuous oversight by a NASA chief safety officer, regulatory compliance, and a rigorous safety design process focusing on hazards, failure tolerance, and nuclear safety. In addition, the nuclear reactor portion of SR-1 Freedom will remain inactive until the spacecraft leaves Earth orbit. Launching in late 2028, SR‑1 Freedom will deliver the SkyFall science mission, a team of three Mars helicopters evolved from the Ingenuity design, to collect scientific data, demonstrate exploration zones, and identify potential water sources. The mission will pave the way for deep space exploration and next‑generation fission-powered systems designed to keep NASA’s Moon Base operating through periods of darkness and in locations where solar power alone is not sufficient. For information about SR-1 Freedom, visit: https://www.nasa.gov/mission/space-reactor-1-freedom/",
+        "title": "El SR-1 Freedom de la NASA avanza con progresos en el módulo de energía nuclear.",
+        "url": "https://www.nasa.gov/centers-and-facilities/glenn/sr-1-freedom-advances-with-progress-on-nuclear-power-module/"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "9446a1f65401b769ca5e92ca080f4599bb19daa7bd7bb5d7b9ea6cb7ca24a263",
+        "source": "https://commons.wikimedia.org/wiki/File:Etna_eruption_seen_from_the_International_Space_Station.jpg",
+        "title": "File:Etna eruption seen from the International Space Station.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/31/Etna_eruption_seen_from_the_International_Space_Station.jpg/1920px-Etna_eruption_seen_from_the_International_Space_Station.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/2c10a43bcd09ea295b06.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "387d174500fb09b687b7": {
       "article": {
         "date": "2026-10-27T03:05:05+00:00",
