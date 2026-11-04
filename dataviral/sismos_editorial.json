@@ -601,6 +601,16 @@
       "angle": "diferencia",
       "time": "2026-11-04T03:01:07.808369+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-3482761d74a0",
+      "topic": "ondas:ondas_superficiales:mito",
+      "topic_key": "ondas_superficiales",
+      "title": "¿Qué solemos confundir sobre las ondas superficiales?",
+      "style": "mapa_explicado",
+      "angle": "mito",
+      "time": "2026-11-04T06:01:24.703468+00:00",
+      "status": "publicado"
     }
   ]
 }
