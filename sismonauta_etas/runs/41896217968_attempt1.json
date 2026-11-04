@@ -1,0 +1,21 @@
+{
+  "status": "generating",
+  "country": "Chile",
+  "created_at": "2026-11-04T19:22:56.930692+00:00",
+  "run_id": "41896217968",
+  "selection_origin": "github_rotation",
+  "targets": {
+    "instagram": {
+      "status": "pending"
+    },
+    "facebook": {
+      "status": "pending"
+    },
+    "youtube_short": {
+      "status": "pending"
+    },
+    "youtube_video": {
+      "status": "pending"
+    }
+  }
+}
