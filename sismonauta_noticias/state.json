@@ -1108,6 +1108,44 @@
         }
       }
     },
+    "98b017fe4e483a1dcd4a": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-04T12:20:06+00:00",
+        "description": "A new study led by the ICARUS Climate Research Center at Maynooth University in Ireland has reconstructed a century of Irish sea-level change, revealing a stark acceleration in sea-level rise. The research, titled \"A Century of Sea-Level Change in Ireland (1925–2024)\" and published in Ocean Science, combines tide-gauge records from six locations, including newly digitized historical records from Cork, Tarbert and Galway.",
+        "editorial_mode": "verified_summary",
+        "evidence_score": 324.34,
+        "explanation": "Un nuevo estudio liderado por el Centro de Investigación Climática ICARUS en la Universidad de Maynooth en Irlanda ha reconstruido un siglo de cambios en el nivel del mar en Irlanda, revelando una marcada aceleración en el aumento del nivel del mar. La investigación, titulada \"Un siglo de cambio en el nivel del mar en Irlanda (1925–2024)\" y publicada en Ocean Science, combina registros de mareógrafos de seis ubicaciones, incluidos registros históricos recién digitalizados de Cork, Tarbert y Galway.",
+        "id": "98b017fe4e483a1dcd4a",
+        "image_headline": "Investigación revela aumento acelerado del nivel del mar alrededor de Irlanda.",
+        "lang": "en",
+        "original_title": "Research reveals accelerating sea-level rise around Ireland",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "source_evidence_kind": "direct_rss_best_available",
+        "title": "Investigación revela aumento acelerado del nivel del mar alrededor de Irlanda.",
+        "url": "https://phys.org/news/2026-11-reveals-sea-ireland.html"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "sea waves shore",
+        "sha256": "35dbe4bb26fa8b0a0f0127b732ca1a0d7905ec4f64c7c0c0ff8b78f262e27e7b",
+        "source": "https://commons.wikimedia.org/wiki/File:AlbertBierstadt-The_Shore_of_the_Turquoise_Sea_1878.jpg",
+        "title": "File:AlbertBierstadt-The Shore of the Turquoise Sea 1878.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/d/dd/AlbertBierstadt-The_Shore_of_the_Turquoise_Sea_1878.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/98b017fe4e483a1dcd4a.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "99c12d92af70d96eeb57": {
       "article": {
         "date": "2026-10-26T20:51:37+00:00",
