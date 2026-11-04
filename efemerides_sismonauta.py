@@ -513,16 +513,6 @@ def create_image(event, path):
 
     # Información geográfica: fuente exacta de la coordenada, no de foto.
     # Solo se mantienen las coordenadas históricas: sin rótulo "EPICENTRO".
-    source = epicenter['source']
-    coords = (f"{abs(epicenter['latitude']):.3f}°{'N' if epicenter['latitude'] >= 0 else 'S'}  "
-              f"{abs(epicenter['longitude']):.3f}°{'E' if epicenter['longitude'] >= 0 else 'O'}")
-    coord_font = font(23)
-    panel_w = d.textbbox((0, 0), coords, font=coord_font)[2] + 52
-    panel_y = max(30, cy - 240)
-    d.rounded_rectangle((26, panel_y, 26 + panel_w, panel_y + 54),
-                        radius=17, fill=(7, 12, 36), outline=(255, 255, 255), width=2)
-    d.text((50, panel_y + 12), coords, font=coord_font, fill='white')
-
     # Atribución abreviada admitida por OpenStreetMap para mapas estáticos.
     # El texto "OpenStreetMap contributors" ya no se dibuja.
     attribution = '© OpenStreetMap'
