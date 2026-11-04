@@ -1,0 +1,21 @@
+{
+  "posts": {
+    "2026-11-04:3bd2c6846f2429cf54": {
+      "targets": {
+        "instagram": {
+          "status": "pending"
+        },
+        "facebook": {
+          "status": "pending"
+        }
+      },
+      "event": {
+        "date": "1952-11-04",
+        "magnitude": 9.0,
+        "location": "RUSSIA: KAMCHATKA PENINSULA",
+        "deaths": 10000
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/8249cd17bebc5f7982fd08c6fe689beca0c19074/sismonauta_efemerides/images/2026-11-04_3bd2c6846f2429cf54.jpg"
+    }
+  }
+}
