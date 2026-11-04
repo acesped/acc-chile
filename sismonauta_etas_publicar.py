@@ -906,7 +906,6 @@ def narration(final_info):
         + location
         + f'El umbral evaluado corresponde a sismos de magnitud {magnitude} '
           'o superior durante las próximas 24 horas. '
-        'Este índice reescalado no es una probabilidad validada ni una predicción de un terremoto. '
         'En el gráfico de la derecha en tanto, observamos las zonas donde la '
         'probabilidad modelada aumentó más durante el período. '
         + delta_text
