@@ -1328,6 +1328,41 @@
         }
       }
     },
+    "a60cfa5a0efdc8f88880": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-04T15:59:36+00:00",
+        "description": "Esta foto publicada el 2 de noviembre de 2026 muestra a NGC 4449, una",
+        "explanation": "Esta es una imagen del Telescopio Espacial Hubble de la NASA de NGC 4449, una de las galaxias enanas en el estudio Galaxias Perdiendo Oxígeno a Través de Vientos (GLOW). Los investigadores encontraron que las galaxias enanas solo pueden retener una pequeña fracción del oxígeno producido por sus estrellas. NASA, ESA, Hubble Heritage–ESA/Hubble Collaboration, Alessandra Aloisi (STScI, ESA) Esta foto publicada el 2 de noviembre de 2026, muestra NGC 4449, una enana irregular. Investigadores que utilizaron el Telescopio Espacial Hubble de la NASA estudiaron 37 galaxias enanas cercanas —galaxias pequeñas que contienen desde unos pocos miles hasta cientos de millones de estrellas— incluyendo NGC 4449 y encontraron que gran parte del oxígeno que esperaban ver está ausente. Crédito de la imagen: NASA, ESA, Hubble Heritage–ESA/Hubble Collaboration, Alessandra Aloisi (STScI, ESA)",
+        "id": "a60cfa5a0efdc8f88880",
+        "image_headline": "El Telescopio Hubble revela que las galaxias enanas retienen solo una fracción del oxígeno producido por sus estrellas.",
+        "lang": "en",
+        "original_title": "Hubble Reveals Cosmic Mystery",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "This is an image from NASA’s Hubble Space Telescope of NGC 4449, one of the dwarf galaxies in the Galaxies Losing Oxygen via Winds (GLOW) study. Researchers found that dwarf galaxies can hold onto only a small fraction of the oxygen made by their stars. NASA, ESA, Hubble Heritage–ESA/Hubble Collaboration, Alessandra Aloisi (STScI, ESA) This photo released on Nov. 2, 2026, showcases NGC 4449, a dwarf irregular. Researchers using NASA’s Hubble Space Telescope studied 37 nearby dwarf galaxies — small galaxies containing a few thousand to hundreds of millions of stars — including NGC 4449 and found that much of the oxygen they expected to see is missing. Read more about this mystery. Image credit: NASA, ESA, Hubble Heritage–ESA/Hubble Collaboration, Alessandra Aloisi (STScI, ESA)",
+        "title": "Hubble revela misterio cósmico",
+        "url": "https://www.nasa.gov/image-article/hubble-reveals-cosmic-mystery/"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "b81ec69f3526a4efbed97a22720fe8e25e71d74bdd1444511c7d2a6351f8fa85",
+        "source": "https://commons.wikimedia.org/wiki/File:First_photo_from_space.jpg",
+        "title": "File:First photo from space.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5b/First_photo_from_space.jpg/1920px-First_photo_from_space.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/a60cfa5a0efdc8f88880.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "b67be9c31887155be4a7": {
       "article": {
         "category": "desastres",
