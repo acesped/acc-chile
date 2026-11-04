@@ -591,6 +591,16 @@
       "angle": "tiempo",
       "time": "2026-11-04T00:01:10.562060+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-7bc390cc3172",
+      "topic": "geologia:levantamiento:diferencia",
+      "topic_key": "levantamiento",
+      "title": "¿Cómo distinguir el levantamiento de montañas de otros fenómenos?",
+      "style": "mapa_explicado",
+      "angle": "diferencia",
+      "time": "2026-11-04T03:01:07.808369+00:00",
+      "status": "publicado"
     }
   ]
 }
