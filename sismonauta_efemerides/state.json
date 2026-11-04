@@ -3,7 +3,8 @@
     "2026-11-04:3bd2c6846f2429cf54": {
       "targets": {
         "instagram": {
-          "status": "uncertain"
+          "status": "published",
+          "id": "18242098396316883"
         },
         "facebook": {
           "status": "pending"
