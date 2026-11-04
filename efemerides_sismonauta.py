@@ -393,88 +393,96 @@ def search_photo(event, destination):
     return None
 
 
+
+def haversine_km(lat1, lon1, lat2, lon2):
+    """Distancia geodésica y manejo correcto de la línea de cambio de fecha."""
+    radius_km = 6371.0088
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    dp = p2 - p1
+    dl = math.radians((lon2 - lon1 + 180) % 360 - 180)
+    a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+    return 2 * radius_km * math.asin(min(1, math.sqrt(a)))
+
+
 def fetch_usgs_epicenter(event):
-    """Busca el evento histórico en USGS y devuelve coordenadas del epicentro."""
+    """Devuelve SOLO un origen USGS concordante; nunca finge que NOAA es USGS.
+
+    Para eventos históricos la cobertura USGS puede ser incompleta. Si no se
+    verifica el candidato, no se genera el mapa, pero sí la publicación.
+    """
     starttime = event['date'].isoformat()
     endtime = (event['date'] + timedelta(days=1)).isoformat()
     params = {
-        'format': 'geojson',
-        'starttime': starttime,
-        'endtime': endtime,
-        'minmagnitude': max(0, round(event['magnitude'] - 0.6, 1)),
-        'maxmagnitude': min(10, round(event['magnitude'] + 0.6, 1)),
-        'orderby': 'time-asc',
-        'limit': 20,
+        'format': 'geojson', 'starttime': starttime, 'endtime': endtime,
+        'minmagnitude': max(0, round(event['magnitude'] - 0.40, 2)),
+        'maxmagnitude': min(10, round(event['magnitude'] + 0.40, 2)),
+        'orderby': 'time-asc', 'limit': 100,
     }
-    if event.get('latitude') is not None and event.get('longitude') is not None:
-        params.update({
-            'latitude': event['latitude'],
-            'longitude': event['longitude'],
-            'maxradiuskm': 450,
-        })
-
+    ref_lat, ref_lon = event.get('latitude'), event.get('longitude')
+    if ref_lat is not None and ref_lon is not None:
+        params.update(latitude=ref_lat, longitude=ref_lon, maxradiuskm=450)
     try:
         res = HTTP.get(USGS_EVENT_QUERY, params=params, timeout=(10, 35))
         res.raise_for_status()
         features = res.json().get('features', [])
     except Exception as exc:
         log('USGS NO DISPONIBLE:', safe_error(exc))
-        features = []
+        return None
 
-    best = None
-    best_score = None
+    pieces = [normalize_text(p) for p in event['location'].split(':')]
+    tokens = {t for part in pieces for t in re.findall(r'[a-z]{4,}', part)}
+    tokens -= {'islands', 'island', 'region', 'earthquake', 'near', 'offshore',
+               'peninsula', 'coast', 'russia', 'chile', 'peru', 'japan'}
+    matches = []
     for feature in features:
-        props = feature.get('properties', {})
-        geom = feature.get('geometry', {})
-        coords = geom.get('coordinates') or []
+        props = feature.get('properties') or {}
+        coords = (feature.get('geometry') or {}).get('coordinates') or []
         if len(coords) < 2:
             continue
         lon, lat = number(coords[0]), number(coords[1])
-        if lat is None or lon is None:
-            continue
         mag = number(props.get('mag'))
-        mag_penalty = abs((mag or event['magnitude']) - event['magnitude'])
-        location_penalty = 0.0
-        if event.get('latitude') is not None and event.get('longitude') is not None:
-            location_penalty = ((lat - event['latitude']) ** 2 + (lon - event['longitude']) ** 2) ** 0.5
+        if lon is None or lat is None or mag is None:
+            continue
+        if not (-90 <= lat <= 90 and -180 <= lon <= 180):
+            continue
+        magnitude_delta = abs(mag - event['magnitude'])
+        if magnitude_delta > 0.4:
+            continue
+        distance = None
+        if ref_lat is not None and ref_lon is not None:
+            distance = haversine_km(ref_lat, ref_lon, lat, lon)
+            if distance > 350:
+                continue
         place = clean(props.get('place'))
-        text_bonus = 0.0
-        region_norm = normalize_text(location_label(event['location']))
-        if place and any(tok for tok in region_norm.split() if len(tok) > 3 and tok in normalize_text(place)):
-            text_bonus = -0.25
-        score = mag_penalty + location_penalty + text_bonus
-        if best_score is None or score < best_score:
-            best_score = score
-            best = {
-                'source': 'USGS',
-                'event_id': feature.get('id'),
-                'place': place,
-                'magnitude': mag,
-                'latitude': lat,
-                'longitude': lon,
-                'depth_km': number(coords[2]) if len(coords) > 2 else None,
-                'url': props.get('url', ''),
-                'time_ms': props.get('time'),
-                'tsunami': props.get('tsunami'),
-            }
+        overlap = len(tokens & set(re.findall(r'[a-z]{4,}', normalize_text(place))))
+        # Con referencia geográfica, se puede aceptar un nombre de lugar
+        # diferente; sin ella se exige coincidencia regional explícita.
+        if distance is None and overlap == 0:
+            continue
+        score = magnitude_delta * 200 + (distance or 0) - overlap * 15
+        matches.append((score, feature, lat, lon, mag, distance))
 
-    if best:
-        return best
-
-    if event.get('latitude') is not None and event.get('longitude') is not None:
-        return {
-            'source': 'NOAA_fallback',
-            'event_id': None,
-            'place': location_label(event['location']),
-            'magnitude': event['magnitude'],
-            'latitude': event['latitude'],
-            'longitude': event['longitude'],
-            'depth_km': event.get('depth_km'),
-            'url': '',
-            'time_ms': None,
-            'tsunami': 1 if event.get('tsunami_flag') else 0,
-        }
-    return None
+    matches.sort(key=lambda item: item[0])
+    if not matches:
+        log('SIN EPICENTRO USGS VERIFICADO: mapa omitido.')
+        return None
+    # Evita seleccionar arbitrariamente entre dos eventos comparables.
+    if len(matches) > 1 and matches[1][0] - matches[0][0] < 15:
+        log('COINCIDENCIA USGS AMBIGUA: mapa omitido.')
+        return None
+    _, feature, lat, lon, mag, distance = matches[0]
+    props = feature['properties']
+    coords = feature['geometry']['coordinates']
+    return {
+        'source': 'USGS', 'event_id': feature.get('id'),
+        'place': clean(props.get('place')), 'magnitude': mag,
+        'latitude': lat, 'longitude': lon,
+        'depth_km': number(coords[2]) if len(coords) > 2 else None,
+        'url': props.get('url', ''),
+        'time_ms': props.get('time'),
+        'tsunami': props.get('tsunami'),
+        'distance_to_noaa_km': round(distance, 1) if distance is not None else None,
+    }
 
 
 def latlon_to_global_pixels(lat, lon, zoom):
@@ -486,57 +494,83 @@ def latlon_to_global_pixels(lat, lon, zoom):
     return x * scale, y * scale
 
 
+def choose_map_zoom(lat, magnitude, size=330):
+    """Encadre de ~400-650 km: zona reconocible y centro en coordenada USGS."""
+    span_km = 420 if magnitude < 8.5 else 620
+    meters_per_pixel = span_km * 1000 / size
+    zoom_float = math.log2(
+        156543.03392 * max(0.15, math.cos(math.radians(lat))) / meters_per_pixel
+    )
+    return max(3, min(8, int(round(zoom_float))))
+
+
 def fetch_tile(z, x, y):
+    """Descarga solo las teselas necesarias y conserva caché >=7 días."""
     n = 2 ** z
-    x = x % n
     if y < 0 or y >= n:
-        return Image.new('RGB', (256, 256), (234, 238, 243))
+        raise RuntimeError('Tesela fuera del rango cartográfico')
+    x = x % n
+    cache = Path(os.getenv('SISMONAUTA_MAP_CACHE', 'output_efemerides/map_cache'))
+    path = cache / str(z) / str(x) / f'{y}.png'
+    if path.exists() and time.time() - path.stat().st_mtime < 7 * 86400:
+        with Image.open(path) as im:
+            return im.convert('RGB')
     url = f'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-    try:
-        res = HTTP.get(url, timeout=(8, 20), headers={'User-Agent': HTTP.headers['User-Agent']})
-        res.raise_for_status()
-        return Image.open(io.BytesIO(res.content)).convert('RGB')
-    except Exception as exc:
-        log('TILE OSM:', safe_error(exc))
-        return Image.new('RGB', (256, 256), (234, 238, 243))
+    res = HTTP.get(url, timeout=(8, 20))
+    res.raise_for_status()
+    with Image.open(io.BytesIO(res.content)) as im:
+        image = im.convert('RGB')
+    if image.size != (256, 256):
+        raise RuntimeError('Tesela cartográfica con dimensiones incorrectas')
+    path.parent.mkdir(parents=True, exist_ok=True)
+    image.save(path, 'PNG')
+    return image
 
 
-def build_epicenter_map(epicenter, size=330, zoom=4):
-    lat = epicenter['latitude']
-    lon = epicenter['longitude']
+def build_epicenter_map(epicenter, size=330):
+    """Mapa verdaderamente centrado en la lat/lon del evento USGS."""
+    lat, lon = epicenter['latitude'], epicenter['longitude']
+    zoom = choose_map_zoom(lat, epicenter.get('magnitude') or 8, size)
     gx, gy = latlon_to_global_pixels(lat, lon, zoom)
     crop_left = gx - size / 2
     crop_top = gy - size / 2
-    start_x = int(math.floor(crop_left / 256))
-    start_y = int(math.floor(crop_top / 256))
-    end_x = int(math.floor((crop_left + size - 1) / 256))
-    end_y = int(math.floor((crop_top + size - 1) / 256))
-
-    canvas = Image.new('RGB', ((end_x - start_x + 1) * 256, (end_y - start_y + 1) * 256), (234, 238, 243))
+    start_x = math.floor(crop_left / 256)
+    start_y = math.floor(crop_top / 256)
+    end_x = math.floor((crop_left + size - 1) / 256)
+    end_y = math.floor((crop_top + size - 1) / 256)
+    canvas = Image.new('RGB', ((end_x - start_x + 1) * 256,
+                               (end_y - start_y + 1) * 256))
     for tx in range(start_x, end_x + 1):
         for ty in range(start_y, end_y + 1):
             tile = fetch_tile(zoom, tx, ty)
             canvas.paste(tile, ((tx - start_x) * 256, (ty - start_y) * 256))
-
-    offset_x = int(crop_left - start_x * 256)
-    offset_y = int(crop_top - start_y * 256)
-    image = canvas.crop((offset_x, offset_y, offset_x + size, offset_y + size)).convert('RGBA')
-
+    left = round(crop_left - start_x * 256)
+    top = round(crop_top - start_y * 256)
+    image = canvas.crop((left, top, left + size, top + size)).convert('RGBA')
+    image = Image.alpha_composite(
+        image, Image.new('RGBA', (size, size), (255, 255, 255, 16))
+    )
     d = ImageDraw.Draw(image)
-    center = (size / 2, size / 2)
+    cx = cy = size // 2
 
-    # Suave velo claro para legibilidad sobre tiles.
-    d.rounded_rectangle((0, 0, size - 1, size - 1), radius=24, outline=(255, 255, 255, 220), width=4)
-    veil = Image.new('RGBA', (size, size), (255, 255, 255, 22))
-    image = Image.alpha_composite(image, veil)
-    d = ImageDraw.Draw(image)
+    for radius in (18, 35, 53):
+        d.ellipse((cx - radius, cy - radius, cx + radius, cy + radius),
+                  outline=(252, 0, 118, 255), width=4)
+    d.line((cx - 10, cy, cx + 10, cy), fill=(255, 255, 255, 255), width=3)
+    d.line((cx, cy - 10, cx, cy + 10), fill=(255, 255, 255, 255), width=3)
+    d.ellipse((cx - 5, cy - 5, cx + 5, cy + 5),
+              fill=(255, 255, 255, 255), outline=(8, 12, 28, 255), width=2)
 
-    # Círculos concéntricos del epicentro.
-    radii = [18, 34, 54]
-    for r in radii:
-        d.ellipse((center[0] - r, center[1] - r, center[0] + r, center[1] + r), outline=(255, 0, 120, 240), width=4)
-    d.ellipse((center[0] - 7, center[1] - 7, center[0] + 7, center[1] + 7), fill=(255, 255, 255, 245), outline=(25, 15, 55, 255), width=2)
-
+    title_font = font(18)
+    coord_font = font(15, bold=False)
+    d.rounded_rectangle((7, 8, size - 7, 43), radius=10, fill=(7, 12, 36, 225))
+    d.text((15, 14), 'EPICENTRO · USGS', font=title_font, fill='white')
+    coords = f'{abs(lat):.2f}°{"N" if lat >= 0 else "S"}  {abs(lon):.2f}°{"E" if lon >= 0 else "O"}'
+    d.rounded_rectangle((7, size - 55, size - 7, size - 8),
+                        radius=9, fill=(7, 12, 36, 225))
+    d.text((13, size - 51), coords, font=coord_font, fill='white')
+    d.text((13, size - 30), '© OpenStreetMap contributors',
+           font=font(12, bold=False), fill='white')
     return image.convert('RGB')
 
 
@@ -584,7 +618,7 @@ def create_image(event, path):
     epicenter = fetch_usgs_epicenter(event)
     if epicenter and epicenter.get('latitude') is not None and epicenter.get('longitude') is not None:
         try:
-            map_inset = build_epicenter_map(epicenter, size=330, zoom=4)
+            map_inset = build_epicenter_map(epicenter, size=330)
             mask = rounded_mask(map_inset.size, 28)
             x0, y0 = W - 330 - 42, 54
             shadow = Image.new('RGBA', (338, 338), (0, 0, 0, 0))
