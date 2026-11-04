@@ -647,6 +647,41 @@
         }
       }
     },
+    "53f78242687f9352bb84": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-04T05:05:00+00:00",
+        "description": "APOD Ciencia APOD APOD: 4 de noviembre de 2026 – El… Archivo de APOD Envíos Índice Buscar Calendario RSS Educación Acerca de Discutir APOD Imagen Astronómica del Día ¡Descubre el cosmos! Cada día se presenta una imagen o fotografía diferente de nuestro fascinante universo, junto con una breve explicación escrita por un astrónomo profesional. El No Tan Oculto […]",
+        "explanation": "**TITULAR: La galaxia no tan oculta, IC 342, revela secretos sobre su formación**\n\n**CATEGORÍA: espacio**\n\nLa galaxia IC 342, también conocida como Caldwell 5, ha sido objeto de un nuevo estudio que arroja luz sobre su historia y características. Ubicada a aproximadamente 10 millones de años luz de la Tierra, IC 342 es uno de los miembros más brillantes del grupo IC 342/Maffei, que se encuentra relativamente cerca del Grupo Local, donde reside nuestra propia Vía Láctea.\n\nInvestigaciones recientes han permitido observar esta galaxia a través del denso plano de la Vía Láctea, que está lleno de gas, polvo y estrellas. Este enfoque ha corregido malentendidos previos sobre la historia de IC 342, que incluían la teoría de que había sido eyectada del Grupo Local. Los nuevos datos sugieren que la galaxia tiene su propio polvo que interfiere con la luz del hidrógeno, lo que indica la presencia de estrellas jóvenes y brillantes.\n\nAdemás, los mapas de campos magnéticos de IC 342 han proporcionado pistas sobre uno de los grandes enigmas galácticos: la formación de los brazos espirales. Estos hallazgos no solo enriquecen nuestro conocimiento sobre IC 342, sino que también ofrecen nuevas perspectivas sobre la dinámica de las galaxias en el universo.",
+        "id": "53f78242687f9352bb84",
+        "image_headline": "La galaxia IC 342 revela nuevos datos sobre su formación y la dinámica de los brazos espirales.",
+        "lang": "en",
+        "original_title": "APOD: 2026 November 4 – The Not-So-Hidden Galaxy, IC 342",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "APOD Science APOD APOD: 2026 November 4 – The… Today’s APOD Archive Submissions Index Search Calendar RSS Education About Discuss APOD Astronomy Picture of the Day Discover the cosmos! Each day a different image or photograph of our fascinating universe is featured, along with a brief explanation written by a professional astronomer. The Not-So-Hidden Galaxy, IC 342 Explanation: “I see” IC 342, the Hidden Galaxy! Today’s image peers through the plane of the Milky Way , through all its gas, dust and stars, to unveil this spiral galaxy . IC 342 (or Caldwell 5 ) is one of the brightest members of the IC 342/ Maffei group of galaxies. Located about 10 million light years away, this group is quite close to the Local Group that includes our Milky Way. Inaccurate accounting of the crowded and dusty Milky Way foreground has led to misunderstandings in IC 342’s history, including the theory that the galaxy was ejected from the Local Group . IC 342 has its own dust intermittently blocking the glow of hydrogen gas , indicating the presence of bright, young stars. Magnetic field maps of IC 342 reveal that magnetic fields may contribute substantially to one of the biggest galactic puzzles: how do spiral arms form ? Tomorrow’s picture: open space Date: November 4, 2026 Credit & Copyright: Artem Mironov Authors & editors: Keighley Rockcliffe, Robert Nemiroff, Jerry Bonnell, Cecilia Chirenti A service of: ASD at NASA / GSFC , NASA Science Activation & Michigan Tech. U. Random APOD Generator Yesterday’s Image APOD: 2026 November 3 – Comet PanSTARRs and Rainbow Meteor Tomorrow’s Image",
+        "title": "APOD: 4 de noviembre de 2026 – La galaxia no tan oculta, IC 342",
+        "url": "https://science.nasa.gov/image-article/apod-2026-november-4-the-not-so-hidden-galaxy-ic-342/"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "2baa288cbbea526a92e9991ee722acf941fec2fb7bee0241dafdbadd45514550",
+        "source": "https://commons.wikimedia.org/wiki/File:NASA_Earth_America_2002.jpg",
+        "title": "File:NASA Earth America 2002.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/aa/NASA_Earth_America_2002.jpg/1920px-NASA_Earth_America_2002.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/53f78242687f9352bb84.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "543381d4798b0c66704e": {
       "article": {
         "category": "espacio",
