@@ -545,7 +545,7 @@ def create_image(event, path):
     d.text((42, 1270), 'SISMONAUTA  |  EFEMÉRIDES SÍSMICAS',
            font=font(29), fill='white')
     image.convert('RGB').save(path, 'JPEG', quality=93, optimize=True)
-    log('MAPA GENERADO:', source, coords, '| zoom:', zoom)
+    log('MAPA GENERADO:', epicenter['source'], epicenter['latitude'], epicenter['longitude'], '| zoom:', zoom)
     return epicenter
 
 
