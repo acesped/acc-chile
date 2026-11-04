@@ -963,6 +963,43 @@
         }
       }
     },
+    "8934011c3dbfccb23870": {
+      "article": {
+        "category": "volcanes",
+        "date": "2026-11-03T19:20:06+00:00",
+        "description": "El volcán hawaiano Kīlauea está entre los más activos de la Tierra. No solo erupcionó casi de manera continua desde 1983 hasta 2018, sino que también comenzó una nueva serie de erupciones a fines de 2024 que continúan hasta finales de 2026. La actividad y accesibilidad del volcán han permitido a los científicos recopilar una gran cantidad de datos.",
+        "editorial_mode": "documented_brief",
+        "explanation": "El volcán hawaiano Kīlauea se encuentra entre los más activos de la Tierra. No solo erupcionó casi de manera continua desde 1983 hasta 2018, sino que también comenzó una nueva serie de erupciones a finales de 2024 que continúan hasta finales de 2026. La actividad y accesibilidad del volcán han permitido a los científicos recopilar una gran cantidad de datos.",
+        "id": "8934011c3dbfccb23870",
+        "image_headline": "Científicos mapean reservorios de magma del Kīlauea, mejorando la comprensión de su actividad volcánica.",
+        "lang": "en",
+        "original_title": "Mapping Kīlauea's magma reservoirs at high resolution",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "source_evidence_kind": "direct_rss_summary",
+        "title": "Mapeo de los reservorios de magma del Kīlauea a alta resolución.",
+        "url": "https://phys.org/news/2026-11-klauea-magma-reservoirs-high-resolution.html"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "volcanic eruption",
+        "sha256": "ee2ee2597c70c435985f826b85bd55952df10cd3a625bc02a3f0a480eef97a32",
+        "source": "https://commons.wikimedia.org/wiki/File:Plume_from_eruption_of_Chaiten_volcano,_Chile.jpg",
+        "title": "File:Plume from eruption of Chaiten volcano, Chile.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/42/Plume_from_eruption_of_Chaiten_volcano%2C_Chile.jpg/1920px-Plume_from_eruption_of_Chaiten_volcano%2C_Chile.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/8934011c3dbfccb23870.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "9516f95dceb2e7f19838": {
       "article": {
         "category": "volcanes",
