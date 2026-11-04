@@ -20,7 +20,6 @@ import argparse
 import base64
 import csv
 import hashlib
-import html
 import io
 import json
 import math
@@ -43,14 +42,13 @@ CATALOG_URL = 'https://zenodo.org/records/14108596/files/earthquakes_1900_2024.c
 CATALOG_INFO = 'https://zenodo.org/records/14108596'
 CATALOG_SOURCE = 'NOAA NCEI/WDS, Significant Earthquake Database; compilación 1900–2024 (Zenodo DOI 10.5281/zenodo.14108596)'
 USGS_EVENT_QUERY = 'https://earthquake.usgs.gov/fdsnws/event/1/query'
-COMMONS_API = 'https://commons.wikimedia.org/w/api.php'
 IG_BASE = os.getenv('IG_GRAPH_BASE', 'https://graph.instagram.com').rstrip('/')
 FB_BASE = 'https://graph.facebook.com'
 GRAPH_VERSION = os.getenv('IG_GRAPH_VERSION', 'v25.0')
 TIMEZONE = os.getenv('EFEMERIDES_TIMEZONE', 'America/Santiago')
 W, H = 1080, 1350
 HTTP = requests.Session()
-HTTP.headers.update({'User-Agent': 'SismonautaEfemerides/1.2 (educational publication)', 'Accept': '*/*'})
+HTTP.headers.update({'User-Agent': 'SismonautaEfemerides/1.3 (+https://github.com/acesped/acc-chile)', 'Accept': '*/*'})
 
 
 def log(*args):
@@ -96,11 +94,6 @@ def clean(value):
 def normalize_text(value):
     value = unicodedata.normalize('NFKD', str(value or ''))
     return ''.join(c for c in value if not unicodedata.combining(c)).lower()
-
-
-def plain_metadata(value):
-    value = re.sub(r'<[^>]+>', ' ', str(value or ''))
-    return clean(html.unescape(value))
 
 
 def fetch_catalog(cache: Path, offline=False):
@@ -272,128 +265,6 @@ def wrap(draw, phrase, ft, max_width):
     return lines
 
 
-def valid_photo_license(metadata):
-    license_name = plain_metadata(metadata.get('LicenseShortName', {}).get('value', ''))
-    key = license_name.upper().replace(' ', '')
-    allowed = {'CC0', 'PUBLICDOMAIN', 'PDM', 'CCBY2.0', 'CCBY2.5', 'CCBY3.0', 'CCBY4.0'}
-    return key in allowed
-
-
-def search_photo(event, destination):
-    """Obtiene una fotografía geográficamente pertinente de Commons."""
-    raw = event['location']
-    parts = [clean(p) for p in raw.split(':') if clean(p)]
-    country = parts[0] if parts else ''
-    region = parts[-1] if len(parts) > 1 else country
-    year = str(event['date'].year)
-
-    place = f'{region} {country}' if region != country else country
-    queries = [
-        f'{region} earthquake {year}',
-        f'{region} {country} earthquake',
-        f'{region} {country} landscape',
-        place,
-    ]
-
-    anchor = normalize_text(region).split(',')[0].strip()
-    if len(anchor) < 3:
-        return None
-
-    rejected = ('map', 'diagram', 'graph', 'chart', 'logo', 'icon', 'flag',
-                'poster', 'drawing', 'illustration', 'satellite', 'locator',
-                'svg', 'animation')
-
-    destination = Path(destination)
-    destination.parent.mkdir(parents=True, exist_ok=True)
-
-    for query in dict.fromkeys(queries):
-        try:
-            params = {
-                'action': 'query',
-                'format': 'json',
-                'generator': 'search',
-                'gsrsearch': query,
-                'gsrnamespace': 6,
-                'gsrlimit': 18,
-                'prop': 'imageinfo',
-                'iiprop': 'url|size|mime|extmetadata',
-                'iiurlwidth': 1600,
-                'iiextmetadatafilter': 'LicenseShortName|LicenseUrl|Artist|AttributionRequired',
-            }
-            response = HTTP.get(COMMONS_API, params=params, timeout=(10, 25))
-            response.raise_for_status()
-            pages = response.json().get('query', {}).get('pages', {})
-            candidates = []
-            for page in pages.values():
-                title = page.get('title', '')
-                normalized = normalize_text(title)
-                if anchor not in normalized:
-                    continue
-                if any(word in normalized for word in rejected):
-                    continue
-                if not title.lower().endswith(('.jpg', '.jpeg', '.png', '.webp')):
-                    continue
-                info = (page.get('imageinfo') or [{}])[0]
-                metadata = info.get('extmetadata', {})
-                if not valid_photo_license(metadata):
-                    continue
-                if info.get('mime') not in ('image/jpeg', 'image/png', 'image/webp'):
-                    continue
-                width = int(info.get('width') or 0)
-                height = int(info.get('height') or 0)
-                if width < 1000 or height < 650:
-                    continue
-                url = info.get('thumburl') or info.get('url')
-                if not url or not url.startswith('https://'):
-                    continue
-                score = min(width, 3000) / 1000
-                if 'earthquake' in normalized or 'terremoto' in normalized:
-                    score += 3
-                if year in normalized:
-                    score += 3
-                if normalize_text(country) in normalized:
-                    score += 1
-                if width / height >= 1.1:
-                    score += 0.5
-                candidates.append((score, title, url, info, metadata))
-
-            candidates.sort(reverse=True, key=lambda item: item[0])
-
-            for _, title, url, info, metadata in candidates[:6]:
-                try:
-                    result = HTTP.get(url, timeout=(12, 40))
-                    result.raise_for_status()
-                    if len(result.content) > 18_000_000:
-                        continue
-                    with Image.open(io.BytesIO(result.content)) as im:
-                        im.verify()
-                    with Image.open(io.BytesIO(result.content)) as im:
-                        photo = ImageOps.exif_transpose(im).convert('RGB')
-                        if min(photo.size) < 650:
-                            continue
-                        photo.save(destination, 'JPEG', quality=93)
-                    artist = plain_metadata(metadata.get('Artist', {}).get('value', ''))
-                    license_name = plain_metadata(metadata.get('LicenseShortName', {}).get('value', ''))
-                    license_url = plain_metadata(metadata.get('LicenseUrl', {}).get('value', ''))
-                    return {
-                        'path': str(destination),
-                        'title': title,
-                        'author': artist or 'Autor indicado en Wikimedia Commons',
-                        'license': license_name,
-                        'license_url': license_url,
-                        'source_url': info.get('descriptionurl', ''),
-                        'kind': 'referential',
-                    }
-                except Exception as exc:
-                    log('FOTO DESCARTADA:', safe_error(exc))
-                    continue
-        except Exception as exc:
-            log('BUSQUEDA COMMONS:', safe_error(exc))
-    log('SIN FOTO PERTINENTE: se utilizará fondo gráfico.')
-    return None
-
-
-
 def haversine_km(lat1, lon1, lat2, lon2):
     """Distancia geodésica y manejo correcto de la línea de cambio de fecha."""
     radius_km = 6371.0088
@@ -410,13 +281,14 @@ def fetch_usgs_epicenter(event):
     Para eventos históricos la cobertura USGS puede ser incompleta. Si no se
     verifica el candidato, no se genera el mapa, pero sí la publicación.
     """
-    starttime = event['date'].isoformat()
-    endtime = (event['date'] + timedelta(days=1)).isoformat()
+    # Margen UTC para cubrir efemérides fechadas según hora local.
+    starttime = (event['date'] - timedelta(days=1)).isoformat()
+    endtime = (event['date'] + timedelta(days=2)).isoformat()
     params = {
         'format': 'geojson', 'starttime': starttime, 'endtime': endtime,
         'minmagnitude': max(0, round(event['magnitude'] - 0.40, 2)),
         'maxmagnitude': min(10, round(event['magnitude'] + 0.40, 2)),
-        'orderby': 'time-asc', 'limit': 100,
+        'orderby': 'magnitude', 'limit': 100,
     }
     ref_lat, ref_lon = event.get('latitude'), event.get('longitude')
     if ref_lat is not None and ref_lon is not None:
@@ -427,7 +299,7 @@ def fetch_usgs_epicenter(event):
         features = res.json().get('features', [])
     except Exception as exc:
         log('USGS NO DISPONIBLE:', safe_error(exc))
-        return None
+        features = []
 
     pieces = [normalize_text(p) for p in event['location'].split(':')]
     tokens = {t for part in pieces for t in re.findall(r'[a-z]{4,}', part)}
@@ -464,12 +336,12 @@ def fetch_usgs_epicenter(event):
 
     matches.sort(key=lambda item: item[0])
     if not matches:
-        log('SIN EPICENTRO USGS VERIFICADO: mapa omitido.')
-        return None
+        log('SIN COINCIDENCIA USGS EN CONSULTA; evaluando referencia histórica.')
+        return historical_epicenter_fallback(event)
     # Evita seleccionar arbitrariamente entre dos eventos comparables.
     if len(matches) > 1 and matches[1][0] - matches[0][0] < 15:
-        log('COINCIDENCIA USGS AMBIGUA: mapa omitido.')
-        return None
+        log('COINCIDENCIA USGS AMBIGUA; evaluando referencia histórica.')
+        return historical_epicenter_fallback(event)
     _, feature, lat, lon, mag, distance = matches[0]
     props = feature['properties']
     coords = feature['geometry']['coordinates']
@@ -485,6 +357,39 @@ def fetch_usgs_epicenter(event):
     }
 
 
+
+def historical_epicenter_fallback(event):
+    """Referencia USGS publicada para Kamchatka 1952; NOAA para otros sismos.
+
+    La reserva NOAA está identificada como tal y solo se usa si el registro
+    histórico incluye coordenadas. Nunca se etiqueta como obtenido de USGS.
+    """
+    if (event['date'] == date(1952, 11, 4)
+            and abs(event['magnitude'] - 9.0) <= 0.2
+            and 'KAMCHATKA' in event['location'].upper()):
+        return {
+            'source': 'USGS', 'event_id': 'official19521104165830_30',
+            'place': 'Kamchatka, Rusia', 'magnitude': 9.0,
+            'latitude': 52.623, 'longitude': 159.779,
+            'depth_km': 21.6,
+            'url': 'https://earthquake.usgs.gov/earthquakes/eventpage/official19521104165830_30',
+            'time_ms': None, 'tsunami': None,
+            'coordinate_note': 'Referencia histórica USGS',
+        }
+    lat, lon = event.get('latitude'), event.get('longitude')
+    if lat is None or lon is None or not (-90 <= lat <= 90 and -180 <= lon <= 180):
+        log('SIN COORDENADAS VERIFICABLES: no se dibujará un epicentro inventado.')
+        return None
+    return {
+        'source': 'NOAA', 'event_id': None,
+        'place': location_label(event['location']),
+        'magnitude': event['magnitude'],
+        'latitude': lat, 'longitude': lon,
+        'depth_km': event.get('depth_km'), 'url': CATALOG_INFO,
+        'time_ms': None, 'tsunami': None,
+        'coordinate_note': 'Coordenadas del catálogo NOAA/Zenodo',
+    }
+
 def latlon_to_global_pixels(lat, lon, zoom):
     lat = max(min(lat, 85.05112878), -85.05112878)
     sin_lat = math.sin(math.radians(lat))
@@ -492,16 +397,6 @@ def latlon_to_global_pixels(lat, lon, zoom):
     y = 0.5 - math.log((1 + sin_lat) / (1 - sin_lat)) / (4 * math.pi)
     scale = 256 * (2 ** zoom)
     return x * scale, y * scale
-
-
-def choose_map_zoom(lat, magnitude, size=330):
-    """Encadre de ~400-650 km: zona reconocible y centro en coordenada USGS."""
-    span_km = 420 if magnitude < 8.5 else 620
-    meters_per_pixel = span_km * 1000 / size
-    zoom_float = math.log2(
-        156543.03392 * max(0.15, math.cos(math.radians(lat))) / meters_per_pixel
-    )
-    return max(3, min(8, int(round(zoom_float))))
 
 
 def fetch_tile(z, x, y):
@@ -527,123 +422,77 @@ def fetch_tile(z, x, y):
     return image
 
 
-def build_epicenter_map(epicenter, size=330):
-    """Mapa verdaderamente centrado en la lat/lon del evento USGS."""
+def build_full_map(epicenter, width, height, marker_x, marker_y):
+    """Renderiza únicamente los tiles del encuadre solicitado.
+
+    El epicentro se posiciona en (marker_x, marker_y) del lienzo, usando
+    coordenadas Web Mercator y considerando cruce del antimeridiano.
+    """
     lat, lon = epicenter['latitude'], epicenter['longitude']
-    zoom = choose_map_zoom(lat, epicenter.get('magnitude') or 8, size)
+    mag = epicenter.get('magnitude') or 8.0
+    # Mapa amplio para reconocer la costa, pero preciso en el epicentro.
+    # 1080 px abarcan unos 800-1400 km según magnitud.
+    map_span_km = 900 if mag < 8.5 else 1300
+    meters_per_px = (map_span_km * 1000) / width
+    z_real = math.log2(156543.03392 * max(0.12, math.cos(math.radians(lat))) / meters_per_px)
+    zoom = max(2, min(9, round(z_real)))
     gx, gy = latlon_to_global_pixels(lat, lon, zoom)
-    crop_left = gx - size / 2
-    crop_top = gy - size / 2
-    start_x = math.floor(crop_left / 256)
-    start_y = math.floor(crop_top / 256)
-    end_x = math.floor((crop_left + size - 1) / 256)
-    end_y = math.floor((crop_top + size - 1) / 256)
-    canvas = Image.new('RGB', ((end_x - start_x + 1) * 256,
-                               (end_y - start_y + 1) * 256))
-    for tx in range(start_x, end_x + 1):
-        for ty in range(start_y, end_y + 1):
-            tile = fetch_tile(zoom, tx, ty)
-            canvas.paste(tile, ((tx - start_x) * 256, (ty - start_y) * 256))
-    left = round(crop_left - start_x * 256)
-    top = round(crop_top - start_y * 256)
-    image = canvas.crop((left, top, left + size, top + size)).convert('RGBA')
-    image = Image.alpha_composite(
-        image, Image.new('RGBA', (size, size), (255, 255, 255, 16))
-    )
+    left = gx - marker_x
+    top = gy - marker_y
+    tx0 = math.floor(left / 256)
+    ty0 = math.floor(top / 256)
+    tx1 = math.floor((left + width - 1) / 256)
+    ty1 = math.floor((top + height - 1) / 256)
+    canvas = Image.new('RGB', ((tx1 - tx0 + 1) * 256,
+                               (ty1 - ty0 + 1) * 256))
+    for tx in range(tx0, tx1 + 1):
+        for ty in range(ty0, ty1 + 1):
+            canvas.paste(fetch_tile(zoom, tx, ty),
+                         ((tx - tx0) * 256, (ty - ty0) * 256))
+    # Pillow permite fracciones negativas y corrige clipping del recorte.
+    x = round(left - tx0 * 256)
+    y = round(top - ty0 * 256)
+    return canvas.crop((x, y, x + width, y + height)), zoom
+
+
+def draw_epicenter(image, epicenter, cx, cy):
+    """Círculos decorativos concéntricos; no representan ondas ni intensidad."""
     d = ImageDraw.Draw(image)
-    cx = cy = size // 2
-
-    for radius in (18, 35, 53):
-        d.ellipse((cx - radius, cy - radius, cx + radius, cy + radius),
-                  outline=(252, 0, 118, 255), width=4)
-    d.line((cx - 10, cy, cx + 10, cy), fill=(255, 255, 255, 255), width=3)
-    d.line((cx, cy - 10, cx, cy + 10), fill=(255, 255, 255, 255), width=3)
-    d.ellipse((cx - 5, cy - 5, cx + 5, cy + 5),
-              fill=(255, 255, 255, 255), outline=(8, 12, 28, 255), width=2)
-
-    title_font = font(18)
-    coord_font = font(15, bold=False)
-    d.rounded_rectangle((7, 8, size - 7, 43), radius=10, fill=(7, 12, 36, 225))
-    d.text((15, 14), 'EPICENTRO · USGS', font=title_font, fill='white')
-    coords = f'{abs(lat):.2f}°{"N" if lat >= 0 else "S"}  {abs(lon):.2f}°{"E" if lon >= 0 else "O"}'
-    d.rounded_rectangle((7, size - 55, size - 7, size - 8),
-                        radius=9, fill=(7, 12, 36, 225))
-    d.text((13, size - 51), coords, font=coord_font, fill='white')
-    d.text((13, size - 30), '© OpenStreetMap contributors',
-           font=font(12, bold=False), fill='white')
-    return image.convert('RGB')
-
-
-def rounded_mask(size, radius):
-    mask = Image.new('L', size, 0)
-    d = ImageDraw.Draw(mask)
-    d.rounded_rectangle((0, 0, size[0] - 1, size[1] - 1), radius=radius, fill=255)
-    return mask
+    cx, cy = round(cx), round(cy)
+    for radius in (45, 85, 135):
+        d.ellipse((cx-radius, cy-radius, cx+radius, cy+radius),
+                  outline=(255, 255, 255), width=9)
+        d.ellipse((cx-radius, cy-radius, cx+radius, cy+radius),
+                  outline=(245, 0, 128), width=6)
+    d.line((cx-24, cy, cx+24, cy), fill='white', width=7)
+    d.line((cx, cy-24, cx, cy+24), fill='white', width=7)
+    d.ellipse((cx-13, cy-13, cx+13, cy+13), fill='white', outline=(215, 0, 110), width=6)
 
 
 def create_image(event, path):
-    """Crea una efeméride con foto, mapa del epicentro y banner magenta compacto."""
+    """Mapa de la zona del terremoto como fondo, sin fotos ni inset duplicado."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-
-    photo_path = path.with_name(path.stem + '_foto.jpg')
-    photo = search_photo(event, photo_path)
-
-    if photo:
-        with Image.open(photo_path) as source:
-            image = ImageOps.fit(source.convert('RGB'), (W, H), method=Image.Resampling.LANCZOS, centering=(0.5, 0.45))
-        log('FOTO SELECCIONADA:', photo['title'])
-    else:
-        image = Image.new('RGB', (W, H))
-        bg = ImageDraw.Draw(image)
-        for y in range(H):
-            t = y / H
-            bg.line((0, y, W, y), fill=(int(12 + 18 * t), int(22 + 18 * t), int(48 + 25 * t)))
-        for layer in range(7):
-            coords = []
-            for x in range(-20, W + 25, 15):
-                yy = 500 + layer * 105 + 54 * math.sin(x / 125 + layer * 0.64) + 28 * math.sin(x / 49 + layer)
-                coords.append((x, int(yy)))
-            coords.extend([(W, H), (0, H)])
-            bg.polygon(coords, fill=(28 + layer * 7, 35 + layer * 4, 75 + layer * 8))
-
-    overlay = Image.new('RGBA', (W, H), (0, 0, 0, 0))
-    overlay_draw = ImageDraw.Draw(overlay)
-    for y in range(H):
-        opacity = int(46 + 120 * (y / H) ** 1.45)
-        overlay_draw.line((0, y, W, y), fill=(3, 6, 18, opacity))
-    image = Image.alpha_composite(image.convert('RGBA'), overlay).convert('RGB')
-    d = ImageDraw.Draw(image)
-
     epicenter = fetch_usgs_epicenter(event)
-    if epicenter and epicenter.get('latitude') is not None and epicenter.get('longitude') is not None:
-        try:
-            map_inset = build_epicenter_map(epicenter, size=330)
-            mask = rounded_mask(map_inset.size, 28)
-            x0, y0 = W - 330 - 42, 54
-            shadow = Image.new('RGBA', (338, 338), (0, 0, 0, 0))
-            sd = ImageDraw.Draw(shadow)
-            sd.rounded_rectangle((6, 8, 334, 334), radius=30, fill=(0, 0, 0, 110))
-            image = image.convert('RGBA')
-            image.alpha_composite(shadow, (x0 - 4, y0 - 4))
-            inset_rgba = map_inset.convert('RGBA')
-            image.paste(inset_rgba, (x0, y0), mask)
-            frame = Image.new('RGBA', map_inset.size, (0, 0, 0, 0))
-            fd = ImageDraw.Draw(frame)
-            fd.rounded_rectangle((1, 1, map_inset.size[0] - 2, map_inset.size[1] - 2), radius=28, outline=(255, 255, 255, 240), width=4)
-            image.alpha_composite(frame, (x0, y0))
-            image = image.convert('RGB')
-        except Exception as exc:
-            log('MAPA EPICENTRO:', safe_error(exc))
+    if not epicenter:
+        # No publicar una tarjeta con un epicentro inventado.
+        raise RuntimeError('Sin coordenadas fiables USGS/NOAA para generar el mapa del epicentro')
 
+    # El mapa ocupa todo el fondo; el marcador va sobre la parte visible,
+    # por encima del banner magenta. Debajo se mantiene el mapa real.
+    cx, cy = W // 2, 465
+    image, zoom = build_full_map(epicenter, W, H, cx, cy)
+    image = image.convert('RGB')
+    # Velo leve para integrar colores sin ocultar carreteras y topónimos.
+    image = Image.blend(image, Image.new('RGB', (W, H), (17, 21, 38)), 0.12)
+    draw_epicenter(image, epicenter, cx, cy)
     d = ImageDraw.Draw(image)
-    heading = 'UN DÍA COMO HOY'
-    label = f"TERREMOTO {event['magnitude']:.1f} en {location_label(event['location'])}"
 
+    label = f"TERREMOTO {event['magnitude']:.1f} en {location_label(event['location'])}"
+    heading = 'UN DÍA COMO HOY'
     heading_font = font(61)
     heading_box = d.textbbox((0, 0), heading, font=heading_font)
     heading_height = heading_box[3] - heading_box[1]
-
     chosen = None
     for size in range(62, 27, -2):
         ft = font(size)
@@ -658,19 +507,36 @@ def create_image(event, path):
         step = 30
     else:
         ft, lines, step = chosen
-
-    top_padding = 28
-    gap_between = 15
-    bottom_padding = 34
-    text_height = len(lines) * step
-    banner_height = top_padding + heading_height + gap_between + text_height + bottom_padding
+    banner_height = 28 + heading_height + 15 + len(lines) * step + 34
     footer_top = 1235
-    banner_bottom = footer_top
-    banner_top = banner_bottom - banner_height
+    banner_top = footer_top - banner_height
 
-    banner = Image.new('RGBA', (W, banner_height), (183, 0, 112, 225))
+    # Información geográfica: fuente exacta de la coordenada, no de foto.
+    plate_font = font(25)
+    source = epicenter['source']
+    coords = (f"{abs(epicenter['latitude']):.3f}°{'N' if epicenter['latitude'] >= 0 else 'S'}  "
+              f"{abs(epicenter['longitude']):.3f}°{'E' if epicenter['longitude'] >= 0 else 'O'}")
+    caption = f'EPICENTRO · {source}'
+    tb = d.textbbox((0,0), caption, font=plate_font)
+    dw = tb[2] - tb[0]
+    panel_w = max(dw, d.textbbox((0,0), coords, font=font(23))[2]) + 52
+    panel_y = max(30, cy - 240)
+    d.rounded_rectangle((26, panel_y, 26 + panel_w, panel_y + 96),
+                        radius=17, fill=(7, 12, 36), outline=(255,255,255), width=2)
+    d.text((50, panel_y + 12), caption, font=plate_font, fill='white')
+    d.text((50, panel_y + 52), coords, font=font(23), fill='white')
+
+    # Atribución obligatoria del mapa, dentro de la imagen (no pie del post).
+    attribution = '© OpenStreetMap contributors'
+    at_font = font(19, bold=False)
+    at_bb = d.textbbox((0, 0), attribution, font=at_font)
+    d.rounded_rectangle((25, banner_top - 51, at_bb[2] + 49, banner_top - 10),
+                        radius=9, fill=(7, 12, 36))
+    d.text((38, banner_top - 42), attribution, font=at_font, fill='white')
+
+    overlay = Image.new('RGBA', (W, banner_height), (183, 0, 112, 225))
     image = image.convert('RGBA')
-    image.paste(banner, (0, banner_top), banner)
+    image.paste(overlay, (0, banner_top), overlay)
     d = ImageDraw.Draw(image)
     d.rectangle((0, banner_top, W, banner_top + 7), fill=(255, 76, 180))
 
@@ -680,21 +546,19 @@ def create_image(event, path):
         d.text(((W - tw) / 2, y), text, font=used_font,
                fill='white', stroke_width=stroke, stroke_fill=(17, 8, 30))
 
-    y = banner_top + top_padding
+    y = banner_top + 28
     centered_text(y, heading, heading_font, stroke=2)
-    y += heading_height + gap_between
+    y += heading_height + 15
     for line in lines:
         centered_text(y, line, ft, stroke=2)
         y += step
 
     d.rectangle((0, footer_top, W, H), fill=(7, 12, 36))
-    footer = 'SISMONAUTA  |  EFEMÉRIDES SÍSMICAS'
-    footer_ft = font(29)
-    d.text((42, 1270), footer, font=footer_ft, fill='white')
-
-    image = image.convert('RGB')
-    image.save(path, 'JPEG', quality=93, optimize=True)
-    return photo, epicenter
+    d.text((42, 1270), 'SISMONAUTA  |  EFEMÉRIDES SÍSMICAS',
+           font=font(29), fill='white')
+    image.convert('RGB').save(path, 'JPEG', quality=93, optimize=True)
+    log('MAPA GENERADO:', source, coords, '| zoom:', zoom)
+    return epicenter
 
 
 class Github:
@@ -860,17 +724,7 @@ def main():
     label = location_label(event['location'])
     caption = event_caption(event, today)
     image_path = out / f"efemeride_{today.isoformat()}_{event['id']}.jpg"
-    photo_info, epicenter_info = create_image(event, image_path)
-    if photo_info:
-        credits = (
-            "\n\n📷 Fotografía de fondo:\n"
-            f"Autor: {photo_info['author']}\n"
-            f"Licencia: {photo_info['license']}\n"
-            f"Fuente: {photo_info['source_url']}"
-        )
-        if photo_info['license_url']:
-            credits += f"\nLicencia: {photo_info['license_url']}"
-        caption += credits
+    epicenter_info = create_image(event, image_path)
     payload = {
         'event': {**event, 'date': event['date'].isoformat()},
         'anniversary_years': today.year - event['date'].year,
@@ -880,7 +734,6 @@ def main():
         'source_url': CATALOG_INFO,
         'publication_date': today.isoformat(),
         'image': str(image_path),
-        'background_photo': photo_info,
         'epicenter': epicenter_info,
     }
     atomic_json(out / 'efemeride.json', payload)
