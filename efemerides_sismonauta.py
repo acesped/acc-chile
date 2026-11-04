@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""SISMONAUTA | Efemérides sísmicas verificables.
+"""SISMONAUTA | Efemérides sísmicas verificables, con fotografía pertinente.
 
 Dependencias: pip install requests pillow
 Uso:
@@ -8,26 +8,39 @@ Uso:
   python efemerides_sismonauta.py --out output_efemerides
   python efemerides_sismonauta.py --publish --out output_efemerides
   python efemerides_sismonauta.py --date 2026-05-22 --min-mag 8
+  python efemerides_sismonauta.py --date 2026-05-22 --no-photo
 
 Comportamiento: coincidencia ESTRICTA de día y mes, sin inventar aniversarios.
 El catálogo NOAA/Zenodo contiene registros desde 1900 hasta 2024.
 Exige magnitud >=8.0 y fatalidades documentadas; configurable con --min-mag.
+
+Busca fotografías pertinentes de Wikimedia Commons sin API key. Solo usa archivos
+con licencias de reutilización identificadas y añade crédito en el caption.
+Las fotos de lugar se rotulan como REFERENCIALES, nunca como imágenes del suceso.
+Si no encuentra una foto admisible, usa un fondo abstracto, sin interrumpir la
+publicación. La correspondencia geográfica se basa en metadatos públicos y no
+sustituye la revisión editorial manual.
+
 Para publicaciones automáticas necesita repositorio GitHub público y las
 credenciales de Meta que ya utiliza SISMONAUTA NOTICIAS.
 """
 from __future__ import annotations
+
 import argparse
 import base64
 import csv
 import hashlib
+import html
 import io
 import json
+import math
 import os
 import re
 import sys
 import time
+import unicodedata
 import urllib.parse
-from datetime import date, datetime, timezone
+from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -35,17 +48,25 @@ import requests
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 ACCOUNT = 'sismonauta'
-STATE_FILE = 'sismonauta_efemerides/state.json'  # independiente del historial de noticias
+STATE_FILE = 'sismonauta_efemerides/state.json'
 CATALOG_URL = 'https://zenodo.org/records/14108596/files/earthquakes_1900_2024.csv?download=1'
 CATALOG_INFO = 'https://zenodo.org/records/14108596'
-CATALOG_SOURCE = 'NOAA NCEI/WDS, Significant Earthquake Database; compilación 1900–2024 (Zenodo DOI 10.5281/zenodo.14108596)'
+CATALOG_SOURCE = (
+    'NOAA NCEI/WDS, Significant Earthquake Database; compilación 1900–2024 '
+    '(Zenodo DOI 10.5281/zenodo.14108596)'
+)
+COMMONS_API = 'https://commons.wikimedia.org/w/api.php'
+COMMONS_FILE_BASE = 'https://commons.wikimedia.org/wiki/'
 IG_BASE = os.getenv('IG_GRAPH_BASE', 'https://graph.instagram.com').rstrip('/')
 FB_BASE = 'https://graph.facebook.com'
 GRAPH_VERSION = os.getenv('IG_GRAPH_VERSION', 'v25.0')
 TIMEZONE = os.getenv('EFEMERIDES_TIMEZONE', 'America/Santiago')
 W, H = 1080, 1350
 HTTP = requests.Session()
-HTTP.headers.update({'User-Agent': 'SismonautaEfemerides/1.0 (educational publication)', 'Accept': '*/*'})
+HTTP.headers.update({
+    'User-Agent': 'SismonautaEfemerides/1.1 (educational; photo attribution)',
+    'Accept': '*/*',
+})
 
 
 def log(*args):
@@ -113,7 +134,7 @@ def fetch_catalog(cache: Path, offline=False):
 
 
 def parse_catalog(csv_text: str):
-    """Columnas verificadas: Year,Mo,Dy,Mag,Location_Name,Deaths,Total_Deaths."""
+    """Columnas: Year,Mo,Dy,Mag,Location_Name,Deaths,Total_Deaths."""
     reader = csv.DictReader(io.StringIO(csv_text))
     required = {'Year', 'Mo', 'Dy', 'Mag', 'Location_Name', 'Deaths', 'Total_Deaths'}
     if not reader.fieldnames or not required.issubset(set(reader.fieldnames)):
@@ -130,8 +151,6 @@ def parse_catalog(csv_text: str):
             event_date = date(year, month, day)
         except ValueError:
             continue
-        # Total_Deaths considera el conjunto de efectos, incluido tsunami,
-        # si figura documentado. Si falta, se usa Deaths del propio sismo.
         total = integer(row.get('Total_Deaths'))
         direct = integer(row.get('Deaths'))
         deaths = total if total is not None else direct
@@ -180,10 +199,9 @@ def location_label(raw):
     parts = [x.strip() for x in raw.split(':') if x.strip()]
     if not parts:
         return raw
-    country_key = parts[0].upper()
-    country = COUNTRIES.get(country_key, parts[0].title())
+    country = COUNTRIES.get(parts[0].upper(), parts[0].title())
     if len(parts) > 1:
-        region = parts[-1].replace(',', ', ').strip().title()
+        region = re.sub(r',\s*', ', ', parts[-1]).strip().title()
         return f'{region}, {country}'
     return country
 
@@ -198,8 +216,10 @@ def choose_event(events, target_day: date, min_mag: float, state):
         and e['deaths'] is not None
     ]
     used = state.get('posts', {})
-    candidates = [e for e in candidates if
-                  f"{target_day.isoformat()}:{e['id']}" not in used]
+    candidates = [
+        e for e in candidates
+        if f"{target_day.isoformat()}:{e['id']}" not in used
+    ]
     candidates.sort(key=lambda e: (-e['magnitude'], -e['deaths'], -e['date'].year))
     return candidates[0] if candidates else None
 
@@ -214,17 +234,20 @@ def event_caption(event, today):
         fatalities = 'El registro histórico consigna 0 fallecidos.'
     else:
         fatalities = f'El registro histórico consigna {death_text} personas fallecidas'
-        fatalities += (' considerando los efectos asociados, incluido el tsunami cuando corresponde.'
-                       if event['fatalities_type'] == 'total' else ' a causa del terremoto.')
+        fatalities += (
+            ' considerando los efectos asociados, incluido el tsunami cuando corresponde.'
+            if event['fatalities_type'] == 'total'
+            else ' a causa del terremoto.'
+        )
     paragraph = (
-        f"El {date_text} ocurrió un terremoto de magnitud {mag} "
-        f"en la zona de {place}. {fatalities} "
-        'Este episodio forma parte del registro histórico de terremotos significativos ' 
+        f'El {date_text} ocurrió un terremoto de magnitud {mag} '
+        f'en la zona de {place}. {fatalities} '
+        'Este episodio forma parte del registro histórico de terremotos significativos '
         'y permite recordar el impacto que pueden producir los grandes movimientos de la Tierra.'
     )
     return (
-        f"UN DÍA COMO HOY, pero hace {years} años...\n\n"
-        f"{paragraph}\n\n"
+        f'UN DÍA COMO HOY, pero hace {years} años...\n\n'
+        f'{paragraph}\n\n'
         'Te leemos en los comentarios.\n\n'
         '#SISMONAUTA #EfemeridesSismicas #Terremotos #Sismologia '
         '#HistoriaSismica #CienciaDeLaTierra #PrevencionSismica'
@@ -237,6 +260,7 @@ def font(size, bold=True):
         '/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf',
     ] if bold else [
         '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+        '/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf',
     ])
     for file in files:
         if Path(file).exists():
@@ -244,12 +268,17 @@ def font(size, bold=True):
     return ImageFont.load_default()
 
 
+def text_width(draw, phrase, ft):
+    bounds = draw.textbbox((0, 0), phrase, font=ft)
+    return bounds[2] - bounds[0]
+
+
 def wrap(draw, phrase, ft, max_width):
     lines = []
     current = ''
     for word in phrase.split():
         trial = (current + ' ' + word).strip()
-        if draw.textbbox((0, 0), trial, font=ft)[2] <= max_width:
+        if text_width(draw, trial, ft) <= max_width:
             current = trial
         else:
             if current:
@@ -260,52 +289,253 @@ def wrap(draw, phrase, ft, max_width):
     return lines
 
 
-def create_image(event, path):
-    """Tarjeta magenta: UN DÍA COMO HOY / TERREMOTO 8.5 en ..."""
-    import math
-    image = Image.new('RGB', (W, H))
+def normalized(value):
+    value = unicodedata.normalize('NFKD', clean(value))
+    value = ''.join(ch for ch in value if not unicodedata.combining(ch))
+    return re.sub(r'[^a-z0-9]+', ' ', value.lower()).strip()
+
+
+def metadata_text(value):
+    value = re.sub(r'<[^>]+>', ' ', str(value or ''))
+    return clean(html.unescape(value))
+
+
+def metadata_value(metadata, key):
+    return metadata_text(metadata.get(key, {}).get('value', ''))
+
+
+def accepted_license(metadata):
+    """Licencias con uso comercial y obras derivadas, atribuidas en la leyenda."""
+    name = metadata_value(metadata, 'LicenseShortName').lower()
+    compact = re.sub(r'[^a-z0-9]', '', name)
+    if compact in ('cc0', 'publicdomain', 'pdm'):
+        return True
+    # CC BY y CC BY-SA son compatibles con la reutilización, pero BY-SA
+    # requiere cumplir la obligación ShareAlike sobre la adaptación.
+    return bool(re.fullmatch(r'ccby(?:sa)?(?:20|25|30|40)', compact))
+
+
+def photo_search_terms(event):
+    """Términos basados en lugar; sin afirmar que una foto sea del evento."""
+    parts = [clean(p) for p in event['location'].split(':') if clean(p)]
+    if not parts:
+        return []
+    country = parts[0]
+    if len(parts) == 1:
+        # Buscar solo país da fotos arbitrarias: preferir fondo neutral.
+        return []
+    region = parts[-1].split(',')[0].strip()
+    if len(normalized(region)) < 4:
+        return []
+    year = str(event['date'].year)
+    searches = [
+        (f'"{region}" "{country}" earthquake {year}', True),
+        (f'"{region}" "{country}"', False),
+        (f'"{region}" landscape', False),
+    ]
+    return [(region, country, query, historical) for query, historical in searches]
+
+
+def search_photo(event, destination):
+    """Selecciona foto de lugar en Commons; retorna metadatos o None.
+
+    Se requiere que el nombre regional figure en el título de Commons.
+    Esto reduce falsos positivos, pero no sustituye curación humana.
+    """
+    destination = Path(destination)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    forbidden = (
+        'map', 'diagram', 'chart', 'graph', 'logo', 'icon', 'flag',
+        'poster', 'drawing', 'illustration', 'satellite', 'locator',
+        'animation', 'coat of arms',
+    )
+    for region, country, query, historical in photo_search_terms(event):
+        try:
+            params = {
+                'action': 'query', 'format': 'json',
+                'generator': 'search', 'gsrsearch': query,
+                'gsrnamespace': 6, 'gsrlimit': 24,
+                'prop': 'imageinfo',
+                'iiprop': 'url|size|mime|extmetadata',
+                'iiurlwidth': 1600,
+                'iiextmetadatafilter':
+                    'LicenseShortName|LicenseUrl|Artist|AttributionRequired',
+            }
+            result = HTTP.get(COMMONS_API, params=params, timeout=(10, 25))
+            result.raise_for_status()
+            pages = result.json().get('query', {}).get('pages', {})
+            candidates = []
+            region_tokens = normalized(region)
+            country_tokens = normalized(country)
+            for page in pages.values():
+                title = page.get('title', '')
+                title_norm = normalized(title)
+                if not re.search(r'(?<!\w)' + re.escape(region_tokens) + r'(?!\w)', title_norm):
+                    continue
+                if any(re.search(r'\b' + re.escape(word) + r'\b', title_norm)
+                       for word in forbidden):
+                    continue
+                if not title.lower().endswith(('.jpg', '.jpeg', '.png', '.webp')):
+                    continue
+                info = (page.get('imageinfo') or [{}])[0]
+                metadata = info.get('extmetadata', {})
+                if not accepted_license(metadata):
+                    continue
+                if info.get('mime') not in ('image/jpeg', 'image/png', 'image/webp'):
+                    continue
+                width, height = int(info.get('width') or 0), int(info.get('height') or 0)
+                if width < 1080 or height < 650:
+                    continue
+                url = info.get('thumburl') or info.get('url')
+                if not url or not url.startswith('https://'):
+                    continue
+                score = min(width, 3000) / 1000
+                if country_tokens in title_norm:
+                    score += 2
+                if 'earthquake' in title_norm or 'terremoto' in title_norm:
+                    score += 2
+                if str(event['date'].year) in title_norm:
+                    score += 1
+                if width / max(1, height) >= 1.0:
+                    score += 0.3
+                candidates.append((score, title, url, info, metadata))
+            candidates.sort(key=lambda c: c[0], reverse=True)
+            for _, title, url, info, metadata in candidates[:7]:
+                try:
+                    response = HTTP.get(url, timeout=(12, 40))
+                    response.raise_for_status()
+                    if len(response.content) > 18_000_000:
+                        continue
+                    with Image.open(io.BytesIO(response.content)) as im:
+                        im.verify()
+                    with Image.open(io.BytesIO(response.content)) as im:
+                        picture = ImageOps.exif_transpose(im).convert('RGB')
+                        if min(picture.size) < 650:
+                            continue
+                        picture.save(destination, 'JPEG', quality=93, optimize=True)
+                    return {
+                        'path': str(destination),
+                        'title': title,
+                        'author': metadata_value(metadata, 'Artist') or 'Autor en Wikimedia Commons',
+                        'license': metadata_value(metadata, 'LicenseShortName'),
+                        'license_url': metadata_value(metadata, 'LicenseUrl'),
+                        'source_url': info.get('descriptionurl') or (
+                            COMMONS_FILE_BASE + urllib.parse.quote(title.replace(' ', '_'), safe=':')
+                        ),
+                        'kind': 'referential',
+                        'location': location_label(event['location']),
+                    }
+                except Exception as exc:
+                    log('FOTO DESCARTADA:', safe_error(exc))
+        except Exception as exc:
+            log('BUSQUEDA COMMONS NO DISPONIBLE:', safe_error(exc))
+    log('SIN FOTOGRAFIA PERTINENTE: se utilizará fondo gráfico.')
+    return None
+
+
+def draw_background_art(image):
     d = ImageDraw.Draw(image)
     for y in range(H):
         t = y / H
         d.line((0, y, W, y), fill=(int(15 + 15*t), int(15 + 20*t), int(48 + 29*t)))
-    # Relieve abstracto original, no fotografía engañosa del evento.
     for layer in range(7):
         coords = []
-        for x in range(-20, W+25, 15):
+        for x in range(-20, W + 25, 15):
             y = 520 + layer*96 + 54*math.sin(x/125 + layer*0.64) + 28*math.sin(x/49 + layer)
             coords.append((x, int(y)))
         coords.extend([(W, H), (0, H)])
         d.polygon(coords, fill=(28 + layer*7, 35 + layer*4, 75 + layer*8))
-    d.rectangle((0, 690, W, 1225), fill=(183, 0, 112))
-    d.rectangle((0, 690, W, 703), fill=(255, 78, 183))
-    heading = 'UN DÍA COMO HOY'
-    ft = font(65)
-    width = d.textbbox((0,0), heading, font=ft)[2]
-    d.text(((W-width)/2, 735), heading, font=ft, fill='white', stroke_width=2, stroke_fill='black')
-    label = f"TERREMOTO {event['magnitude']:.1f} en {location_label(event['location'])}"
-    chosen = None
-    for size in range(61, 23, -2):
-        ft = font(size)
-        lines = wrap(d, label, ft, W-100)
-        step = int(size*1.26)
-        if len(lines) <= 6 and len(lines)*step < 330:
-            chosen = (ft, lines, step)
-            break
-    if chosen is None:
-        raise ValueError('Localización demasiado larga para el banner')
-    ft, lines, step = chosen
-    y = 865 + (300-len(lines)*step)//2
-    for line in lines:
-        box = d.textbbox((0,0), line, font=ft, stroke_width=3)
-        d.text(((W-(box[2]-box[0]))/2, y), line, font=ft,
-               fill='white', stroke_width=3, stroke_fill='black')
-        y += step
-    d.rectangle((0, 1225, W, H), fill=(7, 12, 36))
-    footer = 'SISMONAUTA  |  EFEMÉRIDES SÍSMICAS'
-    ft = font(30)
-    d.text((44, 1265), footer, font=ft, fill='white')
+
+
+def create_image(event, path, use_photo=True):
+    """Diseño 1080x1350; foto pertinente y banner magenta de altura variable."""
+    path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    image.save(path, 'JPEG', quality=92, optimize=True)
+    photo_path = path.with_name(path.stem + '_foto.jpg')
+    photo = search_photo(event, photo_path) if use_photo else None
+    if photo:
+        with Image.open(photo_path) as source:
+            image = ImageOps.fit(
+                source.convert('RGB'), (W, H),
+                method=Image.Resampling.LANCZOS, centering=(0.5, 0.5)
+            )
+        log('FOTO SELECCIONADA:', photo['title'])
+    else:
+        image = Image.new('RGB', (W, H))
+        draw_background_art(image)
+
+    # Contraste gradual para banner y pie, sin ocultar el fondo central.
+    layer = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+    shade = ImageDraw.Draw(layer)
+    for y in range(H):
+        alpha = int(35 + 105*(y/H)**1.5)
+        shade.line((0, y, W, y), fill=(3, 7, 20, alpha))
+    image = Image.alpha_composite(image.convert('RGBA'), layer).convert('RGB')
+    d = ImageDraw.Draw(image)
+
+    heading = 'UN DÍA COMO HOY'
+    label = f"TERREMOTO {event['magnitude']:.1f} en {location_label(event['location'])}"
+    heading_font = font(61)
+    heading_height = d.textbbox((0, 0), heading, font=heading_font)[3]
+    selected = None
+    for size in range(60, 23, -2):
+        ft = font(size)
+        lines = wrap(d, label, ft, W - 100)
+        if len(lines) <= 5 and max(text_width(d, ln, ft) for ln in lines) <= W - 100:
+            line_height = d.textbbox((0, 0), 'Ág', font=ft)[3]
+            step = max(line_height + 1, int(size * 1.05))
+            if len(lines) * step <= 300:
+                selected = ft, lines, step
+                break
+    if selected is None:
+        ft = font(24)
+        lines = wrap(d, label, ft, W - 100)
+        step = d.textbbox((0, 0), 'Ág', font=ft)[3] + 2
+    else:
+        ft, lines, step = selected
+
+    # Se mide con la caja real, sin dejar una separación grande entre renglones.
+    top_padding, between, bottom_padding = 24, 13, 27
+    label_height = (len(lines) - 1) * step + d.textbbox((0, 0), 'Ág', font=ft)[3]
+    banner_height = top_padding + heading_height + between + label_height + bottom_padding
+    footer_top = 1235
+    banner_top = footer_top - banner_height
+
+    # Banner semiopaco, preservando parte de la foto tras el color.
+    banner = Image.new('RGBA', (W, banner_height), (183, 0, 112, 232))
+    image.paste(banner, (0, banner_top), banner)
+    d = ImageDraw.Draw(image)
+    d.rectangle((0, banner_top, W, banner_top + 7), fill=(255, 76, 180))
+
+    def centered(y, value, ft_used, stroke=2):
+        bounds = d.textbbox((0, 0), value, font=ft_used, stroke_width=stroke)
+        width = bounds[2] - bounds[0]
+        d.text(((W - width)/2 - bounds[0], y), value,
+               font=ft_used, fill='white', stroke_width=stroke,
+               stroke_fill=(17, 8, 30))
+
+    y = banner_top + top_padding
+    centered(y, heading, heading_font)
+    y += heading_height + between
+    for line in lines:
+        centered(y, line, ft)
+        y += step
+
+    d.rectangle((0, footer_top, W, H), fill=(7, 12, 36))
+    footer = 'SISMONAUTA  |  EFEMÉRIDES SÍSMICAS'
+    d.text((42, 1270), footer, font=font(29), fill='white')
+
+    if photo:
+        # Toda foto de Commons se identifica como referencial, incluso si
+        # su título menciona el terremoto (no está verificada editorialmente).
+        msg = 'FOTOGRAFÍA REFERENCIAL DEL LUGAR'
+        tag_font = font(22)
+        tag_w = int(text_width(d, msg, tag_font)) + 38
+        d.rounded_rectangle((30, 27, 30 + tag_w, 77), radius=10, fill=(7, 12, 31))
+        d.text((49, 39), msg, font=tag_font, fill='white')
+
+    image.save(path, 'JPEG', quality=93, optimize=True)
+    return photo
 
 
 class Github:
@@ -355,13 +585,15 @@ class Github:
             return put.json()
 
     def image_url(self, path, commit):
-        return 'https://raw.githubusercontent.com/' + self.repo + '/' + commit + '/' + urllib.parse.quote(path, safe='/')
+        return ('https://raw.githubusercontent.com/' + self.repo + '/' + commit + '/'
+                + urllib.parse.quote(path, safe='/'))
 
 
 def graph(method, path, token, fields=None, base=IG_BASE):
     url = f'{base}/{GRAPH_VERSION}/{path}'
     payload = dict(fields or {}, access_token=token)
-    res = requests.get(url, params=payload, timeout=50) if method == 'GET' else requests.post(url, data=payload, timeout=75)
+    res = (requests.get(url, params=payload, timeout=50)
+           if method == 'GET' else requests.post(url, data=payload, timeout=75))
     try:
         data = res.json()
     except ValueError:
@@ -415,10 +647,12 @@ def publish_fb(page, token, image_url, caption):
 
 
 def run_tests():
-    sample = ('index,Year,Mo,Dy,Mag,Location_Name,Deaths,Total_Deaths,Tsu,Focal_Depth_(km),Latitude,Longitude\n'
-              '0,1960,5,22,9.5,CHILE: VALDIVIA,1600,1655,NA,30,-39,-73\n'
-              '1,1900,5,22,8.5,JAPAN,NA,NA,NA,50,35,139\n'
-              '2,1930,2,28,8.2,PERU: LIMA,120,120,NA,40,-12,-77\n')
+    sample = (
+        'index,Year,Mo,Dy,Mag,Location_Name,Deaths,Total_Deaths,Tsu,Focal_Depth_(km),Latitude,Longitude\n'
+        '0,1960,5,22,9.5,CHILE: VALDIVIA,1600,1655,NA,30,-39,-73\n'
+        '1,1900,5,22,8.5,JAPAN,NA,NA,NA,50,35,139\n'
+        '2,1930,2,28,8.2,PERU: LIMA,120,120,NA,40,-12,-77\n'
+    )
     events = parse_catalog(sample)
     assert len(events) == 3
     event = choose_event(events, date(2026, 5, 22), 8.0, {'posts': {}})
@@ -428,7 +662,12 @@ def run_tests():
     assert choose_event(events, date(2026, 1, 1), 8.0, {'posts': {}}) is None
     assert choose_event(events, date(2026, 5, 22), 8.0,
                         {'posts': {f"2026-05-22:{event['id']}": {}}}) is None
-    log('PRUEBAS APROBADAS: fecha exacta, magnitud, fatalidades y antiduplicados')
+    assert photo_search_terms(event)
+    assert not photo_search_terms(events[1])  # país solo: no elegir fotos arbitrarias
+    assert accepted_license({'LicenseShortName': {'value': 'CC BY 4.0'}})
+    assert accepted_license({'LicenseShortName': {'value': 'CC BY-SA 4.0'}})
+    assert not accepted_license({'LicenseShortName': {'value': 'CC BY-NC 4.0'}})
+    log('PRUEBAS APROBADAS: fecha, magnitud, fatalidades, antiduplicados y fotos')
 
 
 def main():
@@ -439,6 +678,8 @@ def main():
     ap.add_argument('--date', help='YYYY-MM-DD; por defecto fecha en America/Santiago')
     ap.add_argument('--min-mag', type=float, default=8.0)
     ap.add_argument('--offline', action='store_true')
+    ap.add_argument('--no-photo', action='store_true',
+                    help='Desactiva Commons y utiliza fondo gráfico')
     args = ap.parse_args()
     run_tests()
     if args.test:
@@ -472,7 +713,16 @@ def main():
     label = location_label(event['location'])
     caption = event_caption(event, today)
     image_path = out/f"efemeride_{today.isoformat()}_{event['id']}.jpg"
-    create_image(event, image_path)
+    photo_info = create_image(event, image_path, use_photo=not args.no_photo)
+    if photo_info:
+        caption += (
+            '\n\n📷 Fotografía referencial del lugar. '
+            f"Autor: {photo_info['author']}. "
+            f"Licencia: {photo_info['license']}. "
+            f"Fuente: {photo_info['source_url']}"
+        )
+        if photo_info['license_url']:
+            caption += f"\nTérminos de licencia: {photo_info['license_url']}"
     payload = {
         'event': {**event, 'date': event['date'].isoformat()},
         'anniversary_years': today.year - event['date'].year,
@@ -482,15 +732,20 @@ def main():
         'source_url': CATALOG_INFO,
         'publication_date': today.isoformat(),
         'image': str(image_path),
+        'background_photo': photo_info,
     }
     atomic_json(out/'efemeride.json', payload)
     log('EFEMÉRIDE:', event['date'], 'M', event['magnitude'], label, 'fallecidos:', event['deaths'])
     if not args.publish:
-        atomic_json(out/'estado_publicacion.json', {'status': 'preview_only', 'published': False, 'image': str(image_path)})
+        atomic_json(out/'estado_publicacion.json', {
+            'status': 'preview_only', 'published': False, 'image': str(image_path)
+        })
         log('VISTA PREVIA: ninguna publicación enviada')
         return 0
     key = f"{today.isoformat()}:{event['id']}"
-    row = state['posts'].setdefault(key, {'targets': {'instagram': {'status': 'pending'}, 'facebook': {'status': 'pending'}}})
+    row = state['posts'].setdefault(key, {
+        'targets': {'instagram': {'status': 'pending'}, 'facebook': {'status': 'pending'}}
+    })
     targets = row.setdefault('targets', {})
     for platform in ('instagram', 'facebook'):
         targets.setdefault(platform, {'status': 'pending'})
@@ -504,7 +759,6 @@ def main():
     uploaded = gh.write(remote, image_path.read_bytes())
     commit = uploaded['commit']['sha']
     image_url = gh.image_url(remote, commit)
-    # raw.githubusercontent.com con SHA evita caché de una imagen antigua.
     good = False
     for attempt in range(7):
         try:
@@ -517,8 +771,10 @@ def main():
         time.sleep(4)
     if not good:
         raise RuntimeError('La imagen pública no está accesible para Meta')
-    row['event'] = {'date': event['date'].isoformat(), 'magnitude': event['magnitude'],
-                    'location': event['location'], 'deaths': event['deaths']}
+    row['event'] = {
+        'date': event['date'].isoformat(), 'magnitude': event['magnitude'],
+        'location': event['location'], 'deaths': event['deaths'],
+    }
     row['image_url'] = image_url
     gh.write(STATE_FILE, json.dumps(state, ensure_ascii=False, indent=2).encode())
     errors = []
@@ -540,8 +796,9 @@ def main():
             errors.append(f'{platform}: {safe_error(exc)}')
     complete = all(targets[p].get('status') == 'published' for p in ('instagram', 'facebook'))
     atomic_json(out/'estado_publicacion.json', {
-        'status': 'published' if complete else 'partial_or_uncertain', 'published': complete,
-        'date': today.isoformat(), 'event_id': event['id'], 'targets': targets,
+        'status': 'published' if complete else 'partial_or_uncertain',
+        'published': complete, 'date': today.isoformat(),
+        'event_id': event['id'], 'targets': targets,
     })
     if errors:
         raise RuntimeError('Publicación parcial; revisar Meta: ' + ' / '.join(errors))
