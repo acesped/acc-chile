@@ -512,22 +512,20 @@ def create_image(event, path):
     banner_top = footer_top - banner_height
 
     # Información geográfica: fuente exacta de la coordenada, no de foto.
-    plate_font = font(25)
+    # Solo se mantienen las coordenadas históricas: sin rótulo "EPICENTRO".
     source = epicenter['source']
     coords = (f"{abs(epicenter['latitude']):.3f}°{'N' if epicenter['latitude'] >= 0 else 'S'}  "
               f"{abs(epicenter['longitude']):.3f}°{'E' if epicenter['longitude'] >= 0 else 'O'}")
-    caption = f'EPICENTRO · {source}'
-    tb = d.textbbox((0,0), caption, font=plate_font)
-    dw = tb[2] - tb[0]
-    panel_w = max(dw, d.textbbox((0,0), coords, font=font(23))[2]) + 52
+    coord_font = font(23)
+    panel_w = d.textbbox((0, 0), coords, font=coord_font)[2] + 52
     panel_y = max(30, cy - 240)
-    d.rounded_rectangle((26, panel_y, 26 + panel_w, panel_y + 96),
-                        radius=17, fill=(7, 12, 36), outline=(255,255,255), width=2)
-    d.text((50, panel_y + 12), caption, font=plate_font, fill='white')
-    d.text((50, panel_y + 52), coords, font=font(23), fill='white')
+    d.rounded_rectangle((26, panel_y, 26 + panel_w, panel_y + 54),
+                        radius=17, fill=(7, 12, 36), outline=(255, 255, 255), width=2)
+    d.text((50, panel_y + 12), coords, font=coord_font, fill='white')
 
-    # Atribución obligatoria del mapa, dentro de la imagen (no pie del post).
-    attribution = '© OpenStreetMap contributors'
+    # Atribución abreviada admitida por OpenStreetMap para mapas estáticos.
+    # El texto "OpenStreetMap contributors" ya no se dibuja.
+    attribution = '© OpenStreetMap'
     at_font = font(19, bold=False)
     at_bb = d.textbbox((0, 0), attribution, font=at_font)
     d.rounded_rectangle((25, banner_top - 51, at_bb[2] + 49, banner_top - 10),
