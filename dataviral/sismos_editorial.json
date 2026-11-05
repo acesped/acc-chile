@@ -651,6 +651,16 @@
       "angle": "relieve",
       "time": "2026-11-05T06:01:50.529817+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-adbfd20dc73f",
+      "topic": "medicion:sismometros:aprendizaje",
+      "topic_key": "sismometros",
+      "title": "¿Qué podemos aprender hoy acerca de los sismómetros?",
+      "style": "mapa_explicado",
+      "angle": "aprendizaje",
+      "time": "2026-11-05T09:01:14.470755+00:00",
+      "status": "publicado"
     }
   ]
 }
