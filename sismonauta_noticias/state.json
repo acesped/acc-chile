@@ -862,6 +862,41 @@
         }
       }
     },
+    "5d356e2ed5d19009c725": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-04T18:00:02+00:00",
+        "description": "La NASA seleccionó a tres empresas el miércoles para realizar trabajos de desarrollo de conceptos de capacidad de retransmisión",
+        "explanation": "**NASA anuncia adjudicaciones de retransmisión satelital en banda Ka para comunicaciones espaciales** NASA ha seleccionado a tres empresas para desarrollar conceptos de capacidad de retransmisión espacial en banda Ka, asegurando la continuidad del servicio para las naves espaciales actuales sin necesidad de modificaciones en sus sistemas. Este anuncio se realizó el miércoles y forma parte del programa Next Space Technologies for Exploration Partnerships-3. Las empresas adjudicatarias son Astranis Space Technologies Corp., que recibirá $264.3 millones; Global Enterprise Solutions Inc., con un contrato de $340.4 millones; y Viasat Inc., que obtendrá $460.9 millones. Estos contratos son de precio fijo y permiten a NASA la opción de financiar el avance desde el desarrollo inicial hasta una demostración de vuelo en órbita. El periodo inicial de ejecución se extiende desde el 4 de noviembre de 2026 hasta el 3 de mayo de 2027, con opciones adicionales para continuar el trabajo hasta 2029. Esta iniciativa es parte del programa SCaN (Space Communications and Navigation) y busca reemplazar gradualmente la flota de satélites de seguimiento y datos, adoptando servicios comerciales para futuras misiones.",
+        "id": "5d356e2ed5d19009c725",
+        "image_headline": "NASA anuncia adjudicaciones de retransmisión satelital en banda Ka para comunicaciones espaciales",
+        "lang": "en",
+        "original_title": "NASA Announces Ka-Band Satellite Relay Awards for Space Communications",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "Credit: NASA NASA selected three companies on Wednesday to perform work to develop Ka-band space relay capability concepts that are compatible with current missions in space, ensuring service continuity for existing spacecraft without requiring modifications to their onboard systems. Through this work, NASA will aim to acquire end-to-end solutions that include space, ground, launch, operations, and integration elements, as one of many customers in the commercial marketplace. The awards, under the Next Space Technologies for Exploration Partnerships-3 Broad Agency Announcement Appendix E, are firm-fixed-price contracts that give NASA the option to provide additional funding up to the award limit to advance from initial concept development and risk reduction to an in-orbit flight demonstration. The initial period of performance runs from Nov. 4 through May 3, 2027, with additional priced options to continue work through 2029. The contract awardees with maximum potential value inclusive of all future options are: Astranis Space Technologies Corp. for $264.3 million. Global Enterprise Solutions Inc. for $340.4 million. Viasat Inc. for $460.9 million. Facilitated through the agency’s SCaN (Space Communications and Navigation) program’s Communications Services Project, this work supports NASA’s decision to gradually retire the Tracking and Data Relay Satellite fleet and adopt commercial services for future missions. In addition to the commercial capabilities currently under development by the program’s industry partners, Ka-band services are needed to support select in-orbit missions that cannot feasibly modify flight hardware or transition to non-compatible commercial services. To learn more about NASA’s Network Extension for User Continuity and Sustainability Ka-band service acquisition, visit: https://go.nasa.gov/4iVfeVB -end- Jennifer Dooren / Jessica Taveau Headquarters, Washington 202-358-1600 jennifer.m.dooren@nasa.gov / jessica.c.taveau@nasa.gov Share Details Last Updated Nov 04, 2026 Editor Jessica Taveau Location NASA Headquarters Related Terms Space Communications & Navigation Program Space Communications Technology",
+        "title": "NASA anuncia adjudicaciones de retransmisión satelital en banda Ka para comunicaciones espaciales",
+        "url": "https://www.nasa.gov/news-release/nasa-announces-ka-band-satellite-relay-awards-for-space-communications/"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "31162ca07a0b0702a30345a0c119cedc57c7b3f4e853f929196c4bc9a0ad49ec",
+        "source": "https://commons.wikimedia.org/wiki/File:Earth_from_space,_hurricane.jpg",
+        "title": "File:Earth from space, hurricane.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3b/Earth_from_space%2C_hurricane.jpg/1920px-Earth_from_space%2C_hurricane.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/5d356e2ed5d19009c725.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "61b9051e61adffdd0619": {
       "article": {
         "category": "oceanos",
