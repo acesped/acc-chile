@@ -627,7 +627,7 @@ def facebook_feed_text(article,instagram_caption):
     explanation=sanitize_explanation(article.get('explanation',''),article.get('title',''))
     explanation=sanitize_explanation(explanation,title)
     if words(explanation)<min_caption_words(article):raise ValueError('Texto del post sin desarrollo')
-    return ('📰 NOTICIA CIENTÍFICA | SISMONAUTA\n\n'+title+'\n\n'+explanation+
+    return ('📰 NOTICIAS | SISMONAUTA\n\n'+title+'\n\n'+explanation+
             '\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n'+HASHTAGS+' '+CATEGORY_HASHTAGS.get(article['category'],''))
 
 class Github:
