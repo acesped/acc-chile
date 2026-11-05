@@ -661,6 +661,16 @@
       "angle": "aprendizaje",
       "time": "2026-11-05T09:01:14.470755+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-929746125347",
+      "topic": "riesgo:peligro_riesgo:riesgo",
+      "topic_key": "peligro_riesgo",
+      "title": "¿Por qué conviene conocer mejor la amenaza y el riesgo sísmico?",
+      "style": "mito_realidad",
+      "angle": "riesgo",
+      "time": "2026-11-05T20:34:53.063890+00:00",
+      "status": "publicado"
     }
   ]
 }
