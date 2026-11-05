@@ -675,30 +675,56 @@ def graph(method,path,token,params=None,base=None):
     return data
 
 def ig_check():
-    """Verifica @sismonauta y un ID válido para Instagram Login.
+    """Verifica la cuenta y preserva el ID configurado que usaba el script original.
 
-    Meta puede devolver id (ID de login) y user_id (ID profesional).
-    No se publica si el nombre no coincide con la cuenta autorizada.
+    No sustituir INSTAGRAM_USER_ID por /me.id: ciertos tokens muestran
+    identificadores diferentes (id y user_id), y la ruta de publicación debe
+    mantener el ID profesional configurado previamente.
     """
     token=os.getenv('INSTAGRAM_TOKEN','').strip()
-    user=os.getenv('INSTAGRAM_USER_ID','').strip()
-    if not token or not user:
+    configured_id=os.getenv('INSTAGRAM_USER_ID','').strip()
+    if not token or not configured_id:
         raise RuntimeError('Instagram: faltan INSTAGRAM_TOKEN o INSTAGRAM_USER_ID')
-    info=graph('GET','me',token,{'fields':'id,user_id,username'})
+    if not configured_id.isdigit():
+        raise RuntimeError('Instagram: INSTAGRAM_USER_ID debe ser numérico')
+    try:
+        info=graph('GET','me',token,{'fields':'id,user_id,username'})
+    except RuntimeError as exc:
+        # Algunos tipos/versiones de API no exponen user_id en /me.
+        # No relajar la comprobación del nombre de usuario.
+        if 'user_id' not in str(exc).lower():
+            raise
+        info=graph('GET','me',token,{'fields':'id,username'})
     username=str(info.get('username') or '').strip().lstrip('@').lower()
-    ids={str(info.get(name) or '').strip() for name in ('id','user_id')}
-    ids.discard('')
     if username!=ACCOUNT:
         raise RuntimeError('Instagram: token de otra cuenta (esperada @'+ACCOUNT+')')
-    if user not in ids:
-        raise RuntimeError('Instagram: INSTAGRAM_USER_ID no coincide con id/user_id de @'+ACCOUNT)
-    # Instagram Login usa el ID de la cuenta devuelto por /me para las rutas
-    # /media y /media_publish; el secreto puede almacenar user_id profesional.
-    publish_id=str(info.get('id') or '').strip() or user
-    if not publish_id.isdigit():
-        raise RuntimeError('Instagram: ID de publicación no numérico')
-    log('INSTAGRAM: identidad verificada @'+ACCOUNT+'; ID configurado válido')
-    return publish_id,token
+    returned_ids={str(info.get(key) or '').strip() for key in ('id','user_id')}
+    returned_ids.discard('')
+    if configured_id not in returned_ids:
+        # Verificación adicional del ID del propio endpoint: la respuesta de
+        # /me puede exponer solo un ID con alcance distinto.
+        try:
+            profile=graph('GET',configured_id,token,{'fields':'id,username'})
+        except Exception as exc:
+            raise RuntimeError(
+                'Instagram: INSTAGRAM_USER_ID no coincide con los IDs de /me '
+                'y no se pudo confirmar directamente el ID configurado: '+safe_error(exc)
+            ) from exc
+        profile_username=str(profile.get('username') or '').strip().lstrip('@').lower()
+        if profile_username!=ACCOUNT or str(profile.get('id') or '')!=configured_id:
+            raise RuntimeError('Instagram: el ID configurado no corresponde a @'+ACCOUNT)
+    log('INSTAGRAM: cuenta @'+ACCOUNT+' verificada; se usará INSTAGRAM_USER_ID configurado')
+    return configured_id,token
+
+
+def check_instagram_only():
+    """Diagnóstico de lectura sin crear contenedores ni publicaciones."""
+    user,token=ig_check()
+    info=graph('GET',user,token,{'fields':'id,username'})
+    if str(info.get('username') or '').strip().lstrip('@').lower()!=ACCOUNT:
+        raise RuntimeError('Instagram: el endpoint de publicación no apunta a @'+ACCOUNT)
+    log('INSTAGRAM CHECK OK: identidad y endpoint de publicación verificados')
+    return True
 
 def fb_check():
     page=os.environ['FACEBOOK_PAGE_ID'];token=os.environ['FACEBOOK_PAGE_TOKEN']
@@ -1078,7 +1104,7 @@ def publish_article(gh,state,article,image_file,credit,description,output):
         if row.get('status')=='published':
             log('OMITIDO:',platform,'ya publicado');continue
         if row.get('status') in ('uncertain','enviando'):
-            log('OMITIDO:',platform,'estado incierto; revisar publicación manualmente');continue
+            log('OMITIDO:',platform,'estado incierto; revisar Meta y el historial para la noticia',article_id,'(NO se reintenta automáticamente)');continue
         if row.get('status') not in (None,'pending'):
             raise RuntimeError(platform+': estado desconocido; requiere revisión')
         # Credenciales inválidas NO son una publicación incierta.
@@ -1147,7 +1173,7 @@ def test_publication():
     with patch(__name__+'.graph',return_value={
         'id':'111111','user_id':'17840000000123456','username':'sismonauta'
     }),patch.dict(os.environ,{'INSTAGRAM_TOKEN':'test-token','INSTAGRAM_USER_ID':'17840000000123456'}):
-        assert ig_check()[0]=='111111'
+        assert ig_check()[0]=='17840000000123456'
     with patch(__name__+'.graph',return_value={
         'id':'111111','user_id':'17840000000123456','username':'otra_cuenta'
     }),patch.dict(os.environ,{'INSTAGRAM_TOKEN':'test-token','INSTAGRAM_USER_ID':'17840000000123456'}):
@@ -1289,12 +1315,20 @@ def test_headline_digest():
 def main():
     parser=argparse.ArgumentParser(description='SISMONAUTA noticias con foto y post público Facebook')
     parser.add_argument('--publish',action='store_true')
+    parser.add_argument('--check-instagram',action='store_true',help='Verificar cuenta y endpoint Instagram sin publicar')
+    parser.add_argument('--inspect-status',action='store_true',help='Mostrar estados remotos por destino sin publicar')
     parser.add_argument('--out',default='output_noticias')
     for flag in ('filter','diversity','headlines','extraction','fallback','headline-digest','direct-sources','priority-direct','best-available','direct-editorial','publication'):
         parser.add_argument('--test-'+flag,action='store_true')
     args=parser.parse_args()
     test_earthquake_filter()
     if args.test_filter:return 0
+    if args.check_instagram:check_instagram_only();return 0
+    if args.inspect_status:
+        gh=Github();status,_=load_state(gh)
+        for news_id,entry in list((status.get('stories') or {}).items())[-20:]:
+            print(news_id,{k:(entry.get('targets') or {}).get(k,{}).get('status','pending') for k in DESTINATIONS},flush=True)
+        return 0
     if args.test_publication:test_publication();return 0
     if args.test_priority_direct:test_priority_direct();return 0
     if args.test_headlines:test_headlines();return 0
