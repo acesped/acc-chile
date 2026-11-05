@@ -2394,6 +2394,43 @@
           "status": "published"
         }
       }
+    },
+    "fe260c658339e06af2f4": {
+      "article": {
+        "category": "desastres",
+        "date": "2026-11-04T20:22:45+00:00",
+        "description": "El modelado meteorológico de la NOAA alcanza un hito clave con el debut del Rapid Refresh Forecast System",
+        "editorial_mode": "documented_brief",
+        "explanation": "El modelado del clima de la NOAA alcanza un hito clave con el debut del Sistema de Pronóstico de Actualización Rápida. RRFS entrega pronósticos más tempranos y precisos para apoyar la protección de la vida y la propiedad. 5 de noviembre de 2026. Una nube de estante y una tormenta cruzan el río Hudson desde Jersey City, Nueva Jersey, hacia el bajo Manhattan, vista desde el mirador del piso 86 del Empire State Building el 07 de agosto de 2026, en la ciudad de Nueva York. (Crédito de la imagen: Gary Hershorn/Getty Images) La NOAA marcó un hito importante en el modelado numérico del clima el 3 de noviembre con la implementación de un sistema de pronóstico de actualización rápida de próxima generación por parte del Servicio Meteorológico Nacional (NWS) de la agencia. El nuevo Sistema de Pronóstico de Actualización Rápida (RRFS) combina muchas de las mayores fortalezas de los modelos regionales existentes de la NOAA para entregar los pronósticos más detallados, con actualizaciones horarias y de corto plazo en toda América del Norte, y con tiempos de anticipación de pronóstico más largos que otros modelos. RRFS reemplaza un mosaico de sistemas regionales envejecidos, avanzando en la evolución del sistema de modelos climáticos de la NOAA hacia un sistema de pronóstico unificado de global a local.",
+        "id": "fe260c658339e06af2f4",
+        "image_headline": "La NOAA lanza el Sistema de Pronóstico de Actualización Rápida, mejorando la precisión y rapidez de los pronósticos climáticos.",
+        "lang": "en",
+        "original_title": "NOAA weather modeling hits key milestone with Rapid Refresh Forecast System debut",
+        "search_category": "direct",
+        "source": "NOAA noticias",
+        "source_body": "",
+        "source_evidence_kind": "direct_rss_summary",
+        "title": "El modelamiento meteorológico de la NOAA alcanza un hito clave con el debut del Rapid Refresh Forecast System",
+        "url": "https://www.noaa.gov/news-release/noaa-weather-modeling-hits-key-milestone-with-rapid-refresh-forecast-system-debut"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "landslide mountain",
+        "sha256": "0e86b3a4843b6ca74ba980a7528034d6a27fd31863977e5d892e40f3b9bdb314",
+        "source": "https://commons.wikimedia.org/wiki/File:Landslide,_Neelum_River,_Pakistan,_Image_of_the_Day_DVIDS738421.jpg",
+        "title": "File:Landslide, Neelum River, Pakistan, Image of the Day DVIDS738421.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7b/Landslide%2C_Neelum_River%2C_Pakistan%2C_Image_of_the_Day_DVIDS738421.jpg/1920px-Landslide%2C_Neelum_River%2C_Pakistan%2C_Image_of_the_Day_DVIDS738421.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/fe260c658339e06af2f4.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
     }
   }
 }
