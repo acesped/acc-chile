@@ -1476,6 +1476,41 @@
         }
       }
     },
+    "af5f37092e93b6f5b96e": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-05T05:05:00+00:00",
+        "description": "* Faithful? Yes. * Chilean Spanish? Yes (date format,",
+        "explanation": "**TITULAR: APOD: 5 de noviembre de 2026 – Encélado en silueta**\n\nLa NASA destacó una imagen capturada por la sonda Cassini el 1 de noviembre de 2009, donde la luna Encélado aparece a contraluz. Esta iluminación dramática permite observar las plumas de material que brotan continuamente desde el polo sur de este satélite de Saturno, el cual posee un diámetro de 500 kilómetros.\n\nDescubiertas originalmente por Cassini en 2005, estas eyecciones de hielo estarían conectadas directamente a un océano ubicado bajo la corteza helada de la luna. El fenómeno tiene consecuencias físicas documentadas",
+        "id": "af5f37092e93b6f5b96e",
+        "image_headline": "La imagen de Encélado revela plumas de hielo, sugiriendo un océano bajo su superficie.",
+        "lang": "en",
+        "original_title": "APOD: 2026 November 5 – Enceladus in Silhouette",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "APOD Science APOD APOD: 2026 November 5 –… Today’s APOD Archive Submissions Index Search Calendar RSS Education About Discuss APOD Astronomy Picture of the Day Discover the cosmos! Each day a different image or photograph of our fascinating universe is featured, along with a brief explanation written by a professional astronomer. Enceladus in Silhouette Explanation: One of our Solar System’s most tantalizing worlds, Enceladus is backlit by the Sun in this Cassini spacecraft image from November 1, 2009. The dramatic illumination reveals the plumes that continuously spew into space from the south pole of Saturn’s 500 kilometer diameter moon . Discovered by Cassini in 2005, the icy plumes are likely connected to an ocean beneath the ice shell of Enceladus. They supply material directly to Saturn’s outer, tenuous E ring and make the surface of Enceladus as reflective as snow. Across the scene, Saturn’s icy rings scatter sunlight toward Cassini’s cameras. Beyond the rings (lower right), the night side of 80 kilometer diameter moon Pandora is faintly lit by Saturnlight . Tomorrow’s picture: pixels in space Date: November 5, 2026 Credit: Cassini Imaging Team , SSI , JPL , ESA , NASA Authors & editors: Jerry Bonnell, Cecilia Chirenti, Robert Nemiroff, Keighley Rockcliffe A service of: ASD at NASA / GSFC , NASA Science Activation & Michigan Tech. U. Random APOD Generator Yesterday’s Image APOD: 2026 November 4 – The Not-So-Hidden Galaxy, IC 342 Tomorrow’s Image",
+        "title": "APOD: 5 de noviembre de 2026 – Encélado en silueta",
+        "url": "https://science.nasa.gov/image-article/apod-2026-november-5-enceladus-in-silhouette/"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "860829c2691a57cadbbbb06249c6606207f183b475ca65b9de52674d992df8dc",
+        "source": "https://commons.wikimedia.org/wiki/File:City_Lights_of_the_United_States_2012.jpg",
+        "title": "File:City Lights of the United States 2012.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/18/City_Lights_of_the_United_States_2012.jpg/1920px-City_Lights_of_the_United_States_2012.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/af5f37092e93b6f5b96e.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "b5273b67f52da33d6451": {
       "article": {
         "category": "espacio",
