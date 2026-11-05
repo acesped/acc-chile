@@ -300,6 +300,43 @@
         }
       }
     },
+    "28315ffe3b3be15ec8fe": {
+      "article": {
+        "category": "sismos",
+        "date": "2026-11-05T15:00:12+00:00",
+        "description": "Large pedestrian crowds generate distinctive seismic signals depending on their collective behavior, according to a new study that includes data from Tokyo schools and outdoor gatherings in the United States and Israel. These seismic signals are strongest in the 1–2 hertz frequency band, which is consistent with human walking frequencies.",
+        "editorial_mode": "verified_summary",
+        "explanation": "Las grandes multitudes de peatones generan señales sísmicas distintivas dependiendo de su comportamiento colectivo, según un nuevo estudio que incluye datos de escuelas de Tokio y reuniones al aire libre en Estados Unidos e Israel. Estas señales sísmicas son más fuertes en la banda de frecuencia de 1 a 2 hertz, lo que es consistente con las frecuencias de caminata humana.",
+        "id": "28315ffe3b3be15ec8fe",
+        "image_headline": "La actividad coordinada le da a las grandes multitudes de peatones una firma sísmica distintiva.",
+        "lang": "en",
+        "original_title": "Coordinated activity gives large pedestrian crowds a distinctive seismic signature",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "source_evidence_kind": "direct_rss_summary",
+        "title": "La actividad coordinada le da a las grandes multitudes de peatones una firma sísmica distintiva.",
+        "url": "https://phys.org/news/2026-11-large-pedestrian-crowds-distinctive-seismic.html"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "earthquake fault landscape",
+        "sha256": "f21b5c7db009969f5e6a69f7a8f95a7a73ecd1ba60695d6a9814b74d2abfcdc8",
+        "source": "https://commons.wikimedia.org/wiki/File:Las_Cruces,_New_Mexico_(5653).jpg",
+        "title": "File:Las Cruces, New Mexico (5653).jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/c/cb/Las_Cruces%2C_New_Mexico_%285653%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/28315ffe3b3be15ec8fe.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "29da1733e551b03f56a9": {
       "article": {
         "category": "espacio",
