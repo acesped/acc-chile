@@ -671,6 +671,16 @@
       "angle": "riesgo",
       "time": "2026-11-05T20:34:53.063890+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-9c8821fd5d5b",
+      "topic": "ondas:ondas_s:lectura",
+      "topic_key": "ondas_s",
+      "title": "¿Cómo leer las pistas que deja las ondas S?",
+      "style": "mapa_explicado",
+      "angle": "lectura",
+      "time": "2026-11-05T21:40:10.488123+00:00",
+      "status": "publicado"
     }
   ]
 }
