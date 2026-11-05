@@ -59,9 +59,10 @@
       "updated_at": "2026-11-03T13:43:24.746930+00:00"
     },
     "1145909857984245_4412049602352070": {
-      "status": "uncertain",
+      "status": "published",
+      "reply_id": "1145909857984245_1152383177255443",
       "reply": "¡Gracias por compartir tu opinión! Nos alegra contar contigo en la comunidad SISMONAUTA. 🌎",
-      "updated_at": "2026-11-05T22:51:02.665115+00:00"
+      "updated_at": "2026-11-05T22:51:06.824178+00:00"
     }
   }
 }
