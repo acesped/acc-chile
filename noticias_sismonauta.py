@@ -627,7 +627,7 @@ def facebook_feed_text(article,instagram_caption):
     explanation=sanitize_explanation(article.get('explanation',''),article.get('title',''))
     explanation=sanitize_explanation(explanation,title)
     if words(explanation)<min_caption_words(article):raise ValueError('Texto del post sin desarrollo')
-    return ('🌎 SISMONAUTA | ACTUALIDAD CIENTÍFICA\n\n'+title+'\n\n'+explanation+
+    return ('📰 NOTICIA CIENTÍFICA | SISMONAUTA\n\n'+title+'\n\n'+explanation+
             '\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n'+HASHTAGS+' '+CATEGORY_HASHTAGS.get(article['category'],''))
 
 class Github:
@@ -707,15 +707,58 @@ def publish_fb(page,token,image_url,text):
     if not identifier:raise RuntimeError('Facebook foto: no devolvió identificador')
     return str(identifier)
 
-def publish_fb_feed(page,token,text):
-    """Publicación pública de TEXTO, sin foto, independiente de /photos."""
+def fb_feed_has_photo(page, token, post_id):
+    """Confirmar que el post realmente contiene una fotografía; no basta un ID."""
+    details=graph('GET',post_id,token,{
+        'fields':'id,is_published,attachments{type,media,target}'
+    },FB_BASE)
+    if details.get('is_published') is False:
+        raise RuntimeError('Facebook feed: Meta devolvió post no publicado')
+    attachments=(details.get('attachments') or {}).get('data') or []
+    photo_types={'photo','album','cover_photo','profile_media'}
+    has_photo=any(
+        (str(item.get('type') or '').lower() in photo_types)
+        or bool((item.get('media') or {}).get('image',{}).get('src'))
+        for item in attachments if isinstance(item,dict)
+    )
+    if not has_photo:
+        raise RuntimeError(
+            'Facebook feed: se creó un post pero la API NO confirmó imagen adjunta. '
+            'Revisar el post manualmente; no volver a publicar a ciegas'
+        )
+    return details
+
+
+def publish_fb_feed(page,token,image_url,text):
+    """Crear post público del feed con portada real adjunta y verificarla."""
     text=str(text or '').strip()
     if not text:raise RuntimeError('Facebook feed: mensaje vacío')
-    result=graph('POST',page+'/feed',token,{'message':text,'published':'true'},FB_BASE)
-    identifier=str(result.get('id') or '')
-    if not re.fullmatch(r'\d+_\d+',identifier):
-        raise RuntimeError('Facebook feed: no devolvió un ID de post válido')
-    return identifier
+    if not str(image_url or '').startswith('https://'):
+        raise RuntimeError('Facebook feed: URL HTTPS de portada inválida')
+
+    # Unpublished media para adjuntar al feed. No crea post fotográfico extra.
+    media=graph('POST',page+'/photos',token,{
+        'url':image_url,'published':'false'
+    },FB_BASE)
+    media_id=str(media.get('id') or '')
+    if not media_id.isdigit():
+        raise RuntimeError('Facebook feed: la foto no publicada no devolvió ID')
+    log('FACEBOOK FEED: foto cargada para adjuntar, ID:',media_id)
+
+    # Un post del feed independiente de la publicación /photos pública.
+    response=graph('POST',page+'/feed',token,{
+        'message':text,
+        'published':'true',
+        'attached_media[0]':json.dumps({'media_fbid':media_id}),
+    },FB_BASE)
+    post_id=str(response.get('id') or '')
+    if not re.fullmatch(r'\d+_\d+',post_id):
+        raise RuntimeError('Facebook feed: respuesta sin ID de publicación')
+    log('FACEBOOK FEED: post creado, verificando imagen:',post_id)
+    # La confirmación del ID no implica que aparezca la foto.
+    fb_feed_has_photo(page,token,post_id)
+    log('FACEBOOK FEED: imagen adjunta verificada:',post_id)
+    return post_id
 
 DESTINATIONS=('instagram','facebook','facebook_feed')
 
@@ -770,9 +813,9 @@ def diverse_order(articles,state):
 def pending_story_ids(state):
     ids=[]
     for key,entry in (state.get('stories') or {}).items():
-        if not isinstance(entry,dict) or has_uncertain(entry) or is_confirmed(entry):continue
+        if not isinstance(entry,dict) or is_confirmed(entry):continue
         targets=targets_of(entry)
-        if any(targets[d].get('status')=='published' for d in DESTINATIONS):ids.append(key)
+        if any(targets[d].get('status') in ('published','pending',None) for d in DESTINATIONS) and any(targets[d].get('status')=='published' for d in DESTINATIONS):ids.append(key)
     return ids
 
 def select_news(articles,state):
@@ -784,7 +827,8 @@ def select_news(articles,state):
         if is_earthquake_occurrence(original['title'],original.get('description',''),original.get('source','')):reasons['earthquake_occurrence']+=1;continue
         entry=(state.get('stories') or {}).get(original['id'],{})
         if is_confirmed(entry):reasons['already_published']+=1;continue
-        if has_uncertain(entry):reasons['uncertain_previous']+=1;continue
+        if has_uncertain(entry) and not entry.get('article',{}).get('explanation'):
+            reasons['uncertain_previous']+=1;continue
         article=dict(original)
         # Reusar exactamente el contenido ya guardado en el primer envío.
         if entry.get('article',{}).get('explanation'):
@@ -910,7 +954,7 @@ def select_headline_digest(articles,state):
     return None,None,None,None
 
 def publish_article(gh,state,article,image_file,credit,description,output):
-    """Instagram photo, Facebook photo and independent public Facebook text post.
+    """Instagram photo, Facebook photo and independent public Facebook post with image.
 
     Remote status is persisted BEFORE each API POST. Subsequent targets continue
     after an isolated API error; an ambiguous target cannot be retried blindly.
@@ -935,9 +979,9 @@ def publish_article(gh,state,article,image_file,credit,description,output):
         write_json(receipt_path,receipt)
         return receipt
     if has_uncertain(entry):
-        raise RuntimeError('Publicación previa incierta: revisar Meta antes de reintentar')
+        log('AVISO: destinos inciertos se omitirán sin reintento; se atenderán solo los pendientes')
     for dest in DESTINATIONS:
-        if targets[dest].get('status') not in (None,'pending','published'):
+        if targets[dest].get('status') not in (None,'pending','published','uncertain','enviando'):
             raise RuntimeError('Estado previo desconocido: '+dest)
 
     def persist():
@@ -951,7 +995,7 @@ def publish_article(gh,state,article,image_file,credit,description,output):
         write_json(receipt_path,result)
         return result
 
-    photo_pending=any(targets[name].get('status')!='published' for name in ('instagram','facebook'))
+    photo_pending=any(targets[name].get('status')!='published' for name in DESTINATIONS)
     image_url=entry.get('image_url') or ''
     if photo_pending:
         remote='sismonauta_noticias/images/'+article_id+'.jpg'
@@ -986,14 +1030,16 @@ def publish_article(gh,state,article,image_file,credit,description,output):
     actions=(
         ('instagram',lambda:publish_ig(ig_user,ig_token,image_url,caption_photo)),
         ('facebook',lambda:publish_fb(page,fb_token,image_url,caption_photo)),
-        ('facebook_feed',lambda:publish_fb_feed(page,fb_token,fb_text)),
+        ('facebook_feed',lambda:publish_fb_feed(page,fb_token,image_url,fb_text)),
     )
     failures=[]
     for platform,action in actions:
         row=targets[platform]
         if row.get('status')=='published':
             log('OMITIDO:',platform,'ya publicado');continue
-        if row.get('status')!='pending':
+        if row.get('status') in ('uncertain','enviando'):
+            log('OMITIDO:',platform,'estado incierto; revisar publicación manualmente');continue
+        if row.get('status') not in (None,'pending'):
             raise RuntimeError(platform+': estado desconocido; requiere revisión')
         # El POST aún no se hizo, pero no podemos asumir que no se hará
         # si se corta la ejecución al enviar o al guardar su resultado.
@@ -1019,27 +1065,37 @@ def publish_article(gh,state,article,image_file,credit,description,output):
 
 
 def test_publication():
-    """Pruebas sin red de migración de estados y endpoints Meta."""
+    """Pruebas sin red: foto, feed con adjunto, verificación y estados."""
     from unittest.mock import patch
     legacy={'targets':{'instagram':{'status':'published'},'facebook':{'status':'published'}}}
-    t=targets_of(legacy)
-    assert t['facebook_feed']['status']=='pending'
-    assert not is_confirmed(legacy) and not has_uncertain(legacy)
-    t['facebook_feed']={'status':'published','id':'123_456'}
-    assert is_confirmed(legacy)
-    t['facebook_feed']={'status':'uncertain'}
+    targets=targets_of(legacy)
+    assert targets['facebook_feed']['status']=='pending'
+    assert not is_confirmed(legacy)
+    targets['facebook_feed']={'status':'uncertain'}
     assert has_uncertain(legacy)
     calls=[]
     def mock_graph(method,path,token,params=None,base=None):
         calls.append((method,path,params,base))
-        return {'id':'123_456'} if path.endswith('/feed') else {'post_id':'123_456'}
+        if method=='GET':
+            return {'id':'123_456','is_published':True,
+                    'attachments':{'data':[{'type':'photo',
+                    'media':{'image':{'src':'https://example.org/photo.jpg'}}}]}}
+        if path.endswith('/feed'):return {'id':'123_456'}
+        if params.get('published')=='false':return {'id':'987654321'}
+        return {'post_id':'123_456'}
     with patch(__name__+'.graph',side_effect=mock_graph):
         assert publish_fb('123','secret','https://example.org/image.jpg','noticia')=='123_456'
-        assert publish_fb_feed('123','secret','noticia pública')=='123_456'
-    assert calls[0][1]=='123/photos' and calls[0][2]['published']=='true'
-    assert calls[1][1]=='123/feed' and calls[1][2]['published']=='true'
-    assert calls[1][2]['message']=='noticia pública' and 'url' not in calls[1][2]
-    log('PRUEBAS PUBLICACIÓN APROBADAS: IG foto, FB foto, FB post y antDuplicados')
+        assert publish_fb_feed('123','secret','https://example.org/image.jpg','texto distinto')=='123_456'
+    assert [x[1] for x in calls]==['123/photos','123/photos','123/feed','123_456']
+    assert calls[0][2]['published']=='true'
+    assert calls[1][2]['published']=='false'
+    assert json.loads(calls[2][2]['attached_media[0]'])=={'media_fbid':'987654321'}
+    assert calls[3][0]=='GET'
+    with patch(__name__+'.graph',return_value={'id':'123_456','attachments':{'data':[]}}):
+        try:fb_feed_has_photo('123','secret','123_456')
+        except RuntimeError as exc:assert 'NO confirmó imagen' in str(exc)
+        else:raise AssertionError('Se aceptó post sin fotografía')
+    log('PRUEBAS PUBLICACIÓN: IG/FB foto y feed con imagen verificada')
 
 def test_extraction():
     fixture='<html><body><article>'+''.join('<p>La investigación reunió datos de observatorios regionales y mediciones instrumentales. Los resultados muestran cambios documentados en la zona estudiada y permiten comparar registros históricos número %s.</p>'%i for i in range(6))+'</article></body></html>'
@@ -1196,9 +1252,26 @@ def main():
     # entre destinos y aún no se ha determinado si se puede reintentar.
     if args.publish and any(has_uncertain(x) for x in state['stories'].values() if isinstance(x,dict)):
         log('ADVERTENCIA: existen destinos inciertos. No se reintentarán automáticamente.')
+    # Primero completar destinos seguros pendientes de una noticia anterior.
+    # El RSS puede haber dejado de listar el artículo; se recupera del estado.
+    candidates=[]
+    if args.publish:
+        for old_id in pending_story_ids(state):
+            saved=state['stories'][old_id]
+            if saved.get('article',{}).get('explanation'):
+                candidates.append(saved['article'])
     articles=diverse_order(feed_items(),state)
-    log('NOTICIAS CANDIDATAS:',len(articles))
-    article,photo,credit,description,reasons=select_news(articles,state)
+    log('NOTICIAS CANDIDATAS:',len(articles),'| pendientes recuperables:',len(candidates))
+    article=photo=credit=description=None
+    reasons={'pending_from_state':len(candidates)}
+    if candidates:
+        saved=state['stories'][candidates[0]['id']]
+        article=dict(saved['article']);photo=None
+        credit=saved.get('image') or {'generated':True}
+        description=saved.get('caption') or caption(article,credit)
+        log('RECUPERANDO NOTICIA PARCIAL:',article['id'])
+    else:
+        article,photo,credit,description,reasons=select_news(articles,state)
     if article is None:
         log('SEGUNDO NIVEL: noticia documentada breve')
         article,photo,credit,description=select_documented_brief(articles,state)
@@ -1226,7 +1299,7 @@ def main():
         log('VISTA PREVIA COMPLETADA');return 0
     result=publish_article(gh,state,article,image_file,credit,description,output)
     if result['status']=='published':
-        log('PUBLICACIÓN CONFIRMADA: INSTAGRAM FOTO + FACEBOOK FOTO + FACEBOOK POST PÚBLICO');return 0
+        log('PUBLICACIÓN CONFIRMADA: INSTAGRAM FOTO + FACEBOOK FOTO + FACEBOOK POST PÚBLICO CON FOTO');return 0
     return 0 if result['status']=='already_published' else 1
 
 if __name__=='__main__':
