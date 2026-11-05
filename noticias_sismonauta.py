@@ -1082,6 +1082,91 @@ def test_diversity():
     assert diverse_order(sample,dummy)[0]['category']!='espacio'
     log('PRUEBAS DIVERSIDAD APROBADAS')
 
+
+def image_summary(text, min_words=45, max_words=75):
+    """Resumen extractivo conservado para compatibilidad editorial."""
+    phrases=re.split(r'(?<=[.!?])\s+', clean(text))
+    picked=[]; total=0
+    for sentence in phrases:
+        count=words(sentence)
+        if not count: continue
+        if total+count>max_words:
+            remaining=max_words-total
+            if total<min_words and remaining>=5:
+                picked.append(' '.join(sentence.split()[:remaining]).rstrip(',;:')+'…')
+            break
+        picked.append(sentence); total+=count
+        if total>=min_words: break
+    result=' '.join(picked).strip()
+    if words(result)<min_words:
+        result=' '.join(clean(text).split()[:max_words]).rstrip(',;:')+'…'
+    return result
+
+
+def test_direct_sources():
+    assert any('sciencedaily.com/rss/earth_climate.xml' in url for _,url in DIRECT_FEEDS)
+    assert any('phys.org/rss-feed/earth-news/' in url for _,url in DIRECT_FEEDS)
+    sample={'id':'direct-test','title':'Researchers discover changes in volcanic magma beneath a mountain',
+        'description':'Researchers report new scientific observations of volcanic magma below a mountain system. Satellite measurements document the changes and provide a basis for further geological analysis and monitoring.',
+        'category':'volcanes','lang':'en','source':'ScienceDaily Tierra y Clima','search_category':'direct',
+        'url':'https://www.sciencedaily.com/releases/example.htm','date':now().isoformat(),'source_body':''}
+    assert editorial_eligible(sample)
+    assert verified_summary_candidate(sample) is not None
+    assert diverse_order([sample,dict(sample,id='rss-test',search_category='rss')],{'stories':{}})[0]['search_category']=='direct'
+    log('PRUEBAS DE FUENTES DIRECTAS APROBADAS')
+
+
+def test_direct_editorial_recovery():
+    body=('Las observaciones satelitales documentaron cambios medibles en la superficie oceánica. '
+          'Los investigadores compararon registros instrumentales obtenidos durante varios años. '
+          'El estudio describe una metodología para medir variaciones mediante sensores remotos. '
+          'Los resultados permiten comprender mejor la evolución de procesos naturales. ')*4
+    sample={'id':'direct-recovery','title':'New observations reveal changes in coastal waters',
+        'description':'Satellite observations of coastal waters inform ocean science research.',
+        'category':'oceanos','lang':'en','source':'Centro científico','search_category':'direct',
+        'url':'https://example.org/study','date':now().isoformat(),'source_body':body}
+    assert source_text_sufficient(body)
+    assert editorial_eligible(sample)
+    assert not editorial_eligible(dict(sample,source_body='',title='Quarterly staff appointment at institute'))
+    log('PRUEBAS DE RECUPERACION EDITORIAL DIRECTA APROBADAS')
+
+
+def test_best_available():
+    from unittest.mock import patch
+    date=now().isoformat()
+    def item(identifier,title,summary):
+        return {'id':identifier,'title':title,'description':summary,'category':'volcanes',
+            'source':'Instituto geocientífico','url':'https://example.org/'+identifier,
+            'date':date,'lang':'es','search_category':'direct','source_body':''}
+    a=item('a','Investigación sobre monitoreo del volcán activo',
+       'El equipo desarrolla un sistema científico para estudiar la dinámica volcánica y mejorar mediciones locales mediante estaciones y observaciones.')
+    b=item('b','Científicos descubren nuevo sistema de monitoreo volcánico',
+       'Investigadores documentan nuevas mediciones de magma y volcanes mediante instrumentos geofísicos que permiten seguir las variaciones detectadas durante la investigación.')
+    assert evidence_score(b)>evidence_score(a)
+    with patch(__name__+'.commons_photo',return_value=(None,None)):
+        article,photo,credit,description=select_best_available([a,b],{'stories':{}})
+        assert article and article['id']=='b'
+        assert article['editorial_mode']=='verified_summary'
+        posted={'stories':{'b':{'targets':{d:{'status':'published'} for d in DESTINATIONS}}}}
+        second,_,_,_=select_best_available([a,b],posted)
+        assert second and second['id']=='a'
+    log('PRUEBAS MEJOR CANDIDATO APROBADAS')
+
+
+def test_headline_digest():
+    from unittest.mock import patch
+    article={'id':'test-rss','title':'Investigadores detectan nuevos cambios en glaciares del sur de Chile',
+        'description':'El equipo de investigación analizó mediciones de superficie y observaciones satelitales para estudiar los cambios detectados en glaciares. Los resultados permitirán mejorar las comparaciones científicas regionales.',
+        'category':'climatologia','lang':'es','source':'Medio científico','search_category':'rss',
+        'url':'https://example.org/actualidad','date':now().isoformat()}
+    with patch(__name__+'.commons_photo',return_value=(None,None)):
+        found,photo,credit,text=select_headline_digest([article],{'stories':{}})
+        assert found and found['editorial_mode']=='headline_digest'
+        assert text.count(article['title'])==1
+        posted={'stories':{'test-rss':{'targets':{d:{'status':'published'} for d in DESTINATIONS}}}}
+        assert select_headline_digest([article],posted)[0] is None
+    log('PRUEBAS RESPALDO TITULAR RSS APROBADAS')
+
 def main():
     parser=argparse.ArgumentParser(description='SISMONAUTA noticias con foto y post público Facebook')
     parser.add_argument('--publish',action='store_true')
@@ -1097,15 +1182,10 @@ def main():
     if args.test_extraction:test_extraction();return 0
     if args.test_fallback:test_fallback();return 0
     if args.test_diversity:test_diversity();return 0
-    if args.test_direct_sources:
-        assert any('sciencedaily.com/rss/earth_climate.xml' in u for _,u in DIRECT_FEEDS)
-        assert any('phys.org/rss-feed/earth-news/' in u for _,u in DIRECT_FEEDS)
-        log('PRUEBA FUENTES DIRECTAS APROBADA');return 0
-    if args.test_direct_editorial:
-        sample={'title':'New observations reveal changes in coastal waters','description':'Satellite observations inform ocean science research.','category':'oceanos','search_category':'direct','source_body':('Las observaciones satelitales documentaron cambios medibles en la superficie oceánica. Los investigadores compararon registros instrumentales obtenidos en diferentes campañas científicas. El estudio describe una metodología para medir variaciones mediante sensores remotos. Los resultados permiten comprender mejor la evolución de los procesos naturales. ')*4}
-        assert editorial_eligible(sample);log('PRUEBA EDITORIAL DIRECTA APROBADA');return 0
-    if args.test_headline_digest or args.test_best_available:
-        test_publication();test_headlines();return 0
+    if args.test_direct_sources:test_direct_sources();return 0
+    if args.test_direct_editorial:test_direct_editorial_recovery();return 0
+    if args.test_headline_digest:test_headline_digest();return 0
+    if args.test_best_available:test_best_available();return 0
 
     output=Path(args.out);output.mkdir(parents=True,exist_ok=True)
     (output/'estado_publicacion.json').unlink(missing_ok=True)
