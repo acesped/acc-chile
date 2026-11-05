@@ -1667,6 +1667,43 @@
         }
       }
     },
+    "b7aa1ad1c304bd61c640": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-04T14:00:01+00:00",
+        "description": "Un equipo de investigación liderado por el profesor Li Xiaofeng del Instituto de Oceanología de la Academia China de Ciencias (IOCAS) ha desarrollado un modelo para pronosticar ondas solitarias internas que se originan en múltiples fuentes en el Mar de Sulu. El modelo combina ecuaciones físicas y observaciones satelitales para predecir los tiempos de llegada de las olas y las posiciones de los crests en este complejo entorno marino.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Un equipo de investigación liderado por el profesor Li Xiaofeng del Instituto de Oceanología de la Academia China de Ciencias (IOCAS) ha desarrollado un modelo para pronosticar ondas solitarias internas que se originan en múltiples fuentes en el Mar de Sulu. El modelo combina ecuaciones físicas y observaciones satelitales para predecir los tiempos de llegada de las olas y las posiciones de los crests en este complejo entorno marino.",
+        "id": "b7aa1ad1c304bd61c640",
+        "image_headline": "Científicos crean un modelo para predecir ondas solitarias internas en el Mar de Sulu.",
+        "lang": "en",
+        "original_title": "Scientists develop novel model to forecast internal solitary waves from multiple sources in the Sulu Sea",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "source_evidence_kind": "direct_rss_summary",
+        "title": "Científicos desarrollan un nuevo modelo para pronosticar ondas solitarias internas de múltiples fuentes en el mar de Sulu.",
+        "url": "https://phys.org/news/2026-11-scientists-internal-solitary-multiple-sources.html"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "sea waves shore",
+        "sha256": "f0698164b65ec586c0f155d0cdbbe241e8a70319e4371ba0c64b4a55f80f5e56",
+        "source": "https://commons.wikimedia.org/wiki/File:Turner_-_Shore_Scene_with_Waves_and_Breakwater,_c.1835,_D36680.jpg",
+        "title": "File:Turner - Shore Scene with Waves and Breakwater, c.1835, D36680.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/3/32/Turner_-_Shore_Scene_with_Waves_and_Breakwater%2C_c.1835%2C_D36680.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/b7aa1ad1c304bd61c640.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "b8249d63af52eb76948d": {
       "article": {
         "date": "2026-10-26T13:29:52+00:00",
