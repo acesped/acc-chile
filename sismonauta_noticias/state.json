@@ -1545,6 +1545,41 @@
         }
       }
     },
+    "b8dab494e5247925d09f": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-05T01:43:21+00:00",
+        "description": "El miércoles, la NASA presentó su avión experimental más nuevo, el X-70 Fractal, durante la UP.",
+        "explanation": "**TITULAR: NASA presenta el avión experimental X-70 para impulsar la investigación en aviación**\n\nNASA ha revelado su nuevo avión experimental, el X-70 Fractal, durante el UP.Summit en el Centro Espacial Kennedy en Florida, el pasado miércoles. Este innovador avión, diseñado como una plataforma de investigación altamente adaptable, tiene como objetivo acelerar el desarrollo y la prueba de tecnologías avanzadas en aviación.\n\nEl X-70, que cuenta con un peso de despegue de 10,000 libras, es capaz de alcanzar velocidades de crucero de Mach 0.75 y altitudes de hasta 45,000 pies. Además, puede transportar hasta 2,000 libras de carga experimental, lo que le permite realizar una amplia gama de investigaciones y pruebas de vuelo. Jared Isaacman, administrador de NASA, destacó que esta plataforma permitirá explorar la maniobrabilidad de las aeronaves de maneras nunca antes vistas en vuelos tripulados.\n\nSe espera que el X-70 realice su primer vuelo bajo la bandera de NASA en los próximos dos años. Este nuevo avión se suma a una larga tradición de aeronaves experimentales que han contribuido a establecer el liderazgo de Estados Unidos en el ámbito de la aviación, desde el Bell X-1 hasta el X-59. Con el X-70, NASA busca expandir su capacidad para realizar investigaciones de vuelo experimentales y avanzar en la próxima generación de aviación estadounidense.",
+        "id": "b8dab494e5247925d09f",
+        "image_headline": "NASA presenta el X-70, un avión experimental que acelerará la investigación en tecnologías de aviación.",
+        "lang": "en",
+        "original_title": "NASA Announces X-70 Experimental Aircraft to Advance Flight Research",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "Generated image of NASA’s new X-70 Fractal experimental aircraft, a crewed, rapidly reconfigurable research platform for advanced aviation technologies. On Wednesday, NASA unveiled its newest experimental aircraft, the X-70 Fractal, during the UP.Summit at the agency’s Kennedy Space Center in Florida. This high-performance, highly adaptable research platform is designed to accelerate the development and testing of advanced aviation technologies. The crewed X-70 features advanced, rapidly reconfigurable flight-control technology that will allow NASA to explore aircraft maneuverability in ways never before demonstrated in crewed flight. The aircraft can also accommodate up to 2,000 pounds of experimental payloads in internal and external locations, enabling a wide range of research and flight-testing opportunities. “The X-70 Fractal gives NASA a crewed, high-performance platform to test advanced flight-control, maneuverability, and other cutting-edge technologies in real flight,” said NASA Administrator Jared Isaacman. “Its modular design and ability to rapidly swap internal and external payloads will keep our teams flying, learning, and moving quickly from one experiment to the next. We expect her first flight under the NASA banner within the next two years, and X-70 is just one part of this new beginning for aeronautics. This is why people come to NASA: to build, to learn, and most importantly, to fly.” The X-70 Fractal has a takeoff weight of 10,000 pounds and is designed to cruise at Mach .75, reach altitudes of up to 45,000 feet, and provide an operational range exceeding about 1,726 miles (1,500 nautical miles). These capabilities will enable NASA to conduct demanding flight research across a broad range of operating conditions. “For decades, NASA Aeronautics has used X-planes to develop technologies that advance aviation,” said Laurie Grindle, director of the Aeronautics Division within NASA’s Research and Technology Mission Directorate. “It’s exciting to bring on another X-plane to accelerate and drive aeronautics research.” The X-70 joins a storied legacy of experimental aircraft that have helped establish America’s leadership in aviation. From the Bell X-1, which first broke the sound barrier in 1947, to the X-15 hypersonic research aircraft and today’s X-59 quiet supersonic demonstrator, NASA has spent decades pushing the boundaries of flight. With the X-70, NASA will expand its capacity to conduct experimental flight research, accelerate the testing of emerging technologies, and advance the next generation of American aviation. For more information about NASA’s aeronautics research, visit: https://www.nasa.gov/aeronautics -end- George Alderman / Cheryl Warner Headquarters, Washington 202-358-1600 george.a.alderman@nasa.gov / cheryl.m.warner@nasa.gov Share Details Last Updated Nov 04, 2026 Editor Jennifer M. Dooren Location NASA Headquarters Related Terms Aeronautics Flight Innovation NASA Aircraft Research and Technology Mission Directorate Share Details Last Updated Nov 04, 2026 Editor Jennifer M. Dooren Location NASA Headquarters Related Terms Aeronautics Flight Innovation NASA Aircraft Research and Technology Mission Directorate",
+        "title": "NASA anuncia el avión experimental X-70 para avanzar en la investigación de vuelo",
+        "url": "https://www.nasa.gov/news-release/nasa-announces-x-70-experimental-aircraft-to-advance-flight-research/"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "81b687f0c2f85ffd62d46ce6ca604ccb19bbdc50837dabbeb2d3c700a817285b",
+        "source": "https://commons.wikimedia.org/wiki/File:North_America_from_low_orbiting_satellite_Suomi_NPP.jpg",
+        "title": "File:North America from low orbiting satellite Suomi NPP.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2c/North_America_from_low_orbiting_satellite_Suomi_NPP.jpg/1920px-North_America_from_low_orbiting_satellite_Suomi_NPP.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/b8dab494e5247925d09f.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "bd956d63c115dccaeb9d": {
       "article": {
         "category": "oceanos",
