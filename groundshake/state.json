@@ -1122,8 +1122,9 @@
       "topic": "medicion:sismometros:aprendizaje",
       "topic_key": "sismometros",
       "title": "¿Qué podemos aprender hoy acerca de los sismómetros?",
-      "reel": "enviando",
-      "updated_at": "2026-11-05T09:01:16.810107+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-05T09:02:35.583429+00:00",
+      "reel_id": "18127262827684557"
     }
   }
 }
