@@ -675,11 +675,30 @@ def graph(method,path,token,params=None,base=None):
     return data
 
 def ig_check():
-    token=os.environ['INSTAGRAM_TOKEN'];user=os.environ['INSTAGRAM_USER_ID']
-    info=graph('GET','me',token,{'fields':'id,username'})
-    if str(info.get('id'))!=str(user) or str(info.get('username','')).lower()!=ACCOUNT:
-        raise RuntimeError('Cuenta Instagram incorrecta')
-    log('Instagram @sismonauta verificado');return user,token
+    """Verifica @sismonauta y un ID válido para Instagram Login.
+
+    Meta puede devolver id (ID de login) y user_id (ID profesional).
+    No se publica si el nombre no coincide con la cuenta autorizada.
+    """
+    token=os.getenv('INSTAGRAM_TOKEN','').strip()
+    user=os.getenv('INSTAGRAM_USER_ID','').strip()
+    if not token or not user:
+        raise RuntimeError('Instagram: faltan INSTAGRAM_TOKEN o INSTAGRAM_USER_ID')
+    info=graph('GET','me',token,{'fields':'id,user_id,username'})
+    username=str(info.get('username') or '').strip().lstrip('@').lower()
+    ids={str(info.get(name) or '').strip() for name in ('id','user_id')}
+    ids.discard('')
+    if username!=ACCOUNT:
+        raise RuntimeError('Instagram: token de otra cuenta (esperada @'+ACCOUNT+')')
+    if user not in ids:
+        raise RuntimeError('Instagram: INSTAGRAM_USER_ID no coincide con id/user_id de @'+ACCOUNT)
+    # Instagram Login usa el ID de la cuenta devuelto por /me para las rutas
+    # /media y /media_publish; el secreto puede almacenar user_id profesional.
+    publish_id=str(info.get('id') or '').strip() or user
+    if not publish_id.isdigit():
+        raise RuntimeError('Instagram: ID de publicación no numérico')
+    log('INSTAGRAM: identidad verificada @'+ACCOUNT+'; ID configurado válido')
+    return publish_id,token
 
 def fb_check():
     page=os.environ['FACEBOOK_PAGE_ID'];token=os.environ['FACEBOOK_PAGE_TOKEN']
@@ -811,11 +830,18 @@ def diverse_order(articles,state):
 # Reutilizar un candidato pendiente: no seleccionar otra noticia si falta
 # completar un destino previo conocido. Nunca reintentar estados inciertos.
 def pending_story_ids(state):
+    """Solo prioriza noticias con un destino realmente pendiente.
+
+    Un destino incierto requiere revisión manual, pero no debe bloquear
+    indefinidamente la búsqueda de noticias nuevas si los demás acabaron.
+    """
     ids=[]
     for key,entry in (state.get('stories') or {}).items():
         if not isinstance(entry,dict) or is_confirmed(entry):continue
         targets=targets_of(entry)
-        if any(targets[d].get('status') in ('published','pending',None) for d in DESTINATIONS) and any(targets[d].get('status')=='published' for d in DESTINATIONS):ids.append(key)
+        if any(targets[d].get('status') in ('pending',None) for d in DESTINATIONS):
+            if any(targets[d].get('status') in ('published','uncertain','enviando') for d in DESTINATIONS):
+                ids.append(key)
     return ids
 
 def select_news(articles,state):
@@ -965,8 +991,8 @@ def publish_article(gh,state,article,image_file,credit,description,output):
     if words(article.get('explanation',''))<min_caption_words(article):
         raise RuntimeError('PUBLICACIÓN BLOQUEADA: desarrollo insuficiente')
 
-    ig_user,ig_token=ig_check()
-    page,fb_token=fb_check()
+    # Las credenciales se verifican por destino. Un fallo de Facebook
+    # no debe impedir Instagram, ni viceversa.
     # Lee la versión remota más reciente; no usar el estado que se cargó
     # antes de generar la portada si otra ejecución pudo actualizarlo.
     remote_state,sha=load_state(gh)
@@ -1027,10 +1053,24 @@ def publish_article(gh,state,article,image_file,credit,description,output):
     fb_text=facebook_feed_text(entry['article'],entry['caption'])
     caption_photo=entry['caption']
 
+    def send_instagram():
+        user,token=ig_check()
+        return publish_ig(user,token,image_url,caption_photo)
+    def send_facebook_photo():
+        page,token=fb_check()
+        return publish_fb(page,token,image_url,caption_photo)
+    def send_facebook_feed():
+        page,token=fb_check()
+        return publish_fb_feed(page,token,image_url,fb_text)
+    checks={
+        'instagram':ig_check,
+        'facebook':fb_check,
+        'facebook_feed':fb_check,
+    }
     actions=(
-        ('instagram',lambda:publish_ig(ig_user,ig_token,image_url,caption_photo)),
-        ('facebook',lambda:publish_fb(page,fb_token,image_url,caption_photo)),
-        ('facebook_feed',lambda:publish_fb_feed(page,fb_token,image_url,fb_text)),
+        ('instagram',send_instagram),
+        ('facebook',send_facebook_photo),
+        ('facebook_feed',send_facebook_feed),
     )
     failures=[]
     for platform,action in actions:
@@ -1041,8 +1081,17 @@ def publish_article(gh,state,article,image_file,credit,description,output):
             log('OMITIDO:',platform,'estado incierto; revisar publicación manualmente');continue
         if row.get('status') not in (None,'pending'):
             raise RuntimeError(platform+': estado desconocido; requiere revisión')
-        # El POST aún no se hizo, pero no podemos asumir que no se hará
-        # si se corta la ejecución al enviar o al guardar su resultado.
+        # Credenciales inválidas NO son una publicación incierta.
+        # Comprobar antes de marcar envío, para permitir una corrección segura.
+        try:
+            checks[platform]()
+        except Exception as exc:
+            row['error']=safe_error(exc)
+            failures.append(platform+': '+safe_error(exc))
+            persist();receipt()
+            log('VALIDACIÓN FALLIDA:',platform,safe_error(exc))
+            continue
+        # Persistir el riesgo de duplicación antes del primer POST.
         row['status']='uncertain';row['started_at']=now().isoformat();row.pop('error',None)
         persist();receipt()
         try:
@@ -1095,7 +1144,21 @@ def test_publication():
         try:fb_feed_has_photo('123','secret','123_456')
         except RuntimeError as exc:assert 'NO confirmó imagen' in str(exc)
         else:raise AssertionError('Se aceptó post sin fotografía')
-    log('PRUEBAS PUBLICACIÓN: IG/FB foto y feed con imagen verificada')
+    with patch(__name__+'.graph',return_value={
+        'id':'111111','user_id':'17840000000123456','username':'sismonauta'
+    }),patch.dict(os.environ,{'INSTAGRAM_TOKEN':'test-token','INSTAGRAM_USER_ID':'17840000000123456'}):
+        assert ig_check()[0]=='111111'
+    with patch(__name__+'.graph',return_value={
+        'id':'111111','user_id':'17840000000123456','username':'otra_cuenta'
+    }),patch.dict(os.environ,{'INSTAGRAM_TOKEN':'test-token','INSTAGRAM_USER_ID':'17840000000123456'}):
+        try:ig_check()
+        except RuntimeError as exc:assert 'otra cuenta' in str(exc)
+        else:raise AssertionError('Se aceptó Instagram de otra cuenta')
+    sample={'stories':{'p':{'targets':{
+        'instagram':{'status':'uncertain'},'facebook':{'status':'published'},
+        'facebook_feed':{'status':'published'}}}}}
+    assert pending_story_ids(sample)==[],'Una publicación incierta no puede bloquear noticias nuevas'
+    log('PRUEBAS PUBLICACIÓN: cuenta Instagram, fotos y feed independientes')
 
 def test_extraction():
     fixture='<html><body><article>'+''.join('<p>La investigación reunió datos de observatorios regionales y mediciones instrumentales. Los resultados muestran cambios documentados en la zona estudiada y permiten comparar registros históricos número %s.</p>'%i for i in range(6))+'</article></body></html>'
