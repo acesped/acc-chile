@@ -339,6 +339,43 @@
         }
       }
     },
+    "2946b6851eb28900c574": {
+      "article": {
+        "category": "sismos",
+        "date": "2026-11-05T18:20:05+00:00",
+        "description": "Researchers at the University of East London (UEL) have developed a new framework for assessing earthquake risks, using AI-assisted technology to examine how soil conditions, ground shaking and structural strength influence a building's ability to withstand seismic activity.",
+        "editorial_mode": "verified_summary",
+        "explanation": "Investigadores de la Universidad de East London (UEL) han desarrollado un nuevo marco para evaluar los riesgos sísmicos, utilizando tecnología asistida por IA para examinar cómo las condiciones del suelo, la sacudida del terreno y la resistencia estructural influyen en la capacidad de un edificio para soportar la actividad sísmica.",
+        "id": "2946b6851eb28900c574",
+        "image_headline": "Investigadores exploran cómo la IA podría mejorar la seguridad sísmica.",
+        "lang": "en",
+        "original_title": "Researchers explore how AI could improve earthquake safety",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "source_evidence_kind": "direct_rss_summary",
+        "title": "Investigadores exploran cómo la IA podría mejorar la seguridad sísmica.",
+        "url": "https://phys.org/news/2026-11-explore-ai-earthquake-safety.html"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "San Andreas Fault",
+        "sha256": "92f89eea17c1d5707aae3f9d8dea29139ded78f45dba565f523d3baa98ebde2e",
+        "source": "https://commons.wikimedia.org/wiki/File:San_Andreas_Fault_Aseismic_Creep.jpg",
+        "title": "File:San Andreas Fault Aseismic Creep.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/0/0d/San_Andreas_Fault_Aseismic_Creep.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/2946b6851eb28900c574.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "29da1733e551b03f56a9": {
       "article": {
         "category": "espacio",
