@@ -641,6 +641,16 @@
       "angle": "tiempo",
       "time": "2026-11-05T03:01:12.255972+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-8a37a119e5f9",
+      "topic": "fallas:falla_inversa:relieve",
+      "topic_key": "falla_inversa",
+      "title": "¿Qué relación guarda el paisaje con una falla inversa?",
+      "style": "mapa_explicado",
+      "angle": "relieve",
+      "time": "2026-11-05T06:01:50.529817+00:00",
+      "status": "publicado"
     }
   ]
 }
