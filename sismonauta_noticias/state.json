@@ -37,6 +37,43 @@
         }
       }
     },
+    "0523564834d99f128722": {
+      "article": {
+        "category": "geologia",
+        "date": "2026-11-04T16:00:34+00:00",
+        "description": "Research led by a University of Wollongong (UOW) Ph.D. candidate may have solved one of Earth's most perplexing geological mysteries: What caused the Great Unconformity?",
+        "editorial_mode": "verified_summary",
+        "explanation": "Una investigación liderada por un candidato a doctorado de la Universidad de Wollongong (UOW) podría haber resuelto uno de los misterios geológicos más desconcertantes de la Tierra: ¿Qué causó la Gran Disconformidad?",
+        "id": "0523564834d99f128722",
+        "image_headline": "Nuevo modelamiento vincula vacíos en el registro geológico de la Tierra con el ascenso y hundimiento de los continentes.",
+        "lang": "en",
+        "original_title": "New modeling links gaps in Earth's geological record to rising and sinking continents",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "source_evidence_kind": "direct_rss_summary",
+        "title": "Nuevo modelamiento vincula vacíos en el registro geológico de la Tierra con el ascenso y hundimiento de los continentes.",
+        "url": "https://phys.org/news/2026-11-links-gaps-earth-geological-continents.html"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "rock formations landscape",
+        "sha256": "35332bfb431b0d082361bc559ad4dcf962670ea54c87dd47be4081df165e0034",
+        "source": "https://commons.wikimedia.org/wiki/File:Basalt_rock_formations_scenics_landscapes.jpg",
+        "title": "File:Basalt rock formations scenics landscapes.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ee/Basalt_rock_formations_scenics_landscapes.jpg/1920px-Basalt_rock_formations_scenics_landscapes.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/0523564834d99f128722.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "10b5dc935e5c079f158d": {
       "article": {
         "category": "oceanos",
