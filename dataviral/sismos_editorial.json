@@ -621,6 +621,16 @@
       "angle": "origen",
       "time": "2026-11-04T09:01:25.654244+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-b84441b56d96",
+      "topic": "ondas:ondas_s:impacto",
+      "topic_key": "ondas_s",
+      "title": "¿Qué importancia tiene comprender las ondas S?",
+      "style": "mapa_explicado",
+      "angle": "impacto",
+      "time": "2026-11-05T00:01:56.304343+00:00",
+      "status": "publicado"
     }
   ]
 }
