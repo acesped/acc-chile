@@ -1880,6 +1880,41 @@
         }
       }
     },
+    "cb74bc01b99e88422592": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-05T15:11:25+00:00",
+        "description": "Los estudiantes en Florida escucharán a los astronautas de NASA Jessica Watkins y Luke Delaney mientras responden preguntas grabadas sobre STEM desde la Estación Espacial Internacional. La llamada de la Tierra al espacio comenzará a las 10:40 a.m. EST el martes 10 de noviembre y se transmitirá en vivo en el canal de YouTube Learn With NASA de la agencia. Este evento es organizado por Freedom Crossing Academy en […]",
+        "explanation": "**TITULAR: Astronautas de la NASA responderán preguntas de estudiantes de Florida** Estudiantes de Florida tendrán la oportunidad de interactuar con los astronautas de la NASA, Jessica Watkins y Luke Delaney, quienes responderán preguntas preregistradas desde la Estación Espacial Internacional (EEI). Este evento se llevará a cabo el martes 10 de noviembre a las 10:40 a.m. EST y será transmitido en vivo a través del canal de YouTube \"Learn With NASA\". La actividad, organizada por Freedom Crossing Academy en St. Johns, Florida, está dirigida a estudiantes desde kínder hasta 12° grado, así como a la comunidad en general. El objetivo es fomentar el interés en la exploración espacial y aumentar la conciencia sobre las carreras en ciencia, tecnología, ingeniería y matemáticas (STEM). Desde su lanzamiento, la EEI ha sido un laboratorio único donde se han realizado investigaciones que no podrían llevarse a cabo en la Tierra. Durante más de 26 años, ha permitido a los científicos avanzar en el conocimiento sobre los desafíos de los vuelos espaciales humanos y ha sentado las bases para futuras misiones a la Luna y Marte, en el marco del programa Artemis.",
+        "id": "cb74bc01b99e88422592",
+        "image_headline": "Estudiantes de Florida interactuarán con astronautas de la NASA desde la Estación Espacial Internacional.",
+        "lang": "en",
+        "original_title": "NASA Astronauts to Answer Questions from Florida Students",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "From left, SpaceX Crew-13 pilot Luke Delaney and commander Jessica Watkins, both NASA astronauts, are pictured in their pressure suits during a training session at SpaceX headquarters in Hawthorne, California. Credit: SpaceX Students in Florida will hear from NASA astronauts Jessica Watkins and Luke Delaney as they answer prerecorded STEM questions while aboard the International Space Station . The Earth-to-space call will begin at 10:40 a.m. EST Tuesday, Nov. 10, and will stream live on the agency’s Learn With NASA YouTube channel. This event is hosted by Freedom Crossing Academy in St. Johns, Florida, for students in grades K-12, and the community. This unique opportunity aims to deepen understanding of space exploration and enhance awareness of STEM careers. Media interested in covering the event must RSVP no later than 5 p.m. EST, Monday, Nov. 9, to Christina Upchurch at (904) 547-7517, or at christina.upchurch@stjohns.k12.fl.us . For more than 26 years, people have lived and worked continuously aboard the International Space Station, advancing scientific knowledge and making research breakthroughs not possible on Earth. The space station helps NASA understand and overcome the challenges of human spaceflight, expand commercial opportunities in low Earth orbit, and build on the foundation for long-duration missions to the Moon, as part of the Artemis program, and to Mars. For more information on NASA in-flight calls, visit: https://www.nasa.gov/stemonstation Share Details Last Updated Nov 05, 2026 Location NASA Headquarters Related Terms Learning Resources Humans in Space In-flight Education Downlinks",
+        "title": "Astronautas de la NASA responderán preguntas de estudiantes de Florida",
+        "url": "https://www.nasa.gov/learning-resources/nasa-astronauts-to-answer-questions-from-florida-students-2/"
+      },
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "7e503ba0688b6b07f069560c679006a30eca266c7514267744ebb260c1c64219",
+        "source": "https://commons.wikimedia.org/wiki/File:Blue_Marble_Eastern_Hemisphere.jpg",
+        "title": "File:Blue Marble Eastern Hemisphere.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4e/Blue_Marble_Eastern_Hemisphere.jpg/1920px-Blue_Marble_Eastern_Hemisphere.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/cb74bc01b99e88422592.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "cbb939871c7536ee4bb3": {
       "article": {
         "category": "sismos",
