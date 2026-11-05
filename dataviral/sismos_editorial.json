@@ -631,6 +631,16 @@
       "angle": "impacto",
       "time": "2026-11-05T00:01:56.304343+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-c96fdcb09654",
+      "topic": "tectonica:colision_continental:tiempo",
+      "topic_key": "colision_continental",
+      "title": "¿Qué cambia con el tiempo al analizar la colisión continental?",
+      "style": "descubrimiento",
+      "angle": "tiempo",
+      "time": "2026-11-05T03:01:12.255972+00:00",
+      "status": "publicado"
     }
   ]
 }
