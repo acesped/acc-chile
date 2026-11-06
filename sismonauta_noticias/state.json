@@ -2717,6 +2717,43 @@
         }
       }
     },
+    "d1d988fc5869132e8728": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-10-28T01:40:35+00:00",
+        "description": "El asteroide que mató a los dinosaurios pudo haber preparado el escenario para que las hormigas conquistaran el planeta, con un sorprendente impulso de \"genes saltarines\" ocultos en su ADN. Los científicos descubrieron que los estallidos de actividad de estos elementos genéticos móviles coincidieron con el surgimiento de grupos importantes de hormigas y pudieron haber ayudado a agudizar su extraordinaria capacidad para comunicarse a través del olfato.",
+        "explanation": "**El asteroide que mató a los dinosaurios puede haber ayudado a las hormigas a conquistar el mundo**\n\nUn estudio reciente sugiere que el impacto de un asteroide hace 66 millones de años, que marcó el fin de los dinosaurios, también pudo haber facilitado la evolución y expansión de las hormigas. Investigadores del Instituto de Evolución y Biodiversidad de la Universidad de Münster han encontrado que los elementos genéticos móviles, conocidos como \"genes saltarines\", jugaron un papel crucial en esta diversificación.\n\nLos genes saltarines son segmentos de ADN que pueden moverse dentro del genoma y multiplicarse. Aunque anteriormente se consideraban parásitos genómicos, investigaciones recientes indican que pueden impulsar cambios evolutivos. Al comparar diferentes grupos de hormigas, los científicos notaron que aquellos con mayor cantidad de estos genes también presentaban más especies actuales.\n\nAdemás, se descubrió que durante el Paleógeno, varios linajes de hormigas experimentaron aumentos en la actividad de los genes saltarines, justo antes de que comenzaran a diversificarse en miles de especies. Este fenómeno sugiere una conexión entre los cambios ambientales provocados por el impacto del asteroide y la posterior evolución de las hormigas.\n\nLos hallazgos también revelan que estos genes están relacionados con la expansión de familias de genes que permiten a las hormigas comunicarse a través de señales químicas, esenciales para su comportamiento social. Así, los genes saltarines podrían haber mejorado la capacidad de las hormigas para interpretar mensajes químicos, facilitando su éxito como uno de los grupos de insectos más diversos del planeta.",
+        "id": "d1d988fc5869132e8728",
+        "image_headline": "El impacto del asteroide que extinguió a los dinosaurios facilitó la diversificación de las hormigas.",
+        "lang": "en",
+        "original_title": "The asteroid that killed the dinosaurs may have helped ants conquer the world",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/10/261026225608.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Ambiente",
+        "source_body": "",
+        "title": "El asteroide que mató a los dinosaurios puede haber ayudado a las hormigas a conquistar el mundo.",
+        "url": "https://www.sciencedaily.com/releases/2026/10/261026225608.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nEl impacto del asteroide que extinguió a los dinosaurios facilitó la diversificación de las hormigas.\n\nEl asteroide que mató a los dinosaurios puede haber ayudado a las hormigas a conquistar el mundo Un estudio reciente sugiere que el impacto de un asteroide hace 66 millones de años, que marcó el fin de los dinosaurios, también pudo haber facilitado la evolución y expansión de las hormigas. Investigadores del Instituto de Evolución y Biodiversidad de la Universidad de Münster han encontrado que los elementos genéticos móviles, conocidos como \"genes saltarines\", jugaron un papel crucial en esta diversificación. Los genes saltarines son segmentos de ADN que pueden moverse dentro del genoma y multiplicarse. Aunque anteriormente se consideraban parásitos genómicos, investigaciones recientes indican que pueden impulsar cambios evolutivos. Al comparar diferentes grupos de hormigas, los científicos notaron que aquellos con mayor cantidad de estos genes también presentaban más especies actuales. Además, se descubrió que durante el Paleógeno, varios linajes de hormigas experimentaron aumentos en la actividad de los genes saltarines, justo antes de que comenzaran a diversificarse en miles de especies. Este fenómeno sugiere una conexión entre los cambios ambientales provocados por el impacto del asteroide y la posterior evolución de las hormigas. Los hallazgos también revelan que estos genes están relacionados con la expansión de familias de genes que permiten a las hormigas comunicarse a través de señales químicas, esenciales para su comportamiento social. Así, los genes saltarines podrían haber mejorado la capacidad de las hormigas para interpretar mensajes químicos, facilitando su éxito como uno de los grupos de insectos más diversos del planeta.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "b9a1228a5957cfade55cd19656ae3b0cab0237a4be71634e3095102921187253",
+        "source": "https://commons.wikimedia.org/wiki/File:The_Earth_seen_from_Apollo_17.jpg",
+        "title": "File:The Earth seen from Apollo 17.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/97/The_Earth_seen_from_Apollo_17.jpg/1920px-The_Earth_seen_from_Apollo_17.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/d1d988fc5869132e8728.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "d4b3fdad4063c0ca50a2": {
       "article": {
         "category": "desastres",
