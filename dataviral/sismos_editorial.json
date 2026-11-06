@@ -691,6 +691,16 @@
       "angle": "impacto",
       "time": "2026-11-06T00:01:22.634380+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-49e911292c8c",
+      "topic": "riesgo:prediccion:investigacion",
+      "topic_key": "prediccion",
+      "title": "¿Por qué se investiga las predicciones sísmicas?",
+      "style": "microdocumental",
+      "angle": "investigacion",
+      "time": "2026-11-06T06:01:09.450930+00:00",
+      "status": "publicado"
     }
   ]
 }
