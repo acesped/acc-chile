@@ -1273,8 +1273,10 @@
           "status": "published"
         },
         "facebook_feed": {
+          "id": "305263296226466_1146138897961341",
+          "published_at": "2026-11-06T03:01:51.590039+00:00",
           "started_at": "2026-11-06T03:01:44.407468+00:00",
-          "status": "uncertain"
+          "status": "published"
         },
         "instagram": {
           "id": "18474802729184050",
