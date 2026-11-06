@@ -1688,6 +1688,46 @@
         }
       }
     },
+    "9022b395cb1565fe8831": {
+      "article": {
+        "category": "climatologia",
+        "date": "2026-10-30T11:34:16+00:00",
+        "description": "Es posible que los científicos hayan resuelto un misterio de 66 millones de años: cómo los coc",
+        "explanation": "**El asteroide mató a los dinosaurios. ¿Por qué sobrevivieron los cocodrilos?**\n\nUn nuevo estudio sugiere que la preferencia de los cocodrilos por ambientes cálidos les otorgó una ventaja crucial durante la extinción masiva que acabó con los dinosaurios hace 66 millones de años. Investigadores de University College London analizaron más de 7,000 fósiles y registros de más de 400 especies, tanto vivas como extintas, para entender cómo los cocodrilos y sus parientes sobrevivieron a este evento catastrófico.\n\nLos resultados indican que, tras el impacto del asteroide, las regiones tropicales y subtropicales continuaron siendo adecuadas para los parientes de los cocodrilos, a diferencia de muchos dinosaurios que vieron deteriorar sus hábitats. Las simulaciones climáticas sugieren que áreas cercanas al ecuador pudieron haber mantenido temperaturas cálidas, proporcionando refugios esenciales para las poblaciones sobrevivientes.\n\nAdemás, se identificaron características que podrían haber mejorado las posibilidades de supervivencia de los cocodrilos, como su tamaño relativamente pequeño, la capacidad de vivir parcialmente en el agua y sus modestos requerimientos energéticos. Este estudio no solo arroja luz sobre la historia evolutiva de los cocodrilos, sino que también plantea interrogantes sobre cómo responderán a los cambios climáticos actuales, dado que la urbanización y la agricultura limitan su movilidad hacia hábitats adecuados.",
+        "id": "9022b395cb1565fe8831",
+        "image_headline": "Investigaciones revelan que los cocodrilos sobrevivieron al impacto del asteroide por su preferencia por climas cálidos.",
+        "lang": "en",
+        "original_title": "The asteroid killed the dinosaurs. Why did crocodiles survive?",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/10/261030002922.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "El asteroide mató a los dinosaurios. ¿Por qué sobrevivieron los cocodrilos?",
+        "url": "https://www.sciencedaily.com/releases/2026/10/261030002922.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CLIMATOLOGÍA\n\nInvestigaciones revelan que los cocodrilos sobrevivieron al impacto del asteroide por su preferencia por climas cálidos.\n\nUn nuevo estudio sugiere que la preferencia de los cocodrilos por ambientes cálidos les otorgó una ventaja crucial durante la extinción masiva que acabó con los dinosaurios hace 66 millones de años. Investigadores de University College London analizaron más de 7,000 fósiles y registros de más de 400 especies, tanto vivas como extintas, para entender cómo los cocodrilos y sus parientes sobrevivieron a este evento catastrófico. Los resultados indican que, tras el impacto del asteroide, las regiones tropicales y subtropicales continuaron siendo adecuadas para los parientes de los cocodrilos, a diferencia de muchos dinosaurios que vieron deteriorar sus hábitats. Las simulaciones climáticas sugieren que áreas cercanas al ecuador pudieron haber mantenido temperaturas cálidas, proporcionando refugios esenciales para las poblaciones sobrevivientes. Además, se identificaron características que podrían haber mejorado las posibilidades de supervivencia de los cocodrilos, como su tamaño relativamente pequeño, la capacidad de vivir parcialmente en el agua y sus modestos requerimientos energéticos. Este estudio no solo arroja luz sobre la historia evolutiva de los cocodrilos, sino que también plantea interrogantes sobre cómo responderán a los cambios climáticos actuales, dado que la urbanización y la agricultura limitan su movilidad hacia hábitats adecuados.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Climatologia #Clima #CambioClimatico #Glaciares",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "glacier landscape",
+        "sha256": "d61cda3defe24cdad701da8fee7dadf69889e76fec08f9e85ae583d2d4986209",
+        "source": "https://commons.wikimedia.org/wiki/File:Mountain_Glacier_Landscape_(from_AvoPix).jpg",
+        "title": "File:Mountain Glacier Landscape (from AvoPix).jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3e/Mountain_Glacier_Landscape_%28from_AvoPix%29.jpg/1920px-Mountain_Glacier_Landscape_%28from_AvoPix%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/9022b395cb1565fe8831.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "9516f95dceb2e7f19838": {
       "article": {
         "category": "volcanes",
