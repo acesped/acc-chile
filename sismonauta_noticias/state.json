@@ -626,6 +626,43 @@
         }
       }
     },
+    "2ec25919e16be266d1b6": {
+      "article": {
+        "category": "sismos",
+        "date": "2026-11-06T10:00:08+00:00",
+        "description": "University of Oregon geologist Becky Dorsey's latest research sheds light on the Siculo-Calabrian rift zone, a belt of faults spanning more than 100 miles (160 kilometers) in southern Italy. The new data could help improve earthquake hazard assessment in this seismically active region.",
+        "editorial_mode": "documented_brief",
+        "explanation": "La geóloga de la Universidad de Oregón, Becky Dorsey, presenta su última investigación sobre la zona de rift Siculo-Calabresa, un cinturón de fallas que abarca más de 100 millas (160 kilómetros) en el sur de Italia. Los nuevos datos podrían ayudar a mejorar la evaluación del riesgo sísmico en esta región de alta actividad sísmica.",
+        "id": "2ec25919e16be266d1b6",
+        "image_headline": "Las terrazas de gran altitud sugieren un levantamiento más rápido de lo esperado en el sur de Italia.",
+        "lang": "en",
+        "original_title": "High-elevation terraces suggest faster-than-expected uplift in southern Italy",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Las terrazas de gran altitud sugieren un levantamiento más rápido de lo esperado en el sur de Italia.",
+        "url": "https://phys.org/news/2026-11-high-elevation-terraces-faster-uplift.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA SÍSMICA\n\nLas terrazas de gran altitud sugieren un levantamiento más rápido de lo esperado en el sur de Italia.\n\nLa geóloga de la Universidad de Oregón, Becky Dorsey, presenta su última investigación sobre la zona de rift Siculo-Calabresa, un cinturón de fallas que abarca más de 100 millas (160 kilómetros) en el sur de Italia. Los nuevos datos podrían ayudar a mejorar la evaluación del riesgo sísmico en esta región de alta actividad sísmica.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Sismos #Terremotos #Sismologia #Geofisica #Tectonica",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "San Andreas Fault",
+        "sha256": "5153cabdbb2bae1d3e48608a146b6dedbf5d1b3aed2f6060caf77804043afa25",
+        "source": "https://commons.wikimedia.org/wiki/File:San_Andreas_Fault_Index_Map.jpg",
+        "title": "File:San Andreas Fault Index Map.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/5/5c/San_Andreas_Fault_Index_Map.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/2ec25919e16be266d1b6.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "387d174500fb09b687b7": {
       "article": {
         "date": "2026-10-27T03:05:05+00:00",
