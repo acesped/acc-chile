@@ -645,21 +645,56 @@ class Github:
         r.raise_for_status();j=r.json()
         return base64.b64decode(j['content']),j['sha']
     def write(self,path,raw,expected_sha=None):
-        """CAS si se conoce SHA. No reintentar una escritura remota incierta."""
+        """Write with compare-and-swap and safe retries on transient conflicts.
+
+        A PUT may succeed while its response is lost. Always re-read before
+        retrying. Never replace a different remote state under a newer SHA.
+        """
         path=str(path);raw=bytes(raw)
-        previous,sha=self.read(path)
-        if previous==raw:return {'content':{'sha':sha},'unchanged':True}
-        if expected_sha is not None and sha!=expected_sha:
-            raise RuntimeError('GitHub: estado modificado por otra ejecución; no sobrescribir')
-        body={'message':'SISMONAUTA noticias: '+path,'branch':self.branch,'content':base64.b64encode(raw).decode('ascii')}
-        if sha:body['sha']=sha
-        r=self.session.put(self.endpoint(path),json=body,timeout=60)
-        if r.status_code in (409,422):raise RuntimeError('GitHub: conflicto de escritura; revisar concurrencia')
-        if not r.ok:
-            # Una escritura de estado puede haberse completado aunque la API responda error.
-            # Nunca repetir automáticamente sin leer el estado remoto.
-            raise RuntimeError(f'GitHub escritura HTTP {r.status_code}; comprobar archivo remoto')
-        return r.json()
+        for attempt in range(8):
+            previous,sha=self.read(path)
+            if previous==raw:
+                return {'content':{'sha':sha},'unchanged':True}
+            if expected_sha is not None and sha!=expected_sha:
+                raise RuntimeError(
+                    'GitHub: el archivo '+path+' cambió durante esta ejecución '
+                    '(SHA distinto); no se sobrescribirá ni duplicará publicación. '
+                    'Serializar los workflows que modifican '+STATE_FILE
+                )
+            body={'message':'SISMONAUTA noticias: '+path,
+                  'branch':self.branch,
+                  'content':base64.b64encode(raw).decode('ascii')}
+            if sha:body['sha']=sha
+            try:
+                response=self.session.put(self.endpoint(path),json=body,timeout=60)
+            except requests.RequestException as exc:
+                log('GITHUB PUT: respuesta de red incierta',path,'intento',attempt+1)
+                # Re-read next iteration: if remote contains raw, it succeeded.
+                if attempt==7:
+                    current,_=self.read(path)
+                    if current==raw:return {'content':{'sha':self.read(path)[1]},'unchanged':True}
+                    raise RuntimeError('GitHub: PUT sin confirmación para '+path+'; revisar estado remoto') from exc
+                time.sleep(min(2**attempt,20))
+                continue
+            if response.ok:
+                return response.json()
+            if response.status_code in (409,422,429,500,502,503,504):
+                log('GITHUB PUT:',path,'HTTP',response.status_code,
+                    'intento',attempt+1,'de 8; comprobando archivo remoto')
+                current,current_sha=self.read(path)
+                if current==raw:
+                    return {'content':{'sha':current_sha},'unchanged':True}
+                if expected_sha is not None and current_sha!=expected_sha:
+                    raise RuntimeError('GitHub: otro proceso cambió '+path+
+                        '; no se sobrescribirá. Configurar concurrency en Actions')
+                if attempt<7:
+                    retry_after=response.headers.get('Retry-After','')
+                    delay=float(retry_after) if retry_after.isdigit() else min(2**(attempt+1),30)
+                    time.sleep(min(delay,60))
+                    continue
+            raise RuntimeError('GitHub PUT '+path+': HTTP '+str(response.status_code)+
+                '; revisar permisos Contents:write, reglas de rama y workflows simultáneos')
+        raise RuntimeError('GitHub: no se pudo persistir '+path+' tras 8 intentos')
     def image_url(self,path):
         return 'https://raw.githubusercontent.com/'+self.repo+'/'+urllib.parse.quote(self.branch,safe='')+'/'+urllib.parse.quote(path,safe='/')
 
