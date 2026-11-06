@@ -128,8 +128,10 @@
           "status": "published"
         },
         "facebook_feed": {
+          "id": "305263296226466_1146398631268701",
+          "published_at": "2026-11-06T09:02:12.811735+00:00",
           "started_at": "2026-11-06T09:02:05.978037+00:00",
-          "status": "uncertain"
+          "status": "published"
         },
         "instagram": {
           "id": "18047641148826728",
