@@ -888,28 +888,41 @@ def diverse_order(articles,state):
     log('PRIORIZACIÓN:',len(result),'noticias, directas:',sum(a.get('search_category')=='direct' for a in result))
     return result
 
-# Reutilizar un candidato pendiente: no seleccionar otra noticia si falta
-# completar un destino previo conocido. Nunca reintentar estados inciertos.
-def pending_story_ids(state):
-    """Solo prioriza noticias con un destino realmente pendiente.
+# Recuperar primero solo noticias cuyo envío a Instagram está realmente pendiente.
+# Una cola antigua con únicamente Facebook pendiente no puede detener nuevas fotos IG.
+def instagram_pending(entry):
+    return (entry.get('targets') or {}).get('instagram', {}).get('status', 'pending') in (None, 'pending')
 
-    Un destino incierto requiere revisión manual, pero no debe bloquear
-    indefinidamente la búsqueda de noticias nuevas si los demás acabaron.
+
+def pending_story_ids(state):
+    """Recuperaciones que todavía necesitan publicar la foto en Instagram.
+
+    No reintentar Instagram si está publicado, enviando o incierto.
+    Los pendientes exclusivos de Facebook permanecen intactos en state.json.
     """
     ids=[]
     for key,entry in (state.get('stories') or {}).items():
         if not isinstance(entry,dict) or is_confirmed(entry):continue
-        targets=targets_of(entry)
-        if any(targets[d].get('status') in ('pending',None) for d in DESTINATIONS):
-            if any(targets[d].get('status') in ('published','uncertain','enviando') for d in DESTINATIONS):
+        if not instagram_pending(entry):continue
+        targets=entry.get('targets') or {}
+        if any((targets.get(d) or {}).get('status') in ('published','uncertain','enviando')
+               for d in DESTINATIONS if d!='instagram'):
+            if (entry.get('article') or {}).get('explanation'):
                 ids.append(key)
     return ids
+
+
+def instagram_candidate_allowed(original,state):
+    """No reciclar una noticia para la que Instagram ya fue enviada."""
+    prior=(state.get('stories') or {}).get(original.get('id'),{})
+    return instagram_pending(prior)
 
 def select_news(articles,state):
     reasons={'earthquake_occurrence':0,'already_published':0,'uncertain_previous':0,'source_too_short':0,'no_development':0,'invalid_caption':0,'generated_backgrounds':0}
     pending=set(pending_story_ids(state))
     for original in articles[:MAX_ARTICLES]:
         if pending and original['id'] not in pending:continue
+        if not instagram_candidate_allowed(original,state):continue
         if not editorial_eligible(original):continue
         if is_earthquake_occurrence(original['title'],original.get('description',''),original.get('source','')):reasons['earthquake_occurrence']+=1;continue
         entry=(state.get('stories') or {}).get(original['id'],{})
@@ -962,6 +975,7 @@ def select_documented_brief(articles,state):
     pending=set(pending_story_ids(state))
     for original in articles[:MAX_ARTICLES]:
         if pending and original['id'] not in pending:continue
+        if not instagram_candidate_allowed(original,state):continue
         if not editorial_eligible(original):continue
         previous=(state.get('stories') or {}).get(original['id'],{})
         if is_confirmed(previous) or has_uncertain(previous):continue
@@ -986,6 +1000,7 @@ def select_verified_brief(articles,state):
     pending=set(pending_story_ids(state))
     for original in articles[:MAX_ARTICLES]:
         if pending and original['id'] not in pending:continue
+        if not instagram_candidate_allowed(original,state):continue
         previous=(state.get('stories') or {}).get(original['id'],{})
         if is_confirmed(previous) or has_uncertain(previous):continue
         evidence=verified_summary_candidate(original)
@@ -1008,6 +1023,7 @@ def select_best_available(articles,state):
     pending=set(pending_story_ids(state));ranked=[]
     for original in articles:
         if pending and original['id'] not in pending:continue
+        if not instagram_candidate_allowed(original,state):continue
         if original.get('search_category')!='direct' or not editorial_eligible(original):continue
         previous=(state.get('stories') or {}).get(original['id'],{})
         if is_confirmed(previous) or has_uncertain(previous):continue
@@ -1028,6 +1044,7 @@ def select_headline_digest(articles,state):
     pending=set(pending_story_ids(state))
     for original in articles[:MAX_ARTICLES]:
         if pending and original['id'] not in pending:continue
+        if not instagram_candidate_allowed(original,state):continue
         if not editorial_eligible(original):continue
         previous=(state.get('stories') or {}).get(original['id'],{})
         if is_confirmed(previous) or has_uncertain(previous):continue
@@ -1219,6 +1236,17 @@ def test_publication():
         'instagram':{'status':'uncertain'},'facebook':{'status':'published'},
         'facebook_feed':{'status':'published'}}}}}
     assert pending_story_ids(sample)==[],'Una publicación incierta no puede bloquear noticias nuevas'
+    fb_backlog={'stories':{'old':{'article':{'explanation':'noticia histórica'},'targets':{
+        'instagram':{'status':'published'},'facebook':{'status':'published'},
+        'facebook_feed':{'status':'pending'}}}}}
+    assert pending_story_ids(fb_backlog)==[], 'Facebook pendiente bloquea nuevas fotos Instagram'
+    assert not instagram_candidate_allowed({'id':'old'},fb_backlog)
+    ig_recovery={'stories':{'old':{'article':{'explanation':'noticia histórica'},'targets':{
+        'instagram':{'status':'pending'},'facebook':{'status':'published'},
+        'facebook_feed':{'status':'pending'}}}}}
+    assert pending_story_ids(ig_recovery)==['old'], 'Instagram pendiente no se recupera'
+    assert instagram_candidate_allowed({'id':'old'},ig_recovery)
+    log('SELECCIÓN IG: pendientes reales priorizados, cola solo Facebook no bloquea Instagram')
     log('PRUEBAS PUBLICACIÓN: cuenta Instagram, fotos y feed independientes')
 
 def test_extraction():
@@ -1393,7 +1421,7 @@ def main():
             if saved.get('article',{}).get('explanation'):
                 candidates.append(saved['article'])
     articles=diverse_order(feed_items(),state)
-    log('NOTICIAS CANDIDATAS:',len(articles),'| pendientes recuperables:',len(candidates))
+    log('NOTICIAS CANDIDATAS:',len(articles),'| publicaciones de Instagram pendientes recuperables:',len(candidates))
     article=photo=credit=description=None
     reasons={'pending_from_state':len(candidates)}
     if candidates:
@@ -1401,7 +1429,7 @@ def main():
         article=dict(saved['article']);photo=None
         credit=saved.get('image') or {'generated':True}
         description=saved.get('caption') or caption(article,credit)
-        log('RECUPERANDO NOTICIA PARCIAL:',article['id'])
+        log('RECUPERANDO NOTICIA CON INSTAGRAM PENDIENTE:',article['id'])
     else:
         article,photo,credit,description,reasons=select_news(articles,state)
     if article is None:
