@@ -1763,8 +1763,10 @@
           "status": "published"
         },
         "facebook_feed": {
+          "id": "305263296226466_1146796761228888",
+          "published_at": "2026-11-06T17:01:45.482178+00:00",
           "started_at": "2026-11-06T17:01:39.385504+00:00",
-          "status": "uncertain"
+          "status": "published"
         },
         "instagram": {
           "id": "18436401232146928",
