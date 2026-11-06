@@ -1032,6 +1032,45 @@
         }
       }
     },
+    "54564717c22e494a13fc": {
+      "article": {
+        "category": "meteorologia",
+        "date": "2026-11-06T05:05:00+00:00",
+        "description": "APOD Ciencia APOD APOD: 6 de noviembre de 2026 – A… Archivo de APOD Envíos Índice Buscar Calendario RSS Educación Acerca de Discutir APOD Imagen Astronómica del Día ¡Descubre el cosmos! Cada día se presenta una imagen o fotografía diferente de nuestro fascinante universo, junto con una breve explicación escrita por un astrónomo profesional. Una despedida […]",
+        "explanation": "**APOD: 6 de noviembre de 2026 – Un adiós a Swift**\n\nEl 4 de noviembre de 2026, el observatorio Neil Gehrels Swift de la NASA reingresó a la atmósfera terrestre, marcando el fin de una misión que duró casi 22 años. Este satélite, que se destacó por su capacidad de observar explosiones cósmicas de gran energía, dejó un legado invaluable en el estudio del universo.\n\nSwift contaba con una combinación de instrumentos, incluyendo telescopios de rayos X y gamma, que permitieron a los científicos investigar fenómenos como las explosiones de rayos gamma con un nivel de detalle sin precedentes. La reciente actividad solar, que incluyó un máximo solar, aceleró la degradación de su órbita, lo que llevó a la decisión de intentar una misión de rescate que, lamentablemente, no tuvo éxito.\n\nA pesar de su desaparición, los datos recopilados por Swift seguirán iluminando el camino para futuras investigaciones. Su legado no solo reside en los descubrimientos realizados, sino también en la inspiración que brinda para nuevas misiones espaciales. La comunidad científica espera que estos avances continúen impulsando la exploración del cosmos.",
+        "id": "54564717c22e494a13fc",
+        "image_headline": "El satélite Swift de NASA reingresó a la atmósfera tras 22 años de importantes descubrimientos astronómicos.",
+        "lang": "en",
+        "original_title": "APOD: 2026 November 6 – A Farewell to Swift",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "APOD Science APOD APOD: 2026 November 6 – A… Today’s APOD Archive Submissions Index Search Calendar RSS Education About Discuss APOD Astronomy Picture of the Day Discover the cosmos! Each day a different image or photograph of our fascinating universe is featured, along with a brief explanation written by a professional astronomer. A Farewell to Swift Explanation: It is time to say goodbye to NASA ‘s Neil Gehrels Swift Observatory . After nearly 22 years of service, the satellite re-entered Earth’s atmosphere on November 4 at 7:39 EST over the North Sumatra region of Indonesia . The featured image is a mosaic created in 2018 using the first one million images captured by the satellite’s Ultraviolet/Optical Telescope . Swift had a combination of instruments, including an X-ray telescope and a gamma-ray telescope , that worked together to enable humanity to study, in unprecedented detail, the fastest and most energetic explosions in the universe. The most recent solar maximum accelerated the decay of the satellite’s orbit. An innovative mission to rescue Swift by boosting its orbit was not successful . Swift burned on reentry like a shooting star, but the impressive data acquired by the telescope over its mission will continue to bring light to the mysteries of the cosmos for years to come. May it keep inspiring new missions to boldly go into space, explore new data and seek out new science. Tomorrow’s picture: what’s next? Date November 6, 2026 Credit NASA / Swift and AndreaMosaic Authors & editors: Cecilia Chirenti, Robert Nemiroff, Jerry Bonnell, Keighley Rockcliffe A service of: ASD at NASA / GSFC , NASA Science Activation & Michigan Tech. U. Random APOD Generator Yesterday’s Image APOD: 2026 November 5 – Enceladus in Silhouette Tomorrow’s Image",
+        "title": "APOD: 6 de noviembre de 2026 – Un adiós a Swift",
+        "url": "https://science.nasa.gov/image-article/apod-2026-november-6-a-farewell-to-swift/"
+      },
+      "caption": "🌎 SISMONAUTA | METEOROLOGÍA\n\nEl satélite Swift de NASA reingresó a la atmósfera tras 22 años de importantes descubrimientos astronómicos.\n\nEl 4 de noviembre de 2026, el observatorio Neil Gehrels Swift de la NASA reingresó a la atmósfera terrestre, marcando el fin de una misión que duró casi 22 años. Este satélite, que se destacó por su capacidad de observar explosiones cósmicas de gran energía, dejó un legado invaluable en el estudio del universo. Swift contaba con una combinación de instrumentos, incluyendo telescopios de rayos X y gamma, que permitieron a los científicos investigar fenómenos como las explosiones de rayos gamma con un nivel de detalle sin precedentes. La reciente actividad solar, que incluyó un máximo solar, aceleró la degradación de su órbita, lo que llevó a la decisión de intentar una misión de rescate que, lamentablemente, no tuvo éxito. A pesar de su desaparición, los datos recopilados por Swift seguirán iluminando el camino para futuras investigaciones. Su legado no solo reside en los descubrimientos realizados, sino también en la inspiración que brinda para nuevas misiones espaciales. La comunidad científica espera que estos avances continúen impulsando la exploración del cosmos.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Meteorologia #Tiempo #Tormentas #Atmosfera",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "storm clouds landscape",
+        "sha256": "688d9a9222ab303f90b42fff48434d818abd8db6dc1f6b5d38f7ff391ba72e99",
+        "source": "https://commons.wikimedia.org/wiki/File:Storm_Clouds_MET_DP847086.jpg",
+        "title": "File:Storm Clouds MET DP847086.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cd/Storm_Clouds_MET_DP847086.jpg/1920px-Storm_Clouds_MET_DP847086.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/54564717c22e494a13fc.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "5781b17e9606a0796510": {
       "article": {
         "date": "2026-10-26T12:29:58+00:00",
