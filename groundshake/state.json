@@ -1285,6 +1285,13 @@
       "facebook_story": "publicado",
       "facebook_story_id": "1443992213844631",
       "youtube_short": "aplazado"
+    },
+    "sismos-e025f1fd09ea": {
+      "topic": "fallas:falla_inversa:fundamentos",
+      "topic_key": "falla_inversa",
+      "title": "¿Qué principios científicos ayudan a explicar una falla inversa?",
+      "reel": "enviando",
+      "updated_at": "2026-11-06T15:01:08.773040+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-07T12:03:16.722243+00:00"
