@@ -741,6 +741,16 @@
       "angle": "comparacion",
       "time": "2026-11-06T18:11:51.787545+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-6b1f4e217e2d",
+      "topic": "tectonica:subduccion:contexto",
+      "topic_key": "subduccion",
+      "title": "¿En qué contexto aparece la subducción?",
+      "style": "descubrimiento",
+      "angle": "contexto",
+      "time": "2026-11-06T21:01:03.519403+00:00",
+      "status": "publicado"
     }
   ]
 }
