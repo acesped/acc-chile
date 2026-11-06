@@ -2595,7 +2595,8 @@
           "status": "pending"
         },
         "instagram": {
-          "status": "pending"
+          "started_at": "2026-11-06T20:35:30.307715+00:00",
+          "status": "uncertain"
         }
       }
     },
