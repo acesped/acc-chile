@@ -28,6 +28,7 @@ import sys
 import time
 import unicodedata
 import urllib.parse
+import uuid
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -791,8 +792,20 @@ def save_post_state(gh, key, row):
             previous = targets.get(platform) or {}
             if previous.get('status') in ('published', 'uncertain') and proposed.get('status') == 'pending':
                 continue
-            if previous.get('status') == 'published' and proposed.get('status') != 'published':
-                continue
+            if previous.get('status') == 'uncertain':
+                # Un envío reservado por otro proceso no puede ser usurpado
+                # ni marcado como publicado por un proceso diferente.
+                previous_attempt = previous.get('attempt_id')
+                proposed_attempt = proposed.get('attempt_id')
+                if not previous_attempt or previous_attempt != proposed_attempt:
+                    continue
+            if previous.get('status') == 'published':
+                # Un ID remoto confirmado tiene prioridad sobre snapshots
+                # antiguos, incluso cuando ambos indican 'published'.
+                if proposed.get('status') != 'published' or (
+                    previous.get('id') and proposed.get('id') != previous.get('id')
+                ):
+                    continue
             targets[platform] = dict(proposed)
         merged['targets'] = targets
         posts[key] = merged
@@ -888,7 +901,20 @@ def publish_event(gh, state, event, today, image_path, caption, out):
         target['status'] = 'uncertain'
         target.pop('error', None)
         target['attempted_at'] = datetime.now(timezone.utc).isoformat()
+        target['attempt_id'] = uuid.uuid4().hex
+        own_attempt = target['attempt_id']
         save_post_state(gh, key, row)
+        # Tras fusionar el estado remoto, otro workflow puede haber publicado
+        # este destino. Nunca hacer una segunda llamada a Meta en ese caso.
+        # Si el estado remoto no coincide con el intento que acabamos de
+        # reservar, NO efectuar el envío: requiere revisión de concurrencia.
+        if target.get('status') == 'published':
+            log('OMITIDO POR CONCURRENCIA:', platform, 'ya publicado remotamente')
+            continue
+        if target.get('status') != 'uncertain' or target.get('attempt_id') != own_attempt:
+            errors.append(platform + ': la reserva de publicación pertenece a otro proceso')
+            log('RESERVA NO CONFIRMADA:', platform, target.get('status'))
+            continue
         try:
             if platform == 'instagram':
                 identifier = publish_ig(*creds, image_url, caption)
@@ -951,7 +977,63 @@ def run_tests():
         assert mock.call_args_list[0].args[3]['published'] == 'false'
         assert mock.call_args_list[1].args[1] == '987/feed'
         assert json.loads(mock.call_args_list[1].args[3]['attached_media[0]']) == {'media_fbid': '123456'}
-    log('PRUEBAS APROBADAS: fecha exacta, magnitud, fatalidades, historial, 3 destinos y foto en feed')
+    # Flujo integrado offline: los tres destinos deben quedar publicados y
+    # repetir la ejecución no debe realizar ninguna segunda llamada a Meta.
+    from tempfile import TemporaryDirectory
+    from types import SimpleNamespace
+    with TemporaryDirectory() as temporary_dir:
+        class FakeGithub:
+            branch = 'main'
+            def write(self, path, raw):
+                return {'commit': {'sha': 'abcdef0123456789'}}
+            def image_url(self, path, commit):
+                return 'https://example.org/efemeride.jpg'
+        gh = FakeGithub()
+        record = {'posts': {}}
+        picture = Path(temporary_dir) / 'efemeride.jpg'
+        picture.write_bytes(b'JPEG_simulado')
+        def fake_save(gh_arg, key_arg, row_arg):
+            assert gh_arg is gh
+            assert key_arg in record['posts']
+        with patch(__name__ + '.save_post_state', side_effect=fake_save), \
+             patch(__name__ + '.validate_instagram', return_value=('IG', 'token')), \
+             patch(__name__ + '.validate_facebook', return_value=('FB', 'token')), \
+             patch(__name__ + '.publish_ig', return_value='ig_1') as ig_mock, \
+             patch(__name__ + '.publish_fb', return_value='fb_1') as fb_mock, \
+             patch(__name__ + '.publish_fb_feed', return_value='feed_1') as feed_mock, \
+             patch.object(HTTP, 'get', return_value=SimpleNamespace(ok=True, headers={'Content-Type': 'image/jpeg'})):
+            report = publish_event(gh, record, event, date(2026, 5, 22), picture,
+                                   'Pie de foto', Path(temporary_dir))
+            assert report['status'] == 'published'
+            assert all(record['posts'][key]['targets'][p]['status'] == 'published'
+                       for p in DESTINATIONS)
+            again = publish_event(gh, record, event, date(2026, 5, 22), picture,
+                                  'Pie de foto', Path(temporary_dir))
+            assert again['status'] == 'already_published'
+            ig_mock.assert_called_once()
+            fb_mock.assert_called_once()
+            feed_mock.assert_called_once()
+        # Un fallo en el feed no deshace los otros dos, y el estado de ese
+        # destino permanece incierto para evitar reintentos automáticos.
+        partial = {'posts': {}}
+        with patch(__name__ + '.save_post_state', side_effect=lambda *a: None), \
+             patch(__name__ + '.validate_instagram', return_value=('IG', 'token')), \
+             patch(__name__ + '.validate_facebook', return_value=('FB', 'token')), \
+             patch(__name__ + '.publish_ig', return_value='ig_2'), \
+             patch(__name__ + '.publish_fb', return_value='fb_2'), \
+             patch(__name__ + '.publish_fb_feed', side_effect=RuntimeError('simulado')), \
+             patch.object(HTTP, 'get', return_value=SimpleNamespace(ok=True, headers={'Content-Type': 'image/jpeg'})):
+            try:
+                publish_event(gh, partial, event, date(2026, 5, 22), picture,
+                              'Pie de foto', Path(temporary_dir))
+            except RuntimeError as exc:
+                assert 'facebook_feed' in str(exc)
+            else:
+                raise AssertionError('El fallo del feed debía reportarse')
+            assert partial['posts'][key]['targets']['instagram']['status'] == 'published'
+            assert partial['posts'][key]['targets']['facebook']['status'] == 'published'
+            assert partial['posts'][key]['targets']['facebook_feed']['status'] == 'uncertain'
+    log('PRUEBAS APROBADAS: fecha exacta, magnitud, fatalidades, historial, 3 destinos, recuperación y foto en feed')
 
 
 def main():
