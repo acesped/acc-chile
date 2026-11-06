@@ -721,6 +721,16 @@
       "angle": "impacto",
       "time": "2026-11-06T12:01:34.009460+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-e025f1fd09ea",
+      "topic": "fallas:falla_inversa:fundamentos",
+      "topic_key": "falla_inversa",
+      "title": "¿Qué principios científicos ayudan a explicar una falla inversa?",
+      "style": "microdocumental",
+      "angle": "fundamentos",
+      "time": "2026-11-06T15:01:05.606177+00:00",
+      "status": "publicado"
     }
   ]
 }
