@@ -2568,6 +2568,46 @@
         }
       }
     },
+    "da4105976ddec9ba5030": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-10-28T11:08:25+00:00",
+        "description": "Científicos han descubierto una conexión sorprendente entre los polos opuestos de la Tierra que podría ayudar a explicar cómo",
+        "explanation": "**Las glaciaciones de la Tierra podrían haber sido impulsadas por una reacción en cadena oceánica oculta**\n\nInvestigadores de la Universidad de St Andrews han descubierto un proceso que podría explicar cómo la Tierra entró en glaciaciones pasadas. Su estudio, publicado en el Journal of Climate, revela una conexión inesperada entre las capas de hielo en el hemisferio norte y los cambios oceánicos cerca de la Antártida. Este hallazgo sugiere que el enfriamiento en una región puede desencadenar reacciones en otras partes del planeta.\n\nLos científicos proponen que, a medida que las capas de hielo se expanden en el hemisferio norte, enfrían las aguas cercanas en el Atlántico Norte. Estas aguas frías eventualmente circulan hacia el sur, llegando al océano Antártico. Si el enfriamiento es lo suficientemente fuerte, podría alterar la circulación oceánica alrededor de la Antártida, permitiendo que más dióxido de carbono (CO2) se almacene bajo la superficie del océano.\n\nLas simulaciones realizadas por el equipo mostraron que enfriar solo las regiones más septentrionales produce un 74% de la reducción de CO2 que se observaría si todo el planeta se enfriara. Este resultado resalta la influencia significativa que los cambios en el hemisferio norte pueden tener sobre el océano del hemisferio sur y su capacidad para almacenar carbono. \n\nEstos hallazgos son cruciales para entender el ciclo natural del carbono de la Tierra y cómo los cambios en este equilibrio pueden afectar las temperaturas globales.",
+        "id": "da4105976ddec9ba5030",
+        "image_headline": "Las glaciaciones de la Tierra podrían haber sido impulsadas por una reacción en cadena oceánica oculta.",
+        "lang": "en",
+        "original_title": "Earth's ice ages may have been driven by a hidden ocean chain reaction",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/10/261026225610.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "Las glaciaciones de la Tierra podrían haber sido impulsadas por una reacción en cadena oceánica oculta.",
+        "url": "https://www.sciencedaily.com/releases/2026/10/261026225610.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nLas glaciaciones de la Tierra podrían haber sido impulsadas por una reacción en cadena oceánica oculta.\n\nLas glaciaciones de la Tierra podrían haber sido impulsadas por una reacción en cadena oceánica oculta Investigadores de la Universidad de St Andrews han descubierto un proceso que podría explicar cómo la Tierra entró en glaciaciones pasadas. Su estudio, publicado en el Journal of Climate, revela una conexión inesperada entre las capas de hielo en el hemisferio norte y los cambios oceánicos cerca de la Antártida. Este hallazgo sugiere que el enfriamiento en una región puede desencadenar reacciones en otras partes del planeta. Los científicos proponen que, a medida que las capas de hielo se expanden en el hemisferio norte, enfrían las aguas cercanas en el Atlántico Norte. Estas aguas frías eventualmente circulan hacia el sur, llegando al océano Antártico. Si el enfriamiento es lo suficientemente fuerte, podría alterar la circulación oceánica alrededor de la Antártida, permitiendo que más dióxido de carbono (CO2) se almacene bajo la superficie del océano. Las simulaciones realizadas por el equipo mostraron que enfriar solo las regiones más septentrionales produce un 74% de la reducción de CO2 que se observaría si todo el planeta se enfriara. Este resultado resalta la influencia significativa que los cambios en el hemisferio norte pueden tener sobre el océano del hemisferio sur y su capacidad para almacenar carbono. Estos hallazgos son cruciales para entender el ciclo natural del carbono de la Tierra y cómo los cambios en este equilibrio pueden afectar las temperaturas globales.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "sea waves shore",
+        "sha256": "f22bcd74a5a3890f85854e1675d2540b5f66bc5365a9b4be25127702a3e84fdf",
+        "source": "https://commons.wikimedia.org/wiki/File:Emerald_Sea_-_Albert_Bierstadt.jpg",
+        "title": "File:Emerald Sea - Albert Bierstadt.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/2/2b/Emerald_Sea_-_Albert_Bierstadt.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/da4105976ddec9ba5030.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "dec9f077a7f855246f29": {
       "article": {
         "category": "espacio",
