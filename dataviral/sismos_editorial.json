@@ -701,6 +701,16 @@
       "angle": "investigacion",
       "time": "2026-11-06T06:01:09.450930+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-4839dcd096c7",
+      "topic": "tectonica:colision_continental:errores",
+      "topic_key": "colision_continental",
+      "title": "¿Qué errores conviene evitar al explicar la colisión continental?",
+      "style": "mapa_explicado",
+      "angle": "errores",
+      "time": "2026-11-06T09:01:16.946262+00:00",
+      "status": "publicado"
     }
   ]
 }
