@@ -1181,6 +1181,43 @@
         }
       }
     },
+    "5585140c35e2049d1cc2": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-10-31T00:37:37+00:00",
+        "description": "Esta vista estrellada de la cercana región de formación estelar IC 348 es una de las imágenes más grandes del Telescopio Espacial James Webb de la NASA/ESA/CSA que se ha publicado hasta ahora. Usando Webb, los astrónomos buscaron en IC 348 enanas marrones, que son menos masivas que las estrellas más pequeñas. Los investigadores descubrieron enanas marrones con solo el doble de la masa de Júpiter, llevando el estudio de estos curiosos objetos a un nuevo rango de masa.",
+        "explanation": "**TITULAR: Webb revela un impresionante panorama de formación estelar**\n\nEl telescopio James Webb ha proporcionado una imagen asombrosa de la región de formación estelar IC 348, ubicada a solo 1000 años luz en la constelación de Perseo. Esta imagen es una de las más grandes liberadas hasta ahora y ha permitido a los astrónomos investigar la presencia de enanas marrones, objetos menos masivos que las estrellas más pequeñas.\n\nRecientemente, los investigadores han descubierto enanas marrones con masas tan bajas como el doble de la de Júpiter, lo que representa un nuevo rango en el estudio de estos cuerpos celestes. Estas enanas marrones se forman de manera similar a las estrellas, pero sus núcleos nunca alcanzan temperaturas suficientes para fusionar hidrógeno en helio. Este hallazgo desafía los modelos actuales sobre la formación estelar.\n\nAdemás, uno de los nuevos objetos descubiertos muestra signos de un disco, lo que sugiere que podrían estar formándose planetas a su alrededor. También se identificó una característica en los espectros de estas enanas que indica la presencia de hidrocarburos, lo que sugiere que estos objetos podrían pertenecer a una clase espectral única.\n\nLa investigación en IC 348 continúa, con el objetivo de entender mejor la diversidad de objetos de masa planetaria en diferentes regiones de formación estelar.",
+        "id": "5585140c35e2049d1cc2",
+        "image_headline": "El Telescopio Webb descubre enanas marrones en IC 348, ampliando el conocimiento sobre la formación estelar.",
+        "lang": "en",
+        "original_title": "Webb reveals stunning panorama of star formation",
+        "resolved_source_url": "https://www.esa.int/articles/about-us/directorates/science/webb/webb-reveals-stunning-panorama-of-star-formation",
+        "search_category": "direct",
+        "source": "ESA ciencia espacial",
+        "source_body": "",
+        "title": "Webb revela un impresionante panorama de formación estelar.",
+        "url": "https://www.esa.int/articles/about-us/directorates/science/webb/webb-reveals-stunning-panorama-of-star-formation"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nEl Telescopio Webb descubre enanas marrones en IC 348, ampliando el conocimiento sobre la formación estelar.\n\nWebb revela un impresionante panorama de formación estelar El telescopio James Webb ha proporcionado una imagen asombrosa de la región de formación estelar IC 348, ubicada a solo 1000 años luz en la constelación de Perseo. Esta imagen es una de las más grandes liberadas hasta ahora y ha permitido a los astrónomos investigar la presencia de enanas marrones, objetos menos masivos que las estrellas más pequeñas. Recientemente, los investigadores han descubierto enanas marrones con masas tan bajas como el doble de la de Júpiter, lo que representa un nuevo rango en el estudio de estos cuerpos celestes. Estas enanas marrones se forman de manera similar a las estrellas, pero sus núcleos nunca alcanzan temperaturas suficientes para fusionar hidrógeno en helio. Este hallazgo desafía los modelos actuales sobre la formación estelar. Además, uno de los nuevos objetos descubiertos muestra signos de un disco, lo que sugiere que podrían estar formándose planetas a su alrededor. También se identificó una característica en los espectros de estas enanas que indica la presencia de hidrocarburos, lo que sugiere que estos objetos podrían pertenecer a una clase espectral única. La investigación en IC 348 continúa, con el objetivo de entender mejor la diversidad de objetos de masa planetaria en diferentes regiones de formación estelar.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "1bf61eef7183761439b916a70fa4968342ea3b7c7ecda4daf60652c5d111477c",
+        "source": "https://commons.wikimedia.org/wiki/File:Good_Morning_From_the_International_Space_Station.jpg",
+        "title": "File:Good Morning From the International Space Station.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3b/Good_Morning_From_the_International_Space_Station.jpg/1920px-Good_Morning_From_the_International_Space_Station.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/5585140c35e2049d1cc2.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "5781b17e9606a0796510": {
       "article": {
         "date": "2026-10-26T12:29:58+00:00",
