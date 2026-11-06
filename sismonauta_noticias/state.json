@@ -1237,6 +1237,46 @@
         }
       }
     },
+    "7bac83d0497a00629e11": {
+      "article": {
+        "category": "meteorologia",
+        "date": "2026-10-30T14:25:53+00:00",
+        "description": "Científicos que utilizan el Mars Express de la Agencia Espacial Europea, en combinación con un modelo meteorológico de última generación del Planeta Rojo, han descubierto que puede haber una física muy exótica detrás de la nube más curiosa de Marte.",
+        "explanation": "**La nube más rara de Marte podría ser incluso más rara de lo que pensábamos**\n\nCientíficos que utilizan la sonda Mars Express de la Agencia Espacial Europea han descubierto que la formación de la nube más curiosa de Marte, conocida como la Nube Alargada de Arsia Mons (AMEC), podría involucrar procesos físicos poco comunes. Esta nube, que aparece cada primavera y verano en el hemisferio sur del planeta rojo, se forma a partir de vapor de agua que se congela directamente en partículas de hielo, un fenómeno conocido como nucleación homogénea.\n\nTradicionalmente, se pensaba que las nubes se formaban a partir de la condensación de vapor de agua en presencia de partículas como polvo o sal. Sin embargo, en el caso de la AMEC, se ha observado que este proceso ocurre sin la necesidad de tales partículas, lo que es completamente inesperado y no se había documentado en otras atmósferas planetarias.\n\nLos investigadores han determinado que la combinación de la delgada atmósfera de Marte y la altura del volcán Arsia Mons crea condiciones únicas que permiten este fenómeno. Al fluir el viento sobre el volcán, se generan ondas que elevan rápidamente el aire húmedo, provocando un enfriamiento drástico que permite la formación de la nube.\n\nEste hallazgo no solo amplía nuestro entendimiento sobre la atmósfera marciana, sino que también sugiere que procesos inusuales podrían estar presentes en otros planetas del universo.",
+        "id": "7bac83d0497a00629e11",
+        "image_headline": "Científicos descubren que la nube más curiosa de Marte podría formarse por un proceso físico inusual y raro.",
+        "lang": "en",
+        "original_title": "Mars’s oddest cloud may be even odder than we thought",
+        "resolved_source_url": "https://www.esa.int/articles/about-us/directorates/science/mars-express/mars-s-oddest-cloud-may-be-even-odder-than-we-thought",
+        "search_category": "direct",
+        "source": "ESA ciencia espacial",
+        "source_body": "",
+        "title": "La nube más rara de Marte podría ser incluso más rara de lo que pensábamos",
+        "url": "https://www.esa.int/articles/about-us/directorates/science/mars-express/mars-s-oddest-cloud-may-be-even-odder-than-we-thought"
+      },
+      "caption": "🌎 SISMONAUTA | METEOROLOGÍA\n\nCientíficos descubren que la nube más curiosa de Marte podría formarse por un proceso físico inusual y raro.\n\nCientíficos que utilizan la sonda Mars Express de la Agencia Espacial Europea han descubierto que la formación de la nube más curiosa de Marte, conocida como la Nube Alargada de Arsia Mons (AMEC), podría involucrar procesos físicos poco comunes. Esta nube, que aparece cada primavera y verano en el hemisferio sur del planeta rojo, se forma a partir de vapor de agua que se congela directamente en partículas de hielo, un fenómeno conocido como nucleación homogénea. Tradicionalmente, se pensaba que las nubes se formaban a partir de la condensación de vapor de agua en presencia de partículas como polvo o sal. Sin embargo, en el caso de la AMEC, se ha observado que este proceso ocurre sin la necesidad de tales partículas, lo que es completamente inesperado y no se había documentado en otras atmósferas planetarias. Los investigadores han determinado que la combinación de la delgada atmósfera de Marte y la altura del volcán Arsia Mons crea condiciones únicas que permiten este fenómeno. Al fluir el viento sobre el volcán, se generan ondas que elevan rápidamente el aire húmedo, provocando un enfriamiento drástico que permite la formación de la nube. Este hallazgo no solo amplía nuestro entendimiento sobre la atmósfera marciana, sino que también sugiere que procesos inusuales podrían estar presentes en otros planetas del universo.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Meteorologia #Tiempo #Tormentas #Atmosfera",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "storm clouds landscape",
+        "sha256": "99c7f9ee4eb8de2bc6fd428355c084df7229424fc11b43744cfdd15ef6ce9e1e",
+        "source": "https://commons.wikimedia.org/wiki/File:Hemsted_Park,_three_studies_with_trees_and_storm_clouds_by_George_Hayter.jpg",
+        "title": "File:Hemsted Park, three studies with trees and storm clouds by George Hayter.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/b/b9/Hemsted_Park%2C_three_studies_with_trees_and_storm_clouds_by_George_Hayter.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/7bac83d0497a00629e11.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "7edc804b9963a688ab0e": {
       "article": {
         "category": "volcanes",
