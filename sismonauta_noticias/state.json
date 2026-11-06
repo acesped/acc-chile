@@ -1728,6 +1728,45 @@
         }
       }
     },
+    "95ec8893d969e18c2766": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-06T16:03:52+00:00",
+        "description": "Supercomputing 2026 Únete a la NASA en el Salón de Exhibiciones (Stand #",
+        "explanation": "**Calendario de demostraciones tecnológicas de supercomputación**\n\nEl próximo evento de supercomputación se llevará a cabo en el espacio de exhibición de NASA, donde se presentarán diversas demostraciones tecnológicas. Este calendario incluye una serie de charlas y presentaciones que se centran en el uso de herramientas avanzadas y técnicas de programación en el ámbito de la supercomputación.\n\nLas actividades comenzarán el martes 17 de noviembre, con sesiones dedicadas a temas como \"Type-safe Templates en Fortran\", a cargo de Tom Clune. Este tema se repetirá en varias ocasiones, lo que sugiere un interés significativo en esta técnica de programación. Además, se abordará la portación de los NAS Parallel Benchmarks para utilizar OpenMP Target Offload, presentado por Jeff Becker.\n\nEl miércoles 18 de noviembre, se destacarán simulaciones de hidrología de alta resolución y la interfaz de inteligencia artificial para mapear la disponibilidad de agua, presentado por Sujay Kumar. También se discutirán los centros de datos de supercomputación modular en NASA, a cargo de Chris Tanner.\n\nFinalmente, el jueves 19 de noviembre, se explorará la habilitación de HPC con Open OnDemand y ColdFront, presentado por Jeff Triplett. Estas sesiones reflejan el avance continuo en la supercomputación y su aplicación en diversas áreas científicas.",
+        "id": "95ec8893d969e18c2766",
+        "image_headline": "NASA presentará innovaciones en supercomputación en el evento Supercomputing 2026, destacando avances tecnológicos clave.",
+        "lang": "en",
+        "original_title": "Supercomputing Tech Demo Schedule",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "Explore This Section Earth Earth Observer Editor’s Corner Feature Articles Meeting Summaries News Science in the News In Memoriam Announcements Archives Supercomputing 2026 Join NASA in the Exhibit Hall (Booth #4038) for presentations by NASA experts. Full Tech Demo schedule below. TUESDAY, NOVEMBER 17 10:00 AM Type-safe Templates in Fortran 2028 Tom Clune 10:30 AM Type-safe Templates in Fortran 2028 Tom Clune 11:00 AM Type-safe Templates in Fortran 2028 Tom Clune 1:00PM Mixing and Matching and Multiple Versions, Oh My! Brad Richardson 1:30 PM Mixing and Matching and Multiple Versions, Oh My! Brad Richardson 2:00 PM Mixing and Matching and Multiple Versions, Oh My! Brad Richardson 4:00 PM Porting NAS Parallel Benchmarks to use OpenMP Target Offload Jeff Becker 4:30 PM Porting NAS Parallel Benchmarks to use OpenMP Target Offload Jeff Becker 5:00 PM Porting NAS Parallel Benchmarks to use OpenMP Target Offload Jeff Becker WEDNESDAY, NOVEMBER 18 1:00PM High resolution hydrology simulations and agentic SI Interfaces for mapping water availability and extremes Sujay Kumar 1:30 PM High resolution hydrology simulations and agentic SI Interfaces for mapping water availability and extremes Sujay Kumar 2:00 PM High resolution hydrology simulations and agentic SI Interfaces for mapping water availability and extremes Sujay Kumar 4:00 PM Modular Supercomputing Data Centers at NASA Chris Tanner 4:30 PM Modular Supercomputing Data Centers at NASA Chris Tanner 5:00 PM Modular Supercomputing Data Centers at NASA Chris Tanner THUR SDAY, NOVEMBER 19 10:00AM Subsurface to Stellar: HPC Enablement with Open OnDemand and ColdFront at bp and NASA Jeff Triplett 10:30 AM Subsurface to Stellar: HPC Enablement with Open OnDemand and ColdFront at bp and NASA Jeff Triplett 11:00 AM Subsurface to Stellar: HPC Enablement with Open OnDemand and ColdFront at bp and NASA Jeff Triplett",
+        "title": "Calendario de demostraciones tecnológicas de supercomputación",
+        "url": "https://science.nasa.gov/earth/supercomputing-tech-demo-schedule/"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nNASA presentará innovaciones en supercomputación en el evento Supercomputing 2026, destacando avances tecnológicos clave.\n\nEl próximo evento de supercomputación se llevará a cabo en el espacio de exhibición de NASA, donde se presentarán diversas demostraciones tecnológicas. Este calendario incluye una serie de charlas y presentaciones que se centran en el uso de herramientas avanzadas y técnicas de programación en el ámbito de la supercomputación. Las actividades comenzarán el martes 17 de noviembre, con sesiones dedicadas a temas como \"Type-safe Templates en Fortran\", a cargo de Tom Clune. Este tema se repetirá en varias ocasiones, lo que sugiere un interés significativo en esta técnica de programación. Además, se abordará la portación de los NAS Parallel Benchmarks para utilizar OpenMP Target Offload, presentado por Jeff Becker. El miércoles 18 de noviembre, se destacarán simulaciones de hidrología de alta resolución y la interfaz de inteligencia artificial para mapear la disponibilidad de agua, presentado por Sujay Kumar. También se discutirán los centros de datos de supercomputación modular en NASA, a cargo de Chris Tanner. Finalmente, el jueves 19 de noviembre, se explorará la habilitación de HPC con Open OnDemand y ColdFront, presentado por Jeff Triplett. Estas sesiones reflejan el avance continuo en la supercomputación y su aplicación en diversas áreas científicas.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "fc3b915204e4afb8d09f3064c2529822fee41ef5e3540874c72d582e25d04a61",
+        "source": "https://commons.wikimedia.org/wiki/File:Earth,_Moon_and_Lunar_Module,_AS11-44-6643.jpg",
+        "title": "File:Earth, Moon and Lunar Module, AS11-44-6643.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/81/Earth%2C_Moon_and_Lunar_Module%2C_AS11-44-6643.jpg/1920px-Earth%2C_Moon_and_Lunar_Module%2C_AS11-44-6643.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/95ec8893d969e18c2766.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "98384a5fc56d1bf69496": {
       "article": {
         "date": "2026-10-28T13:17:12+00:00",
