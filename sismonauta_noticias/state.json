@@ -92,6 +92,46 @@
         }
       }
     },
+    "0cb8606f1a991fe4dfaf": {
+      "article": {
+        "category": "sismos",
+        "date": "2026-10-28T12:00:17+00:00",
+        "description": "Científicos descubrieron un sistema volcánico perdido hace mucho tiempo en Irán que data de hace unos 10",
+        "explanation": "TITULAR: Científicos descubren un sistema volcánico oculto de 100 millones de años\nCATEGORIA: sismos\n\nUn equipo internacional, liderado por la Universidad Técnica de Estambul, identificó un sistema volcánico previamente desconocido en el noroeste de Irán. Denominado Arco Magmático Continental de Azerbaiyán, este hallazgo revela un capítulo perdido de la historia geológica regional ocurrido hace unos 100 millones de años, durante el Cretácico Superior.\n\nLa investigación, publicada en *Geoscience Frontiers*, determinó que el sistema estuvo activo específicamente entre 101 y 97 millones de años atrás. Los científicos utilizaron técnicas avanzadas, como la geocronología de circones y análisis geoquímicos en rocas de la falla Siah Cheshmeh-Khoy-Misho-Tabriz, para confirmar que el magma se generó por el hundimiento de una placa tectónica bajo la corteza continental.\n\nEl descubrimiento es relevante porque este arco permaneció oculto debido a la eros",
+        "id": "0cb8606f1a991fe4dfaf",
+        "image_headline": "Científicos descubren un sistema volcánico oculto de 100 millones de años",
+        "lang": "en",
+        "original_title": "Scientists discover a hidden 100-million-year-old volcanic system",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/10/261026225615.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "Científicos descubren un sistema volcánico oculto de 100 millones de años",
+        "url": "https://www.sciencedaily.com/releases/2026/10/261026225615.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA SÍSMICA\n\nCientíficos descubren un sistema volcánico oculto de 100 millones de años\n\nCATEGORIA: sismos Un equipo internacional, liderado por la Universidad Técnica de Estambul, identificó un sistema volcánico previamente desconocido en el noroeste de Irán. Denominado Arco Magmático Continental de Azerbaiyán, este hallazgo revela un capítulo perdido de la historia geológica regional ocurrido hace unos 100 millones de años, durante el Cretácico Superior. La investigación, publicada en *Geoscience Frontiers*, determinó que el sistema estuvo activo específicamente entre 101 y 97 millones de años atrás. Los científicos utilizaron técnicas avanzadas, como la geocronología de circones y análisis geoquímicos en rocas de la falla Siah Cheshmeh-Khoy-Misho-Tabriz, para confirmar que el magma se generó por el hundimiento de una placa tectónica bajo la corteza continental. El descubrimiento es relevante porque este arco permaneció oculto debido a la eros\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Sismos #Terremotos #Sismologia #Geofisica #Tectonica",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "San Andreas Fault",
+        "sha256": "a0a35eec55baad965a8684fbdff3247fc659d3f512e504d23d86ae068ed4b56b",
+        "source": "https://commons.wikimedia.org/wiki/File:San_Andreas_Fault_SAFOD_Project.jpg",
+        "title": "File:San Andreas Fault SAFOD Project.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/2/29/San_Andreas_Fault_SAFOD_Project.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/0cb8606f1a991fe4dfaf.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "10b5dc935e5c079f158d": {
       "article": {
         "category": "oceanos",
