@@ -128,7 +128,8 @@
           "status": "published"
         },
         "facebook_feed": {
-          "status": "pending"
+          "started_at": "2026-11-06T13:02:52.422156+00:00",
+          "status": "uncertain"
         },
         "instagram": {
           "id": "18102768362381794",
