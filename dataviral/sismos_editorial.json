@@ -731,6 +731,16 @@
       "angle": "fundamentos",
       "time": "2026-11-06T15:01:05.606177+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-841941ca2f14",
+      "topic": "tsunamis:origen_tsunami:comparacion",
+      "topic_key": "origen_tsunami",
+      "title": "¿Qué hace especial a el origen de los tsunamis dentro de la geología?",
+      "style": "descubrimiento",
+      "angle": "comparacion",
+      "time": "2026-11-06T18:11:51.787545+00:00",
+      "status": "publicado"
     }
   ]
 }
