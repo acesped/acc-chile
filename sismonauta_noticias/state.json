@@ -174,8 +174,10 @@
           "status": "published"
         },
         "facebook_feed": {
+          "id": "305263296226466_1146219231286641",
+          "published_at": "2026-11-06T05:01:58.071878+00:00",
           "started_at": "2026-11-06T05:01:51.961541+00:00",
-          "status": "uncertain"
+          "status": "published"
         },
         "instagram": {
           "id": "18121050364944699",
