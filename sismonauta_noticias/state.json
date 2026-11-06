@@ -2562,6 +2562,43 @@
         }
       }
     },
+    "cc4a6a5cdfd3b088d2a3": {
+      "article": {
+        "category": "meteorologia",
+        "date": "2026-10-26T09:51:15+00:00",
+        "description": "Un misterioso naufragio frente a la costa de Turquía puede ser el más antiguo jamás descubierto, datando de aproximadamente 4,500 años, en la época de las pirámides egipcias. Aunque el barco de madera ha desaparecido, su carga de cerámica sobreviviente revela pistas sobre una antigua red comercial que pudo haber conectado civilizaciones mediterráneas distantes. Los investigadores creen que el barco pudo haberse estrellado contra rocas durante una tormenta mientras transportaba bienes valiosos como aceite, vino o resina de árbol.",
+        "explanation": "**Los arqueólogos pueden haber encontrado el naufragio más antiguo del mundo**\n\nUn equipo de arqueólogos ha identificado un naufragio frente a la costa de Turquía que podría ser el más antiguo del mundo, datado entre 2700 y 2400 a.C. Este hallazgo, que se basa en el análisis de cerámica encontrada en el sitio, podría cambiar nuestra comprensión de las conexiones comerciales en el Mediterráneo durante la Edad del Bronce Temprano.\n\nEl naufragio fue descubierto en aguas poco profundas cerca de Kekova, en la costa sur de Turquía. Aunque la estructura del barco ya no es visible, los restos de su carga, especialmente grandes ánforas, ofrecen pistas sobre el comercio de la época. Estas vasijas, que alguna vez contuvieron productos de diversas regiones del Mediterráneo, son clave para entender las rutas comerciales de hace 4,500 años.\n\nA pesar de que el estudio aún está en desarrollo y se espera la publicación de un artículo en una revista revisada por pares, los investigadores creen que este descubrimiento representa una \"pieza faltante\" en la historia de las redes comerciales de la región. La investigación también sugiere que los productos en las ánforas podrían incluir aceite de oliva, vino o resina de árboles, aunque se requieren análisis adicionales para confirmar su contenido.",
+        "id": "cc4a6a5cdfd3b088d2a3",
+        "image_headline": "Arqueólogos hallan un naufragio de 4,500 años en Turquía, revelando conexiones comerciales antiguas en el Mediterráneo.",
+        "lang": "en",
+        "original_title": "Archaeologists may have just found the world's oldest shipwreck",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/10/261025073036.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Ambiente",
+        "source_body": "",
+        "title": "Los arqueólogos pueden haber encontrado el naufragio más antiguo del mundo.",
+        "url": "https://www.sciencedaily.com/releases/2026/10/261025073036.htm"
+      },
+      "caption": "🌎 SISMONAUTA | METEOROLOGÍA\n\nArqueólogos hallan un naufragio de 4,500 años en Turquía, revelando conexiones comerciales antiguas en el Mediterráneo.\n\nLos arqueólogos pueden haber encontrado el naufragio más antiguo del mundo Un equipo de arqueólogos ha identificado un naufragio frente a la costa de Turquía que podría ser el más antiguo del mundo, datado entre 2700 y 2400 a.C. Este hallazgo, que se basa en el análisis de cerámica encontrada en el sitio, podría cambiar nuestra comprensión de las conexiones comerciales en el Mediterráneo durante la Edad del Bronce Temprano. El naufragio fue descubierto en aguas poco profundas cerca de Kekova, en la costa sur de Turquía. Aunque la estructura del barco ya no es visible, los restos de su carga, especialmente grandes ánforas, ofrecen pistas sobre el comercio de la época. Estas vasijas, que alguna vez contuvieron productos de diversas regiones del Mediterráneo, son clave para entender las rutas comerciales de hace 4,500 años. A pesar de que el estudio aún está en desarrollo y se espera la publicación de un artículo en una revista revisada por pares, los investigadores creen que este descubrimiento representa una \"pieza faltante\" en la historia de las redes comerciales de la región. La investigación también sugiere que los productos en las ánforas podrían incluir aceite de oliva, vino o resina de árboles, aunque se requieren análisis adicionales para confirmar su contenido.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Meteorologia #Tiempo #Tormentas #Atmosfera",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "storm clouds landscape",
+        "sha256": "43d04cc41171df576b46169136cd5f294eded861aae4f79aaf59907f456a0d0f",
+        "source": "https://commons.wikimedia.org/wiki/File:L%C3%A9on_Germain_Pelouse,_Landscape_with_storm_clouds,_1881.jpg",
+        "title": "File:Léon Germain Pelouse, Landscape with storm clouds, 1881.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9f/L%C3%A9on_Germain_Pelouse%2C_Landscape_with_storm_clouds%2C_1881.jpg/1920px-L%C3%A9on_Germain_Pelouse%2C_Landscape_with_storm_clouds%2C_1881.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/cc4a6a5cdfd3b088d2a3.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "cc4f59684ef1b0679f01": {
       "article": {
         "category": "espacio",
