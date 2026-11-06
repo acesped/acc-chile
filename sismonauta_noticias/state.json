@@ -1122,6 +1122,46 @@
         }
       }
     },
+    "672e68c0f474a3dc50e2": {
+      "article": {
+        "category": "climatologia",
+        "date": "2026-11-02T09:50:36+00:00",
+        "description": "Los satélites de la NASA han capturado una inquietante formación en forma de calavera en una remota isla de la Antártida, pero su apariencia fantasmal oculta una preocupante advertencia sobre el derretimiento de los glaciares. Las temperaturas invernales inusualmente cálidas han expuesto grandes áreas de hielo oscuro, lo que podría acelerar el derretimiento futuro y transformar gradualmente las características fantasmales de la calavera.",
+        "explanation": "**NASA revela una inquietante calavera oculta en el hielo de la Antártica**\n\nUbicada en el Mar de Weddell, la Isla Vega presenta una apariencia inquietante que recuerda a una calavera. Este fenómeno visual es el resultado de formaciones naturales, como un nunatak que simula un ojo vacío y una moraine lateral que contornea la boca. Sin embargo, detrás de esta imagen se esconde una preocupación mayor: el estado cambiante de los glaciares antárticos.\n\nImágenes satelitales de la NASA muestran un notable cambio en la cobertura de nieve entre marzo de 2025 y octubre de 2026. En marzo, la isla estaba cubierta de nieve, pero para octubre, amplias secciones estaban expuestas, revelando hielo de glaciar más oscuro. Según el glaciólogo Mauri Pelto, las condiciones inusualmente cálidas durante el invierno de 2026 contribuyeron a esta pérdida de nieve, que se vio agravada por la sublimación y vientos fuertes.\n\nLa falta de nieve tiene consecuencias significativas. La nieve fresca refleja la luz solar, mientras que el hielo oscuro la absorbe, lo que podría acelerar el derretimiento de los glaciares. Aunque una delgada capa de nieve podría ralentizar temporalmente este proceso, la continua exposición del hielo podría transformar la apariencia de la isla, erosionando las formaciones que le dan su forma distintiva.",
+        "id": "672e68c0f474a3dc50e2",
+        "image_headline": "NASA ha documentado una formación en forma de calavera en la Antártida, revelando el impacto del derretimiento de glaciares.",
+        "lang": "en",
+        "original_title": "NASA reveals a haunting skull hidden in Antarctica’s ice",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261101010538.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "NASA revela una inquietante calavera oculta en el hielo de la Antártica",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261101010538.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CLIMATOLOGÍA\n\nNASA ha documentado una formación en forma de calavera en la Antártida, revelando el impacto del derretimiento de glaciares.\n\nUbicada en el Mar de Weddell, la Isla Vega presenta una apariencia inquietante que recuerda a una calavera. Este fenómeno visual es el resultado de formaciones naturales, como un nunatak que simula un ojo vacío y una moraine lateral que contornea la boca. Sin embargo, detrás de esta imagen se esconde una preocupación mayor: el estado cambiante de los glaciares antárticos. Imágenes satelitales de la NASA muestran un notable cambio en la cobertura de nieve entre marzo de 2025 y octubre de 2026. En marzo, la isla estaba cubierta de nieve, pero para octubre, amplias secciones estaban expuestas, revelando hielo de glaciar más oscuro. Según el glaciólogo Mauri Pelto, las condiciones inusualmente cálidas durante el invierno de 2026 contribuyeron a esta pérdida de nieve, que se vio agravada por la sublimación y vientos fuertes. La falta de nieve tiene consecuencias significativas. La nieve fresca refleja la luz solar, mientras que el hielo oscuro la absorbe, lo que podría acelerar el derretimiento de los glaciares. Aunque una delgada capa de nieve podría ralentizar temporalmente este proceso, la continua exposición del hielo podría transformar la apariencia de la isla, erosionando las formaciones que le dan su forma distintiva.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Climatologia #Clima #CambioClimatico #Glaciares",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "glacier landscape",
+        "sha256": "ba3ec5ce603d4ebb3c2e1390eaee285d12b07959725d3746d8d13e44e93e6847",
+        "source": "https://commons.wikimedia.org/wiki/File:Glacier_National_Park_-_East_Glacier,_General_Store,_Lobby_and_Coffee_Shop_(NBY_430000).jpg",
+        "title": "File:Glacier National Park - East Glacier, General Store, Lobby and Coffee Shop (NBY 430000).jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/2/24/Glacier_National_Park_-_East_Glacier%2C_General_Store%2C_Lobby_and_Coffee_Shop_%28NBY_430000%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/672e68c0f474a3dc50e2.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "69bb11c587d192461a9b": {
       "article": {
         "date": "2026-10-26T22:35:00+00:00",
