@@ -10,9 +10,9 @@ python noticias_sismonauta.py --test-publication
 python noticias_sismonauta.py --out output_noticias
 python noticias_sismonauta.py --publish --out output_noticias
 
-Publica una fotografía en Instagram, una fotografía en la fanpage de Facebook
-Y un post público independiente de texto en el feed de la misma fanpage.
-Cada publicación tiene estado propio. No se reintentan envíos inciertos.
+Publica una fotografía en Instagram y UN SOLO post público en la fanpage
+de Facebook con la imagen adjunta. NO publica una foto pública adicional.
+Cada destino tiene estado propio. No se reintentan envíos inciertos.
 """
 from __future__ import annotations
 
@@ -794,11 +794,12 @@ def publish_ig(user,token,image_url,text):
     return str(result['id'])
 
 def publish_fb(page,token,image_url,text):
-    """Publicación de foto, visible en fanpage (mantener formato original)."""
-    result=graph('POST',page+'/photos',token,{'url':image_url,'caption':text,'published':'true'},FB_BASE)
-    identifier=result.get('post_id') or result.get('id')
-    if not identifier:raise RuntimeError('Facebook foto: no devolvió identificador')
-    return str(identifier)
+    """Compatibilidad: no crear una publicación de foto duplicada.
+
+    Este método histórico queda expresamente deshabilitado. La única salida
+    pública de Facebook es publish_fb_feed() con una fotografía adjunta.
+    """
+    raise RuntimeError('La publicación Facebook /photos pública está deshabilitada; usar publish_fb_feed')
 
 def fb_feed_has_photo(page, token, post_id):
     """Confirmar que el post realmente contiene una fotografía; no basta un ID."""
@@ -853,7 +854,8 @@ def publish_fb_feed(page,token,image_url,text):
     log('FACEBOOK FEED: imagen adjunta verificada:',post_id)
     return post_id
 
-DESTINATIONS=('instagram','facebook','facebook_feed')
+# El historial antiguo 'facebook' se conserva para auditoría, pero NO es destino activo.
+DESTINATIONS=('instagram','facebook_feed')
 
 def targets_of(entry):
     targets=entry.setdefault('targets',{})
@@ -919,7 +921,7 @@ def pending_story_ids(state):
         if not instagram_pending(entry):continue
         targets=entry.get('targets') or {}
         if any((targets.get(d) or {}).get('status') in ('published','uncertain','enviando')
-               for d in DESTINATIONS if d!='instagram'):
+               for d in (*DESTINATIONS, 'facebook') if d!='instagram'):
             if (entry.get('article') or {}).get('explanation'):
                 ids.append(key)
     return ids
@@ -1085,7 +1087,7 @@ def select_headline_digest(articles,state):
     return None,None,None,None
 
 def publish_article(gh,state,article,image_file,credit,description,output):
-    """Instagram photo, Facebook photo and independent public Facebook post with image.
+    """Instagram con foto y UN post público Facebook con la imagen adjunta.
 
     Remote status is persisted BEFORE each API POST. Subsequent targets continue
     after an isolated API error; an ambiguous target cannot be retried blindly.
@@ -1126,7 +1128,7 @@ def publish_article(gh,state,article,image_file,credit,description,output):
         write_json(receipt_path,result)
         return result
 
-    photo_pending=any(targets[name].get('status')!='published' for name in DESTINATIONS)
+    photo_pending=any(targets[name].get('status') in (None,'pending') for name in DESTINATIONS)
     image_url=entry.get('image_url') or ''
     if photo_pending:
         remote='sismonauta_noticias/images/'+article_id+'.jpg'
@@ -1161,20 +1163,15 @@ def publish_article(gh,state,article,image_file,credit,description,output):
     def send_instagram():
         user,token=ig_check()
         return publish_ig(user,token,image_url,caption_photo)
-    def send_facebook_photo():
-        page,token=fb_check()
-        return publish_fb(page,token,image_url,caption_photo)
     def send_facebook_feed():
         page,token=fb_check()
         return publish_fb_feed(page,token,image_url,fb_text)
     checks={
         'instagram':ig_check,
-        'facebook':fb_check,
         'facebook_feed':fb_check,
     }
     actions=(
         ('instagram',send_instagram),
-        ('facebook',send_facebook_photo),
         ('facebook_feed',send_facebook_feed),
     )
     failures=[]
@@ -1219,7 +1216,7 @@ def publish_article(gh,state,article,image_file,credit,description,output):
 
 
 def test_publication():
-    """Pruebas sin red: foto, feed con adjunto, verificación y estados."""
+    """Pruebas sin red: Instagram, post único con imagen e historial heredado."""
     from unittest.mock import patch
     legacy={'targets':{'instagram':{'status':'published'},'facebook':{'status':'published'}}}
     targets=targets_of(legacy)
@@ -1238,13 +1235,17 @@ def test_publication():
         if params.get('published')=='false':return {'id':'987654321'}
         return {'post_id':'123_456'}
     with patch(__name__+'.graph',side_effect=mock_graph):
-        assert publish_fb('123','secret','https://example.org/image.jpg','noticia')=='123_456'
         assert publish_fb_feed('123','secret','https://example.org/image.jpg','texto distinto')=='123_456'
-    assert [x[1] for x in calls]==['123/photos','123/photos','123/feed','123_456']
-    assert calls[0][2]['published']=='true'
-    assert calls[1][2]['published']=='false'
-    assert json.loads(calls[2][2]['attached_media[0]'])=={'media_fbid':'987654321'}
-    assert calls[3][0]=='GET'
+    assert [x[1] for x in calls]==['123/photos','123/feed','123_456']
+    assert calls[0][2]['published']=='false'
+    assert json.loads(calls[1][2]['attached_media[0]'])=={'media_fbid':'987654321'}
+    assert calls[2][0]=='GET'
+    assert 'facebook' not in DESTINATIONS
+    assert DESTINATIONS==('instagram','facebook_feed')
+    assert legacy['targets']['facebook']['status']=='published'
+    try:publish_fb('123','secret','https://example.org/image.jpg','no duplicar')
+    except RuntimeError as exc:assert 'deshabilitada' in str(exc)
+    else:raise AssertionError('Se permitió publicar una foto pública separada')
     with patch(__name__+'.graph',return_value={'id':'123_456','attachments':{'data':[]}}):
         try:fb_feed_has_photo('123','secret','123_456')
         except RuntimeError as exc:assert 'NO confirmó imagen' in str(exc)
@@ -1274,7 +1275,7 @@ def test_publication():
     assert pending_story_ids(ig_recovery)==['old'], 'Instagram pendiente no se recupera'
     assert instagram_candidate_allowed({'id':'old'},ig_recovery)
     log('SELECCIÓN IG: pendientes reales priorizados, cola solo Facebook no bloquea Instagram')
-    log('PRUEBAS PUBLICACIÓN: cuenta Instagram, fotos y feed independientes')
+    log('PRUEBAS PUBLICACIÓN: Instagram foto y UN SOLO Facebook feed con imagen')
 
 def test_extraction():
     fixture='<html><body><article>'+''.join('<p>La investigación reunió datos de observatorios regionales y mediciones instrumentales. Los resultados muestran cambios documentados en la zona estudiada y permiten comparar registros históricos número %s.</p>'%i for i in range(6))+'</article></body></html>'
@@ -1403,7 +1404,7 @@ def test_headline_digest():
     log('PRUEBAS RESPALDO TITULAR RSS APROBADAS')
 
 def main():
-    parser=argparse.ArgumentParser(description='SISMONAUTA noticias con foto y post público Facebook')
+    parser=argparse.ArgumentParser(description='SISMONAUTA noticias con foto Instagram y post único Facebook')
     parser.add_argument('--publish',action='store_true')
     parser.add_argument('--check-instagram',action='store_true',help='Verificar cuenta y endpoint Instagram sin publicar')
     parser.add_argument('--inspect-status',action='store_true',help='Mostrar estados remotos por destino sin publicar')
@@ -1486,7 +1487,7 @@ def main():
         log('VISTA PREVIA COMPLETADA');return 0
     result=publish_article(gh,state,article,image_file,credit,description,output)
     if result['status']=='published':
-        log('PUBLICACIÓN CONFIRMADA: INSTAGRAM FOTO + FACEBOOK FOTO + FACEBOOK POST PÚBLICO CON FOTO');return 0
+        log('PUBLICACIÓN CONFIRMADA: INSTAGRAM FOTO + UN POST PÚBLICO FACEBOOK CON IMAGEN');return 0
     return 0 if result['status']=='already_published' else 1
 
 if __name__=='__main__':
