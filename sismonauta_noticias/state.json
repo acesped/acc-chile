@@ -92,6 +92,46 @@
         }
       }
     },
+    "0c690bb5895c29d723fc": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-06T08:24:42+00:00",
+        "description": "El telescopio espacial Euclid de la Agencia Espacial Europea ha descubierto su primer cometa previamente desconocido, en imágenes tomadas entre el 16 y el 24 de septiembre de 2026.",
+        "explanation": "TITULAR: Euclid descubre nuevo cometa\nCATEGORIA: espacio\n\nEl telescopio espacial Euclid de la ESA ha logrado un hito inesperado al detectar su primer cometa previamente desconocido, denominado C/2026 S1 (Euclid). El hallazgo se produjo en imágenes capturadas entre el 16 y 24 de septiembre de 2026, mediante un software especializado en identificar objetos en movimiento desarrollado en la Universidad de Helsinki.\n\nEl cuerpo celeste se ubica a unos 1.300 millones de kilómetros de la Tierra, en una órbita que tardará miles de años en completarse. Aunque la misión principal de Euclid es mapear galaxias lejanas para estudiar la materia oscura, este descubrimiento demuestra su capacidad para detectar objetos del sistema solar mientras están lejos del Sol.\n\nComo consecuencia, este éxito valida los protocolos de alerta temprana para la comunidad astronómica internacional. Además, permite a los científicos identificar y eliminar el \"ruido\" o rastro de luz que estos objetos generan en las imágenes, garantizando la precisión en la cartografía del universo profundo. El proceso servirá también como un caso de prueba para coordinar futuras misiones, como el Comet Interceptor.",
+        "id": "0c690bb5895c29d723fc",
+        "image_headline": "Euclid descubre nuevo cometa",
+        "lang": "en",
+        "original_title": "Euclid discovers new comet",
+        "resolved_source_url": "https://www.esa.int/articles/about-us/directorates/science/euclid/euclid-discovers-new-comet",
+        "search_category": "direct",
+        "source": "ESA ciencia espacial",
+        "source_body": "",
+        "title": "Euclid descubre nuevo cometa",
+        "url": "https://www.esa.int/articles/about-us/directorates/science/euclid/euclid-discovers-new-comet"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nEuclid descubre nuevo cometa\n\nCATEGORIA: espacio El telescopio espacial Euclid de la ESA ha logrado un hito inesperado al detectar su primer cometa previamente desconocido, denominado C/2026 S1 (Euclid). El hallazgo se produjo en imágenes capturadas entre el 16 y 24 de septiembre de 2026, mediante un software especializado en identificar objetos en movimiento desarrollado en la Universidad de Helsinki. El cuerpo celeste se ubica a unos 1.300 millones de kilómetros de la Tierra, en una órbita que tardará miles de años en completarse. Aunque la misión principal de Euclid es mapear galaxias lejanas para estudiar la materia oscura, este descubrimiento demuestra su capacidad para detectar objetos del sistema solar mientras están lejos del Sol. Como consecuencia, este éxito valida los protocolos de alerta temprana para la comunidad astronómica internacional. Además, permite a los científicos identificar y eliminar el \"ruido\" o rastro de luz que estos objetos generan en las imágenes, garantizando la precisión en la cartografía del universo profundo. El proceso servirá también como un caso de prueba para coordinar futuras misiones, como el Comet Interceptor.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "6c026ef75f153898927fbd2326389b90465064e7ed9f41379991ceb08e5e427e",
+        "source": "https://commons.wikimedia.org/wiki/File:The_Day_the_Earth_Smiled_-_PIA17172.jpg",
+        "title": "File:The Day the Earth Smiled - PIA17172.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4d/The_Day_the_Earth_Smiled_-_PIA17172.jpg/1920px-The_Day_the_Earth_Smiled_-_PIA17172.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/0c690bb5895c29d723fc.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "0cb8606f1a991fe4dfaf": {
       "article": {
         "category": "sismos",
