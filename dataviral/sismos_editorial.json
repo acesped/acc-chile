@@ -711,6 +711,16 @@
       "angle": "errores",
       "time": "2026-11-06T09:01:16.946262+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-f7f73d34d69a",
+      "topic": "ondas:resonancia_suelo:impacto",
+      "topic_key": "resonancia_suelo",
+      "title": "¿Qué importancia tiene comprender el efecto del suelo?",
+      "style": "mito_realidad",
+      "angle": "impacto",
+      "time": "2026-11-06T12:01:34.009460+00:00",
+      "status": "publicado"
     }
   ]
 }
