@@ -1222,7 +1222,7 @@
       "topic_key": "alerta_temprana",
       "title": "¿Qué importancia tiene comprender la alerta temprana?",
       "reel": "publicado",
-      "updated_at": "2026-11-06T00:03:33.219672+00:00",
+      "updated_at": "2026-11-06T00:04:06.148674+00:00",
       "reel_id": "18080135456424837",
       "story": "publicado",
       "story_id": "18360057625220608",
@@ -1231,7 +1231,8 @@
       "facebook_story": "publicado",
       "facebook_story_id": "29153997377587674",
       "youtube_short": "publicado",
-      "youtube_short_id": "_vXHmWTjM9Y"
+      "youtube_short_id": "_vXHmWTjM9Y",
+      "youtube_video": "enviando"
     }
   }
 }
