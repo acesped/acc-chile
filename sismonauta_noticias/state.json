@@ -1349,6 +1349,46 @@
         }
       }
     },
+    "6d6cd588226885d566a4": {
+      "article": {
+        "category": "climatologia",
+        "date": "2026-10-30T03:50:51+00:00",
+        "description": "con más de un 98 % de confianza estadística. * Faithful? Yes.",
+        "explanation": "El calentamiento global se ha acelerado drásticamente en la última década, con la Tierra calentándose más rápido que en cualquier momento desde que comenzaron los registros de temperatura modernos en 1880. Un nuevo estudio del Instituto de Investigación del Impacto Climático de Potsdam (PIK) proporciona la primera evidencia estadísticamente significativa de que el ritmo del calentamiento global ha aumentado desde alrededor de 2015, incluso después de tener en cuenta factores naturales que elevan o disminuyen temporalmente las temperaturas globales. Los investigadores encontraron que el planeta se ha calentado a un ritmo de aproximadamente 0,35°C por década en los últimos 10 años, aunque la cifra exacta varía dependiendo del conjunto de datos de temperatura utilizado. Eso es casi el doble de la tasa promedio de poco menos de 0,2°C por década registrada entre 1970 y 2015. Los hallazgos sugieren que las temperaturas globales no solo continúan aumentando. La tasa a la que están aumentando también se ha vuelto sustancialmente más rápida. \"Ahora podemos demostrar una fuerte y estadísticamente significativa aceleración del calentamiento global desde alrededor de 2015\", dice Grant Foster, un experto en estadísticas de EE. UU. y coautor del estudio, publicado en la revista científica Geophysical Research Letters.",
+        "id": "6d6cd588226885d566a4",
+        "image_headline": "Un estudio confirma que el calentamiento global se acelera desde 2015, con alta certeza estadística.",
+        "lang": "en",
+        "original_title": "Scientists confirm global warming is accelerating faster than ever recorded",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/10/261027231200.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "Científicos confirman que el calentamiento global se está acelerando más rápido que nunca antes.",
+        "url": "https://www.sciencedaily.com/releases/2026/10/261027231200.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CLIMATOLOGÍA\n\nUn estudio confirma que el calentamiento global se acelera desde 2015, con alta certeza estadística.\n\nEl calentamiento global se ha acelerado drásticamente en la última década, con la Tierra calentándose más rápido que en cualquier momento desde que comenzaron los registros de temperatura modernos en 1880. Un nuevo estudio del Instituto de Investigación del Impacto Climático de Potsdam (PIK) proporciona la primera evidencia estadísticamente significativa de que el ritmo del calentamiento global ha aumentado desde alrededor de 2015, incluso después de tener en cuenta factores naturales que elevan o disminuyen temporalmente las temperaturas globales. Los investigadores encontraron que el planeta se ha calentado a un ritmo de aproximadamente 0,35°C por década en los últimos 10 años, aunque la cifra exacta varía dependiendo del conjunto de datos de temperatura utilizado. Eso es casi el doble de la tasa promedio de poco menos de 0,2°C por década registrada entre 1970 y 2015. Los hallazgos sugieren que las temperaturas globales no solo continúan aumentando. La tasa a la que están aumentando también se ha vuelto sustancialmente más rápida. \"Ahora podemos demostrar una fuerte y estadísticamente significativa aceleración del calentamiento global desde alrededor de 2015\", dice Grant Foster, un experto en estadísticas de EE. UU. y coautor del estudio, publicado en la revista científica Geophysical Research Letters.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Climatologia #Clima #CambioClimatico #Glaciares",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "glacier landscape",
+        "sha256": "1abda6e6cd2a25e954e49284e546173c2e92298b74e4b34bd8f9e74e4889dbd2",
+        "source": "https://commons.wikimedia.org/wiki/File:Glacier_National_Park_-_Lobby,_Glacier_Park_Hotel_(NBY_430070).jpg",
+        "title": "File:Glacier National Park - Lobby, Glacier Park Hotel (NBY 430070).jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/c/cd/Glacier_National_Park_-_Lobby%2C_Glacier_Park_Hotel_%28NBY_430070%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/6d6cd588226885d566a4.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "752344054d2d36671c2a": {
       "article": {
         "category": "espacio",
