@@ -2750,7 +2750,8 @@
           "status": "pending"
         },
         "instagram": {
-          "status": "pending"
+          "started_at": "2026-11-06T21:01:22.740497+00:00",
+          "status": "uncertain"
         }
       }
     },
