@@ -138,6 +138,46 @@
         }
       }
     },
+    "1296c406bb6128db14f5": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-03T14:09:21+00:00",
+        "description": "En esta Imagen del Mes del Telescopio Espacial James Webb de la NASA/ESA, visitamos un turbulento caldero de formación estelar para ver qué se está gestando dentro de densos cúmulos de gas. Esta es una región de formación estelar llamada LHA 120-N 159, o simplemente N159, ubicada a 161 000 años luz de distancia en la Nube Magallánica Grande (LMC), una de las galaxias satélites que orbitan la galaxia Vía Láctea. Esta imagen abarca aproximadamente 230 años luz de ancho.",
+        "explanation": "**Estrellas gestándose en un caldero nebuloso**\n\nLa región de formación estelar LHA 120-N 159, ubicada a 161,000 años luz en la Nube de Magallanes, es un fascinante laboratorio cósmico. Observaciones recientes del Telescopio Espacial James Webb han revelado detalles sobre este entorno turbulento, donde nubes moleculares de hidrógeno frío colapsan bajo la gravedad para dar origen a nuevas estrellas.\n\nEn N159, se han identificado áreas de gas ionizado, conocidas como regiones H II, que son indicadores de actividad estelar. Estas regiones brillan intensamente debido a la radiación ultravioleta de estrellas masivas y calientes, que también moldean el gas circundante mediante vientos estelares. Las imágenes muestran filamentos oscuros de hidrógeno molecular que protegen a las estrellas jóvenes de la radiación intensa.\n\nAdemás, los datos obtenidos han permitido a los astrónomos detectar estrellas extremadamente tenues y distinguir entre estrellas jóvenes y aquellas que ya han evolucionado. Se ha observado que la región occidental de N159 alberga una mayor concentración de objetos estelares jóvenes, sugiriendo que está en una fase más temprana de formación. Este entorno único ofrece una oportunidad invaluable para estudiar la evolución de nubes moleculares y la formación estelar en condiciones similares a las del universo primitivo.",
+        "id": "1296c406bb6128db14f5",
+        "image_headline": "El Telescopio James Webb revela la formación de estrellas en la región N159 de la Nube Magallánica.",
+        "lang": "en",
+        "original_title": "Stars brewing in a nebulous cauldron",
+        "resolved_source_url": "https://www.esa.int/articles/about-us/directorates/science/webb/stars-brewing-in-a-nebulous-cauldron",
+        "search_category": "direct",
+        "source": "ESA ciencia espacial",
+        "source_body": "",
+        "title": "Estrellas gestándose en un caldero nebuloso",
+        "url": "https://www.esa.int/articles/about-us/directorates/science/webb/stars-brewing-in-a-nebulous-cauldron"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nEl Telescopio James Webb revela la formación de estrellas en la región N159 de la Nube Magallánica.\n\nLa región de formación estelar LHA 120-N 159, ubicada a 161,000 años luz en la Nube de Magallanes, es un fascinante laboratorio cósmico. Observaciones recientes del Telescopio Espacial James Webb han revelado detalles sobre este entorno turbulento, donde nubes moleculares de hidrógeno frío colapsan bajo la gravedad para dar origen a nuevas estrellas. En N159, se han identificado áreas de gas ionizado, conocidas como regiones H II, que son indicadores de actividad estelar. Estas regiones brillan intensamente debido a la radiación ultravioleta de estrellas masivas y calientes, que también moldean el gas circundante mediante vientos estelares. Las imágenes muestran filamentos oscuros de hidrógeno molecular que protegen a las estrellas jóvenes de la radiación intensa. Además, los datos obtenidos han permitido a los astrónomos detectar estrellas extremadamente tenues y distinguir entre estrellas jóvenes y aquellas que ya han evolucionado. Se ha observado que la región occidental de N159 alberga una mayor concentración de objetos estelares jóvenes, sugiriendo que está en una fase más temprana de formación. Este entorno único ofrece una oportunidad invaluable para estudiar la evolución de nubes moleculares y la formación estelar en condiciones similares a las del universo primitivo.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "d597c664ece6be7879e8ea47e16205aaa1847750a0a7aff961d480c4bf4d3591",
+        "source": "https://commons.wikimedia.org/wiki/File:Blue_Marble_Western_Hemisphere.jpg",
+        "title": "File:Blue Marble Western Hemisphere.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/61/Blue_Marble_Western_Hemisphere.jpg/1920px-Blue_Marble_Western_Hemisphere.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/1296c406bb6128db14f5.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "14ab3b82f300abe8a689": {
       "article": {
         "category": "geologia",
