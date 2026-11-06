@@ -1,20 +1,19 @@
-
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """SISMONAUTA | Sismos cerca de 15 ciudades, EMSC-CSEM.
 
-Consulta retrospectiva ampliada (300 min por defecto), ejecución sugerida cada
-10 min, magnitud 4.0 <= M < 7.0, radio 100 km. Registro por evento/plataforma
-para no reenviar publicaciones confirmadas ni resultados inciertos.
+Consulta retrospectiva ampliada (300 min por defecto), magnitud 4.0 <= M < 7.0,
+radio 100 km. Registro por evento/destino para evitar reenvíos.
+Publica: Instagram, Facebook Foto y Facebook Feed con foto adjunta.
 
 Instalar: pip install requests pillow
+Opcional para respaldo de mapas: pip install matplotlib cartopy
 Uso: python sismonauta_ciudades.py [--out output_ciudades] [--publish]
      python sismonauta_ciudades.py --test
-El catálogo EMSC puede incorporar o modificar eventos con demora.
-NO constituye alerta sísmica oficial ni confirma que el movimiento se sintió.
+No constituye alerta sísmica oficial ni confirma que el sismo se sintió.
 """
 from __future__ import annotations
-import argparse, base64, io, json, math, os, re, sys, time, urllib.parse
+import argparse, base64, hashlib, io, json, math, os, re, sys, time, urllib.parse
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -31,8 +30,9 @@ MAX_EVENTS_PER_RUN=30; WIDTH=1080; HEIGHT=1350; MAP_HALF_WIDTH_M=135000
 OUT=Path('output_ciudades'); STATE_PATH='sismonauta_ciudades/state.json'; IMAGE_DIR='sismonauta_ciudades/images'
 GRAPH_VERSION=os.getenv('META_GRAPH_VERSION','v25.0')
 IG_BASE=os.getenv('IG_GRAPH_BASE','https://graph.instagram.com').rstrip('/')
-FB_BASE='https://graph.facebook.com'; PLATFORMS=('instagram','facebook')
-HTTP=requests.Session(); HTTP.headers.update({'User-Agent':'Sismonauta-EMSC/5.1','Accept':'application/json'})
+FB_BASE='https://graph.facebook.com'
+PLATFORMS=('instagram','facebook','facebook_feed')
+HTTP=requests.Session(); HTTP.headers.update({'User-Agent':'Sismonauta-EMSC/5.2','Accept':'application/json'})
 CITIES=[
  ('Santiago','Chile','🇨🇱',-33.4489,-70.6693,'America/Santiago'),
  ('Coquimbo','Chile','🇨🇱',-29.9533,-71.3395,'America/Santiago'),
@@ -66,9 +66,7 @@ def short_error(exc):
     return message[:350]
 def parse_time(value):
     if not value: raise ValueError('Hora de origen no disponible')
-    s=str(value).strip().replace('Z','+00:00')
-    # El servicio puede entregar milisegundos o un desplazamiento horario.
-    d=datetime.fromisoformat(s)
+    d=datetime.fromisoformat(str(value).strip().replace('Z','+00:00'))
     if d.tzinfo is None: d=d.replace(tzinfo=UTC)
     return d.astimezone(UTC)
 def depth_text(value): return 'No disponible' if value is None else f'{value:.1f} km'
@@ -81,15 +79,10 @@ def nearest_cities(lat,lon): return sorted(((haversine(lat,lon,c[3],c[4]),c) for
 def matching_cities(lat,lon): return [(d,c) for d,c in nearest_cities(lat,lon) if d<=RADIUS_KM]
 
 def fetch_events():
-    """Recupera eventos con margen por retraso de incorporación en EMSC.
-
-    --lookback-minutes conserva la frecuencia de referencia de 10 minutos;
-    NO limita la consulta retrospectiva, configurable con EMSC_RECOVERY_MINUTES.
-    """
+    """Recupera eventos con margen por retraso de incorporación en EMSC."""
     end=now_utc(); start=end-timedelta(minutes=EMSC_RECOVERY_MINUTES)
-    duration=(end-start).total_seconds()
     log('='*52,'\nCONSULTA SISMICA EMSC-CSEM\nINICIO UTC:',iso(start),'\nFIN UTC:',iso(end))
-    log('VENTANA DE RECUPERACIÓN:',duration/60,'minutos | CICLO NOMINAL:',LOOKBACK_MINUTES,'minutos\n'+'='*52)
+    log('VENTANA DE RECUPERACIÓN:',EMSC_RECOVERY_MINUTES,'minutos | CICLO NOMINAL:',LOOKBACK_MINUTES,'minutos\n'+'='*52)
     parameters={'format':'json','starttime':start.strftime('%Y-%m-%dT%H:%M:%S'), 'endtime':end.strftime('%Y-%m-%dT%H:%M:%S'), 'minmagnitude':MIN_MAG,'orderby':'time','limit':20000,'nodata':204}
     response=HTTP.get(EMSC_API,params=parameters,timeout=75)
     log('URL CONSULTADA:',response.url,'HTTP:',response.status_code)
@@ -204,13 +197,10 @@ def build_map(event):
         draw.text((tx,ty),label,font=ft,fill='white',stroke_width=4,stroke_fill='#101820')
     return image,kind
 
-def event_age_minutes(event,at=None):
-    return ((at or now_utc())-event['time']).total_seconds()/60
-
+def event_age_minutes(event,at=None): return ((at or now_utc())-event['time']).total_seconds()/60
 def is_recent_event(event,at=None):
     age=((at or now_utc())-event['time']).total_seconds()/60
     return 0<=age<=LOOKBACK_MINUTES
-
 def make_image(event,path):
     image,kind=build_map(event); draw=ImageDraw.Draw(image); city=event['city']
     banner,foreground,category=magnitude_colors(event['mag'])
@@ -221,26 +211,12 @@ def make_image(event,path):
         draw.line((83,148,997,148),fill=foreground,width=3)
         draw_centered(draw,'ÚLTIMO MINUTO',207,965,85,74,foreground)
     else:
-        # Para eventos recuperados, el encabezado superior queda en una sola línea,
-        # sin divisor horizontal y con el texto solicitado por el usuario.
         draw_centered(draw,'SISMOS DETECTADO!',145,965,120,72,foreground)
     draw.rounded_rectangle((18,1000,1062,1328),radius=25,fill=banner,outline='#FFFFFF',width=4)
     draw_centered(draw,f"MAGNITUD {event['mag']:.1f}",1057,985,76,64,foreground)
-
-    # MEJORA: incluir siempre ciudad y país en la franja inferior.
-    # Ejemplo: CERCA DE CALI, COLOMBIA.
-    # Se conserva el texto "SE HA PERCIBIDO EN" solamente si
-    # existe una confirmación explícita en felt_confirmed.
     location_text=f"{city[0]}, {city[1]}".upper()
-    line_two=(
-        'SE HA PERCIBIDO EN '
-        if event.get('felt_confirmed',False)
-        else 'CERCA DE '
-    )+location_text
-
-    # draw_centered ajusta automáticamente el tamaño de letra.
+    line_two=('SE HA PERCIBIDO EN ' if event.get('felt_confirmed',False) else 'CERCA DE ')+location_text
     draw_centered(draw,line_two,1160,985,72,54,foreground)
-
     draw_centered(draw,'¿LO SENTISTE?',1262,970,75,67,foreground)
     attribution='Imagen: Esri / proveedores' if kind=='satellite' else 'Mapa: Natural Earth'
     draw.rounded_rectangle((15,965,410,995),radius=5,fill='#102030'); draw.text((24,968),attribution,font=get_font(17),fill='white')
@@ -264,66 +240,161 @@ def make_caption(event):
     return caption[:2200]
 
 class Github:
+    """Contents API con reintentos; el estado siempre se fusiona con la versión remota."""
     def __init__(self):
         self.repo=os.environ['GITHUB_REPOSITORY']; self.branch=os.getenv('GITHUB_REF_NAME','main'); self.base='https://api.github.com/repos/'+self.repo
         self.session=requests.Session(); self.session.headers.update({'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'})
         r=self.session.get(self.base,timeout=30); r.raise_for_status()
         if r.json().get('private'): raise RuntimeError('Se necesita un repositorio público para servir imágenes a Meta')
     def endpoint(self,path): return self.base+'/contents/'+urllib.parse.quote(path,safe='/')
-    def read(self,path):
-        r=self.session.get(self.endpoint(path),params={'ref':self.branch},timeout=30)
-        if r.status_code==404: return None
-        r.raise_for_status(); return json.loads(base64.b64decode(r.json()['content']).decode('utf-8'))
-    def write_bytes(self,path,content):
-        endpoint=self.endpoint(path)
+    def _read_raw(self,path):
         for attempt in range(5):
-            previous=self.session.get(endpoint,params={'ref':self.branch},timeout=30)
-            if previous.status_code==404: sha=None
-            else: previous.raise_for_status(); sha=previous.json()['sha']
-            payload={'message':'SISMONAUTA EMSC: '+path,'branch':self.branch,'content':base64.b64encode(content).decode('ascii')}
-            if sha: payload['sha']=sha
-            r=self.session.put(endpoint,json=payload,timeout=60)
-            if r.ok: return
-            if r.status_code in (409,422) and attempt<4: time.sleep(2+attempt); continue
-            r.raise_for_status()
-    def write_json(self,path,data): self.write_bytes(path,json.dumps(data,ensure_ascii=False,indent=2,default=str).encode('utf-8'))
-    def public_url(self,path): return 'https://raw.githubusercontent.com/'+self.repo+'/'+urllib.parse.quote(self.branch,safe='')+'/'+urllib.parse.quote(path,safe='/')
+            try:
+                r=self.session.get(self.endpoint(path),params={'ref':self.branch},timeout=30)
+                if r.status_code==404: return None,None
+                if r.status_code in (429,500,502,503,504) and attempt<4:
+                    time.sleep(min(14,2**attempt)); continue
+                r.raise_for_status(); result=r.json()
+                return base64.b64decode(result['content']),result.get('sha')
+            except requests.RequestException:
+                if attempt>=4: raise
+                time.sleep(min(14,2**attempt))
+        raise RuntimeError('GitHub: lectura no disponible')
+    def read(self,path):
+        raw,_=self._read_raw(path)
+        return json.loads(raw.decode('utf-8')) if raw else None
+    def _put(self,path,raw,expected_sha):
+        payload={'message':'SISMONAUTA EMSC: '+path,'branch':self.branch,'content':base64.b64encode(raw).decode('ascii')}
+        if expected_sha: payload['sha']=expected_sha
+        return self.session.put(self.endpoint(path),json=payload,timeout=60)
+    def write_bytes(self,path,content):
+        for attempt in range(6):
+            previous,sha=self._read_raw(path)
+            if previous==content: return
+            try:
+                r=self._put(path,content,sha)
+            except requests.RequestException:
+                r=None
+            if r is not None and r.ok: return
+            # Un PUT de respuesta incierta pudo haberse aplicado. Verificar antes de reintentar.
+            current,_=self._read_raw(path)
+            if current==content: return
+            if r is not None and r.status_code not in (409,422,429,500,502,503,504): r.raise_for_status()
+            if attempt<5: time.sleep(min(16,2+attempt*2)); continue
+        raise RuntimeError('GitHub: no fue posible guardar '+path+'; comprobar concurrencia')
+    def write_json(self,path,data):
+        if path!=STATE_PATH:
+            return self.write_bytes(path,json.dumps(data,ensure_ascii=False,indent=2,default=str).encode('utf-8'))
+        # Proteger estados de otras ejecuciones; nunca degradar published/uncertain.
+        for attempt in range(7):
+            old_raw,sha=self._read_raw(path)
+            remote=json.loads(old_raw.decode('utf-8')) if old_raw else new_state()
+            merged=merge_state(remote,data)
+            raw=json.dumps(merged,ensure_ascii=False,indent=2,default=str).encode('utf-8')
+            if old_raw==raw:
+                data.clear(); data.update(merged); return
+            try: r=self._put(path,raw,sha)
+            except requests.RequestException: r=None
+            if r is not None and r.ok:
+                data.clear(); data.update(merged); return
+            check,_=self._read_raw(path)
+            if check==raw:
+                data.clear(); data.update(merged); return
+            if r is not None and r.status_code not in (409,422,429,500,502,503,504): r.raise_for_status()
+            if attempt<6: time.sleep(min(16,2+attempt*2))
+        raise RuntimeError('GitHub: conflicto persistente de historial; evitar publicaciones duplicadas')
+    def public_url(self,path):
+        return 'https://raw.githubusercontent.com/'+self.repo+'/'+urllib.parse.quote(self.branch,safe='')+'/'+urllib.parse.quote(path,safe='/')
+
 
 def graph(method,path,token,parameters=None,base=None):
     endpoint=f"{base or IG_BASE}/{GRAPH_VERSION}/{path}"; values=dict(parameters or {}); values['access_token']=token
     response=requests.get(endpoint,params=values,timeout=60) if method=='GET' else requests.post(endpoint,data=values,timeout=80)
     try: data=response.json()
-    except ValueError: raise RuntimeError('Meta no devolvió JSON')
+    except ValueError: raise RuntimeError('Meta no devolvió JSON (HTTP '+str(response.status_code)+')')
     if not response.ok or data.get('error'):
-        err=data.get('error') or {}; raise RuntimeError('Meta API: '+str(err.get('message',data))[:250])
+        err=data.get('error') or {}
+        raise RuntimeError('Meta HTTP '+str(response.status_code)+': '+str(err.get('message',data))[:250])
     return data
 
+def validate_instagram():
+    token=os.environ['INSTAGRAM_TOKEN']; user_id=str(os.environ['INSTAGRAM_USER_ID'])
+    instagram=graph('GET','me',token,{'fields':'id,username'})
+    if str(instagram.get('username','')).lower()!='sismonauta': raise RuntimeError('La cuenta Instagram no es @sismonauta')
+    # Conservar el ID configurado, que puede diferir del identificador de /me.
+    if str(instagram.get('id'))!=user_id:
+        log('INSTAGRAM: el ID de /me difiere de INSTAGRAM_USER_ID; se preserva el ID configurado')
+    log('INSTAGRAM:',instagram.get('username')); return user_id,token
+
+def validate_facebook():
+    token=os.environ['FACEBOOK_PAGE_TOKEN']; page_id=str(os.environ['FACEBOOK_PAGE_ID'])
+    facebook=graph('GET',page_id,token,{'fields':'id,name'},FB_BASE)
+    if str(facebook.get('id'))!=page_id or 'sismonauta' not in str(facebook.get('name','')).lower():
+        raise RuntimeError('La fanpage no es SISMONAUTA')
+    log('FACEBOOK:',facebook.get('name')); return page_id,token
+
 def validate_accounts():
-    ig_token=os.environ['INSTAGRAM_TOKEN']; ig_id=os.environ['INSTAGRAM_USER_ID']; fb_token=os.environ['FACEBOOK_PAGE_TOKEN']; fb_id=os.environ['FACEBOOK_PAGE_ID']
-    instagram=graph('GET','me',ig_token,{'fields':'id,username'})
-    if str(instagram.get('id'))!=str(ig_id) or str(instagram.get('username','')).lower()!='sismonauta': raise RuntimeError('La cuenta Instagram no es @sismonauta')
-    facebook=graph('GET',fb_id,fb_token,{'fields':'id,name'},FB_BASE)
-    if str(facebook.get('id'))!=str(fb_id) or 'sismonauta' not in str(facebook.get('name','')).lower(): raise RuntimeError('La fanpage no es SISMONAUTA')
-    log('INSTAGRAM:',instagram.get('username'),'FACEBOOK:',facebook.get('name'))
+    ig_id,ig_token=validate_instagram(); fb_id,fb_token=validate_facebook()
     return ig_id,ig_token,fb_id,fb_token
 
 def publish_instagram(user_id,token,image_url,caption):
     container=graph('POST',f'{user_id}/media',token,{'image_url':image_url,'caption':caption}); cid=container.get('id')
     if not cid: raise RuntimeError('Instagram no creó contenedor')
-    finished=False
     for _ in range(25):
         time.sleep(5); result=graph('GET',cid,token,{'fields':'status_code'}); status=result.get('status_code')
-        if status=='FINISHED': finished=True; break
+        if status=='FINISHED': break
         if status in ('ERROR','EXPIRED'): raise RuntimeError('Contenedor Instagram: '+str(status))
-    if not finished: raise RuntimeError('Instagram no terminó de procesar la imagen')
+    else: raise RuntimeError('Instagram no terminó de procesar la imagen')
     published=graph('POST',f'{user_id}/media_publish',token,{'creation_id':cid}); identifier=published.get('id')
     if not identifier: raise RuntimeError('Instagram no confirmó el post')
     return str(identifier)
+
 def publish_facebook(page_id,token,image_url,caption):
     result=graph('POST',f'{page_id}/photos',token,{'url':image_url,'caption':caption,'published':'true'},FB_BASE)
     identifier=result.get('post_id') or result.get('id')
     if not identifier: raise RuntimeError('Facebook no confirmó la foto')
     return str(identifier)
+
+def facebook_feed_caption(caption):
+    # Conservar los datos sísmicos y no inferir percepción real.
+    return '📍 SISMONAUTA | SISMOS DETECTADOS\n\n'+str(caption or '').strip()
+
+def verify_facebook_feed_media(post_id,token,photo_id):
+    """Confirmar foto vinculada. Respuesta no verificable => estado incierto."""
+    for attempt in range(4):
+        try:
+            data=graph('GET',str(post_id),token,{'fields':'id,attachments{media,target,subattachments}'},FB_BASE)
+            attachments=(data.get('attachments') or {}).get('data') or []
+            if not attachments:
+                if attempt<3: time.sleep(3); continue
+                raise RuntimeError('Facebook Feed no devuelve adjuntos; revisar post manualmente')
+            def has_media(item):
+                if str((item.get('target') or {}).get('id') or '')==str(photo_id): return True
+                media=item.get('media') or {}
+                if (media.get('image') or {}).get('src'): return True
+                return any(has_media(sub) for sub in ((item.get('subattachments') or {}).get('data') or []))
+            if any(has_media(item) for item in attachments): return True
+            if attempt<3: time.sleep(3)
+        except RuntimeError:
+            if attempt>=3: raise
+            time.sleep(3)
+    raise RuntimeError('Facebook Feed creó el post pero no confirmó imagen adjunta; revisar manualmente')
+
+def publish_facebook_feed(page_id,token,image_url,caption):
+    """Sube foto oculta, luego crea post público CON foto en el feed."""
+    uploaded=graph('POST',f'{page_id}/photos',token,{'url':image_url,'published':'false','temporary':'true'},FB_BASE)
+    photo_id=str(uploaded.get('id') or '')
+    if not photo_id.isdigit(): raise RuntimeError('Facebook Feed no devolvió ID de foto adjuntable')
+    result=graph('POST',f'{page_id}/feed',token,{
+        'message':facebook_feed_caption(caption),
+        'published':'true',
+        'attached_media[0]':json.dumps({'media_fbid':photo_id},separators=(',',':')),
+    },FB_BASE)
+    post_id=str(result.get('id') or '')
+    if not re.fullmatch(r'\d+_\d+',post_id): raise RuntimeError('Facebook Feed: respuesta sin ID de publicación')
+    verify_facebook_feed_media(post_id,token,photo_id)
+    return post_id
+
 def wait_public_image(url):
     for _ in range(12):
         try:
@@ -334,35 +405,92 @@ def wait_public_image(url):
     raise RuntimeError('Imagen pública no disponible')
 
 def new_state(): return {'events':{}}
+
 def ensure_entry(state,event):
     entry=state['events'].setdefault(event['id'],{'magnitude':event['mag'],'place':event['place'],'time':iso(event['time']),'source':'EMSC-CSEM','targets':{}})
     for platform in PLATFORMS: entry.setdefault('targets',{}).setdefault(platform,{'status':'pending'})
     return entry
-def is_finished(entry): return all(entry.get('targets',{}).get(p,{}).get('status')=='published' for p in PLATFORMS)
-def has_uncertain(entry): return any(entry.get('targets',{}).get(p,{}).get('status')=='uncertain' for p in PLATFORMS)
 
-def process_event(event,github,state,publish,credentials):
+def is_finished(entry):
+    return all((entry.get('targets') or {}).get(p,{}).get('status')=='published' for p in PLATFORMS)
+
+def has_uncertain(entry):
+    return any((entry.get('targets') or {}).get(p,{}).get('status')=='uncertain' for p in PLATFORMS)
+
+def merge_state(remote,local):
+    """Fusiona estados sin rebajar confirmed ni uncertain por una copia antigua."""
+    merged={'events':dict(remote.get('events') or {})}
+    order={'pending':0,'uncertain':1,'published':2}
+    for event_id,entry in (local.get('events') or {}).items():
+        if not isinstance(entry,dict): continue
+        prior=merged['events'].get(event_id) or {}
+        result={**prior,**entry}
+        old_targets=prior.get('targets') or {}; new_targets=entry.get('targets') or {}
+        result['targets']={}
+        for target in set(old_targets)|set(new_targets):
+            old=old_targets.get(target) or {}; new=new_targets.get(target) or {}
+            old_status=old.get('status','pending'); new_status=new.get('status','pending')
+            if order.get(old_status,1)>order.get(new_status,1): result['targets'][target]=dict(old)
+            else: result['targets'][target]={**old,**new}
+        merged['events'][event_id]=result
+    return merged
+
+def process_event(event,github,state,publish,credentials=None):
     event_id=event['id']; entry=ensure_entry(state,event)
     if is_finished(entry): log('YA PUBLICADO:',event_id); return 'already_published'
-    if has_uncertain(entry): log('REVISIÓN MANUAL:',event_id); return 'partial_or_uncertain'
-    filename=safe_name(event_id)+'.jpg'; image_path=OUT/filename; make_image(event,image_path); caption=make_caption(event)
+    eligible=[p for p in PLATFORMS if entry['targets'][p].get('status')=='pending']
+    if not eligible:
+        log('REVISIÓN MANUAL O COMPLETADO:',event_id,{p:entry['targets'][p].get('status') for p in PLATFORMS})
+        return 'partial_or_uncertain'
+    filename=safe_name(event_id)+'.jpg'; image_path=OUT/filename
+    make_image(event,image_path); caption=make_caption(event)
     save_json(OUT/(safe_name(event_id)+'.json'),{'event':event,'caption':caption})
     if not publish: log('VISTA PREVIA:',image_path); return 'preview_only'
-    remote_path=IMAGE_DIR+'/'+filename; github.write_json(STATE_PATH,state); github.write_bytes(remote_path,image_path.read_bytes())
-    image_url=github.public_url(remote_path); wait_public_image(image_url); entry['image_url']=image_url; github.write_json(STATE_PATH,state)
-    ig_id,ig_token,fb_id,fb_token=credentials
+    remote_path=IMAGE_DIR+'/'+filename
+    github.write_bytes(remote_path,image_path.read_bytes())
+    image_url=github.public_url(remote_path); wait_public_image(image_url)
+    entry['image_url']=image_url
+    github.write_json(STATE_PATH,state)
+    # Las credenciales se consultan de manera independiente para cada destino.
+    cached={}
     for platform in PLATFORMS:
-        target=entry['targets'][platform]
-        if target.get('status')=='published': continue
-        # El estado incierto se escribe ANTES del envío para evitar duplicados.
-        target['status']='uncertain'; target.pop('error',None); github.write_json(STATE_PATH,state)
+        entry=ensure_entry(state,event); target=entry['targets'][platform]
+        if target.get('status')!='pending':
+            log('OMITIDO:',event_id,platform,target.get('status'))
+            continue
         try:
-            identifier=(publish_instagram(ig_id,ig_token,image_url,caption) if platform=='instagram' else publish_facebook(fb_id,fb_token,image_url,caption))
-            target['status']='published'; target['id']=identifier; github.write_json(STATE_PATH,state)
+            family='instagram' if platform=='instagram' else 'facebook'
+            if family not in cached:
+                cached[family]=validate_instagram() if family=='instagram' else validate_facebook()
+        except Exception as exc:
+            # No se llamó a publicar: estado sigue pendiente para otro intento.
+            target['error']='Validación de credenciales: '+short_error(exc)
+            github.write_json(STATE_PATH,state)
+            log('VALIDACIÓN FALLIDA:',platform,short_error(exc))
+            continue
+        # Guardar estado ANTES del envío. Si falla la escritura, NO llamar a Meta.
+        target['status']='uncertain'; target.pop('error',None)
+        github.write_json(STATE_PATH,state)
+        target=ensure_entry(state,event)['targets'][platform]
+        if target.get('status')=='published':
+            log('OMITIDO POR OTRA EJECUCIÓN:',platform)
+            continue
+        try:
+            if platform=='instagram': identifier=publish_instagram(*cached[family],image_url,caption)
+            elif platform=='facebook': identifier=publish_facebook(*cached[family],image_url,caption)
+            else: identifier=publish_facebook_feed(*cached[family],image_url,caption)
+            target=ensure_entry(state,event)['targets'][platform]
+            target['status']='published'; target['id']=str(identifier)
+            github.write_json(STATE_PATH,state)
             log('PUBLICADO:',event_id,platform,identifier)
         except Exception as exc:
-            target['error']=short_error(exc); github.write_json(STATE_PATH,state); log('ERROR META:',platform,short_error(exc))
-    return 'published' if is_finished(entry) else 'partial_or_uncertain'
+            # Error después de iniciar POST: no sabemos si Meta llegó a publicar.
+            target=ensure_entry(state,event)['targets'][platform]
+            target['error']=short_error(exc)
+            try: github.write_json(STATE_PATH,state)
+            except Exception as state_exc: log('ERROR GUARDANDO HISTORIAL:',short_error(state_exc))
+            log('ERROR META:',platform,short_error(exc))
+    return 'published' if is_finished(ensure_entry(state,event)) else 'partial_or_uncertain'
 
 def test_recovery():
     assert len(CITIES)==15 and EMSC_RECOVERY_MINUTES>=10
@@ -372,9 +500,53 @@ def test_recovery():
     e={'time':datetime(2026,10,30,12,57,48,tzinfo=UTC)}
     assert is_recent_event(e,datetime(2026,10,30,13,4,tzinfo=UTC))
     assert not is_recent_event(e,datetime(2026,10,30,13,15,tzinfo=UTC))
-    assert is_finished({'targets':{'instagram':{'status':'published'},'facebook':{'status':'published'}}})
+    assert is_finished({'targets':{p:{'status':'published'} for p in PLATFORMS}})
+    assert not is_finished({'targets':{'instagram':{'status':'published'},'facebook':{'status':'published'}}})
     assert has_uncertain({'targets':{'instagram':{'status':'uncertain'}}})
-    log('PRUEBAS APROBADAS: ciudades, distancia Iquique, oportunidad y antiduplicados; ventana recuperación:',EMSC_RECOVERY_MINUTES)
+    assert merge_state({'events':{'a':{'targets':{'instagram':{'status':'published','id':'1'}}}}},{'events':{'a':{'targets':{'instagram':{'status':'pending'},'facebook_feed':{'status':'pending'}}}}})['events']['a']['targets']['instagram']['status']=='published'
+    assert facebook_feed_caption('texto').startswith('📍 SISMONAUTA | SISMOS DETECTADOS')
+    log('PRUEBAS APROBADAS: ciudades, distancias, oportunidad, historial de tres destinos y protección de estados')
+
+def test_publication():
+    """Prueba local del flujo de tres destinos, sin red ni credenciales reales."""
+    from unittest.mock import patch
+    class FakeGithub:
+        def __init__(self): self.saved=[]
+        def write_bytes(self,*args): pass
+        def public_url(self,*args): return 'https://example.org/test.jpg'
+        def write_json(self,path,data): self.saved.append(json.loads(json.dumps(data,default=str)))
+    city=CITIES[0]
+    event={'id':'emsc_test_1','mag':4.6,'place':'CHILE','lat':-33.5,'lon':-70.7,'depth':12.0,'time':now_utc(),'city':city,'distance_km':8.0}
+    with patch(__name__+'.make_image',side_effect=lambda e,p:(p.parent.mkdir(parents=True,exist_ok=True),p.write_bytes(b'jpg'))), \
+         patch(__name__+'.wait_public_image'), \
+         patch(__name__+'.validate_instagram',return_value=('ig','ig-token')), \
+         patch(__name__+'.validate_facebook',return_value=('page','fb-token')), \
+         patch(__name__+'.publish_instagram',return_value='101') as ig, \
+         patch(__name__+'.publish_facebook',return_value='102') as photo, \
+         patch(__name__+'.publish_facebook_feed',return_value='100_103') as feed:
+        gh=FakeGithub(); state=new_state()
+        result=process_event(event,gh,state,True)
+        assert result=='published' and is_finished(state['events'][event['id']])
+        assert ig.call_count==photo.call_count==feed.call_count==1
+        before=len(gh.saved)
+        assert process_event(event,gh,state,True)=='already_published'
+        assert len(gh.saved)==before
+    # Si falla el feed, Instagram y la foto pública siguen confirmados.
+    with patch(__name__+'.make_image',side_effect=lambda e,p:(p.parent.mkdir(parents=True,exist_ok=True),p.write_bytes(b'jpg'))), \
+         patch(__name__+'.wait_public_image'), \
+         patch(__name__+'.validate_instagram',return_value=('ig','ig-token')), \
+         patch(__name__+'.validate_facebook',return_value=('page','fb-token')), \
+         patch(__name__+'.publish_instagram',return_value='101'), \
+         patch(__name__+'.publish_facebook',return_value='102'), \
+         patch(__name__+'.publish_facebook_feed',side_effect=RuntimeError('Falló la verificación')):
+        state=new_state(); gh=FakeGithub()
+        result=process_event(event,gh,state,True)
+        statuses=state['events'][event['id']]['targets']
+        assert result=='partial_or_uncertain'
+        assert statuses['instagram']['status']=='published'
+        assert statuses['facebook']['status']=='published'
+        assert statuses['facebook_feed']['status']=='uncertain'
+    log('PRUEBA DE PUBLICACIÓN SIMULADA APROBADA: tres destinos, sin duplicados y fallo aislado de Facebook Feed')
 
 def main():
     parser=argparse.ArgumentParser(description='SISMONAUTA EMSC - consulta retrospectiva con recuperación')
@@ -382,8 +554,10 @@ def main():
     parser.add_argument('--lookback-minutes',type=int,choices=[10],default=10,help='Ciclo nominal; la consulta recupera 300 min por defecto')
     parser.add_argument('--test',action='store_true',help='Pruebas locales sin consultar EMSC ni publicar')
     args=parser.parse_args()
-    if args.test: test_recovery(); return 0
-    global OUT; OUT=Path(args.out); OUT.mkdir(parents=True,exist_ok=True)
+    global OUT; OUT=Path(args.out)
+    if args.test:
+        test_recovery(); test_publication(); return 0
+    OUT.mkdir(parents=True,exist_ok=True)
     receipt_path=OUT/'estado_publicacion.json'
     receipt={'status':'starting','source':'EMSC-CSEM','checked_at':iso(now_utc()),'publish_requested':args.publish,'lookback_hours':0,'lookback_minutes':LOOKBACK_MINUTES,'recovery_minutes':EMSC_RECOVERY_MINUTES,'radius_km':RADIUS_KM,'min_magnitude':MIN_MAG,'max_magnitude_exclusive':MAX_MAG,'events':[]}
     try:
@@ -393,10 +567,10 @@ def main():
         log('EVENTOS COINCIDENTES:',len(events),'EVENTOS PENDIENTES:',len(pending))
         if not pending:
             receipt['status']='no_new_event'; save_json(receipt_path,receipt); log('SIN NUEVOS EVENTOS'); return 0
-        pending=pending[:MAX_EVENTS_PER_RUN]; credentials=validate_accounts() if args.publish else None; statuses=[]
+        pending=pending[:MAX_EVENTS_PER_RUN]; statuses=[]
         for event in pending:
             log('PROCESANDO:',event['id'],f"M{event['mag']:.1f}",event['city'][0])
-            try: result=process_event(event,github,state,args.publish,credentials)
+            try: result=process_event(event,github,state,args.publish)
             except Exception as exc: result='partial_or_uncertain'; log('ERROR DE EVENTO:',event['id'],short_error(exc))
             entry=ensure_entry(state,event); statuses.append(result)
             receipt['events'].append({'id':event['id'],'magnitude':event['mag'],'city':event['city'][0],'country':event['city'][1],'distance_km':round(event['distance_km'],1),'status':result,'targets':entry['targets']}); save_json(receipt_path,receipt)
