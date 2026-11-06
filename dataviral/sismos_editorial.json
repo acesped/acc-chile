@@ -681,6 +681,16 @@
       "angle": "lectura",
       "time": "2026-11-05T21:40:10.488123+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-3ba331fc9df1",
+      "topic": "riesgo:alerta_temprana:impacto",
+      "topic_key": "alerta_temprana",
+      "title": "¿Qué importancia tiene comprender la alerta temprana?",
+      "style": "mito_realidad",
+      "angle": "impacto",
+      "time": "2026-11-06T00:01:22.634380+00:00",
+      "status": "publicado"
     }
   ]
 }
