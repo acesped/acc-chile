@@ -9,11 +9,9 @@ Uso:
   python efemerides_sismonauta.py --publish --out output_efemerides
   python efemerides_sismonauta.py --date 2026-05-22 --min-mag 8
 
-Comportamiento: coincidencia ESTRICTA de día y mes, sin inventar aniversarios.
-El catálogo NOAA/Zenodo contiene registros desde 1900 hasta 2024.
-Exige magnitud >=8.0 y fatalidades documentadas; configurable con --min-mag.
-Para publicaciones automáticas necesita repositorio GitHub público y las
-credenciales de Meta que ya utiliza SISMONAUTA NOTICIAS.
+Coincidencia ESTRICTA de día y mes y registros históricos con magnitud y
+fatalidades documentadas. Tres destinos independientes al publicar:
+Instagram foto, Facebook foto y Facebook feed con imagen adjunta.
 """
 from __future__ import annotations
 import argparse
@@ -24,12 +22,13 @@ import io
 import json
 import math
 import os
+import random
 import re
 import sys
 import time
 import unicodedata
 import urllib.parse
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -37,7 +36,7 @@ import requests
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 ACCOUNT = 'sismonauta'
-STATE_FILE = 'sismonauta_efemerides/state.json'  # independiente del historial de noticias
+STATE_FILE = 'sismonauta_efemerides/state.json'
 CATALOG_URL = 'https://zenodo.org/records/14108596/files/earthquakes_1900_2024.csv?download=1'
 CATALOG_INFO = 'https://zenodo.org/records/14108596'
 CATALOG_SOURCE = 'NOAA NCEI/WDS, Significant Earthquake Database; compilación 1900–2024 (Zenodo DOI 10.5281/zenodo.14108596)'
@@ -47,8 +46,9 @@ FB_BASE = 'https://graph.facebook.com'
 GRAPH_VERSION = os.getenv('IG_GRAPH_VERSION', 'v25.0')
 TIMEZONE = os.getenv('EFEMERIDES_TIMEZONE', 'America/Santiago')
 W, H = 1080, 1350
+DESTINATIONS = ('instagram', 'facebook', 'facebook_feed')
 HTTP = requests.Session()
-HTTP.headers.update({'User-Agent': 'SismonautaEfemerides/1.3 (+https://github.com/acesped/acc-chile)', 'Accept': '*/*'})
+HTTP.headers.update({'User-Agent': 'SismonautaEfemerides/1.4 (+https://github.com/acesped/acc-chile)', 'Accept': '*/*'})
 
 
 def log(*args):
@@ -101,23 +101,30 @@ def fetch_catalog(cache: Path, offline=False):
         if not cache.exists():
             raise RuntimeError('No existe el CSV local para --offline')
         return cache.read_text(encoding='utf-8-sig')
-    try:
-        res = HTTP.get(CATALOG_URL, timeout=(12, 55))
-        res.raise_for_status()
-        raw = res.content
-        if len(raw) < 1000 or len(raw) > 15_000_000:
-            raise RuntimeError('Tamaño de CSV inesperado')
-        decoded = raw.decode('utf-8-sig')
-        if 'Year,Mo,Dy' not in decoded.splitlines()[0]:
-            raise RuntimeError('Cabeceras del catálogo no reconocidas')
-        cache.parent.mkdir(parents=True, exist_ok=True)
-        cache.write_bytes(raw)
-        return decoded
-    except Exception as exc:
-        if cache.exists():
-            log('CATALOGO REMOTO NO DISPONIBLE; usando CSV local:', safe_error(exc))
-            return cache.read_text(encoding='utf-8-sig')
-        raise RuntimeError('No fue posible obtener el catálogo histórico: ' + safe_error(exc))
+    for attempt in range(3):
+        try:
+            res = HTTP.get(CATALOG_URL, timeout=(12, 55))
+            if res.status_code in (429, 500, 502, 503, 504) and attempt < 2:
+                time.sleep(min(12, 2 ** attempt * 3))
+                continue
+            res.raise_for_status()
+            raw = res.content
+            if len(raw) < 1000 or len(raw) > 15_000_000:
+                raise RuntimeError('Tamaño de CSV inesperado')
+            decoded = raw.decode('utf-8-sig')
+            if not {'Year', 'Mo', 'Dy'}.issubset(set(next(csv.reader(io.StringIO(decoded))))):
+                raise RuntimeError('Cabeceras del catálogo no reconocidas')
+            cache.parent.mkdir(parents=True, exist_ok=True)
+            cache.write_bytes(raw)
+            return decoded
+        except Exception as exc:
+            if attempt < 2:
+                time.sleep(2 ** attempt)
+                continue
+            if cache.exists():
+                log('CATALOGO REMOTO NO DISPONIBLE; usando CSV local:', safe_error(exc))
+                return cache.read_text(encoding='utf-8-sig')
+            raise RuntimeError('No fue posible obtener el catálogo histórico: ' + safe_error(exc)) from exc
 
 
 def parse_catalog(csv_text: str):
@@ -144,15 +151,10 @@ def parse_catalog(csv_text: str):
         location = clean(row.get('Location_Name'))
         if not location:
             continue
-        event_id = hashlib.sha256(
-            f'{event_date.isoformat()}|{location}|{magnitude}'.encode('utf-8')
-        ).hexdigest()[:18]
+        event_id = hashlib.sha256(f'{event_date.isoformat()}|{location}|{magnitude}'.encode('utf-8')).hexdigest()[:18]
         events.append({
-            'id': event_id,
-            'date': event_date,
-            'magnitude': magnitude,
-            'location': location,
-            'deaths': deaths,
+            'id': event_id, 'date': event_date, 'magnitude': magnitude,
+            'location': location, 'deaths': deaths,
             'fatalities_type': 'total' if total is not None else 'earthquake',
             'tsunami_flag': clean(row.get('Tsu')).upper() not in ('', 'NA'),
             'depth_km': number(row.get('Focal_Depth_(km)')),
@@ -194,7 +196,19 @@ def location_label(raw):
     return country
 
 
+def normalize_targets(row):
+    targets = row.setdefault('targets', {})
+    for platform in DESTINATIONS:
+        targets.setdefault(platform, {'status': 'pending'})
+    return targets
+
+
 def choose_event(events, target_day: date, min_mag: float, state):
+    """Elige efemérides no completadas; recupera destinos seguros pendientes.
+
+    No vuelve a enviar la misma efeméride por el solo hecho de tener un
+    destino incierto, y nunca desplaza una efeméride ya completamente publicada.
+    """
     candidates = [
         e for e in events
         if e['date'].month == target_day.month
@@ -203,10 +217,27 @@ def choose_event(events, target_day: date, min_mag: float, state):
         and e['magnitude'] >= min_mag
         and e['deaths'] is not None
     ]
-    used = state.get('posts', {})
-    candidates = [e for e in candidates if f"{target_day.isoformat()}:{e['id']}" not in used]
+    posts = state.get('posts') or {}
     candidates.sort(key=lambda e: (-e['magnitude'], -e['deaths'], -e['date'].year))
-    return candidates[0] if candidates else None
+    fresh, resumable = [], []
+    for event in candidates:
+        key = f"{target_day.isoformat()}:{event['id']}"
+        previous = posts.get(key)
+        if not previous:
+            fresh.append(event)
+            continue
+        targets = normalize_targets(previous)
+        if any(targets[p].get('status') == 'pending' for p in DESTINATIONS):
+            resumable.append(event)
+    # Como en Noticias: recuperar primero una publicación de Instagram pendiente.
+    for event in resumable:
+        key = f"{target_day.isoformat()}:{event['id']}"
+        if posts[key]['targets']['instagram']['status'] == 'pending':
+            return event
+    # Una nueva efeméride evita que pendientes exclusivos de FB bloqueen Instagram.
+    if fresh:
+        return fresh[0]
+    return resumable[0] if resumable else None
 
 
 def event_caption(event, today):
@@ -240,9 +271,7 @@ def font(size, bold=True):
     files = ([
         '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
         '/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf',
-    ] if bold else [
-        '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
-    ])
+    ] if bold else ['/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'])
     for file in files:
         if Path(file).exists():
             return ImageFont.truetype(file, size)
@@ -281,7 +310,6 @@ def fetch_usgs_epicenter(event):
     Para eventos históricos la cobertura USGS puede ser incompleta. Si no se
     verifica el candidato, no se genera el mapa, pero sí la publicación.
     """
-    # Margen UTC para cubrir efemérides fechadas según hora local.
     starttime = (event['date'] - timedelta(days=1)).isoformat()
     endtime = (event['date'] + timedelta(days=2)).isoformat()
     params = {
@@ -300,7 +328,6 @@ def fetch_usgs_epicenter(event):
     except Exception as exc:
         log('USGS NO DISPONIBLE:', safe_error(exc))
         features = []
-
     pieces = [normalize_text(p) for p in event['location'].split(':')]
     tokens = {t for part in pieces for t in re.findall(r'[a-z]{4,}', part)}
     tokens -= {'islands', 'island', 'region', 'earthquake', 'near', 'offshore',
@@ -327,18 +354,14 @@ def fetch_usgs_epicenter(event):
                 continue
         place = clean(props.get('place'))
         overlap = len(tokens & set(re.findall(r'[a-z]{4,}', normalize_text(place))))
-        # Con referencia geográfica, se puede aceptar un nombre de lugar
-        # diferente; sin ella se exige coincidencia regional explícita.
         if distance is None and overlap == 0:
             continue
         score = magnitude_delta * 200 + (distance or 0) - overlap * 15
         matches.append((score, feature, lat, lon, mag, distance))
-
     matches.sort(key=lambda item: item[0])
     if not matches:
         log('SIN COINCIDENCIA USGS EN CONSULTA; evaluando referencia histórica.')
         return historical_epicenter_fallback(event)
-    # Evita seleccionar arbitrariamente entre dos eventos comparables.
     if len(matches) > 1 and matches[1][0] - matches[0][0] < 15:
         log('COINCIDENCIA USGS AMBIGUA; evaluando referencia histórica.')
         return historical_epicenter_fallback(event)
@@ -350,20 +373,14 @@ def fetch_usgs_epicenter(event):
         'place': clean(props.get('place')), 'magnitude': mag,
         'latitude': lat, 'longitude': lon,
         'depth_km': number(coords[2]) if len(coords) > 2 else None,
-        'url': props.get('url', ''),
-        'time_ms': props.get('time'),
+        'url': props.get('url', ''), 'time_ms': props.get('time'),
         'tsunami': props.get('tsunami'),
         'distance_to_noaa_km': round(distance, 1) if distance is not None else None,
     }
 
 
-
 def historical_epicenter_fallback(event):
-    """Referencia USGS publicada para Kamchatka 1952; NOAA para otros sismos.
-
-    La reserva NOAA está identificada como tal y solo se usa si el registro
-    histórico incluye coordenadas. Nunca se etiqueta como obtenido de USGS.
-    """
+    """Referencia USGS para Kamchatka 1952; NOAA para otros sismos."""
     if (event['date'] == date(1952, 11, 4)
             and abs(event['magnitude'] - 9.0) <= 0.2
             and 'KAMCHATKA' in event['location'].upper()):
@@ -383,12 +400,12 @@ def historical_epicenter_fallback(event):
     return {
         'source': 'NOAA', 'event_id': None,
         'place': location_label(event['location']),
-        'magnitude': event['magnitude'],
-        'latitude': lat, 'longitude': lon,
+        'magnitude': event['magnitude'], 'latitude': lat, 'longitude': lon,
         'depth_km': event.get('depth_km'), 'url': CATALOG_INFO,
         'time_ms': None, 'tsunami': None,
         'coordinate_note': 'Coordenadas del catálogo NOAA/Zenodo',
     }
+
 
 def latlon_to_global_pixels(lat, lon, zoom):
     lat = max(min(lat, 85.05112878), -85.05112878)
@@ -423,35 +440,22 @@ def fetch_tile(z, x, y):
 
 
 def build_full_map(epicenter, width, height, marker_x, marker_y):
-    """Renderiza únicamente los tiles del encuadre solicitado.
-
-    El epicentro se posiciona en (marker_x, marker_y) del lienzo, usando
-    coordenadas Web Mercator y considerando cruce del antimeridiano.
-    """
+    """Renderiza teselas con coordenadas Mercator y cruce del antimeridiano."""
     lat, lon = epicenter['latitude'], epicenter['longitude']
     mag = epicenter.get('magnitude') or 8.0
-    # Mapa amplio para reconocer la costa, pero preciso en el epicentro.
-    # 1080 px abarcan unos 800-1400 km según magnitud.
     map_span_km = 900 if mag < 8.5 else 1300
     meters_per_px = (map_span_km * 1000) / width
     z_real = math.log2(156543.03392 * max(0.12, math.cos(math.radians(lat))) / meters_per_px)
     zoom = max(2, min(9, round(z_real)))
     gx, gy = latlon_to_global_pixels(lat, lon, zoom)
-    left = gx - marker_x
-    top = gy - marker_y
-    tx0 = math.floor(left / 256)
-    ty0 = math.floor(top / 256)
-    tx1 = math.floor((left + width - 1) / 256)
-    ty1 = math.floor((top + height - 1) / 256)
-    canvas = Image.new('RGB', ((tx1 - tx0 + 1) * 256,
-                               (ty1 - ty0 + 1) * 256))
+    left, top = gx - marker_x, gy - marker_y
+    tx0, ty0 = math.floor(left / 256), math.floor(top / 256)
+    tx1, ty1 = math.floor((left + width - 1) / 256), math.floor((top + height - 1) / 256)
+    canvas = Image.new('RGB', ((tx1 - tx0 + 1) * 256, (ty1 - ty0 + 1) * 256))
     for tx in range(tx0, tx1 + 1):
         for ty in range(ty0, ty1 + 1):
-            canvas.paste(fetch_tile(zoom, tx, ty),
-                         ((tx - tx0) * 256, (ty - ty0) * 256))
-    # Pillow permite fracciones negativas y corrige clipping del recorte.
-    x = round(left - tx0 * 256)
-    y = round(top - ty0 * 256)
+            canvas.paste(fetch_tile(zoom, tx, ty), ((tx - tx0) * 256, (ty - ty0) * 256))
+    x, y = round(left - tx0 * 256), round(top - ty0 * 256)
     return canvas.crop((x, y, x + width, y + height)), zoom
 
 
@@ -460,34 +464,26 @@ def draw_epicenter(image, epicenter, cx, cy):
     d = ImageDraw.Draw(image)
     cx, cy = round(cx), round(cy)
     for radius in (45, 85, 135):
-        d.ellipse((cx-radius, cy-radius, cx+radius, cy+radius),
-                  outline=(255, 255, 255), width=9)
-        d.ellipse((cx-radius, cy-radius, cx+radius, cy+radius),
-                  outline=(245, 0, 128), width=6)
+        d.ellipse((cx-radius, cy-radius, cx+radius, cy+radius), outline=(255, 255, 255), width=9)
+        d.ellipse((cx-radius, cy-radius, cx+radius, cy+radius), outline=(245, 0, 128), width=6)
     d.line((cx-24, cy, cx+24, cy), fill='white', width=7)
     d.line((cx, cy-24, cx, cy+24), fill='white', width=7)
     d.ellipse((cx-13, cy-13, cx+13, cy+13), fill='white', outline=(215, 0, 110), width=6)
 
 
 def create_image(event, path):
-    """Mapa de la zona del terremoto como fondo, sin fotos ni inset duplicado."""
+    """Mapa original de la zona del terremoto; mismo diseño 1080x1350."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     epicenter = fetch_usgs_epicenter(event)
     if not epicenter:
-        # No publicar una tarjeta con un epicentro inventado.
         raise RuntimeError('Sin coordenadas fiables USGS/NOAA para generar el mapa del epicentro')
-
-    # El mapa ocupa todo el fondo; el marcador va sobre la parte visible,
-    # por encima del banner magenta. Debajo se mantiene el mapa real.
     cx, cy = W // 2, 465
     image, zoom = build_full_map(epicenter, W, H, cx, cy)
     image = image.convert('RGB')
-    # Velo leve para integrar colores sin ocultar carreteras y topónimos.
     image = Image.blend(image, Image.new('RGB', (W, H), (17, 21, 38)), 0.12)
     draw_epicenter(image, epicenter, cx, cy)
     d = ImageDraw.Draw(image)
-
     label = f"TERREMOTO {event['magnitude']:.1f} en {location_label(event['location'])}"
     heading = 'UN DÍA COMO HOY'
     heading_font = font(61)
@@ -502,26 +498,18 @@ def create_image(event, path):
             chosen = (ft, lines, step)
             break
     if chosen is None:
-        ft = font(27)
-        lines = wrap(d, label, ft, W - 115)
-        step = 30
+        ft, lines, step = font(27), wrap(d, label, font(27), W - 115), 30
     else:
         ft, lines, step = chosen
     banner_height = 28 + heading_height + 15 + len(lines) * step + 34
     footer_top = 1235
     banner_top = footer_top - banner_height
-
-    # Información geográfica: fuente exacta de la coordenada, no de foto.
-    # Solo se mantienen las coordenadas históricas: sin rótulo "EPICENTRO".
-    # Atribución abreviada admitida por OpenStreetMap para mapas estáticos.
-    # El texto "OpenStreetMap contributors" ya no se dibuja.
     attribution = '© OpenStreetMap'
     at_font = font(19, bold=False)
     at_bb = d.textbbox((0, 0), attribution, font=at_font)
     d.rounded_rectangle((25, banner_top - 51, at_bb[2] + 49, banner_top - 10),
                         radius=9, fill=(7, 12, 36))
     d.text((38, banner_top - 42), attribution, font=at_font, fill='white')
-
     overlay = Image.new('RGBA', (W, banner_height), (183, 0, 112, 225))
     image = image.convert('RGBA')
     image.paste(overlay, (0, banner_top), overlay)
@@ -540,19 +528,20 @@ def create_image(event, path):
     for line in lines:
         centered_text(y, line, ft, stroke=2)
         y += step
-
     d.rectangle((0, footer_top, W, H), fill=(7, 12, 36))
-    d.text((42, 1270), 'SISMONAUTA  |  EFEMÉRIDES SÍSMICAS',
-           font=font(29), fill='white')
+    d.text((42, 1270), 'SISMONAUTA  |  EFEMÉRIDES SÍSMICAS', font=font(29), fill='white')
     image.convert('RGB').save(path, 'JPEG', quality=93, optimize=True)
     log('MAPA GENERADO:', epicenter['source'], epicenter['latitude'], epicenter['longitude'], '| zoom:', zoom)
     return epicenter
 
 
 class Github:
+    """GitHub Contents API con reintentos y escrituras conservadoras."""
+    TRANSIENT = {429, 500, 502, 503, 504}
+
     def __init__(self):
         self.repo = os.environ['GITHUB_REPOSITORY']
-        self.branch = os.getenv('GITHUB_REF_NAME', 'main')
+        self.branch = os.getenv('GITHUB_REF_NAME') or 'main'
         self.base = 'https://api.github.com/repos/' + self.repo
         self.http = requests.Session()
         self.http.headers.update({
@@ -560,7 +549,7 @@ class Github:
             'Accept': 'application/vnd.github+json',
             'X-GitHub-Api-Version': '2022-11-28',
         })
-        res = self.http.get(self.base, timeout=25)
+        res = self._request('GET', self.base, timeout=25)
         res.raise_for_status()
         if res.json().get('private'):
             raise RuntimeError('El repositorio debe ser público para que Meta recupere imágenes')
@@ -568,19 +557,39 @@ class Github:
     def endpoint(self, path):
         return self.base + '/contents/' + urllib.parse.quote(path, safe='/')
 
-    def read(self, path):
-        res = self.http.get(self.endpoint(path), params={'ref': self.branch}, timeout=30)
+    def _request(self, method, url, **kwargs):
+        last = None
+        for attempt in range(5):
+            try:
+                response = self.http.request(method, url, **kwargs)
+                if response.status_code in self.TRANSIENT and attempt < 4:
+                    time.sleep(min(20, 2 ** attempt + random.random()))
+                    continue
+                return response
+            except requests.RequestException as exc:
+                last = exc
+                if attempt == 4:
+                    break
+                time.sleep(min(20, 2 ** attempt + random.random()))
+        raise RuntimeError('GitHub: error de conexión: ' + safe_error(last))
+
+    def read_with_sha(self, path):
+        res = self._request('GET', self.endpoint(path), params={'ref': self.branch}, timeout=30)
         if res.status_code == 404:
-            return None
+            return None, None
         res.raise_for_status()
-        return base64.b64decode(res.json()['content'])
+        data = res.json()
+        return base64.b64decode(data['content']), data['sha']
+
+    def read(self, path):
+        return self.read_with_sha(path)[0]
 
     def write(self, path, raw):
-        for i in range(3):
-            res = self.http.get(self.endpoint(path), params={'ref': self.branch}, timeout=30)
-            sha = None if res.status_code == 404 else res.json().get('sha')
-            if res.status_code != 404:
-                res.raise_for_status()
+        """Idempotente: compara bytes remotos después de un PUT ambiguo."""
+        for attempt in range(6):
+            remote, sha = self.read_with_sha(path)
+            if remote == raw:
+                return {'commit': {'sha': self.branch}, 'unchanged': True}
             body = {
                 'message': 'SISMONAUTA efemérides: ' + path,
                 'branch': self.branch,
@@ -588,48 +597,81 @@ class Github:
             }
             if sha:
                 body['sha'] = sha
-            put = self.http.put(self.endpoint(path), json=body, timeout=60)
-            if put.status_code in (409, 422) and i < 2:
-                time.sleep(2 + i)
-                continue
-            put.raise_for_status()
-            return put.json()
+            try:
+                put = self.http.put(self.endpoint(path), json=body, timeout=60)
+                if put.ok:
+                    return put.json()
+                if put.status_code not in ({409, 422} | self.TRANSIENT):
+                    put.raise_for_status()
+            except requests.RequestException as exc:
+                log('GITHUB PUT SIN CONFIRMACIÓN:', path, safe_error(exc))
+            # Confirmar si ya se realizó el PUT antes de repetirlo.
+            try:
+                confirmed, _ = self.read_with_sha(path)
+                if confirmed == raw:
+                    return {'commit': {'sha': self.branch}, 'verified': True}
+            except Exception:
+                pass
+            if attempt < 5:
+                time.sleep(min(20, 2 ** attempt + random.random()))
+        raise RuntimeError('GitHub: conflicto de escritura persistente; verificar otros workflows')
 
     def image_url(self, path, commit):
-        return 'https://raw.githubusercontent.com/' + self.repo + '/' + commit + '/' + urllib.parse.quote(path, safe='/')
+        # La rama es válida también si la escritura se reconoció como idéntica.
+        ref = commit or self.branch
+        return ('https://raw.githubusercontent.com/' + self.repo + '/' +
+                urllib.parse.quote(ref, safe='') + '/' + urllib.parse.quote(path, safe='/'))
 
 
-def graph(method, path, token, fields=None, base=IG_BASE):
-    url = f'{base}/{GRAPH_VERSION}/{path}'
+def graph(method, path, token, fields=None, base=None):
+    url = f'{base or IG_BASE}/{GRAPH_VERSION}/{path}'
     payload = dict(fields or {}, access_token=token)
-    res = requests.get(url, params=payload, timeout=50) if method == 'GET' else requests.post(url, data=payload, timeout=75)
+    try:
+        res = requests.get(url, params=payload, timeout=50) if method == 'GET' else requests.post(url, data=payload, timeout=75)
+    except requests.RequestException as exc:
+        raise RuntimeError('Meta: resultado de red no confirmado: ' + safe_error(exc)) from exc
     try:
         data = res.json()
     except ValueError:
-        raise RuntimeError('Meta no devolvió JSON')
+        raise RuntimeError('Meta no devolvió JSON (HTTP ' + str(res.status_code) + ')')
     if not res.ok or data.get('error'):
         detail = (data.get('error') or {}).get('message') or str(data)
-        raise RuntimeError(f'Meta HTTP {res.status_code}: {detail[:200]}')
+        raise RuntimeError(f'Meta HTTP {res.status_code}: {safe_error(detail)[:200]}')
     return data
 
 
-def validate_meta():
-    ig_user = os.environ['INSTAGRAM_USER_ID']
-    ig_token = os.environ['INSTAGRAM_TOKEN']
-    fb_page = os.environ['FACEBOOK_PAGE_ID']
-    fb_token = os.environ['FACEBOOK_PAGE_TOKEN']
+def validate_instagram():
+    """Cuenta original @sismonauta; nunca sustituir el ID configurado."""
+    ig_user = os.environ['INSTAGRAM_USER_ID'].strip()
+    ig_token = os.environ['INSTAGRAM_TOKEN'].strip()
     me = graph('GET', 'me', ig_token, {'fields': 'id,username'})
-    if str(me.get('id')) != ig_user or str(me.get('username', '')).lower() != ACCOUNT:
+    if str(me.get('username', '')).lower() != ACCOUNT:
         raise RuntimeError('Cuenta de Instagram distinta de @sismonauta')
+    if str(me.get('id')) != ig_user and str(me.get('user_id', '')) != ig_user:
+        raise RuntimeError('INSTAGRAM_USER_ID no coincide con @sismonauta: comprobar secret')
+    log('INSTAGRAM: cuenta @sismonauta verificada')
+    return ig_user, ig_token
+
+
+def validate_facebook():
+    fb_page = os.environ['FACEBOOK_PAGE_ID'].strip()
+    fb_token = os.environ['FACEBOOK_PAGE_TOKEN'].strip()
     page = graph('GET', fb_page, fb_token, {'fields': 'id,name,username'}, FB_BASE)
     if str(page.get('id')) != fb_page:
         raise RuntimeError('Identificación de fanpage incorrecta')
     if page.get('username') and str(page['username']).lower() != ACCOUNT:
         raise RuntimeError('Fanpage distinta de SISMONAUTA')
-    return (ig_user, ig_token), (fb_page, fb_token)
+    log('FACEBOOK: fanpage verificada:', page.get('name'))
+    return fb_page, fb_token
+
+
+def validate_meta():
+    """Compatibilidad con el script original; publicación real valida por separado."""
+    return validate_instagram(), validate_facebook()
 
 
 def publish_ig(user, token, image_url, caption):
+    """Publicación fotográfica original de Instagram."""
     box = graph('POST', user + '/media', token, {'image_url': image_url, 'caption': caption})['id']
     for _ in range(20):
         time.sleep(7)
@@ -647,11 +689,230 @@ def publish_ig(user, token, image_url, caption):
 
 
 def publish_fb(page, token, image_url, caption):
-    result = graph('POST', page + '/photos', token, {'url': image_url, 'caption': caption, 'published': 'true'}, FB_BASE)
+    """Foto pública independiente, manteniendo el comportamiento original."""
+    result = graph('POST', page + '/photos', token,
+                   {'url': image_url, 'caption': caption, 'published': 'true'}, FB_BASE)
     identifier = result.get('post_id') or result.get('id')
     if not identifier:
-        raise RuntimeError('Facebook no devolvió ID')
+        raise RuntimeError('Facebook no devolvió ID de la fotografía')
     return str(identifier)
+
+
+def facebook_feed_caption(event, today):
+    """Conserva íntegro el desarrollo de la efeméride; encabezado del feed."""
+    return '📰 EFEMÉRIDES SÍSMICAS | SISMONAUTA\n\n' + event_caption(event, today)
+
+
+def facebook_post_has_photo(page_post_id, token, expected_photo_id=None):
+    """Verifica un adjunto fotográfico; si Meta no permite leerlo, no certifica éxito."""
+    data = graph('GET', page_post_id, token,
+                 {'fields': 'id,attachments{type,media,target,subattachments}'}, FB_BASE)
+    attachments = (data.get('attachments') or {}).get('data') or []
+    def inspect(items):
+        for item in items:
+            kind = str(item.get('type') or '').lower()
+            media = item.get('media') or {}
+            target = item.get('target') or {}
+            image = media.get('image') or {}
+            photo_id = str(target.get('id') or '')
+            if (expected_photo_id and photo_id == str(expected_photo_id)) or image.get('src') or kind in ('photo', 'album', 'added_photos', 'cover_photo'):
+                return True
+            nested = (item.get('subattachments') or {}).get('data') or []
+            if inspect(nested):
+                return True
+        return False
+    return inspect(attachments)
+
+
+def publish_fb_feed(page, token, image_url, caption):
+    """Post real de feed CON imagen, usando foto temporal asociada.
+
+    Nunca se crea un post de texto en reemplazo si fallan los adjuntos.
+    """
+    temporary = graph('POST', page + '/photos', token,
+                      {'url': image_url, 'published': 'false', 'temporary': 'true'}, FB_BASE)
+    media_id = str(temporary.get('id') or '')
+    if not media_id.isdigit():
+        raise RuntimeError('Facebook feed: no recibió ID de la imagen temporal')
+    result = graph('POST', page + '/feed', token, {
+        'message': caption,
+        'published': 'true',
+        'attached_media[0]': json.dumps({'media_fbid': media_id}, separators=(',', ':')),
+    }, FB_BASE)
+    post_id = str(result.get('id') or '')
+    if not re.fullmatch(r'\d+_\d+', post_id):
+        raise RuntimeError('Facebook feed: respuesta sin ID válido; revisar fanpage')
+    for attempt in range(3):
+        try:
+            if facebook_post_has_photo(post_id, token, media_id):
+                log('FACEBOOK FEED: fotografía adjunta verificada:', media_id)
+                return post_id
+        except Exception as exc:
+            log('FACEBOOK FEED: verificación de adjunto pendiente:', safe_error(exc))
+        if attempt < 2:
+            time.sleep(3)
+    # El post podría existir: no repetir automáticamente.
+    raise RuntimeError('Facebook feed: post creado (' + post_id +
+                       ') pero la fotografía NO pudo verificarse; revisar el post antes de reintentar')
+
+
+def serialize_event(event):
+    return {**event, 'date': event['date'].isoformat()}
+
+
+def apply_merged_row(row, merged):
+    """Actualiza el historial sin invalidar referencias existentes a cada destino."""
+    row.update({k: v for k, v in merged.items() if k != 'targets'})
+    current = row.setdefault('targets', {})
+    for platform, data in merged['targets'].items():
+        dest = current.setdefault(platform, {})
+        dest.clear()
+        dest.update(data)
+
+
+def save_post_state(gh, key, row):
+    """Fusiona el registro en el JSON más reciente, preservando otras efemérides.
+
+    Un estado published/uncertain remoto nunca retrocede a pending por un
+    estado obsoleto en memoria. Evita pérdida de datos entre escrituras.
+    """
+    for attempt in range(6):
+        raw, sha = gh.read_with_sha(STATE_FILE)
+        state = json.loads(raw) if raw else {'posts': {}}
+        posts = state.setdefault('posts', {})
+        remote = posts.get(key) or {}
+        merged = dict(remote)
+        for field, value in row.items():
+            if field != 'targets':
+                merged[field] = value
+        old_targets = remote.get('targets') or {}
+        targets = {p: dict(v) for p, v in old_targets.items()}
+        for platform, proposed in (row.get('targets') or {}).items():
+            previous = targets.get(platform) or {}
+            if previous.get('status') in ('published', 'uncertain') and proposed.get('status') == 'pending':
+                continue
+            if previous.get('status') == 'published' and proposed.get('status') != 'published':
+                continue
+            targets[platform] = dict(proposed)
+        merged['targets'] = targets
+        posts[key] = merged
+        encoded = json.dumps(state, ensure_ascii=False, indent=2, sort_keys=True).encode('utf-8')
+        if raw == encoded:
+            apply_merged_row(row, merged)
+            return
+        body = {'message': 'SISMONAUTA efemérides: estado de publicación',
+                'branch': gh.branch, 'content': base64.b64encode(encoded).decode('ascii')}
+        if sha:
+            body['sha'] = sha
+        try:
+            response = gh.http.put(gh.endpoint(STATE_FILE), json=body, timeout=60)
+            if response.ok:
+                apply_merged_row(row, merged)
+                return
+            if response.status_code not in ({409, 422} | Github.TRANSIENT):
+                response.raise_for_status()
+        except requests.RequestException as exc:
+            log('ESTADO GITHUB: PUT SIN CONFIRMACIÓN:', safe_error(exc))
+        try:
+            actual = gh.read(STATE_FILE)
+            if actual == encoded:
+                apply_merged_row(row, merged)
+                return
+        except Exception:
+            pass
+        if attempt < 5:
+            time.sleep(min(20, 2 ** attempt + random.random()))
+    raise RuntimeError('GitHub: conflicto persistente al guardar estado; revisar concurrencia')
+
+
+def publish_event(gh, state, event, today, image_path, caption, out):
+    key = f"{today.isoformat()}:{event['id']}"
+    row = state['posts'].setdefault(key, {})
+    targets = normalize_targets(row)
+    if all(targets[p].get('status') == 'published' for p in DESTINATIONS):
+        log('EFEMÉRIDE YA PUBLICADA EN LOS TRES DESTINOS')
+        return {'status': 'already_published', 'targets': targets, 'event_id': event['id']}
+    # Si solo existe un destino incierto se informa; no se reenvía.
+    pending = [p for p in DESTINATIONS if targets[p].get('status') == 'pending']
+    if not pending:
+        log('SIN DESTINOS SEGUROS PENDIENTES; revisar estados inciertos')
+        return {'status': 'uncertain_previous', 'targets': targets, 'event_id': event['id']}
+    remote = f"sismonauta_efemerides/images/{today.isoformat()}_{event['id']}.jpg"
+    image_url = row.get('image_url')
+    if not image_url:
+        uploaded = gh.write(remote, image_path.read_bytes())
+        commit = (uploaded.get('commit') or {}).get('sha') or gh.branch
+        image_url = gh.image_url(remote, commit)
+    good = False
+    for attempt in range(7):
+        try:
+            check = HTTP.get(image_url, timeout=20)
+            if check.ok and check.headers.get('Content-Type', '').lower().startswith('image/'):
+                good = True
+                break
+        except requests.RequestException:
+            pass
+        if attempt < 6:
+            time.sleep(4)
+    if not good:
+        raise RuntimeError('La imagen pública no está accesible para Meta')
+    row['event'] = serialize_event(event)
+    row['image_url'] = image_url
+    row['caption'] = caption
+    row['checked_at'] = datetime.now(timezone.utc).isoformat()
+    save_post_state(gh, key, row)
+    errors = []
+    # Instagram SIEMPRE primero y nunca condicionado por la validación de Facebook.
+    for platform in DESTINATIONS:
+        target = targets[platform]
+        status = target.get('status')
+        if status == 'published':
+            log('OMITIDO:', platform, 'ya publicado')
+            continue
+        if status == 'uncertain':
+            log('OMITIDO:', platform, 'resultado incierto; necesita revisión manual')
+            continue
+        if status != 'pending':
+            errors.append(platform + ': estado desconocido ' + str(status))
+            continue
+        # La validación se hace antes de marcar uncertain: un secret mal configurado
+        # no bloquea reintentos, ni impide otros destinos.
+        try:
+            creds = validate_instagram() if platform == 'instagram' else validate_facebook()
+        except Exception as exc:
+            target['error'] = 'Credenciales/validación: ' + safe_error(exc)
+            errors.append(platform + ': ' + safe_error(exc))
+            log('VALIDACIÓN FALLIDA:', platform, safe_error(exc))
+            save_post_state(gh, key, row)
+            continue
+        target['status'] = 'uncertain'
+        target.pop('error', None)
+        target['attempted_at'] = datetime.now(timezone.utc).isoformat()
+        save_post_state(gh, key, row)
+        try:
+            if platform == 'instagram':
+                identifier = publish_ig(*creds, image_url, caption)
+            elif platform == 'facebook':
+                identifier = publish_fb(*creds, image_url, caption)
+            else:
+                identifier = publish_fb_feed(*creds, image_url, facebook_feed_caption(event, today))
+            target.update(status='published', id=str(identifier))
+            save_post_state(gh, key, row)
+            log('PUBLICADO:', platform, 'ID:', identifier)
+        except Exception as exc:
+            target['error'] = safe_error(exc)
+            log('ERROR META:', platform, safe_error(exc))
+            errors.append(platform + ': ' + safe_error(exc))
+            save_post_state(gh, key, row)
+    complete = all(targets[p].get('status') == 'published' for p in DESTINATIONS)
+    receipt = {'status': 'published' if complete else 'partial_or_uncertain',
+               'published': complete, 'date': today.isoformat(),
+               'event_id': event['id'], 'targets': targets,
+               'checked_at': datetime.now(timezone.utc).isoformat()}
+    atomic_json(out / 'estado_publicacion.json', receipt)
+    if errors:
+        raise RuntimeError('Publicación parcial; revisar Meta: ' + ' / '.join(errors))
+    return receipt
 
 
 def run_tests():
@@ -666,13 +927,35 @@ def run_tests():
     text = event_caption(event, date(2026, 5, 22))
     assert 'hace 66 años' in text and '1.655' in text and 'magnitud 9.5' in text
     assert choose_event(events, date(2026, 1, 1), 8.0, {'posts': {}}) is None
+    key = f"2026-05-22:{event['id']}"
     assert choose_event(events, date(2026, 5, 22), 8.0,
-                        {'posts': {f"2026-05-22:{event['id']}": {}}}) is None
-    log('PRUEBAS APROBADAS: fecha exacta, magnitud, fatalidades y antiduplicados')
+                        {'posts': {key: {'targets': {p: {'status': 'published'} for p in DESTINATIONS}}}}) is None
+    # El historial anterior de dos destinos debe recuperar el tercero.
+    recovered = choose_event(events, date(2026, 5, 22), 8.0,
+                             {'posts': {key: {'targets': {
+                                 'instagram': {'status': 'published'},
+                                 'facebook': {'status': 'published'}}}}})
+    assert recovered and recovered['id'] == event['id']
+    # No seleccionar un evento incierto sin destino seguro pendiente.
+    blocked = choose_event(events, date(2026, 5, 22), 8.0,
+                           {'posts': {key: {'targets': {p: {'status': 'uncertain'} for p in DESTINATIONS}}}})
+    assert blocked is None
+    assert facebook_feed_caption(event, date(2026, 5, 22)).startswith('📰 EFEMÉRIDES SÍSMICAS | SISMONAUTA')
+    assert 'UN DÍA COMO HOY' in facebook_feed_caption(event, date(2026, 5, 22))
+    from unittest.mock import patch
+    with patch(__name__ + '.graph', side_effect=[{'id': '123456'}, {'id': '987_654'}]) as mock:
+        # Simula la comprobación de adjunto sin ninguna llamada real a Meta.
+        with patch(__name__ + '.facebook_post_has_photo', return_value=True):
+            assert publish_fb_feed('987', 'FAKE_TOKEN', 'https://example.org/mapa.jpg', 'Texto') == '987_654'
+        assert mock.call_args_list[0].args[1] == '987/photos'
+        assert mock.call_args_list[0].args[3]['published'] == 'false'
+        assert mock.call_args_list[1].args[1] == '987/feed'
+        assert json.loads(mock.call_args_list[1].args[3]['attached_media[0]']) == {'media_fbid': '123456'}
+    log('PRUEBAS APROBADAS: fecha exacta, magnitud, fatalidades, historial, 3 destinos y foto en feed')
 
 
 def main():
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description='SISMONAUTA Efemérides sísmicas verificables')
     ap.add_argument('--publish', action='store_true')
     ap.add_argument('--test', action='store_true')
     ap.add_argument('--out', default='output_efemerides')
@@ -700,12 +983,10 @@ def main():
     log('CATALOGO:', len(events), 'registros | FECHA:', today, '| MAG MIN:', args.min_mag)
     event = choose_event(events, today, args.min_mag, state)
     if not event:
-        report = {
-            'status': 'no_anniversary', 'published': False,
-            'reason': 'No hay terremoto documentado en esta fecha con magnitud y fatalidades verificables',
-            'date': today.isoformat(), 'min_magnitude': args.min_mag,
-            'source': CATALOG_INFO,
-        }
+        report = {'status': 'no_anniversary', 'published': False,
+                  'reason': 'No hay efeméride elegible pendiente; ninguna noticia histórica se inventa ni se duplica',
+                  'date': today.isoformat(), 'min_magnitude': args.min_mag,
+                  'source': CATALOG_INFO}
         atomic_json(out / 'estado_publicacion.json', report)
         log('SIN PUBLICACIÓN:', report['reason'])
         return 0
@@ -714,77 +995,24 @@ def main():
     image_path = out / f"efemeride_{today.isoformat()}_{event['id']}.jpg"
     epicenter_info = create_image(event, image_path)
     payload = {
-        'event': {**event, 'date': event['date'].isoformat()},
+        'event': serialize_event(event),
         'anniversary_years': today.year - event['date'].year,
-        'location_display': label,
-        'caption': caption,
-        'source': CATALOG_SOURCE,
-        'source_url': CATALOG_INFO,
+        'location_display': label, 'caption': caption,
+        'facebook_feed_caption': facebook_feed_caption(event, today),
+        'source': CATALOG_SOURCE, 'source_url': CATALOG_INFO,
         'publication_date': today.isoformat(),
-        'image': str(image_path),
-        'epicenter': epicenter_info,
+        'image': str(image_path), 'epicenter': epicenter_info,
     }
     atomic_json(out / 'efemeride.json', payload)
     log('EFEMÉRIDE:', event['date'], 'M', event['magnitude'], label, 'fallecidos:', event['deaths'])
     if not args.publish:
-        atomic_json(out / 'estado_publicacion.json', {'status': 'preview_only', 'published': False, 'image': str(image_path)})
+        atomic_json(out / 'estado_publicacion.json',
+                    {'status': 'preview_only', 'published': False, 'image': str(image_path)})
         log('VISTA PREVIA: ninguna publicación enviada')
         return 0
-    key = f"{today.isoformat()}:{event['id']}"
-    row = state['posts'].setdefault(key, {'targets': {'instagram': {'status': 'pending'}, 'facebook': {'status': 'pending'}}})
-    targets = row.setdefault('targets', {})
-    for platform in ('instagram', 'facebook'):
-        targets.setdefault(platform, {'status': 'pending'})
-        if targets[platform].get('status') == 'uncertain':
-            raise RuntimeError('Publicación previa incierta: ' + platform)
-    if all(targets[p].get('status') == 'published' for p in targets):
-        log('EFEMÉRIDE YA PUBLICADA EN AMBAS REDES')
-        return 0
-    ig_creds, fb_creds = validate_meta()
-    remote = f"sismonauta_efemerides/images/{today.isoformat()}_{event['id']}.jpg"
-    uploaded = gh.write(remote, image_path.read_bytes())
-    commit = uploaded['commit']['sha']
-    image_url = gh.image_url(remote, commit)
-    good = False
-    for attempt in range(7):
-        try:
-            check = HTTP.get(image_url, timeout=20)
-            if check.ok and check.headers.get('Content-Type', '').startswith('image/'):
-                good = True
-                break
-        except requests.RequestException:
-            pass
-        time.sleep(4)
-    if not good:
-        raise RuntimeError('La imagen pública no está accesible para Meta')
-    row['event'] = {'date': event['date'].isoformat(), 'magnitude': event['magnitude'],
-                    'location': event['location'], 'deaths': event['deaths']}
-    row['image_url'] = image_url
-    gh.write(STATE_FILE, json.dumps(state, ensure_ascii=False, indent=2).encode())
-    errors = []
-    for platform, creds in [('instagram', ig_creds), ('facebook', fb_creds)]:
-        target = targets[platform]
-        if target.get('status') == 'published':
-            continue
-        target['status'] = 'uncertain'
-        gh.write(STATE_FILE, json.dumps(state, ensure_ascii=False, indent=2).encode())
-        try:
-            identifier = (publish_ig(*creds, image_url, caption)
-                          if platform == 'instagram' else publish_fb(*creds, image_url, caption))
-            target.update(status='published', id=str(identifier))
-            gh.write(STATE_FILE, json.dumps(state, ensure_ascii=False, indent=2).encode())
-            log('PUBLICADO:', platform, identifier)
-        except Exception as exc:
-            target['error'] = safe_error(exc)
-            gh.write(STATE_FILE, json.dumps(state, ensure_ascii=False, indent=2).encode())
-            errors.append(f'{platform}: {safe_error(exc)}')
-    complete = all(targets[p].get('status') == 'published' for p in ('instagram', 'facebook'))
-    atomic_json(out / 'estado_publicacion.json', {
-        'status': 'published' if complete else 'partial_or_uncertain', 'published': complete,
-        'date': today.isoformat(), 'event_id': event['id'], 'targets': targets,
-    })
-    if errors:
-        raise RuntimeError('Publicación parcial; revisar Meta: ' + ' / '.join(errors))
+    receipt = publish_event(gh, state, event, today, image_path, caption, out)
+    if receipt['status'] == 'published':
+        log('PUBLICACIÓN CONFIRMADA: Instagram, Facebook foto y Facebook Feed con imagen')
     return 0
 
 
