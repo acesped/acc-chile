@@ -589,6 +589,43 @@
         }
       }
     },
+    "2bf4265eec037dfadb87": {
+      "article": {
+        "category": "climatologia",
+        "date": "2026-11-07T10:00:03+00:00",
+        "description": "Los seres humanos producen colectivamente más de 2 mil millones de toneladas de dióxido de carbono al año solo por transformar los",
+        "explanation": "**CLIMATOLOGÍA**\n\n**Los cuerpos humanos producen 2 mil millones de toneladas métricas de CO2 al año solo por mantenerse vivos.**\n\nUn estudio liderado por la Universidad de Bath reveló que el metabolismo humano genera anualmente 2,05 mil millones de toneladas métricas de CO2. Esta cifra representa un aumento del 74% en comparación con 1985, cuando la producción estimada era de 1,18 mil millones.\n\nLa investigación, publicada en *The Lancet Planetary Health*, atribuye este incremento principalmente al crecimiento poblacional. Más del 60% del alza se debe a que hoy somos más personas en el planeta, y no a un cambio sustancial en la cantidad de gas que cada individuo exhala al convertir alimentos en energía.\n\nLos expertos aclaran que este proceso biológico no impulsa el cambio climático. A diferencia de los combustibles fósiles, que liberan carbono atrapado por millones de años, el CO2 metabólico proviene de la dieta y ya forma parte del ciclo natural del carbono.\n\nContar con estas mediciones precisas permite a los científicos entender mejor el ciclo global del carbono",
+        "id": "2bf4265eec037dfadb87",
+        "image_headline": "El metabolismo humano genera 2",
+        "lang": "en",
+        "original_title": "Human bodies produce 2 billion metric tons of CO2 a year just by staying alive",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261104012305.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "Los cuerpos humanos producen 2 mil millones de toneladas métricas de CO2 al año solo por mantenerse vivos.",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261104012305.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CLIMATOLOGÍA\n\nEl metabolismo humano genera 2\n\nCLIMATOLOGÍA Los cuerpos humanos producen 2 mil millones de toneladas métricas de CO2 al año solo por mantenerse vivos. Un estudio liderado por la Universidad de Bath reveló que el metabolismo humano genera anualmente 2,05 mil millones de toneladas métricas de CO2. Esta cifra representa un aumento del 74% en comparación con 1985, cuando la producción estimada era de 1,18 mil millones. La investigación, publicada en *The Lancet Planetary Health*, atribuye este incremento principalmente al crecimiento poblacional. Más del 60% del alza se debe a que hoy somos más personas en el planeta, y no a un cambio sustancial en la cantidad de gas que cada individuo exhala al convertir alimentos en energía. Los expertos aclaran que este proceso biológico no impulsa el cambio climático. A diferencia de los combustibles fósiles, que liberan carbono atrapado por millones de años, el CO2 metabólico proviene de la dieta y ya forma parte del ciclo natural del carbono. Contar con estas mediciones precisas permite a los científicos entender mejor el ciclo global del carbono\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Climatologia #Clima #CambioClimatico #Glaciares",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "glacier landscape",
+        "sha256": "8c226e6576c26e6a0f5c5ac395e20ab271fdce65e0e11db2e2f8e04e0c609077",
+        "source": "https://commons.wikimedia.org/wiki/File:Glacier_National_Park_-_HCP_-_October_23,_2022_-_001.jpg",
+        "title": "File:Glacier National Park - HCP - October 23, 2022 - 001.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d2/Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_001.jpg/1920px-Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_001.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/2bf4265eec037dfadb87.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "2c10a43bcd09ea295b06": {
       "article": {
         "category": "espacio",
