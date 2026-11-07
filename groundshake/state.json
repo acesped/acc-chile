@@ -1374,8 +1374,9 @@
       "topic": "fallas:ruptura_superficie:mecanismo",
       "topic_key": "ruptura_superficie",
       "title": "¿Cómo funciona la ruptura superficial?",
-      "reel": "enviando",
-      "updated_at": "2026-11-07T09:01:22.320378+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-07T09:02:03.220702+00:00",
+      "reel_id": "18102820091553284"
     }
   },
   "youtube_upload_retry_after": "2026-11-07T12:03:16.722243+00:00"
