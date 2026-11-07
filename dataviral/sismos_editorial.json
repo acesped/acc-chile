@@ -751,6 +751,16 @@
       "angle": "contexto",
       "time": "2026-11-06T21:01:03.519403+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-d710e16ee2b8",
+      "topic": "ondas:atenuacion:preguntas_frecuentes",
+      "topic_key": "atenuacion",
+      "title": "¿Qué pregunta frecuente surge al hablar de la propagación de las ondas?",
+      "style": "descubrimiento",
+      "angle": "preguntas_frecuentes",
+      "time": "2026-11-07T00:01:11.836369+00:00",
+      "status": "publicado"
     }
   ]
 }
