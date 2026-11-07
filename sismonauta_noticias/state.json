@@ -1046,6 +1046,43 @@
         }
       }
     },
+    "49eb69f03d02f3bfb2c6": {
+      "article": {
+        "category": "climatologia",
+        "date": "2026-11-03T00:00:04+00:00",
+        "description": "Mountain snow in the Northeast is different. The region's milder, more humid mountain climate shapes winter conditions that are different from those of the western United States. Yet, snow models don't always capture those differences.",
+        "editorial_mode": "documented_brief",
+        "explanation": "La nieve de montaña en el noreste es distinta. El clima de montaña más templado y húmedo de la región moldea condiciones invernales que son diferentes a las del oeste de Estados Unidos. Sin embargo, los modelos de nieve no siempre captan esas diferencias.",
+        "id": "49eb69f03d02f3bfb2c6",
+        "image_headline": "Modelo de nieve mejorado captura los deshielos y la escorrentía invernal del noreste con mayor precisión.",
+        "lang": "en",
+        "original_title": "Improved snow model captures Northeast's winter thaws and runoff more accurately",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Modelo de nieve mejorado captura los deshielos y la escorrentía invernal del noreste con mayor precisión.",
+        "url": "https://phys.org/news/2026-11-captures-northeast-winter-runoff-accurately.html"
+      },
+      "caption": "🌎 SISMONAUTA | CLIMATOLOGÍA\n\nModelo de nieve mejorado captura los deshielos y la escorrentía invernal del noreste con mayor precisión.\n\nLa nieve de montaña en el noreste es distinta. El clima de montaña más templado y húmedo de la región moldea condiciones invernales que son diferentes a las del oeste de Estados Unidos. Sin embargo, los modelos de nieve no siempre captan esas diferencias.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Climatologia #Clima #CambioClimatico #Glaciares",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "glacier landscape",
+        "sha256": "22d0bc0892c2bbb81c1363342352a64cfd4f166a739dd618e0f32f8bb2b28510",
+        "source": "https://commons.wikimedia.org/wiki/File:Glacier_National_Park_-_HCP_-_October_23,_2022_-_003.jpg",
+        "title": "File:Glacier National Park - HCP - October 23, 2022 - 003.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f7/Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_003.jpg/1920px-Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_003.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/49eb69f03d02f3bfb2c6.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "4a6ce8ddc97aac9f73b6": {
       "article": {
         "category": "espacio",
