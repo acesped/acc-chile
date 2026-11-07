@@ -771,6 +771,16 @@
       "angle": "observacion",
       "time": "2026-11-07T03:01:19.233437+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-85eb04bcc93e",
+      "topic": "ondas:ondas_superficiales:fundamentos",
+      "topic_key": "ondas_superficiales",
+      "title": "¿Qué principios científicos ayudan a explicar las ondas superficiales?",
+      "style": "microdocumental",
+      "angle": "fundamentos",
+      "time": "2026-11-07T06:01:23.602209+00:00",
+      "status": "publicado"
     }
   ]
 }
