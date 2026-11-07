@@ -1915,6 +1915,43 @@
         }
       }
     },
+    "960a1dfb1254b2308583": {
+      "article": {
+        "category": "meteorologia",
+        "date": "2026-11-06T19:00:08+00:00",
+        "description": "A new study has found that a self-reinforcing interaction between temperature, soil moisture and atmospheric pressure is being triggered at high temperatures, making extreme heat waves 10% hotter than they would otherwise be. The study was published in Science Advances and led by the Potsdam Institute for Climate Impact Research (PIK) and the International Institute for Applied Systems Analysis (IIASA).",
+        "editorial_mode": "documented_brief",
+        "explanation": "Un nuevo estudio ha encontrado que una interacción auto-reforzante entre la temperatura, la humedad del suelo y la presión atmosférica se está activando a altas temperaturas, haciendo que las olas de calor extremo sean un 10% más calientes de lo que serían de otra manera. El estudio fue publicado en Science Advances y fue liderado por el Instituto de Investigación del Impacto Climático de Potsdam (PIK) y el Instituto Internacional de Análisis de Sistemas Aplicados (IIASA).",
+        "id": "960a1dfb1254b2308583",
+        "image_headline": "'Las \"mega olas de calor\" se ven fortalecidas por la interacción entre la humedad del suelo, la presión atmosférica y la temperatura'",
+        "lang": "en",
+        "original_title": "'Mega heat waves' strengthened by interaction between soil moisture, atmospheric pressure and temperature",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "'Las \"mega olas de calor\" se ven fortalecidas por la interacción entre la humedad del suelo, la presión atmosférica y la temperatura'",
+        "url": "https://phys.org/news/2026-11-mega-interaction-soil-moisture-atmospheric.html"
+      },
+      "caption": "🌎 SISMONAUTA | METEOROLOGÍA\n\n'Las \"mega olas de calor\" se ven fortalecidas por la interacción entre la humedad del suelo, la presión atmosférica y la temperatura'\n\nUn nuevo estudio ha encontrado que una interacción auto-reforzante entre la temperatura, la humedad del suelo y la presión atmosférica se está activando a altas temperaturas, haciendo que las olas de calor extremo sean un 10% más calientes de lo que serían de otra manera. El estudio fue publicado en Science Advances y fue liderado por el Instituto de Investigación del Impacto Climático de Potsdam (PIK) y el Instituto Internacional de Análisis de Sistemas Aplicados (IIASA).\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Meteorologia #Tiempo #Tormentas #Atmosfera",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "storm clouds landscape",
+        "sha256": "35a64e3ea861fd19a8d8900e50d5aa1e72ec10d44ba88346d7ea6a43d9ed1496",
+        "source": "https://commons.wikimedia.org/wiki/File:Charles_Harold_Davis_-_Clouds_after_Storm_-_1927.213_-_Fogg_Museum.jpg",
+        "title": "File:Charles Harold Davis - Clouds after Storm - 1927.213 - Fogg Museum.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/1/15/Charles_Harold_Davis_-_Clouds_after_Storm_-_1927.213_-_Fogg_Museum.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/960a1dfb1254b2308583.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "98384a5fc56d1bf69496": {
       "article": {
         "date": "2026-10-28T13:17:12+00:00",
