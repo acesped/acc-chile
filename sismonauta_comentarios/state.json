@@ -71,9 +71,10 @@
       "updated_at": "2026-11-07T11:45:59.678483+00:00"
     },
     "1147361711172393_1598001868343552": {
-      "status": "uncertain",
+      "status": "published",
+      "reply_id": "1147361711172393_1395641579444004",
       "reply": "Gracias por tu comentario. Compartimos imágenes de la NASA porque son fuente primaria de datos astronómicos abiertos para la comunidad científica global. Nuestro foco es la divulgación geológica y sismológica desde Chile. ¡Saludos!",
-      "updated_at": "2026-11-07T11:46:05.067074+00:00"
+      "updated_at": "2026-11-07T11:46:07.663735+00:00"
     }
   }
 }
