@@ -801,6 +801,16 @@
       "angle": "fundamentos",
       "time": "2026-11-07T15:01:15.063718+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-2531b94cc275",
+      "topic": "geologia:levantamiento:evidencia",
+      "topic_key": "levantamiento",
+      "title": "¿Qué señales deja el levantamiento de montañas?",
+      "style": "microdocumental",
+      "angle": "evidencia",
+      "time": "2026-11-07T18:01:07.976501+00:00",
+      "status": "publicado"
     }
   ]
 }
