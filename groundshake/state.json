@@ -1341,6 +1341,13 @@
       "facebook_reel_id": "2330940710801075",
       "facebook_story": "publicado",
       "facebook_story_id": "1402720565014286"
+    },
+    "sismos-4bdc7b402efa": {
+      "topic": "ondas:resonancia_suelo:observacion",
+      "topic_key": "resonancia_suelo",
+      "title": "¿Qué observan los científicos al estudiar el efecto del suelo?",
+      "reel": "enviando",
+      "updated_at": "2026-11-07T03:01:22.191690+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-07T12:03:16.722243+00:00"
