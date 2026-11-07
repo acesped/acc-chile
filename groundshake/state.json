@@ -1382,8 +1382,9 @@
       "topic": "tsunamis:inundacion:datos",
       "topic_key": "inundacion",
       "title": "¿Qué información necesitamos para estudiar la inundación por tsunami?",
-      "reel": "enviando",
-      "updated_at": "2026-11-07T12:01:12.982529+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-07T12:01:52.907085+00:00",
+      "reel_id": "18126507193903698"
     }
   },
   "youtube_upload_retry_after": "2026-11-07T12:03:16.722243+00:00"
