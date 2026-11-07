@@ -1369,6 +1369,13 @@
       "facebook_reel_id": "2746683049060477",
       "facebook_story": "publicado",
       "facebook_story_id": "1488725866492956"
+    },
+    "sismos-b7f80910bffe": {
+      "topic": "fallas:ruptura_superficie:mecanismo",
+      "topic_key": "ruptura_superficie",
+      "title": "¿Cómo funciona la ruptura superficial?",
+      "reel": "enviando",
+      "updated_at": "2026-11-07T09:01:22.320378+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-07T12:03:16.722243+00:00"
