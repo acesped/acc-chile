@@ -1327,6 +1327,13 @@
       "facebook_reel_id": "1505746388030444",
       "facebook_story": "publicado",
       "facebook_story_id": "1427309156135353"
+    },
+    "sismos-d710e16ee2b8": {
+      "topic": "ondas:atenuacion:preguntas_frecuentes",
+      "topic_key": "atenuacion",
+      "title": "¿Qué pregunta frecuente surge al hablar de la propagación de las ondas?",
+      "reel": "enviando",
+      "updated_at": "2026-11-07T00:01:14.634284+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-07T12:03:16.722243+00:00"
