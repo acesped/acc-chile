@@ -1432,8 +1432,9 @@
       "topic": "medicion:replicas:relieve",
       "topic_key": "replicas",
       "title": "¿Qué relación guarda el paisaje con las réplicas?",
-      "reel": "enviando",
-      "updated_at": "2026-11-07T21:01:27.606900+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-07T21:02:46.744702+00:00",
+      "reel_id": "17925029862444935"
     }
   },
   "youtube_upload_retry_after": "2026-11-07T12:03:16.722243+00:00"
