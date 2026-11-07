@@ -3337,6 +3337,43 @@
         }
       }
     },
+    "ea74e3a8543b665b0401": {
+      "article": {
+        "category": "meteorologia",
+        "date": "2026-11-02T19:40:15+00:00",
+        "description": "Research led by atmospheric scientists at the U.S. Department of Energy's (DOE) Brookhaven National Laboratory sheds new light on one of the fundamental challenges of weather forecasting: determining the conditions under which a cloud will produce rain—and how much rain it will produce.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Una investigación liderada por científicos atmosféricos del Laboratorio Nacional Brookhaven del Departamento de Energía (DOE) de los EE. UU. arroja nuevas luces sobre uno de los desafíos fundamentales del pronóstico del tiempo: determinar las condiciones bajo las cuales una nube producirá lluvia y cuánta lluvia producirá.",
+        "id": "ea74e3a8543b665b0401",
+        "image_headline": "Observaciones a largo plazo de nubes marinas revelan cómo los movimientos dentro de las nubes dan forma a la lluvia.",
+        "lang": "en",
+        "original_title": "Long-term observations of marine clouds reveal how in-cloud motions shape rain",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Observaciones a largo plazo de nubes marinas revelan cómo los movimientos dentro de las nubes dan forma a la lluvia.",
+        "url": "https://phys.org/news/2026-11-term-marine-clouds-reveal-cloud.html"
+      },
+      "caption": "🌎 SISMONAUTA | METEOROLOGÍA\n\nObservaciones a largo plazo de nubes marinas revelan cómo los movimientos dentro de las nubes dan forma a la lluvia.\n\nUna investigación liderada por científicos atmosféricos del Laboratorio Nacional Brookhaven del Departamento de Energía (DOE) de los EE. UU. arroja nuevas luces sobre uno de los desafíos fundamentales del pronóstico del tiempo: determinar las condiciones bajo las cuales una nube producirá lluvia y cuánta lluvia producirá.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Meteorologia #Tiempo #Tormentas #Atmosfera",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "storm clouds landscape",
+        "sha256": "8025acfdb9b057875c7efb12f2063580df83a551868dcece3d5fd4652b94e585",
+        "source": "https://commons.wikimedia.org/wiki/File:Storm_clouds_over_the_Oasis_of_Mara_(51183674327).jpg",
+        "title": "File:Storm clouds over the Oasis of Mara (51183674327).jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7e/Storm_clouds_over_the_Oasis_of_Mara_%2851183674327%29.jpg/1920px-Storm_clouds_over_the_Oasis_of_Mara_%2851183674327%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/ea74e3a8543b665b0401.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "efb065e7e45d060781bc": {
       "article": {
         "category": "espacio",
