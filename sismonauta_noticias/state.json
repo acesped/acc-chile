@@ -2161,6 +2161,43 @@
         }
       }
     },
+    "ae9de94ca67092a541a0": {
+      "article": {
+        "category": "climatologia",
+        "date": "2026-11-06T21:00:01+00:00",
+        "description": "The extreme heat waves we have seen over the last few years may only serve as a preview of what is to come as a result of climate change. A new study led by researcher Philipp Aglas-Leitner from Freie Universität Berlin, published in Nature Communications, finds that future heat waves could last longer, impact larger areas, and be much more severe.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Las olas de calor extremo que hemos visto en los últimos años pueden ser solo un adelanto de lo que está por venir como resultado del cambio climático. Un nuevo estudio liderado por el investigador Philipp Aglas-Leitner de la Freie Universität Berlín, publicado en Nature Communications, encuentra que las futuras olas de calor podrían durar más, afectar áreas más grandes y ser mucho más severas.",
+        "id": "ae9de94ca67092a541a0",
+        "image_headline": "Futuros eventos de calentamiento superarán las olas de calor extremas del pasado reciente, concluye un nuevo estudio.",
+        "lang": "en",
+        "original_title": "Future warming events will outdo the extreme heat waves of the recent past, new study finds",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Futuros eventos de calentamiento superarán las olas de calor extremas del pasado reciente, concluye un nuevo estudio.",
+        "url": "https://phys.org/news/2026-11-future-events-outdo-extreme.html"
+      },
+      "caption": "🌎 SISMONAUTA | CLIMATOLOGÍA\n\nFuturos eventos de calentamiento superarán las olas de calor extremas del pasado reciente, concluye un nuevo estudio.\n\nLas olas de calor extremo que hemos visto en los últimos años pueden ser solo un adelanto de lo que está por venir como resultado del cambio climático. Un nuevo estudio liderado por el investigador Philipp Aglas-Leitner de la Freie Universität Berlín, publicado en Nature Communications, encuentra que las futuras olas de calor podrían durar más, afectar áreas más grandes y ser mucho más severas.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Climatologia #Clima #CambioClimatico #Glaciares",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "glacier landscape",
+        "sha256": "9da9d2ef388b403e56a9130c3c7a46092183cae688664cf8475b1dbecb9bf442",
+        "source": "https://commons.wikimedia.org/wiki/File:Glacier_National_Park_-_HCP_-_October_23,_2022_-_002.jpg",
+        "title": "File:Glacier National Park - HCP - October 23, 2022 - 002.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/14/Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_002.jpg/1920px-Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_002.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/ae9de94ca67092a541a0.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "af5f37092e93b6f5b96e": {
       "article": {
         "category": "espacio",
