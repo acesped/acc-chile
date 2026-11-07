@@ -1414,8 +1414,9 @@
       "topic": "geologia:levantamiento:evidencia",
       "topic_key": "levantamiento",
       "title": "¿Qué señales deja el levantamiento de montañas?",
-      "reel": "enviando",
-      "updated_at": "2026-11-07T18:01:10.167064+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-07T18:02:10.716695+00:00",
+      "reel_id": "18139777018637165"
     }
   },
   "youtube_upload_retry_after": "2026-11-07T12:03:16.722243+00:00"
