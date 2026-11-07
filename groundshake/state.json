@@ -1346,8 +1346,9 @@
       "topic": "ondas:resonancia_suelo:observacion",
       "topic_key": "resonancia_suelo",
       "title": "¿Qué observan los científicos al estudiar el efecto del suelo?",
-      "reel": "enviando",
-      "updated_at": "2026-11-07T03:01:22.191690+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-07T03:02:50.987911+00:00",
+      "reel_id": "18100932704653806"
     }
   },
   "youtube_upload_retry_after": "2026-11-07T12:03:16.722243+00:00"
