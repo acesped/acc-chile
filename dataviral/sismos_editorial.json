@@ -761,6 +761,16 @@
       "angle": "preguntas_frecuentes",
       "time": "2026-11-07T00:01:11.836369+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-4bdc7b402efa",
+      "topic": "ondas:resonancia_suelo:observacion",
+      "topic_key": "resonancia_suelo",
+      "title": "¿Qué observan los científicos al estudiar el efecto del suelo?",
+      "style": "microdocumental",
+      "angle": "observacion",
+      "time": "2026-11-07T03:01:19.233437+00:00",
+      "status": "publicado"
     }
   ]
 }
