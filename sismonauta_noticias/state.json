@@ -816,6 +816,43 @@
         }
       }
     },
+    "41662381aab76549b56e": {
+      "article": {
+        "category": "volcanes",
+        "date": "2026-11-06T19:40:06+00:00",
+        "description": "Where oceanic crust subducts beneath continental crust, belts of volcanoes known as continental arcs can form. Located around the world, these arcs may undergo episodic magma flare-ups—dramatic surges in the flow of magma into the continental crust at rates up to 20 times higher than normal. However, what triggers these extreme surges, which last tens of millions of years, can be unclear.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Donde la corteza oceánica se subduce bajo la corteza continental, pueden formarse cinturones de volcanes conocidos como arcos continentales. Ubicados en todo el mundo, estos arcos pueden experimentar erupciones episódicas de magma—aumentos dramáticos en el flujo de magma hacia la corteza continental a tasas hasta 20 veces más altas que lo normal. Sin embargo, lo que desencadena estos aumentos extremos, que duran decenas de millones de años, puede ser poco claro.",
+        "id": "41662381aab76549b56e",
+        "image_headline": "Cronología de alta precisión ayuda a esclarecer un antiguo pulso de magma en las North Cascades.",
+        "lang": "en",
+        "original_title": "High-precision timeline helps clarify an ancient magma surge in the North Cascades",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Cronología de alta precisión ayuda a esclarecer un antiguo pulso de magma en las North Cascades.",
+        "url": "https://phys.org/news/2026-11-high-precision-timeline-ancient-magma.html"
+      },
+      "caption": "🌎 SISMONAUTA | ACTUALIDAD VOLCÁNICA\n\nCronología de alta precisión ayuda a esclarecer un antiguo pulso de magma en las North Cascades.\n\nDonde la corteza oceánica se subduce bajo la corteza continental, pueden formarse cinturones de volcanes conocidos como arcos continentales. Ubicados en todo el mundo, estos arcos pueden experimentar erupciones episódicas de magma—aumentos dramáticos en el flujo de magma hacia la corteza continental a tasas hasta 20 veces más altas que lo normal. Sin embargo, lo que desencadena estos aumentos extremos, que duran decenas de millones de años, puede ser poco claro.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Volcanes #Erupciones #Volcanologia #Geologia",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "volcanic eruption",
+        "sha256": "2fc12171ab9213e813e4c279a476e0d6750c519d00b5b2c3ce072f8c7653e5f5",
+        "source": "https://commons.wikimedia.org/wiki/File:Krakatoa_eruption_lithograph.jpg",
+        "title": "File:Krakatoa eruption lithograph.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/49/Krakatoa_eruption_lithograph.jpg/1920px-Krakatoa_eruption_lithograph.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/41662381aab76549b56e.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "426eaaaec1185877bdc1": {
       "article": {
         "category": "oceanos",
