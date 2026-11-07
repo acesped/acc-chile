@@ -1313,6 +1313,43 @@
         }
       }
     },
+    "56b825b4f91c79fc7fe0": {
+      "article": {
+        "category": "climatologia",
+        "date": "2026-11-02T23:20:01+00:00",
+        "description": "A new review involving researchers at Umeå University has revealed the critical role that plant roots play in shaping how Arctic tundra ecosystems respond to climate change. The paper, recently published in Nature Reviews Earth & Environment, highlights how processes occurring beneath the soil surface could help scientists better understand how one of the fastest-changing ecosystems on Earth will influence the future climate.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Una nueva revisión que involucra a investigadores de la Universidad de Umeå ha revelado el papel crítico que juegan las raíces de las plantas en la forma en que los ecosistemas de tundra ártica responden al cambio climático. El artículo, publicado recientemente en Nature Reviews Earth & Environment, destaca cómo los procesos que ocurren debajo de la superficie del suelo podrían ayudar a los científicos a comprender mejor cómo uno de los ecosistemas que más rápido está cambiando en la Tierra influirá en el clima futuro.",
+        "id": "56b825b4f91c79fc7fe0",
+        "image_headline": "Las raíces de las plantas árticas pueden desempeñar un papel clave en el cambio climático.",
+        "lang": "en",
+        "original_title": "Arctic plant roots may play key role in climate change",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Las raíces de las plantas árticas pueden desempeñar un papel clave en el cambio climático.",
+        "url": "https://phys.org/news/2026-11-arctic-roots-play-key-role.html"
+      },
+      "caption": "🌎 SISMONAUTA | CLIMATOLOGÍA\n\nLas raíces de las plantas árticas pueden desempeñar un papel clave en el cambio climático.\n\nUna nueva revisión que involucra a investigadores de la Universidad de Umeå ha revelado el papel crítico que juegan las raíces de las plantas en la forma en que los ecosistemas de tundra ártica responden al cambio climático. El artículo, publicado recientemente en Nature Reviews Earth & Environment, destaca cómo los procesos que ocurren debajo de la superficie del suelo podrían ayudar a los científicos a comprender mejor cómo uno de los ecosistemas que más rápido está cambiando en la Tierra influirá en el clima futuro.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Climatologia #Clima #CambioClimatico #Glaciares",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "glacier landscape",
+        "sha256": "9c52b195d014572a7cbbaaa300e299d0760a0dbeba215baf7562ec6686edb4c9",
+        "source": "https://commons.wikimedia.org/wiki/File:Clearing_Going-to-the-Sun_Road_in_April,_Glacier_National_Park,_Montana,_USA.jpg",
+        "title": "File:Clearing Going-to-the-Sun Road in April, Glacier National Park, Montana, USA.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d3/Clearing_Going-to-the-Sun_Road_in_April%2C_Glacier_National_Park%2C_Montana%2C_USA.jpg/1920px-Clearing_Going-to-the-Sun_Road_in_April%2C_Glacier_National_Park%2C_Montana%2C_USA.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/56b825b4f91c79fc7fe0.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "5781b17e9606a0796510": {
       "article": {
         "date": "2026-10-26T12:29:58+00:00",
