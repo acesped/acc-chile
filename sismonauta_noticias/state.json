@@ -2797,6 +2797,43 @@
         }
       }
     },
+    "c824f5a14bfa3a09f955": {
+      "article": {
+        "category": "meteorologia",
+        "date": "2026-11-06T19:40:10+00:00",
+        "description": "Europe's meteorological satellite agency, EUMETSAT, has released the first image from the Flexible Combined Imager (FCI) on board Meteosat Third Generation Imager 2 (MTG-I2), just over two months after the satellite's launch on Aug. 27, 2026. The satellite will provide forecasters with high-resolution observations of Europe every 2.5 minutes. This unprecedented frequency will help forecasters monitor fast-developing weather hazards more closely and support earlier, more precise warnings.",
+        "editorial_mode": "documented_brief",
+        "explanation": "La agencia meteorológica de satélites de Europa, EUMETSAT, ha publicado la primera imagen del Imager Combinado Flexible (FCI) a bordo del Meteosat de Tercera Generación Imager 2 (MTG-I2), poco más de dos meses después del lanzamiento del satélite en agosto. El satélite proporcionará a los pronosticadores observaciones de alta resolución de Europa cada 2.5 minutos. Esta frecuencia sin precedentes ayudará a los pronosticadores a monitorear más de cerca los peligros meteorológicos de rápido desarrollo y apoyará advertencias más tempranas y precisas.",
+        "id": "c824f5a14bfa3a09f955",
+        "image_headline": "El satélite MTG-I2 entrega notables primeras imágenes, capturando una vista del clima de Europa cada 2.5 minutos.",
+        "lang": "en",
+        "original_title": "MTG-I2 satellite delivers remarkable first images, capturing a weather view of Europe every 2.5 minutes",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "El satélite MTG-I2 entrega notables primeras imágenes, capturando una vista del clima de Europa cada 2.5 minutos.",
+        "url": "https://phys.org/news/2026-11-mtg-i2-satellite-remarkable-images.html"
+      },
+      "caption": "🌎 SISMONAUTA | METEOROLOGÍA\n\nEl satélite MTG-I2 entrega notables primeras imágenes, capturando una vista del clima de Europa cada 2.5 minutos.\n\nLa agencia meteorológica de satélites de Europa, EUMETSAT, ha publicado la primera imagen del Imager Combinado Flexible (FCI) a bordo del Meteosat de Tercera Generación Imager 2 (MTG-I2), poco más de dos meses después del lanzamiento del satélite en agosto. El satélite proporcionará a los pronosticadores observaciones de alta resolución de Europa cada 2.5 minutos. Esta frecuencia sin precedentes ayudará a los pronosticadores a monitorear más de cerca los peligros meteorológicos de rápido desarrollo y apoyará advertencias más tempranas y precisas.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Meteorologia #Tiempo #Tormentas #Atmosfera",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "storm clouds landscape",
+        "sha256": "44b3efc0a7ff0822012aeccd1cb6f08392d02d251cacc3bf37cfdedac9847f33",
+        "source": "https://commons.wikimedia.org/wiki/File:Storm_clouds_over_the_Oasis_of_Mara_(51185434575).jpg",
+        "title": "File:Storm clouds over the Oasis of Mara (51185434575).jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/97/Storm_clouds_over_the_Oasis_of_Mara_%2851185434575%29.jpg/1920px-Storm_clouds_over_the_Oasis_of_Mara_%2851185434575%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/c824f5a14bfa3a09f955.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "cb74bc01b99e88422592": {
       "article": {
         "category": "espacio",
