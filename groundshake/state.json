@@ -1332,8 +1332,9 @@
       "topic": "ondas:atenuacion:preguntas_frecuentes",
       "topic_key": "atenuacion",
       "title": "¿Qué pregunta frecuente surge al hablar de la propagación de las ondas?",
-      "reel": "enviando",
-      "updated_at": "2026-11-07T00:01:14.634284+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-07T00:01:53.732727+00:00",
+      "reel_id": "17972114424192257"
     }
   },
   "youtube_upload_retry_after": "2026-11-07T12:03:16.722243+00:00"
