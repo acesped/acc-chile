@@ -2045,6 +2045,43 @@
         }
       }
     },
+    "938327138a82000a020d": {
+      "article": {
+        "category": "meteorologia",
+        "date": "2026-11-06T21:20:04+00:00",
+        "description": "Microplastics have been found in our bodies and the food we eat—and even in remote environments around the world, including seawater and ice in the Arctic. Despite their prevalence, little is known about how they move through the atmosphere. New CIRES-led research, which demonstrates a new method for sampling microplastics in the atmosphere using an uncrewed aerial system (UAS), aims to change that. The findings are published in the journal Scientific Reports.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Se han encontrado microplásticos en nuestros cuerpos y en la comida que comemos, e incluso en entornos remotos alrededor del mundo, incluyendo agua de mar y hielo en el Ártico. A pesar de su prevalencia, se sabe poco sobre cómo se mueven a través de la atmósfera. Una nueva investigación liderada por CIRES, que demuestra un nuevo método para muestrear microplásticos en la atmósfera utilizando un sistema aéreo no tripulado (UAS), busca cambiar eso. Los hallazgos se publican en la revista Scientific Reports.",
+        "id": "938327138a82000a020d",
+        "image_headline": "Nuevo método mide microplásticos en el aire usando un sistema aéreo no tripulado",
+        "lang": "en",
+        "original_title": "New method measures microplastics in the air using an uncrewed aerial system",
+        "search_category": "direct",
+        "source": "Phys.org Medio Ambiente",
+        "source_body": "",
+        "title": "Nuevo método mide microplásticos en el aire usando un sistema aéreo no tripulado",
+        "url": "https://phys.org/news/2026-11-method-microplastics-air-uncrewed-aerial.html"
+      },
+      "caption": "🌎 SISMONAUTA | METEOROLOGÍA\n\nNuevo método mide microplásticos en el aire usando un sistema aéreo no tripulado\n\nSe han encontrado microplásticos en nuestros cuerpos y en la comida que comemos, e incluso en entornos remotos alrededor del mundo, incluyendo agua de mar y hielo en el Ártico. A pesar de su prevalencia, se sabe poco sobre cómo se mueven a través de la atmósfera. Una nueva investigación liderada por CIRES, que demuestra un nuevo método para muestrear microplásticos en la atmósfera utilizando un sistema aéreo no tripulado (UAS), busca cambiar eso. Los hallazgos se publican en la revista Scientific Reports.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Meteorologia #Tiempo #Tormentas #Atmosfera",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "storm clouds landscape",
+        "sha256": "56c99430fd11d69a9b0b3a499a386882151395d283cc66e242adb764da89fba7",
+        "source": "https://commons.wikimedia.org/wiki/File:Storm_clouds_over_the_Oasis_of_Mara_(51183673752).jpg",
+        "title": "File:Storm clouds over the Oasis of Mara (51183673752).jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/92/Storm_clouds_over_the_Oasis_of_Mara_%2851183673752%29.jpg/1920px-Storm_clouds_over_the_Oasis_of_Mara_%2851183673752%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/938327138a82000a020d.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "9516f95dceb2e7f19838": {
       "article": {
         "category": "volcanes",
