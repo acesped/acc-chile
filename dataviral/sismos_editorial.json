@@ -811,6 +811,16 @@
       "angle": "evidencia",
       "time": "2026-11-07T18:01:07.976501+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-2af654820db1",
+      "topic": "medicion:replicas:relieve",
+      "topic_key": "replicas",
+      "title": "¿Qué relación guarda el paisaje con las réplicas?",
+      "style": "pregunta_respuesta",
+      "angle": "relieve",
+      "time": "2026-11-07T21:01:24.631712+00:00",
+      "status": "publicado"
     }
   ]
 }
