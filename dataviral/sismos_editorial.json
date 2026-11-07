@@ -781,6 +781,16 @@
       "angle": "fundamentos",
       "time": "2026-11-07T06:01:23.602209+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-fae9a6e56cd9",
+      "topic": "tsunamis:inundacion:datos",
+      "topic_key": "inundacion",
+      "title": "¿Qué información necesitamos para estudiar la inundación por tsunami?",
+      "style": "descubrimiento",
+      "angle": "datos",
+      "time": "2026-11-07T12:01:10.671586+00:00",
+      "status": "publicado"
     }
   ]
 }
