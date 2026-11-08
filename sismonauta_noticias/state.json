@@ -2912,6 +2912,43 @@
         }
       }
     },
+    "bbd19f1e77582757a235": {
+      "article": {
+        "category": "climatologia",
+        "date": "2026-11-04T20:00:08+00:00",
+        "description": "An international study jointly led by researchers from the Department of Geography and the Institute for Climate and Carbon Neutrality at the Faculty of Social Sciences, The University of Hong Kong (HKU), has revealed that vegetation resilience across Northern Hemisphere permafrost regions underwent a widespread reversal around 2008, declining broadly despite continued greening.",
+        "editorial_mode": "verified_summary",
+        "explanation": "Un estudio internacional liderado conjuntamente por investigadores del Departamento de Geografía y el Instituto para la Neutralidad Climática y",
+        "id": "bbd19f1e77582757a235",
+        "image_headline": "El reverdecimiento del permafrost del norte oculta la disminución de la resiliencia de las plantas, según revela un estudio.",
+        "lang": "en",
+        "original_title": "Northern permafrost greening masks declining plant resilience, study finds",
+        "search_category": "direct",
+        "source": "Phys.org Medio Ambiente",
+        "source_body": "",
+        "title": "El reverdecimiento del permafrost del norte oculta la disminución de la resiliencia de las plantas, según revela un estudio.",
+        "url": "https://phys.org/news/2026-11-northern-permafrost-greening-masks-declining.html"
+      },
+      "caption": "🌎 SISMONAUTA | CLIMATOLOGÍA\n\nEl reverdecimiento del permafrost del norte oculta la disminución de la resiliencia de las plantas, según revela un estudio.\n\nUn estudio internacional liderado conjuntamente por investigadores del Departamento de Geografía y el Instituto para la Neutralidad Climática y\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Climatologia #Clima #CambioClimatico #Glaciares",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "glacier landscape",
+        "sha256": "f107d3f34f1a82ce990983378c052a009a0082fdd67d41ac2a597bcb530103ad",
+        "source": "https://commons.wikimedia.org/wiki/File:Glacier_National_Park_-_HCP_-_October_23,_2022_-_004.jpg",
+        "title": "File:Glacier National Park - HCP - October 23, 2022 - 004.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/ce/Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_004.jpg/1920px-Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_004.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/bbd19f1e77582757a235.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "bd956d63c115dccaeb9d": {
       "article": {
         "category": "oceanos",
