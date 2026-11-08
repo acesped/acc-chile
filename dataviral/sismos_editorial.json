@@ -821,6 +821,16 @@
       "angle": "relieve",
       "time": "2026-11-07T21:01:24.631712+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-3ecac9238378",
+      "topic": "tectonica:colision_continental:aprendizaje",
+      "topic_key": "colision_continental",
+      "title": "¿Qué podemos aprender hoy acerca de la colisión continental?",
+      "style": "mito_realidad",
+      "angle": "aprendizaje",
+      "time": "2026-11-08T00:01:06.548476+00:00",
+      "status": "publicado"
     }
   ]
 }
