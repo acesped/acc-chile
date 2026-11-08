@@ -1024,6 +1024,42 @@
         }
       }
     },
+    "44d66e994ee07f73435b": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-08T05:05:00+00:00",
+        "description": "APOD Ciencia APOD APOD: 8 de noviembre de 2026 –… El APOD de hoy Arch",
+        "explanation": "**TITULAR: APOD: 8 de noviembre de 2026 – Gran meteoro bólido** El 8 de noviembre de 2026, el Astronomy Picture of the Day (APOD) destacó un impresionante meteoro bólido que iluminó los cielos europeos. La imagen, capturada en un paso montañoso, muestra un paisaje nevado en Italia, donde se puede observar la constelación de Ursa Major y un resplandor intenso del meteoro que cruzó el horizonte. Este evento fue notable no solo por su belleza visual, sino también por la cantidad de avistamientos reportados. Se registraron numerosas observaciones en varios países europeos, convirtiéndolo en uno de los eventos de bólido más documentados por la American Meteor Society y la International Meteor Organization. Los análisis indican que la trayectoria del meteoro, que se desplazó de este a oeste, coincide con el origen de la lluvia de meteoros Tauridas del norte, asociada con el polvo del cometa Encke. Este tipo de eventos no solo fascinan a los astrónomos, sino que también ofrecen valiosa información sobre la composición y el comportamiento de los cuerpos celestes que cruzan nuestra atmósfera.",
+        "id": "44d66e994ee07f73435b",
+        "image_headline": "APOD: 8 de noviembre de 2026 – Gran meteoro bólido",
+        "lang": "en",
+        "original_title": "APOD: 2026 November 8 – Major Fireball Meteor",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "APOD Science APOD APOD: 2026 November 8 –… Today’s APOD Archive Submissions Index Search Calendar RSS Education About Discuss APOD Astronomy Picture of the Day Discover the cosmos! Each day a different image or photograph of our fascinating universe is featured, along with a brief explanation written by a professional astronomer. Major Fireball Meteor Explanation: The sky glows with soft pinkish colors of fading twilight in this serendipitous mountaintop vista. Taken in subfreezing temperatures, the thoughtfully composed photo shows snowy, rugged peaks seen from a mountain pass on 2017 November 14. Below lies the village of La Villa, Alta Badia in Italy ‘s Dolomite Alps . Above the nestled village lights, the constellation Ursa Major hangs over the northern horizon. But most stunning is the intense fireball meteor. It was captured during the camera’s exposure by chance as it flashed east to west across the northern horizon, under Ursa Major’s familiar Big Dipper asterism . Sightings of this major fireball meteor were widely reported in European skies, making it one of the most reported fireball events ever for planet Earth’s American Meteor Society and the International Meteor Organization . The meteor’s measured track over Germany is consistent with its origin near the active radiant of November’s Northern Taurid Meteor Shower , a shower associated with dust from Encke’s comet . Tomorrow’s picture: witch sky? Date: November 8, 2026 Credit & Copyright: Ollie Taylor Authors & editors: Robert Nemiroff, Jerry Bonnell, Cecilia Chirenti, Keighley Rockcliffe A service of: ASD at NASA / GSFC , NASA Science Activation & Michigan Tech. U. Random APOD Generator Yesterday’s Image APOD: 2026 November 7 – De Gerlache-Kocher Massif Tomorrow’s Image",
+        "title": "APOD: 8 de noviembre de 2026 – Gran meteoro bólido",
+        "url": "https://science.nasa.gov/image-article/apod-2026-november-8-major-fireball-meteor/"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nAPOD: 8 de noviembre de 2026 – Gran meteoro bólido\n\nEl 8 de noviembre de 2026, el Astronomy Picture of the Day (APOD) destacó un impresionante meteoro bólido que iluminó los cielos europeos. La imagen, capturada en un paso montañoso, muestra un paisaje nevado en Italia, donde se puede observar la constelación de Ursa Major y un resplandor intenso del meteoro que cruzó el horizonte. Este evento fue notable no solo por su belleza visual, sino también por la cantidad de avistamientos reportados. Se registraron numerosas observaciones en varios países europeos, convirtiéndolo en uno de los eventos de bólido más documentados por la American Meteor Society y la International Meteor Organization. Los análisis indican que la trayectoria del meteoro, que se desplazó de este a oeste, coincide con el origen de la lluvia de meteoros Tauridas del norte, asociada con el polvo del cometa Encke. Este tipo de eventos no solo fascinan a los astrónomos, sino que también ofrecen valiosa información sobre la composición y el comportamiento de los cuerpos celestes que cruzan nuestra atmósfera.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "3fab8343a0db73af9d53288cf4dce04a0575483025af78e2ee5fe5cb29dc6837",
+        "source": "https://commons.wikimedia.org/wiki/File:AS08-16-2593_remastered.jpg",
+        "title": "File:AS08-16-2593 remastered.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d6/AS08-16-2593_remastered.jpg/1920px-AS08-16-2593_remastered.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/44d66e994ee07f73435b.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "45bbbdb91f680408a2d5": {
       "article": {
         "category": "espacio",
