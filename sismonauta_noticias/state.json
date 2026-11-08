@@ -2685,6 +2685,43 @@
         }
       }
     },
+    "ae6dd65bdc07541f856c": {
+      "article": {
+        "category": "meteorologia",
+        "date": "2026-11-06T13:00:09+00:00",
+        "description": "The world is on track for 2026 to be the second-hottest year on record as an exceptionally strong El Niño weather pattern turbocharges human-driven global warming, the EU's climate monitor said Friday.",
+        "editorial_mode": "verified_summary",
+        "explanation": "El mundo va camino a que el 2026 sea el segundo año más caluroso de la historia, mientras",
+        "id": "ae6dd65bdc07541f856c",
+        "image_headline": "2026 'lo más probable' que sea el segundo año más caluroso registrado: monitor de la UE",
+        "lang": "en",
+        "original_title": "2026 'most likely' to be second-hottest year on record: EU monitor",
+        "search_category": "direct",
+        "source": "Phys.org Medio Ambiente",
+        "source_body": "",
+        "title": "2026 'lo más probable' que sea el segundo año más caluroso registrado: monitor de la UE",
+        "url": "https://phys.org/news/2026-11-hottest-year-eu.html"
+      },
+      "caption": "🌎 SISMONAUTA | METEOROLOGÍA\n\n2026 'lo más probable' que sea el segundo año más caluroso registrado: monitor de la UE\n\nEl mundo va camino a que el 2026 sea el segundo año más caluroso de la historia, mientras\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Meteorologia #Tiempo #Tormentas #Atmosfera",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "storm clouds landscape",
+        "sha256": "ec4fecf0d722c5a07bf35a29cc1ba1519dd15887e79dbf8bf42d3ab052ec7e24",
+        "source": "https://commons.wikimedia.org/wiki/File:Storm_clouds_over_the_Oasis_of_Mara_(51184574738).jpg",
+        "title": "File:Storm clouds over the Oasis of Mara (51184574738).jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e9/Storm_clouds_over_the_Oasis_of_Mara_%2851184574738%29.jpg/1920px-Storm_clouds_over_the_Oasis_of_Mara_%2851184574738%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/ae6dd65bdc07541f856c.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "ae9de94ca67092a541a0": {
       "article": {
         "category": "climatologia",
