@@ -2718,8 +2718,10 @@
           "status": "pending"
         },
         "instagram": {
+          "id": "18641306347023166",
+          "published_at": "2026-11-08T15:01:54.980209+00:00",
           "started_at": "2026-11-08T15:01:38.032017+00:00",
-          "status": "uncertain"
+          "status": "published"
         }
       }
     },
