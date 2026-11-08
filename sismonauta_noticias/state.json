@@ -3643,6 +3643,43 @@
         }
       }
     },
+    "ea9c153d473b7764fac5": {
+      "article": {
+        "category": "meteorologia",
+        "date": "2026-11-05T01:00:01+00:00",
+        "description": "If you partitioned the entire Earth, from just below the surface to the top of the atmosphere, into 1-kilometer-square chunks, there would be billions of them. Now run each of those cells through a series of complex physics equations, and you can see how the entire Earth system interacts and evolves in detail, one step at a time.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Si partitionaras toda la Tierra, desde justo debajo de la superficie hasta la cima de la atmósfera, en trozos de un kilómetro cuadrado, habría miles de millones de ellos. Ahora, pasa cada una de esas celdas a través de una serie de complejas ecuaciones físicas, y podrás ver cómo todo el sistema terrestre interactúa y evoluciona en detalle, un paso a la vez.",
+        "id": "ea9c153d473b7764fac5",
+        "image_headline": "Emuladores de la atmósfera terrestre podrían permitir pronósticos meteorológicos más rápidos y precisos.",
+        "lang": "en",
+        "original_title": "Earth atmosphere emulators could enable faster and more accurate weather predictions",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Emuladores de la atmósfera terrestre podrían permitir pronósticos meteorológicos más rápidos y precisos.",
+        "url": "https://phys.org/news/2026-11-earth-atmosphere-emulators-enable-faster.html"
+      },
+      "caption": "🌎 SISMONAUTA | METEOROLOGÍA\n\nEmuladores de la atmósfera terrestre podrían permitir pronósticos meteorológicos más rápidos y precisos.\n\nSi partitionaras toda la Tierra, desde justo debajo de la superficie hasta la cima de la atmósfera, en trozos de un kilómetro cuadrado, habría miles de millones de ellos. Ahora, pasa cada una de esas celdas a través de una serie de complejas ecuaciones físicas, y podrás ver cómo todo el sistema terrestre interactúa y evoluciona en detalle, un paso a la vez.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Meteorologia #Tiempo #Tormentas #Atmosfera",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "storm clouds landscape",
+        "sha256": "d973fead5864f2b38c5cddb5fe5312b61dc196c60862d38f5b283bc51ec8a867",
+        "source": "https://commons.wikimedia.org/wiki/File:Storm_clouds_over_the_Oasis_of_Mara_(51183673202).jpg",
+        "title": "File:Storm clouds over the Oasis of Mara (51183673202).jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b8/Storm_clouds_over_the_Oasis_of_Mara_%2851183673202%29.jpg/1920px-Storm_clouds_over_the_Oasis_of_Mara_%2851183673202%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/ea9c153d473b7764fac5.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "efb065e7e45d060781bc": {
       "article": {
         "category": "espacio",
