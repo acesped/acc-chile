@@ -92,6 +92,43 @@
         }
       }
     },
+    "09d89b2da3943eab139a": {
+      "article": {
+        "category": "climatologia",
+        "date": "2026-11-05T08:56:32+00:00",
+        "description": "Australia has designated a seabed storage site near its northern coast where a Japanese company plans to store massive amounts of carbon pollution using a technology that has divided climate scientists.",
+        "editorial_mode": "verified_summary",
+        "explanation": "Australia ha designado un sitio de almacenamiento en el lecho marino cerca de su costa norte, donde una empresa japonesa planea almacenar cantidades masivas de contaminación por carbono utilizando una tecnología que ha dividido a los científicos climáticos.",
+        "id": "09d89b2da3943eab139a",
+        "image_headline": "Australia aprueba sitio en el lecho marino donde una empresa japonesa almacenará contaminación por carbono.",
+        "lang": "en",
+        "original_title": "Australia approves seabed site where a Japanese company will store carbon pollution",
+        "search_category": "direct",
+        "source": "Phys.org Medio Ambiente",
+        "source_body": "",
+        "title": "Australia aprueba sitio en el lecho marino donde una empresa japonesa almacenará contaminación por carbono.",
+        "url": "https://phys.org/news/2026-11-australia-seabed-site-japanese-company.html"
+      },
+      "caption": "🌎 SISMONAUTA | CLIMATOLOGÍA\n\nAustralia aprueba sitio en el lecho marino donde una empresa japonesa almacenará contaminación por carbono.\n\nAustralia ha designado un sitio de almacenamiento en el lecho marino cerca de su costa norte, donde una empresa japonesa planea almacenar cantidades masivas de contaminación por carbono utilizando una tecnología que ha dividido a los científicos climáticos.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Climatologia #Clima #CambioClimatico #Glaciares",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "glacier landscape",
+        "sha256": "01aa08faa25329c7874714fc4992e4ab50a4f0c103cf634f0974856ba2b5cd19",
+        "source": "https://commons.wikimedia.org/wiki/File:Glacier_National_Park_-_HCP_-_October_23,_2022_-_005.jpg",
+        "title": "File:Glacier National Park - HCP - October 23, 2022 - 005.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1d/Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_005.jpg/1920px-Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_005.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/09d89b2da3943eab139a.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "0c690bb5895c29d723fc": {
       "article": {
         "category": "espacio",
