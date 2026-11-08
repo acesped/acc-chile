@@ -1534,6 +1534,13 @@
       "facebook_reel_id": "1588473713035448",
       "facebook_story": "publicado",
       "facebook_story_id": "1515540167061244"
+    },
+    "sismos-3b5a0660c420": {
+      "topic": "fallas:ruptura_superficie:mito",
+      "topic_key": "ruptura_superficie",
+      "title": "¿Qué solemos confundir sobre la ruptura superficial?",
+      "reel": "enviando",
+      "updated_at": "2026-11-08T18:01:25.987671+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-09T03:03:02.632930+00:00"
