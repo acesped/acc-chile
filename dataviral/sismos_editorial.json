@@ -861,6 +861,16 @@
       "angle": "preguntas_frecuentes",
       "time": "2026-11-08T09:01:20.149344+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-ac244e143415",
+      "topic": "medicion:epicentro:investigacion",
+      "topic_key": "epicentro",
+      "title": "¿Por qué se investiga el epicentro?",
+      "style": "pregunta_respuesta",
+      "angle": "investigacion",
+      "time": "2026-11-08T12:01:20.762476+00:00",
+      "status": "publicado"
     }
   ]
 }
