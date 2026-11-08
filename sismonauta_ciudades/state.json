@@ -77,10 +77,10 @@
         "facebook_feed": {
           "status": "pending"
         },
-        "facebook": {
-          "status": "pending"
-        },
         "instagram": {
+          "status": "uncertain"
+        },
+        "facebook": {
           "status": "pending"
         }
       },
