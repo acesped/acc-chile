@@ -6,13 +6,13 @@
       "time": "2026-10-28T12:52:13.080000+00:00",
       "source": "EMSC-CSEM",
       "targets": {
-        "instagram": {
-          "status": "published",
-          "id": "18160724884511901"
-        },
         "facebook": {
           "status": "published",
           "id": "305263296226466_1137694658805765"
+        },
+        "instagram": {
+          "status": "published",
+          "id": "18160724884511901"
         }
       },
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_ciudades/images/emsc_20261028_0000184.jpg"
@@ -23,13 +23,13 @@
       "time": "2026-10-30T12:57:48.540000+00:00",
       "source": "EMSC-CSEM",
       "targets": {
-        "instagram": {
-          "status": "published",
-          "id": "18140978554535514"
-        },
         "facebook": {
           "status": "published",
           "id": "305263296226466_1139688475273050"
+        },
+        "instagram": {
+          "status": "published",
+          "id": "18140978554535514"
         }
       },
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_ciudades/images/emsc_20261030_0000185.jpg"
@@ -40,13 +40,13 @@
       "time": "2026-11-02T14:08:02+00:00",
       "source": "EMSC-CSEM",
       "targets": {
-        "instagram": {
-          "status": "published",
-          "id": "17962485339260336"
-        },
         "facebook": {
           "status": "published",
           "id": "305263296226466_1142599868315244"
+        },
+        "instagram": {
+          "status": "published",
+          "id": "17962485339260336"
         }
       },
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_ciudades/images/emsc_20261102_0000177.jpg"
@@ -57,16 +57,34 @@
       "time": "2026-11-03T09:13:14.972000+00:00",
       "source": "EMSC-CSEM",
       "targets": {
-        "instagram": {
-          "status": "published",
-          "id": "18115632908034873"
-        },
         "facebook": {
           "status": "published",
           "id": "305263296226466_1143361948239036"
+        },
+        "instagram": {
+          "status": "published",
+          "id": "18115632908034873"
         }
       },
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_ciudades/images/emsc_20261103_0000108.jpg"
+    },
+    "emsc_20261108_0000137": {
+      "magnitude": 5.1,
+      "place": "TARAPACA, CHILE",
+      "time": "2026-11-08T11:58:32.140000+00:00",
+      "source": "EMSC-CSEM",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_ciudades/images/emsc_20261108_0000137.jpg"
     }
   }
 }
