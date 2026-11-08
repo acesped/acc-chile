@@ -841,6 +841,16 @@
       "angle": "limites",
       "time": "2026-11-08T03:01:15.019426+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-116855c7d11c",
+      "topic": "riesgo:alerta_temprana:riesgo",
+      "topic_key": "alerta_temprana",
+      "title": "¿Por qué conviene conocer mejor la alerta temprana?",
+      "style": "microdocumental",
+      "angle": "riesgo",
+      "time": "2026-11-08T06:01:06.021514+00:00",
+      "status": "publicado"
     }
   ]
 }
