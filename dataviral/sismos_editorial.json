@@ -871,6 +871,16 @@
       "angle": "investigacion",
       "time": "2026-11-08T12:01:20.762476+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-fa73f60b2986",
+      "topic": "ondas:resonancia_suelo:clave",
+      "topic_key": "resonancia_suelo",
+      "title": "¿Cuál es la clave para comprender el efecto del suelo?",
+      "style": "microdocumental",
+      "angle": "clave",
+      "time": "2026-11-08T15:01:18.720372+00:00",
+      "status": "publicado"
     }
   ]
 }
