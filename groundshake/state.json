@@ -1525,8 +1525,9 @@
       "topic": "ondas:resonancia_suelo:clave",
       "topic_key": "resonancia_suelo",
       "title": "¿Cuál es la clave para comprender el efecto del suelo?",
-      "reel": "enviando",
-      "updated_at": "2026-11-08T15:01:21.471878+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-08T15:02:41.136856+00:00",
+      "reel_id": "18081717116402784"
     }
   },
   "youtube_upload_retry_after": "2026-11-09T03:03:02.632930+00:00"
