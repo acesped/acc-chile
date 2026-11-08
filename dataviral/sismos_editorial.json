@@ -881,6 +881,16 @@
       "angle": "clave",
       "time": "2026-11-08T15:01:18.720372+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-3b5a0660c420",
+      "topic": "fallas:ruptura_superficie:mito",
+      "topic_key": "ruptura_superficie",
+      "title": "¿Qué solemos confundir sobre la ruptura superficial?",
+      "style": "descubrimiento",
+      "angle": "mito",
+      "time": "2026-11-08T18:01:23.108314+00:00",
+      "status": "publicado"
     }
   ]
 }
