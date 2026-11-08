@@ -851,6 +851,16 @@
       "angle": "riesgo",
       "time": "2026-11-08T06:01:06.021514+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-b1c95ae9f57b",
+      "topic": "tsunamis:retroceso_mar:preguntas_frecuentes",
+      "topic_key": "retroceso_mar",
+      "title": "¿Qué pregunta frecuente surge al hablar de el retroceso del mar?",
+      "style": "mapa_explicado",
+      "angle": "preguntas_frecuentes",
+      "time": "2026-11-08T09:01:20.149344+00:00",
+      "status": "publicado"
     }
   ]
 }
