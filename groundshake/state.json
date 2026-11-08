@@ -1478,6 +1478,13 @@
       "facebook_story": "publicado",
       "facebook_story_id": "1509703340989943",
       "youtube_short": "aplazado"
+    },
+    "sismos-116855c7d11c": {
+      "topic": "riesgo:alerta_temprana:riesgo",
+      "topic_key": "alerta_temprana",
+      "title": "¿Por qué conviene conocer mejor la alerta temprana?",
+      "reel": "enviando",
+      "updated_at": "2026-11-08T06:01:09.002488+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-09T03:03:02.632930+00:00"
