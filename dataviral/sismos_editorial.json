@@ -831,6 +831,16 @@
       "angle": "aprendizaje",
       "time": "2026-11-08T00:01:06.548476+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-9d653e0b70a4",
+      "topic": "riesgo:peligro_riesgo:limites",
+      "topic_key": "peligro_riesgo",
+      "title": "¿Qué no podemos concluir solamente a partir de la amenaza y el riesgo sísmico?",
+      "style": "mapa_explicado",
+      "angle": "limites",
+      "time": "2026-11-08T03:01:15.019426+00:00",
+      "status": "publicado"
     }
   ]
 }
