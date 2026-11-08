@@ -1506,6 +1506,13 @@
       "facebook_reel_id": "2230084677540641",
       "facebook_story": "publicado",
       "facebook_story_id": "1288768303433621"
+    },
+    "sismos-ac244e143415": {
+      "topic": "medicion:epicentro:investigacion",
+      "topic_key": "epicentro",
+      "title": "¿Por qué se investiga el epicentro?",
+      "reel": "enviando",
+      "updated_at": "2026-11-08T12:01:23.878239+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-09T03:03:02.632930+00:00"
