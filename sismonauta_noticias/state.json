@@ -1554,6 +1554,43 @@
         }
       }
     },
+    "5b5980c7a6087e9b2fc5": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-04T17:40:11+00:00",
+        "description": "A new study published in Environmental Research Letters has found little evidence that hyperscale data centers cause significant heating of surrounding land. While a previous study suggested data centers heat surrounding land by about 2 °C on average (up to 9 °C), reaching 10 kilometers (6.2 miles) away, 13 years of satellite data reveal that server waste heat causes minimal nighttime surface warming, while building materials actually cool ground temperatures during the day.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Un nuevo estudio publicado en Environmental Research Letters ha encontrado poca evidencia de que los centros de datos hiperescalables causen un calentamiento significativo de la tierra circundante. Mientras que un estudio anterior sugirió que los centros de datos calientan la tierra circundante en aproximadamente 2 °C en promedio (hasta 9 °C), alcanzando hasta 10 kilómetros (6.2 millas) de distancia, 13 años de datos satelitales revelan que el calor residual de los servidores causa un calentamiento mínimo de la superficie nocturna, mientras que los materiales de construcción en realidad enfrían las temperaturas del suelo durante el día.",
+        "id": "5b5980c7a6087e9b2fc5",
+        "image_headline": "El análisis satelital encuentra poca evidencia de que los centros de datos causen un calentamiento generalizado del suelo.",
+        "lang": "en",
+        "original_title": "Satellite analysis finds little evidence that data centers cause widespread ground warming",
+        "search_category": "direct",
+        "source": "Phys.org Medio Ambiente",
+        "source_body": "",
+        "title": "El análisis satelital encuentra poca evidencia de que los centros de datos causen un calentamiento generalizado del suelo.",
+        "url": "https://phys.org/news/2026-11-satellite-analysis-evidence-centers-widespread.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nEl análisis satelital encuentra poca evidencia de que los centros de datos causen un calentamiento generalizado del suelo.\n\nUn nuevo estudio publicado en Environmental Research Letters ha encontrado poca evidencia de que los centros de datos hiperescalables causen un calentamiento significativo de la tierra circundante. Mientras que un estudio anterior sugirió que los centros de datos calientan la tierra circundante en aproximadamente 2 °C en promedio (hasta 9 °C), alcanzando hasta 10 kilómetros (6.2 millas) de distancia, 13 años de datos satelitales revelan que el calor residual de los servidores causa un calentamiento mínimo de la superficie nocturna, mientras que los materiales de construcción en realidad enfrían las temperaturas del suelo durante el día.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "c8743d5866a181cd3ad02c2a2a5eca4b432f405eab17950422ea91f552ad3c72",
+        "source": "https://commons.wikimedia.org/wiki/File:Cloudscape_Over_the_Philippine_Sea.jpg",
+        "title": "File:Cloudscape Over the Philippine Sea.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/35/Cloudscape_Over_the_Philippine_Sea.jpg/1920px-Cloudscape_Over_the_Philippine_Sea.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/5b5980c7a6087e9b2fc5.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "5d356e2ed5d19009c725": {
       "article": {
         "category": "espacio",
