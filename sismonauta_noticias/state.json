@@ -3336,6 +3336,43 @@
         }
       }
     },
+    "ccac71c92f0361198930": {
+      "article": {
+        "category": "meteorologia",
+        "date": "2026-11-03T01:20:01+00:00",
+        "description": "Where a storm surge strikes along a stretch of U.K. coastline is decided by global climate patterns in the Atlantic, Arctic and even further afield—according to new research led by Cambridge University.",
+        "editorial_mode": "verified_summary",
+        "explanation": "Dónde golpea una marejada a lo largo de un tramo de la costa del Reino Unido es determinado por patrones climáticos globales",
+        "id": "ccac71c92f0361198930",
+        "image_headline": "Las marejadas ciclónicas del Reino Unido tienen conexiones climáticas globales de gran alcance.",
+        "lang": "en",
+        "original_title": "UK storm surges have far-flung, global climate connections",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Las marejadas ciclónicas del Reino Unido tienen conexiones climáticas globales de gran alcance.",
+        "url": "https://phys.org/news/2026-11-uk-storm-surges-flung-global.html"
+      },
+      "caption": "🌎 SISMONAUTA | METEOROLOGÍA\n\nLas marejadas ciclónicas del Reino Unido tienen conexiones climáticas globales de gran alcance.\n\nDónde golpea una marejada a lo largo de un tramo de la costa del Reino Unido es determinado por patrones climáticos globales\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Meteorologia #Tiempo #Tormentas #Atmosfera",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "storm clouds landscape",
+        "sha256": "482f692830e07fa103b1d877d2de704fbb272f0ba66ca2267896e2061ddbc067",
+        "source": "https://commons.wikimedia.org/wiki/File:Storm_clouds_over_the_Oasis_of_Mara_(51184575183).jpg",
+        "title": "File:Storm clouds over the Oasis of Mara (51184575183).jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/af/Storm_clouds_over_the_Oasis_of_Mara_%2851184575183%29.jpg/1920px-Storm_clouds_over_the_Oasis_of_Mara_%2851184575183%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/ccac71c92f0361198930.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "ccfbded3aa792543297c": {
       "article": {
         "category": "oceanos",
