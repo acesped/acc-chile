@@ -1576,6 +1576,13 @@
       "facebook_reel_id": "1183099367580324",
       "facebook_story": "publicado",
       "facebook_story_id": "1797934057908463"
+    },
+    "sismos-0c481faf9b02": {
+      "topic": "medicion:magnitud_intensidad:comparacion",
+      "topic_key": "magnitud_intensidad",
+      "title": "¿Qué hace especial a la magnitud y la intensidad dentro de la geología?",
+      "reel": "enviando",
+      "updated_at": "2026-11-09T03:01:15.974970+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-09T03:03:02.632930+00:00"
