@@ -1581,8 +1581,9 @@
       "topic": "medicion:magnitud_intensidad:comparacion",
       "topic_key": "magnitud_intensidad",
       "title": "¿Qué hace especial a la magnitud y la intensidad dentro de la geología?",
-      "reel": "enviando",
-      "updated_at": "2026-11-09T03:01:15.974970+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-09T03:01:53.781263+00:00",
+      "reel_id": "18127155922912479"
     }
   },
   "youtube_upload_retry_after": "2026-11-09T03:03:02.632930+00:00"
