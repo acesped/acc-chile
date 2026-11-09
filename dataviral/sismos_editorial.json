@@ -921,6 +921,16 @@
       "angle": "comparacion",
       "time": "2026-11-09T03:01:13.718897+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-1e62f3e853ff",
+      "topic": "medicion:sismometros:observacion",
+      "topic_key": "sismometros",
+      "title": "¿Qué observan los científicos al estudiar los sismómetros?",
+      "style": "mapa_explicado",
+      "angle": "observacion",
+      "time": "2026-11-09T06:01:11.299235+00:00",
+      "status": "publicado"
     }
   ]
 }
