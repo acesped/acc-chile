@@ -1631,8 +1631,9 @@
       "topic": "tsunamis:origen_tsunami:origen",
       "topic_key": "origen_tsunami",
       "title": "¿Qué procesos explican el origen de los tsunamis?",
-      "reel": "enviando",
-      "updated_at": "2026-11-09T12:01:14.719000+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-09T12:01:53.005647+00:00",
+      "reel_id": "18105532172386525"
     }
   },
   "youtube_upload_retry_after": "2026-11-09T03:03:02.632930+00:00"
