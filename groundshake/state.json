@@ -1595,8 +1595,9 @@
       "topic": "medicion:sismometros:observacion",
       "topic_key": "sismometros",
       "title": "¿Qué observan los científicos al estudiar los sismómetros?",
-      "reel": "enviando",
-      "updated_at": "2026-11-09T06:01:13.750126+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-09T06:02:13.323158+00:00",
+      "reel_id": "17912061366663555"
     }
   },
   "youtube_upload_retry_after": "2026-11-09T03:03:02.632930+00:00"
