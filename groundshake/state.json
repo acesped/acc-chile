@@ -1562,6 +1562,13 @@
       "facebook_reel_id": "2322807815185483",
       "facebook_story": "publicado",
       "facebook_story_id": "1654276749442824"
+    },
+    "sismos-8fa9bb383b66": {
+      "topic": "tectonica:placas_movimiento:origen",
+      "topic_key": "placas_movimiento",
+      "title": "¿Qué procesos explican el movimiento de las placas?",
+      "reel": "enviando",
+      "updated_at": "2026-11-09T00:01:18.029204+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-09T03:03:02.632930+00:00"
