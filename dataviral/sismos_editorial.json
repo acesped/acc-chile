@@ -951,6 +951,16 @@
       "angle": "origen",
       "time": "2026-11-09T12:01:12.003118+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-7e5415442936",
+      "topic": "geologia:valle_rift:evidencia",
+      "topic_key": "valle_rift",
+      "title": "¿Qué señales deja los valles de rift?",
+      "style": "mito_realidad",
+      "angle": "evidencia",
+      "time": "2026-11-09T18:02:43.338609+00:00",
+      "status": "publicado"
     }
   ]
 }
