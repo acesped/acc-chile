@@ -1155,6 +1155,43 @@
         }
       }
     },
+    "43c5ebadc9991fa0d670": {
+      "article": {
+        "category": "sismos",
+        "date": "2026-11-09T01:00:01+00:00",
+        "description": "Researchers at the University of Tokyo have used a new type of radiocarbon analysis to study a sediment core taken from the Kumano Sea off the coast of Japan. This has revealed multiple \"hidden\" traces of previously unknown earthquakes in the Nankai Trough, where the country's next megaquake is expected to occur. Reconstructing a more accurate picture of the past will help predict future geophysical events and prepare for potential disasters. The work is published in Radiocarbon.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Investigadores de la Universidad de Tokio han utilizado un nuevo tipo de análisis de radiocarbono para estudiar un núcleo de sedimento tomado del mar Kumano, frente a la costa de Japón. Esto ha revelado múltiples trazas \"ocultas\" de terremotos previamente desconocidos en la Trinchera de Nankai, donde se espera que ocurra el próximo mega-terremoto del país. Reconstruir una imagen más precisa del pasado ayudará a predecir futuros eventos geofísicos y a prepararse para posibles desastres.",
+        "id": "43c5ebadc9991fa0d670",
+        "image_headline": "Análisis de radiocarbono revela posibles rastros de terremotos ocultos frente a las costas de Japón.",
+        "lang": "en",
+        "original_title": "Radiocarbon analysis uncovers possible traces of hidden earthquakes off Japan's coast",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Análisis de radiocarbono revela posibles rastros de terremotos ocultos frente a las costas de Japón.",
+        "url": "https://phys.org/news/2026-11-radiocarbon-analysis-uncovers-hidden-earthquakes.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA SÍSMICA\n\nAnálisis de radiocarbono revela posibles rastros de terremotos ocultos frente a las costas de Japón.\n\nInvestigadores de la Universidad de Tokio han utilizado un nuevo tipo de análisis de radiocarbono para estudiar un núcleo de sedimento tomado del mar Kumano, frente a la costa de Japón. Esto ha revelado múltiples trazas \"ocultas\" de terremotos previamente desconocidos en la Trinchera de Nankai, donde se espera que ocurra el próximo mega-terremoto del país. Reconstruir una imagen más precisa del pasado ayudará a predecir futuros eventos geofísicos y a prepararse para posibles desastres.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Sismos #Terremotos #Sismologia #Geofisica #Tectonica",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "San Andreas Fault",
+        "sha256": "1dbc83693c2dbc8e9d6c8c372a21f31ed9f4521c4c2d5a9148b818f22cb9cc4e",
+        "source": "https://commons.wikimedia.org/wiki/File:NASA_Radar_3-D_View_of_San_Andreas_Fault.jpg",
+        "title": "File:NASA Radar 3-D View of San Andreas Fault.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/64/NASA_Radar_3-D_View_of_San_Andreas_Fault.jpg/1920px-NASA_Radar_3-D_View_of_San_Andreas_Fault.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/43c5ebadc9991fa0d670.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "44d66e994ee07f73435b": {
       "article": {
         "category": "espacio",
