@@ -332,6 +332,42 @@
         }
       }
     },
+    "129ad38daf9b228ee04f": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-09T05:05:00+00:00",
+        "description": "APOD Ciencia APOD APOD: 9 de noviembre de 2026 –… El",
+        "explanation": "APOD Ciencia APOD APOD: 9 de noviembre de 2026 –… Índice de Envíos del Archivo APOD Búsqueda Calendario RSS Educación Acerca de Discutir APOD Imagen Astronómica del Día ¡Descubre el cosmos! Cada día se presenta una imagen o fotografía diferente de nuestro fascinante universo, junto con una breve explicación escrita por un astrónomo profesional. Rigel y la Nebulosa Cabeza de Bruja Explicación: ¿La nebulosa azul se parece a la cabeza de una bruja? La nebulosa es conocida popularmente como la Nebulosa Cabeza de Bruja porque, se dice, la forma de la nebulosa se asemeja a una caricatura de estilo Halloween de la cabeza de una bruja. Exactamente cómo, sin embargo, puede ser un tema de especulación imaginativa. Lo que está claro es que IC 2118 tiene aproximadamente 50 años luz de ancho y está compuesta de gas y polvo que apunta a — porque ha sido parcialmente erosionada por — la estrella cercana Rigel. Una de las estrellas más brillantes de la constelación de Orión, Rigel se encuentra justo debajo del centro de la imagen presentada. El color azul de la Nebulosa Cabeza de Bruja se debe no solo a la intensa luz estelar azul de Rigel, sino también a que los granos de polvo dispersan la luz azul más eficientemente que la roja.",
+        "id": "129ad38daf9b228ee04f",
+        "image_headline": "APOD: 9 de noviembre de 2026 – Rigel y la Nebulosa Cabeza de Bruja",
+        "lang": "en",
+        "original_title": "APOD: 2026 November 9 – Rigel and the Witch Head Nebula",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "APOD Science APOD APOD: 2026 November 9 –… Today’s APOD Archive Submissions Index Search Calendar RSS Education About Discuss APOD Astronomy Picture of the Day Discover the cosmos! Each day a different image or photograph of our fascinating universe is featured, along with a brief explanation written by a professional astronomer. Rigel and the Witch Head Nebula Explanation: Does the blue nebula look like the head of a witch? The nebula is known popularly as the Witch Head Nebula because, it is said, the nebula’s shape resembles a Halloween-style caricature of a witch’s head. Exactly how, though, can be a topic of imaginative speculation . What is clear is that IC 2118 is about 50 light-years across and made of gas and dust that points to — because it has been partly eroded by — the nearby star Rigel . One of the brighter stars in the constellation Orion, Rigel lies just below the center of the featured image . The blue color of the Witch Head Nebula and is caused not only by Rigel’s intense blue starlight but also because the dust grains scatter blue light more efficiently than red. The same physical process causes Earth’s daytime sky to appear blue , although the scatterers in planet Earth’s atmosphere are molecules of nitrogen and oxygen . Tomorrow’s picture: suddenly Saturn Date: November 9, 2026 Credit & Copyright: Piotr Czerski Authors & editors: Robert Nemiroff, Jerry Bonnell, Cecilia Chirenti, Keighley Rockcliffe A service of: ASD at NASA / GSFC , NASA Science Activation & Michigan Tech. U. Random APOD Generator Yesterday’s Image APOD: 2026 November 8 – Major Fireball Meteor Tomorrow’s Image",
+        "title": "APOD: 9 de noviembre de 2026 – Rigel y la Nebulosa Cabeza de Bruja",
+        "url": "https://science.nasa.gov/image-article/apod-2026-november-9-rigel-and-the-witch-head-nebula/"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nAPOD: 9 de noviembre de 2026 – Rigel y la Nebulosa Cabeza de Bruja\n\nAPOD Ciencia APOD APOD: 9 de noviembre de 2026 –… Índice de Envíos del Archivo APOD Búsqueda Calendario RSS Educación Acerca de Discutir APOD Imagen Astronómica del Día ¡Descubre el cosmos! Cada día se presenta una imagen o fotografía diferente de nuestro fascinante universo, junto con una breve explicación escrita por un astrónomo profesional. Rigel y la Nebulosa Cabeza de Bruja Explicación: ¿La nebulosa azul se parece a la cabeza de una bruja? La nebulosa es conocida popularmente como la Nebulosa Cabeza de Bruja porque, se dice, la forma de la nebulosa se asemeja a una caricatura de estilo Halloween de la cabeza de una bruja. Exactamente cómo, sin embargo, puede ser un tema de especulación imaginativa. Lo que está claro es que IC 2118 tiene aproximadamente 50 años luz de ancho y está compuesta de gas y polvo que apunta a — porque ha sido parcialmente erosionada por — la estrella cercana Rigel. Una de las estrellas más brillantes de la constelación de Orión, Rigel se encuentra justo debajo del centro de la imagen presentada. El color azul de la Nebulosa Cabeza de Bruja se debe no solo a la intensa luz estelar azul de Rigel, sino también a que los granos de polvo dispersan la luz azul más eficientemente que la roja.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "087f60d59f27d0d76c2f5542d298169643c8f83d2e4e844c1c0c2a7e10f44a72",
+        "source": "https://commons.wikimedia.org/wiki/File:City_Lights_of_Asia_and_Middle_East_2016.png",
+        "title": "File:City Lights of Asia and Middle East 2016.png",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1d/City_Lights_of_Asia_and_Middle_East_2016.png/1920px-City_Lights_of_Asia_and_Middle_East_2016.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/129ad38daf9b228ee04f.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "14ab3b82f300abe8a689": {
       "article": {
         "category": "geologia",
