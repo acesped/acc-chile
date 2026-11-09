@@ -2104,6 +2104,43 @@
         }
       }
     },
+    "72c3e27b30a26fac1cb8": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-09T01:14:33+00:00",
+        "description": "Científicos han descubierto que la pegajosidad de la “nieve marina” submarina juega un rol sorprend",
+        "explanation": "**Superpotencia climática oculta: Por qué cierta \"nieve\" marina transporta seis veces más carbono**\n\nBajo la superficie del océano, la \"nieve marina\" —compuesta por desechos, organismos muertos y materia orgánica— cumple un rol crítico en el ciclo del carbono. Investigadores de la Universidad de California en San Diego y la Universidad de Lincoln descubrieron que la viscosidad de estas partículas determina cuánto carbono llega realmente a las profundidades.\n\nEl estudio, publicado el 8 de octubre en la revista *Science*, revela que las partículas más pegajosas pueden transportar más de seis veces la cantidad de carbono hacia el fondo marino en comparación con las menos viscosas. Esto ocurre porque la densidad y consistencia del material dificulta que",
+        "id": "72c3e27b30a26fac1cb8",
+        "image_headline": "Superpotencia climática oculta: Por qué cierta \"nieve\" marina transporta seis veces más carbono.",
+        "lang": "en",
+        "original_title": "Hidden climate superpower: Why some ocean “snow” carries six times more carbon",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261105224558.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "Superpotencia climática oculta: Por qué cierta \"nieve\" marina transporta seis veces más carbono.",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261105224558.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nSuperpotencia climática oculta: Por qué cierta \"nieve\" marina transporta seis veces más carbono.\n\nSuperpotencia climática oculta: Por qué cierta \"nieve\" marina transporta seis veces más carbono Bajo la superficie del océano, la \"nieve marina\" —compuesta por desechos, organismos muertos y materia orgánica— cumple un rol crítico en el ciclo del carbono. Investigadores de la Universidad de California en San Diego y la Universidad de Lincoln descubrieron que la viscosidad de estas partículas determina cuánto carbono llega realmente a las profundidades. El estudio, publicado el 8 de octubre en la revista *Science*, revela que las partículas más pegajosas pueden transportar más de seis veces la cantidad de carbono hacia el fondo marino en comparación con las menos viscosas. Esto ocurre porque la densidad y consistencia del material dificulta que\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "sea waves shore",
+        "sha256": "00ca965e7716c7b939a7d8c901116585e0c5f7854e7db63901fff09a57aef837",
+        "source": "https://commons.wikimedia.org/wiki/File:FMIB_38005_Shore_Between_East_End_of_Chesil_Beach_and_Blacknor_Point.jpeg",
+        "title": "File:FMIB 38005 Shore Between East End of Chesil Beach and Blacknor Point.jpeg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/5/59/FMIB_38005_Shore_Between_East_End_of_Chesil_Beach_and_Blacknor_Point.jpeg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/72c3e27b30a26fac1cb8.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "752344054d2d36671c2a": {
       "article": {
         "category": "espacio",
