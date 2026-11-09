@@ -931,6 +931,16 @@
       "angle": "observacion",
       "time": "2026-11-09T06:01:11.299235+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-d267505afc06",
+      "topic": "riesgo:deslizamientos:preguntas_frecuentes",
+      "topic_key": "deslizamientos",
+      "title": "¿Qué pregunta frecuente surge al hablar de los deslizamientos por sismos?",
+      "style": "descubrimiento",
+      "angle": "preguntas_frecuentes",
+      "time": "2026-11-09T09:01:16.231704+00:00",
+      "status": "publicado"
     }
   ]
 }
