@@ -941,6 +941,16 @@
       "angle": "preguntas_frecuentes",
       "time": "2026-11-09T09:01:16.231704+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-67dcad164caf",
+      "topic": "tsunamis:origen_tsunami:origen",
+      "topic_key": "origen_tsunami",
+      "title": "¿Qué procesos explican el origen de los tsunamis?",
+      "style": "descubrimiento",
+      "angle": "origen",
+      "time": "2026-11-09T12:01:12.003118+00:00",
+      "status": "publicado"
     }
   ]
 }
