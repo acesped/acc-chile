@@ -1632,7 +1632,7 @@
       "topic_key": "origen_tsunami",
       "title": "¿Qué procesos explican el origen de los tsunamis?",
       "reel": "publicado",
-      "updated_at": "2026-11-09T12:03:28.727772+00:00",
+      "updated_at": "2026-11-09T12:03:31.412355+00:00",
       "reel_id": "18105532172386525",
       "story": "publicado",
       "story_id": "18080791439419178",
@@ -1642,7 +1642,8 @@
       "facebook_story_id": "1825575645141001",
       "youtube_short": "publicado",
       "youtube_short_id": "S9ybyc6azrA",
-      "youtube_video": "enviando"
+      "youtube_video": "publicado",
+      "youtube_video_id": "8NoCGdUSr30"
     }
   },
   "youtube_upload_retry_after": "2026-11-09T03:03:02.632930+00:00"
