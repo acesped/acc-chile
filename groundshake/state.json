@@ -1653,6 +1653,13 @@
       "updated_at": "2026-11-09T15:01:56.282452+00:00",
       "reel_id": "18036879962666806",
       "story": "enviando"
+    },
+    "sismos-7e5415442936": {
+      "topic": "geologia:valle_rift:evidencia",
+      "topic_key": "valle_rift",
+      "title": "¿Qué señales deja los valles de rift?",
+      "reel": "enviando",
+      "updated_at": "2026-11-09T18:02:47.626129+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-09T03:03:02.632930+00:00"
