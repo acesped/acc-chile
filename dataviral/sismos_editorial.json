@@ -911,6 +911,16 @@
       "angle": "origen",
       "time": "2026-11-09T00:01:15.450079+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-0c481faf9b02",
+      "topic": "medicion:magnitud_intensidad:comparacion",
+      "topic_key": "magnitud_intensidad",
+      "title": "¿Qué hace especial a la magnitud y la intensidad dentro de la geología?",
+      "style": "microdocumental",
+      "angle": "comparacion",
+      "time": "2026-11-09T03:01:13.718897+00:00",
+      "status": "publicado"
     }
   ]
 }
