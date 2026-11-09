@@ -1590,6 +1590,13 @@
       "facebook_reel_id": "1876086306759170",
       "facebook_story": "publicado",
       "facebook_story_id": "1789155093201615"
+    },
+    "sismos-1e62f3e853ff": {
+      "topic": "medicion:sismometros:observacion",
+      "topic_key": "sismometros",
+      "title": "¿Qué observan los científicos al estudiar los sismómetros?",
+      "reel": "enviando",
+      "updated_at": "2026-11-09T06:01:13.750126+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-09T03:03:02.632930+00:00"
