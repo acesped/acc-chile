@@ -1,5 +1,41 @@
 {
   "stories": {
+    "0080e1589ea35988e490": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-09T16:56:29+00:00",
+        "description": "El 6 de noviembre de 2026, Purpose Entertainment organizó la Gala de Celebración Artemis en el Complejo de Visitantes del Centro Espacial Kennedy de la NASA en Merritt Island, Florida. Celebrada en la víspera del evento MAX POWER de la NASA, la gala celebró a los exploradores, innovadores y visionarios que están avanzando hacia la próxima era de los vuelos espaciales humanos. El evento honró la exitosa finalización de la agencia […]",
+        "explanation": "**Astronautas de distintas generaciones comparten el escenario**\n\nEl 6 de noviembre de 2026, se llevó a cabo la Artemis Celebration Gala en el Centro Espacial Kennedy de la NASA, en Florida. Este evento, organizado por Purpose Entertainment, reunió a astronautas de diferentes generaciones, destacando la importancia de la exploración espacial en la actualidad.\n\nLa gala celebró la exitosa culminación de la misión Artemis II, un hito significativo en el regreso de Estados Unidos a la exploración del espacio profundo. Este evento no solo conmemoró los logros de la misión, sino que también sirvió como un punto de partida para las futuras misiones lunares bajo la campaña Artemis.\n\nEntre los astronautas presentes se encontraban figuras reconocidas como Randy Bresnik, Luca Parmitano, Russell “Rusty” Schweickart, Frank Rubio y Bob Hines. Su participación simboliza la continuidad y el legado de la exploración espacial, uniendo experiencias pasadas con las aspiraciones futuras.\n\nLa gala se realizó en el marco de la celebración del 250 aniversario de Estados Unidos, destacando el papel crucial de la NASA en la historia de la exploración espacial y su compromiso con la innovación y la investigación en el espacio.",
+        "id": "0080e1589ea35988e490",
+        "image_headline": "Astronautas de distintas generaciones comparten el escenario.",
+        "lang": "en",
+        "original_title": "Astronauts Across Generations Share the Stage",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "From left: NASA astronauts Randy Bresnik, Luca Parmitano, Russell “Rusty” Schweickart, Frank Rubio, and Bob Hines onstage at the Artemis Celebration Gala at NASA’s Kennedy Space Center Visitor Complex in Merritt Island, Florida, on Nov. 6, 2026. Purpose Entertainment/Shanna Lockwood On Nov. 6, 2026, Purpose Entertainment hosted the Artemis Celebration Gala at NASA’s Kennedy Space Center Visitor Complex in Merritt Island, Florida. Held on the eve of NASA’s MAX POWER event, the gala celebrated the explorers, innovators, and visionaries advancing the next era of human spaceflight. The event honored the successful completion of the agency’s Artemis II mission, marking a historic milestone in America’s return to deep space exploration. As one of the signature events concluding the nation’s 250th anniversary celebration, the gala commemorated the achievements of Artemis II while looking ahead to humanity’s return to the lunar surface through the Artemis campaign.",
+        "title": "Astronautas de distintas generaciones comparten el escenario.",
+        "url": "https://www.nasa.gov/image-article/astronauts-across-generations-share-the-stage/"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nAstronautas de distintas generaciones comparten el escenario.\n\nAstronautas de distintas generaciones comparten el escenario El 6 de noviembre de 2026, se llevó a cabo la Artemis Celebration Gala en el Centro Espacial Kennedy de la NASA, en Florida. Este evento, organizado por Purpose Entertainment, reunió a astronautas de diferentes generaciones, destacando la importancia de la exploración espacial en la actualidad. La gala celebró la exitosa culminación de la misión Artemis II, un hito significativo en el regreso de Estados Unidos a la exploración del espacio profundo. Este evento no solo conmemoró los logros de la misión, sino que también sirvió como un punto de partida para las futuras misiones lunares bajo la campaña Artemis. Entre los astronautas presentes se encontraban figuras reconocidas como Randy Bresnik, Luca Parmitano, Russell “Rusty” Schweickart, Frank Rubio y Bob Hines. Su participación simboliza la continuidad y el legado de la exploración espacial, uniendo experiencias pasadas con las aspiraciones futuras. La gala se realizó en el marco de la celebración del 250 aniversario de Estados Unidos, destacando el papel crucial de la NASA en la historia de la exploración espacial y su compromiso con la innovación y la investigación en el espacio.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "dc2babf492ec70652eb75ee27d37364393bd557ad39fb2f349abde1cecfa4472",
+        "source": "https://commons.wikimedia.org/wiki/File:Earth_From_the_Perspective_of_Artemis_II.jpg",
+        "title": "File:Earth From the Perspective of Artemis II.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/63/Earth_From_the_Perspective_of_Artemis_II.jpg/1920px-Earth_From_the_Perspective_of_Artemis_II.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/0080e1589ea35988e490.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "00e4203a28c1b33abac6": {
       "article": {
         "category": "espacio",
