@@ -4111,6 +4111,43 @@
         }
       }
     },
+    "f756ce5b52c78443113d": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-08T22:45:01+00:00",
+        "description": "Un notable descubrimiento de fósiles en Colombia está desafiando la forma en que los científicos entienden los grandes cambios evol",
+        "explanation": "**Un océano antiguo lleno de depredadores gigantes revela un giro sorprendente en la evolución**\n\nInvestigaciones recientes en la Formación Paja, en Colombia, han desvelado un capítulo fascinante de la historia evolutiva de la Tierra. Un equipo de científicos de la Universidad McGill y el Centro de Investigaciones Paleontológicas ha encontrado fósiles que indican que grupos de animales antiguos, en peligro de extinción, coexistieron con nuevas especies que posteriormente prosperarían. Este hallazgo sugiere que las transiciones evolutivas significativas pueden ocurrir sin la destrucción masiva típica de las extinciones.\n\nLos investigadores han introducido el concepto de \"Inflexión Biótica\", que describe un punto de inflexión evolutivo donde linajes antiguos y nuevos coexisten. Factores ambientales como temperaturas cálidas, niveles del mar elevados y aguas costeras ricas en nutrientes habrían favorecido esta diversidad. Además, la conexión entre el Pacífico oriental y el Atlántico temprano, a través de lo que hoy es Colombia, pudo haber creado oportunidades para que diferentes grupos de animales prosperaran.\n\nLa Formación Paja ha proporcionado un registro fósil excepcional, incluyendo reptiles marinos gigantes y una compleja red alimentaria. Este descubrimiento podría cambiar la forma en que los científicos comprenden la evolución, sugiriendo que algunas transiciones importantes en la biodiversidad de la Tierra pueden no estar impulsadas por extinciones masivas, sino por periodos de coexistencia y diversidad. Sin embargo, se requiere más evidencia para determinar la frecuencia de este patrón en la historia de nuestro planeta.",
+        "id": "f756ce5b52c78443113d",
+        "image_headline": "Un océano antiguo lleno de depredadores gigantes revela un giro sorprendente en la evolución",
+        "lang": "en",
+        "original_title": "An ancient ocean full of giant predators reveals a surprising twist in evolution",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261106174535.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Ambiente",
+        "source_body": "",
+        "title": "Un océano antiguo lleno de depredadores gigantes revela un giro sorprendente en la evolución",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261106174535.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nUn océano antiguo lleno de depredadores gigantes revela un giro sorprendente en la evolución\n\nInvestigaciones recientes en la Formación Paja, en Colombia, han desvelado un capítulo fascinante de la historia evolutiva de la Tierra. Un equipo de científicos de la Universidad McGill y el Centro de Investigaciones Paleontológicas ha encontrado fósiles que indican que grupos de animales antiguos, en peligro de extinción, coexistieron con nuevas especies que posteriormente prosperarían. Este hallazgo sugiere que las transiciones evolutivas significativas pueden ocurrir sin la destrucción masiva típica de las extinciones. Los investigadores han introducido el concepto de \"Inflexión Biótica\", que describe un punto de inflexión evolutivo donde linajes antiguos y nuevos coexisten. Factores ambientales como temperaturas cálidas, niveles del mar elevados y aguas costeras ricas en nutrientes habrían favorecido esta diversidad. Además, la conexión entre el Pacífico oriental y el Atlántico temprano, a través de lo que hoy es Colombia, pudo haber creado oportunidades para que diferentes grupos de animales prosperaran. La Formación Paja ha proporcionado un registro fósil excepcional, incluyendo reptiles marinos gigantes y una compleja red alimentaria. Este descubrimiento podría cambiar la forma en que los científicos comprenden la evolución, sugiriendo que algunas transiciones importantes en la biodiversidad de la Tierra pueden no estar impulsadas por extinciones masivas, sino por periodos de coexistencia y diversidad. Sin embargo, se requiere más evidencia para determinar la frecuencia de este patrón en la historia de nuestro planeta.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "sea waves shore",
+        "sha256": "d56d8c0204a3850f7670c001a345ea215ca18d72cb05c054e742ada85d557b8b",
+        "source": "https://commons.wikimedia.org/wiki/File:WAVES_BREAKING_ALONG_A_CORRUGATED_SEA_WALL_IN_ZION,_ON_LAKE_MICHIGAN_-_NARA_-_547080.jpg",
+        "title": "File:WAVES BREAKING ALONG A CORRUGATED SEA WALL IN ZION, ON LAKE MICHIGAN - NARA - 547080.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f6/WAVES_BREAKING_ALONG_A_CORRUGATED_SEA_WALL_IN_ZION%2C_ON_LAKE_MICHIGAN_-_NARA_-_547080.jpg/1920px-WAVES_BREAKING_ALONG_A_CORRUGATED_SEA_WALL_IN_ZION%2C_ON_LAKE_MICHIGAN_-_NARA_-_547080.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/f756ce5b52c78443113d.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "fa12afa31bd560191748": {
       "article": {
         "category": "espacio",
