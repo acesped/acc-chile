@@ -901,6 +901,16 @@
       "angle": "clave",
       "time": "2026-11-08T21:01:13.110514+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-8fa9bb383b66",
+      "topic": "tectonica:placas_movimiento:origen",
+      "topic_key": "placas_movimiento",
+      "title": "¿Qué procesos explican el movimiento de las placas?",
+      "style": "descubrimiento",
+      "angle": "origen",
+      "time": "2026-11-09T00:01:15.450079+00:00",
+      "status": "publicado"
     }
   ]
 }
