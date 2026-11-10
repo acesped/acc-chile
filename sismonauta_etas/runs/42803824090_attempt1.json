@@ -28,10 +28,15 @@
       "processing_status": "processing"
     },
     "youtube_video": {
-      "status": "uncertain",
+      "status": "published",
       "requested_privacy": "public",
       "file": "/home/runner/work/acc-chile/acc-chile/output_etas/sismonauta_etas_youtube_16x9.mp4",
-      "title": "Actualización Riesgo Sísmico Chile 10/11/2026"
+      "title": "Actualización Riesgo Sísmico Chile 10/11/2026",
+      "id": "0apFkO5Pbek",
+      "url": "https://www.youtube.com/watch?v=0apFkO5Pbek",
+      "uploaded_at": "2026-11-10T11:04:27.915429+00:00",
+      "actual_privacy": "public",
+      "processing_status": "processing"
     }
   },
   "duration_seconds": 55.333333,
