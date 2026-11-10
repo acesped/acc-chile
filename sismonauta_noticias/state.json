@@ -4637,6 +4637,43 @@
         }
       }
     },
+    "f4822954d93d67feeff6": {
+      "article": {
+        "category": "sismos",
+        "date": "2026-11-09T16:20:04+00:00",
+        "description": "An international research team has used seismic imaging to identify two slab tears beneath the Zagros–Makran transition zone located in southeastern Iran near the Strait of Hormuz. The findings suggest that the tears formed through distinct geodynamic mechanisms and may have influenced regional tectonic deformation and magmatic activity.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Un equipo de investigación internacional ha utilizado imágenes sísmicas para identificar dos desgarramientos de placa debajo de la zona de transición Zagros–Makran ubicada en el sureste de Irán cerca del estrecho de Ormuz. Los hallazgos sugieren que los desgarramientos se formaron a través de mecanismos geodinámicos distintos y pueden haber influido en la deformación tectónica regional y la actividad magmática.",
+        "id": "f4822954d93d67feeff6",
+        "image_headline": "Imágenes sísmicas revelan un doble desgarro de la placa en una transición de subducción-",
+        "lang": "en",
+        "original_title": "Seismic imaging reveals double slab tearing at a subduction–collision transition",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Imágenes sísmicas revelan un doble desgarro de la placa en una transición de subducción-",
+        "url": "https://phys.org/news/2026-11-seismic-imaging-reveals-slab-subductioncollision.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA SÍSMICA\n\nImágenes sísmicas revelan un doble desgarro de la placa en una transición de subducción-\n\nUn equipo de investigación internacional ha utilizado imágenes sísmicas para identificar dos desgarramientos de placa debajo de la zona de transición Zagros–Makran ubicada en el sureste de Irán cerca del estrecho de Ormuz. Los hallazgos sugieren que los desgarramientos se formaron a través de mecanismos geodinámicos distintos y pueden haber influido en la deformación tectónica regional y la actividad magmática.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Sismos #Terremotos #Sismologia #Geofisica #Tectonica",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "San Andreas Fault",
+        "sha256": "3ab07c6a70735c414daf6d439027079087f0dbf87c9b64a1b37d44d2438b5371",
+        "source": "https://commons.wikimedia.org/wiki/File:Overflew_California%27s_San_Andreas_Fault_on_March_29,_2013_(right).jpg",
+        "title": "File:Overflew California's San Andreas Fault on March 29, 2013 (right).jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/c/c9/Overflew_California%27s_San_Andreas_Fault_on_March_29%2C_2013_%28right%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/f4822954d93d67feeff6.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "f640dfa51b31c8466e53": {
       "article": {
         "category": "volcanes",
