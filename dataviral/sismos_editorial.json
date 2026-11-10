@@ -981,6 +981,16 @@
       "angle": "observacion",
       "time": "2026-11-10T03:01:22.558374+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-80d98f9de1f2",
+      "topic": "geologia:rocas_deformadas:contexto",
+      "topic_key": "rocas_deformadas",
+      "title": "¿En qué contexto aparece la deformación de las rocas?",
+      "style": "mapa_explicado",
+      "angle": "contexto",
+      "time": "2026-11-10T06:01:09.208048+00:00",
+      "status": "publicado"
     }
   ]
 }
