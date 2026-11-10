@@ -1684,11 +1684,12 @@
       "topic_key": "falla_normal",
       "title": "¿Qué procesos explican una falla normal?",
       "reel": "publicado",
-      "updated_at": "2026-11-10T00:03:01.494908+00:00",
+      "updated_at": "2026-11-10T00:03:09.137664+00:00",
       "reel_id": "18136177423798188",
       "story": "publicado",
       "story_id": "17886208104523024",
-      "facebook_reel": "enviando"
+      "facebook_reel": "publicado",
+      "facebook_reel_id": "1005134381907027"
     }
   },
   "youtube_upload_retry_after": "2026-11-09T03:03:02.632930+00:00"
