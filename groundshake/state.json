@@ -1696,6 +1696,13 @@
       "youtube_short_id": "xKsro4x4czA",
       "youtube_video": "publicado",
       "youtube_video_id": "Z8pfn4C_9so"
+    },
+    "sismos-699219db1f84": {
+      "topic": "medicion:profundidad:observacion",
+      "topic_key": "profundidad",
+      "title": "¿Qué observan los científicos al estudiar la profundidad de los sismos?",
+      "reel": "enviando",
+      "updated_at": "2026-11-10T03:01:25.644160+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-09T03:03:02.632930+00:00"
