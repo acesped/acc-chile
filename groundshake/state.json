@@ -1678,6 +1678,13 @@
       "title": "¿Cómo hablar con precisión científica de las fallas transformantes?",
       "reel": "enviando",
       "updated_at": "2026-11-09T21:01:18.610608+00:00"
+    },
+    "sismos-89f458d7f2b1": {
+      "topic": "fallas:falla_normal:origen",
+      "topic_key": "falla_normal",
+      "title": "¿Qué procesos explican una falla normal?",
+      "reel": "enviando",
+      "updated_at": "2026-11-10T00:01:21.006928+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-09T03:03:02.632930+00:00"
