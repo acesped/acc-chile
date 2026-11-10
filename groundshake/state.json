@@ -1719,8 +1719,9 @@
       "topic": "geologia:rocas_deformadas:contexto",
       "topic_key": "rocas_deformadas",
       "title": "¿En qué contexto aparece la deformación de las rocas?",
-      "reel": "enviando",
-      "updated_at": "2026-11-10T06:01:12.350395+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-10T06:01:40.522174+00:00",
+      "reel_id": "18128508133847775"
     }
   },
   "youtube_upload_retry_after": "2026-11-09T03:03:02.632930+00:00"
