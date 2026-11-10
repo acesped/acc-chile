@@ -971,6 +971,16 @@
       "angle": "origen",
       "time": "2026-11-10T00:01:18.080647+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-699219db1f84",
+      "topic": "medicion:profundidad:observacion",
+      "topic_key": "profundidad",
+      "title": "¿Qué observan los científicos al estudiar la profundidad de los sismos?",
+      "style": "mapa_explicado",
+      "angle": "observacion",
+      "time": "2026-11-10T03:01:22.558374+00:00",
+      "status": "publicado"
     }
   ]
 }
