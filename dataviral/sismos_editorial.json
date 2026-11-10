@@ -961,6 +961,16 @@
       "angle": "evidencia",
       "time": "2026-11-09T18:02:43.338609+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-89f458d7f2b1",
+      "topic": "fallas:falla_normal:origen",
+      "topic_key": "falla_normal",
+      "title": "¿Qué procesos explican una falla normal?",
+      "style": "microdocumental",
+      "angle": "origen",
+      "time": "2026-11-10T00:01:18.080647+00:00",
+      "status": "publicado"
     }
   ]
 }
