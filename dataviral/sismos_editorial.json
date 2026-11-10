@@ -991,6 +991,16 @@
       "angle": "contexto",
       "time": "2026-11-10T06:01:09.208048+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-dbf7b5aafd7c",
+      "topic": "tectonica:transformantes:explicacion",
+      "topic_key": "transformantes",
+      "title": "La ciencia detrás de las fallas transformantes",
+      "style": "descubrimiento",
+      "angle": "explicacion",
+      "time": "2026-11-10T12:01:17.413397+00:00",
+      "status": "publicado"
     }
   ]
 }
