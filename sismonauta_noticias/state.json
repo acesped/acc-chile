@@ -4832,6 +4832,43 @@
           "status": "published"
         }
       }
+    },
+    "ff52b14665d0c268174f": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-09T19:20:04+00:00",
+        "description": "About 50 million years ago, Earth experienced its warmest climate since the extinction of the dinosaurs. Global temperatures were more than 10°C higher than today, and atmospheric CO₂ concentrations reached around 1,600 parts per million. But what kept CO₂ levels so extraordinarily high for millions of years? An international research team led by the Max Planck Institute for Chemistry has identified an important piece of the puzzle: the Southern Ocean.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Hace unos 50 millones de años, la Tierra experimentó su clima más cálido desde la extinción de los dinosaurios. Las temperaturas globales eran más de 10°C más altas que hoy, y las concentraciones de CO₂ en la atmósfera alcanzaron alrededor de 1,600 partes por millón. Pero, ¿qué mantuvo los niveles de CO₂ tan extraordinariamente altos durante millones de años? Un equipo de investigación internacional liderado por el Instituto Max Planck de Química ha identificado una pieza importante del rompecabezas: el Océano Austral.",
+        "id": "ff52b14665d0c268174f",
+        "image_headline": "Cómo el Océano Austral ayudó a alimentar el clima más cálido de la Tierra en 65 millones de años.",
+        "lang": "en",
+        "original_title": "How the Southern Ocean helped fuel Earth's warmest climate in 65 million years",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Cómo el Océano Austral ayudó a alimentar el clima más cálido de la Tierra en 65 millones de años.",
+        "url": "https://phys.org/news/2026-11-southern-ocean-fuel-earth-warmest.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nCómo el Océano Austral ayudó a alimentar el clima más cálido de la Tierra en 65 millones de años.\n\nHace unos 50 millones de años, la Tierra experimentó su clima más cálido desde la extinción de los dinosaurios. Las temperaturas globales eran más de 10°C más altas que hoy, y las concentraciones de CO₂ en la atmósfera alcanzaron alrededor de 1,600 partes por millón. Pero, ¿qué mantuvo los niveles de CO₂ tan extraordinariamente altos durante millones de años? Un equipo de investigación internacional liderado por el Instituto Max Planck de Química ha identificado una pieza importante del rompecabezas: el Océano Austral.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "sea waves shore",
+        "sha256": "bea96803770fe090aaf32ce568b5bc48ed6b8c7507b2b85cda893aa8b26d701c",
+        "source": "https://commons.wikimedia.org/wiki/File:Waves_crashing_against_shoreline_with_Simpson_mansion_in_background_at_Shore_Acres_near_Coos_Bay,_Oregon,_circa_1909_(AL%2BCA_1727).jpg",
+        "title": "File:Waves crashing against shoreline with Simpson mansion in background at Shore Acres near Coos Bay, Oregon, circa 1909 (AL+CA 1727).jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/4/4d/Waves_crashing_against_shoreline_with_Simpson_mansion_in_background_at_Shore_Acres_near_Coos_Bay%2C_Oregon%2C_circa_1909_%28AL%2BCA_1727%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/ff52b14665d0c268174f.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
     }
   }
 }
