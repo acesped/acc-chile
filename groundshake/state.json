@@ -1734,8 +1734,9 @@
       "topic": "riesgo:alerta_temprana:comparacion",
       "topic_key": "alerta_temprana",
       "title": "¿Qué hace especial a la alerta temprana dentro de la geología?",
-      "reel": "enviando",
-      "updated_at": "2026-11-10T09:01:18.938965+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-10T09:01:59.502859+00:00",
+      "reel_id": "18092157461248792"
     }
   },
   "youtube_upload_retry_after": "2026-11-11T06:03:09.909316+00:00"
