@@ -1714,6 +1714,13 @@
       "youtube_short_id": "U60KimAa_cQ",
       "youtube_video": "publicado",
       "youtube_video_id": "D-SgdM-Ra4A"
+    },
+    "sismos-80d98f9de1f2": {
+      "topic": "geologia:rocas_deformadas:contexto",
+      "topic_key": "rocas_deformadas",
+      "title": "¿En qué contexto aparece la deformación de las rocas?",
+      "reel": "enviando",
+      "updated_at": "2026-11-10T06:01:12.350395+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-09T03:03:02.632930+00:00"
