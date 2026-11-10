@@ -2923,6 +2923,42 @@
         }
       }
     },
+    "9e2f274a5c482d00f6c4": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-09T17:42:42+00:00",
+        "description": "Power Electric Rocket (AMPERE). El Desafío AMPERE de la NASA invita a empresas comerciales de EE.",
+        "explanation": "Preparativos para las próximas simulaciones de caminatas lunares en marcha (y bajo el agua) Este propulsor de efecto Hall, que se muestra siendo probado en el Centro de Investigación Glenn, convierte electricidad y gas inerte en fuerza que podría propulsar una nave espacial. Orbion Space Technology fue fundada para llevar la alta eficiencia de estos propulsores a pequeños satélites comerciales, y la compañía buscó la ayuda del centro para hacer de eso una realidad. Crédito: NASA Los sistemas de propulsores de efecto Hall de potencia media (3-7 kW) han sido identificados por partes interesadas del gobierno y la industria como capacidades críticas para misiones de satélites, defensa y exploración. Dada la necesidad de esta capacidad, NASA está lanzando el Desafío de Cohete Eléctrico de Potencia Media Avanzada (AMPERE). empresas comerciales para desarrollar y demostrar prototipos de propulsores de efecto Hall de potencia media. A través de este desafío, NASA tiene como objetivo acelerar la maduración de las capacidades de propulsión eléctrica, validar el rendimiento en el mundo real en las instalaciones de prueba de NASA y construir la base necesaria para apoyar futuras misiones de NASA y comerciales. El desafío está abierto a empresas incorporadas y que mantengan un lugar de negocios principal en los Estados Unidos.",
+        "id": "9e2f274a5c482d00f6c4",
+        "image_headline": "NASA lanza el desafío AMPERE para impulsar el desarrollo de cohetes eléctricos de potencia media en empresas estadounidenses.",
+        "lang": "en",
+        "original_title": "NASA Advanced Mid-Power Electric Rocket Challenge",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "1 min read Preparations for Next Moonwalk Simulations Underway (and Underwater) This Hall-effect thruster, shown being tested at Glenn Research Center, turns electricity and inert gas into force that could propel a spacecraft. Orbion Space Technology was founded to bring the high efficiency of these thrusters to small commercial satellites, and the company sought the center’s help to make that a reality. Credit: NASA Mid-power (3-7 kW) Hall effect thruster systems have been identified by government and industry stakeholders as critical capabilities for satellite, defense, and exploration missions. Given the need for this capability, NASA is launching the Advanced Mid-Power Electric Rocket (AMPERE) Challenge. The NASA AMPERE Challenge invites U.S. commercial companies to develop and demonstrate mid-power Hall effect thruster prototypes. Through this challenge, NASA aims to accelerate the maturation of electric propulsion capabilities, validate real-world performance in NASA test facilities, and build the foundation needed to support future NASA and commercial missions. The challenge is open to companies incorporated in and maintaining a primary place of business in the United States. Award: $500,000 in total prizes. Up to two winning teams can each receive up to $250,000 in cash prizes, plus access to NASA testing and technology, across three phases. Registration Open Date: November 9, 2026 Registration Close Date: January 27, 2027 For more information including registration , rules, and eligibility, visit: https://ampere.nasatechmaturation.org/",
+        "title": "Desafío de Cohetes Eléctricos de Potencia Media Avanzados de la NASA",
+        "url": "https://www.nasa.gov/directorates/stmd/prizes-challenges-crowdsourcing-program/center-of-excellence-for-collaborative-innovation-coeci/nasa-advanced-mid-power-electric-rocket-challenge/"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nNASA lanza el desafío AMPERE para impulsar el desarrollo de cohetes eléctricos de potencia media en empresas estadounidenses.\n\nPreparativos para las próximas simulaciones de caminatas lunares en marcha (y bajo el agua) Este propulsor de efecto Hall, que se muestra siendo probado en el Centro de Investigación Glenn, convierte electricidad y gas inerte en fuerza que podría propulsar una nave espacial. Orbion Space Technology fue fundada para llevar la alta eficiencia de estos propulsores a pequeños satélites comerciales, y la compañía buscó la ayuda del centro para hacer de eso una realidad. Crédito: NASA Los sistemas de propulsores de efecto Hall de potencia media (3-7 kW) han sido identificados por partes interesadas del gobierno y la industria como capacidades críticas para misiones de satélites, defensa y exploración. Dada la necesidad de esta capacidad, NASA está lanzando el Desafío de Cohete Eléctrico de Potencia Media Avanzada (AMPERE). empresas comerciales para desarrollar y demostrar prototipos de propulsores de efecto Hall de potencia media. A través de este desafío, NASA tiene como objetivo acelerar la maduración de las capacidades de propulsión eléctrica, validar el rendimiento en el mundo real en las instalaciones de prueba de NASA y construir la base necesaria para apoyar futuras misiones de NASA y comerciales. El desafío está abierto a empresas incorporadas y que mantengan un lugar de negocios principal en los Estados Unidos.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "c2b8f06cd4eca0f2897a6fa60ad0a9191429fc551b835241c007b989210b730f",
+        "source": "https://commons.wikimedia.org/wiki/File:Southern_Lights_Aurora_Austalis_from_Space_Shuttle_(NASA)_(418324490).jpg",
+        "title": "File:Southern Lights Aurora Austalis from Space Shuttle (NASA) (418324490).jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/f/f4/Southern_Lights_Aurora_Austalis_from_Space_Shuttle_%28NASA%29_%28418324490%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/9e2f274a5c482d00f6c4.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "a0b9e90b71b4a6c90ec0": {
       "article": {
         "category": "volcanes",
