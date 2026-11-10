@@ -2343,8 +2343,10 @@
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/6b551c6879277304690a.jpg",
       "targets": {
         "facebook_feed": {
+          "id": "305263296226466_1151120874129810",
+          "published_at": "2026-11-10T19:01:23.871280+00:00",
           "started_at": "2026-11-10T19:01:15.167106+00:00",
-          "status": "uncertain"
+          "status": "published"
         },
         "instagram": {
           "error": "Meta HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons.",
