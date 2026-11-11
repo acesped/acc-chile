@@ -1011,6 +1011,16 @@
       "angle": "estudio",
       "time": "2026-11-10T15:10:50.736400+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-1ec6afab95bc",
+      "topic": "riesgo:alerta_temprana:contexto",
+      "topic_key": "alerta_temprana",
+      "title": "¿En qué contexto aparece la alerta temprana?",
+      "style": "pregunta_respuesta",
+      "angle": "contexto",
+      "time": "2026-11-11T12:01:42.617991+00:00",
+      "status": "publicado"
     }
   ]
 }
