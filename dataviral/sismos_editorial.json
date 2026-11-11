@@ -1021,6 +1021,16 @@
       "angle": "contexto",
       "time": "2026-11-11T12:01:42.617991+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-78fd8daa80d1",
+      "topic": "fallas:escarpes:escala",
+      "topic_key": "escarpes",
+      "title": "¿Por qué la escala importa al estudiar un escarpe de falla?",
+      "style": "mapa_explicado",
+      "angle": "escala",
+      "time": "2026-11-11T18:01:41.632127+00:00",
+      "status": "publicado"
     }
   ]
 }
