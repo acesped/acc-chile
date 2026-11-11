@@ -45,7 +45,8 @@
         "facebook_feed": {
           "attempt_id": "5fd361e955dd4579bbce14ec988c06cf",
           "attempted_at": "2026-11-11T12:01:13.834705+00:00",
-          "status": "uncertain"
+          "id": "305263296226466_1151848150723749",
+          "status": "published"
         },
         "instagram": {
           "attempt_id": "730c6b14fe164226bf1f2ec9c0195be6",
