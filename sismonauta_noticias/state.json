@@ -2349,8 +2349,10 @@
           "status": "published"
         },
         "instagram": {
+          "id": "18116654990023806",
+          "published_at": "2026-11-11T13:01:16.067685+00:00",
           "started_at": "2026-11-11T13:00:56.781925+00:00",
-          "status": "uncertain"
+          "status": "published"
         }
       }
     },
