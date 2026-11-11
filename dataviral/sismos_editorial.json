@@ -1031,6 +1031,16 @@
       "angle": "escala",
       "time": "2026-11-11T18:01:41.632127+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-ab7907e2faeb",
+      "topic": "medicion:sismometros:relieve",
+      "topic_key": "sismometros",
+      "title": "¿Qué relación guarda el paisaje con los sismómetros?",
+      "style": "mito_realidad",
+      "angle": "relieve",
+      "time": "2026-11-11T21:02:38.140756+00:00",
+      "status": "publicado"
     }
   ]
 }
