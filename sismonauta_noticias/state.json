@@ -1105,6 +1105,42 @@
         }
       }
     },
+    "3584ec78bc61ef6a4fb6": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-11T05:05:00+00:00",
+        "description": "Cada día se destaca una imagen o fotografía diferente de nuestro fascinante universo, junto con una breve explicación",
+        "explanation": "**TITULAR:** APOD: 11 de noviembre de 2026 – NGC 4449: Galaxia pequeña, gran impacto\n**CATEGORIA:** espacio\n\nLa galaxia enana NGC 4449, capturada por el Telescopio Espacial Hubble, desafía las expectativas sobre el tamaño cósmico. Aunque estas estructuras poseen apenas un décimo del diámetro de la Vía Láctea y contienen solo unos pocos miles de millones de estrellas, representan el tipo de galaxia más común en nuestro universo.\n\nEstudios sobre NGC 4449 revelan una anomalía significativa: la falta de oxígeno en comparación con lo que predicen los modelos teóricos. Los científicos documentan que este fenómeno ocurre porque los vientos estelares y las supernovas son sorprendentemente efectivos en estas galaxias pequeñas, logrando expuls",
+        "id": "3584ec78bc61ef6a4fb6",
+        "image_headline": "APOD: 11 de noviembre de 2026 – NGC 4449: Galaxia pequeña, gran impacto",
+        "lang": "en",
+        "original_title": "APOD: 2026 November 11 – NGC 4449: Small Galaxy, Big Impact",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "APOD Science APOD APOD: 2026 November 11 – NGC… Today’s APOD Archive Submissions Index Search Calendar RSS Education About Discuss APOD Astronomy Picture of the Day Discover the cosmos! Each day a different image or photograph of our fascinating universe is featured, along with a brief explanation written by a professional astronomer. NGC 4449: Small Galaxy, Big Impact Explanation: Don’t judge a galaxy by its size. Our home galaxy, the Milky Way , is about 100,000 light years across. This huge expanse of space contains hundreds of billions of stars! The smallest galaxies, called dwarf galaxies , are about 1/10th the size of the Milky Way and only contain a few billion stars. They are also the most common type of galaxy in the whole universe. Today’s image shows one such dwarf galaxy, NGC 4449 , captured by the Hubble Space Telescope . NGC 4449 and similar dwarf galaxies are missing more oxygen than models predict. This suggests their stellar winds and supernovae are surprisingly effective at blowing away oxygen and other heavy elements. Turns out these tiny galaxies may play a big role in spreading heavy elements — the building blocks of stars, planets, and life — throughout the universe! Tomorrow’s picture: a date in Poland Date: November 11, 2026 Credit: NASA, ESA, A. Aloisi (STScI/ESA), and the Hubble Heritage (STScI/AURA)-ESA/Hubble Collaboration Authors & editors: Keighley Rockcliffe, Robert Nemiroff, Jerry Bonnell, Cecilia Chirenti A service of: ASD at NASA / GSFC , NASA Science Activation & Michigan Tech. U. Random APOD Generator Yesterday’s Image APOD: 2026 November 10 – Saturn Behind the Moon Tomorrow’s Image",
+        "title": "APOD: 11 de noviembre de 2026 – NGC 4449: Galaxia pequeña, gran impacto",
+        "url": "https://science.nasa.gov/image-article/apod-2026-november-11-ngc-4449-small-galaxy-big-impact/"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nAPOD: 11 de noviembre de 2026 – NGC 4449: Galaxia pequeña, gran impacto\n\nCATEGORIA: espacio La galaxia enana NGC 4449, capturada por el Telescopio Espacial Hubble, desafía las expectativas sobre el tamaño cósmico. Aunque estas estructuras poseen apenas un décimo del diámetro de la Vía Láctea y contienen solo unos pocos miles de millones de estrellas, representan el tipo de galaxia más común en nuestro universo. Estudios sobre NGC 4449 revelan una anomalía significativa: la falta de oxígeno en comparación con lo que predicen los modelos teóricos. Los científicos documentan que este fenómeno ocurre porque los vientos estelares y las supernovas son sorprendentemente efectivos en estas galaxias pequeñas, logrando expuls\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "1bdd0202d0ff1ae0f12a8522296ab3486f8556a059e163f21175149fb4f150ed",
+        "source": "https://commons.wikimedia.org/wiki/File:NASA_Interplanetary_Probes_to_Take_Pictures_of_Earth_From_Space.jpg",
+        "title": "File:NASA Interplanetary Probes to Take Pictures of Earth From Space.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/a/a1/NASA_Interplanetary_Probes_to_Take_Pictures_of_Earth_From_Space.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/3584ec78bc61ef6a4fb6.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "387d174500fb09b687b7": {
       "article": {
         "date": "2026-10-27T03:05:05+00:00",
