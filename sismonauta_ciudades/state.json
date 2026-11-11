@@ -74,6 +74,10 @@
       "time": "2026-11-08T11:58:32.140000+00:00",
       "source": "EMSC-CSEM",
       "targets": {
+        "facebook": {
+          "status": "published",
+          "id": "305263296226466_1148616331046931"
+        },
         "facebook_feed": {
           "status": "published",
           "id": "305263296226466_1148616441046920"
@@ -81,13 +85,27 @@
         "instagram": {
           "status": "published",
           "id": "18110117614954958"
-        },
-        "facebook": {
-          "status": "published",
-          "id": "305263296226466_1148616331046931"
         }
       },
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_ciudades/images/emsc_20261108_0000137.jpg"
+    },
+    "emsc_20261111_0000268": {
+      "magnitude": 5.0,
+      "place": "OFFSHORE LOS LAGOS, CHILE",
+      "time": "2026-11-11T19:21:17.374000+00:00",
+      "source": "EMSC-CSEM",
+      "targets": {
+        "instagram": {
+          "status": "pending"
+        },
+        "facebook": {
+          "status": "pending"
+        },
+        "facebook_feed": {
+          "status": "pending"
+        }
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_ciudades/images/emsc_20261111_0000268.jpg"
     }
   }
 }
