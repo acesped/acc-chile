@@ -1774,13 +1774,14 @@
       "topic_key": "alerta_temprana",
       "title": "¿En qué contexto aparece la alerta temprana?",
       "reel": "publicado",
-      "updated_at": "2026-11-11T12:03:40.678303+00:00",
+      "updated_at": "2026-11-11T12:03:51.484736+00:00",
       "reel_id": "17954385375294516",
       "story": "publicado",
       "story_id": "17866539855691961",
       "facebook_reel": "publicado",
       "facebook_reel_id": "2728972914207268",
-      "facebook_story": "enviando"
+      "facebook_story": "publicado",
+      "facebook_story_id": "1562737162327193"
     }
   },
   "youtube_upload_retry_after": "2026-11-11T06:03:09.909316+00:00"
