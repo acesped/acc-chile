@@ -1810,7 +1810,7 @@
       "topic_key": "sismometros",
       "title": "¿Qué relación guarda el paisaje con los sismómetros?",
       "reel": "publicado",
-      "updated_at": "2026-11-11T21:04:48.931156+00:00",
+      "updated_at": "2026-11-11T21:05:15.146364+00:00",
       "reel_id": "18120680950996951",
       "story": "publicado",
       "story_id": "18581964799077816",
@@ -1819,7 +1819,8 @@
       "facebook_story": "publicado",
       "facebook_story_id": "2400599600676759",
       "youtube_short": "publicado",
-      "youtube_short_id": "DsoySgMyW4o"
+      "youtube_short_id": "DsoySgMyW4o",
+      "youtube_video": "enviando"
     }
   },
   "youtube_upload_retry_after": "2026-11-11T06:03:09.909316+00:00"
