@@ -1248,6 +1248,43 @@
         }
       }
     },
+    "3e88f22729696f9a6f40": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-10T09:01:55+00:00",
+        "description": "Una teoría centenaria sobre los orígenes de la vida en la Tierra podría estar equivocada. Nueva investigación de la Universidad de Cambridge sugiere que los cometas viajaron demasiado rápido y chocaron en ángulos desfavorables para que las frágiles moléculas necesarias para la vida sobrevivieran, haciendo que la entrega exitosa fuera extraordinariamente improbable. Sorprendentemente, Marte podría haber tenido una mejor oportunidad de recibir estos ingredientes cósmicos, aunque incluso allí las probabilidades eran escasas. Los hallazgos apuntan hacia asteroides o procesos químicos en la Tierra como fuentes más plausibles de los bloques de construcción de la vida.",
+        "explanation": "Los cometas, durante mucho tiempo considerados como mensajeros de los ingredientes esenciales para la vida en la Tierra, podrían haber tenido un impacto más destructivo que constructivo. Un estudio reciente de la Universidad de Cambridge desafía la creencia de que estos cuerpos celestes trajeron compuestos orgánicos necesarios para la vida. Según las simulaciones realizadas, la mayoría de los cometas se acercan a la Tierra a velocidades y ángulos que dificultan la supervivencia de las moléculas delicadas que transportan.\n\nLos investigadores encontraron que, aunque algunos cometas podrían haber llegado en condiciones favorables, estos encuentros serían extremadamente raros. Además, incluso si compuestos como el cianuro de hidrógeno lograran sobrevivir al impacto, la probabilidad de que se depositaran en concentraciones útiles para reacciones químicas es muy baja. Esto plantea la pregunta sobre cómo se originó la vida en nuestro planeta si los cometas no fueron los responsables de traer sus componentes.\n\nOtra posibilidad es que los asteroides, que colisionaron con la Tierra con mayor frecuencia, hayan creado las condiciones necesarias para la formación de moléculas prebioticas. Alternativamente, la Tierra podría haber generado estos compuestos de manera independiente. Estas nuevas perspectivas no solo cambian la comprensión sobre la química temprana de la Tierra, sino que también podrían guiar futuras investigaciones sobre la habitabilidad en otros sistemas estelares.",
+        "id": "3e88f22729696f9a6f40",
+        "image_headline": "Los cometas podrían haber destruido los ingredientes de la vida en vez de traerlos a la Tierra.",
+        "lang": "en",
+        "original_title": "Comets may have destroyed life's ingredients instead of delivering them to Earth",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261105224553.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "Los cometas podrían haber destruido los ingredientes de la vida en vez de traerlos a la Tierra.",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261105224553.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nLos cometas podrían haber destruido los ingredientes de la vida en vez de traerlos a la Tierra.\n\nLos cometas, durante mucho tiempo considerados como mensajeros de los ingredientes esenciales para la vida en la Tierra, podrían haber tenido un impacto más destructivo que constructivo. Un estudio reciente de la Universidad de Cambridge desafía la creencia de que estos cuerpos celestes trajeron compuestos orgánicos necesarios para la vida. Según las simulaciones realizadas, la mayoría de los cometas se acercan a la Tierra a velocidades y ángulos que dificultan la supervivencia de las moléculas delicadas que transportan. Los investigadores encontraron que, aunque algunos cometas podrían haber llegado en condiciones favorables, estos encuentros serían extremadamente raros. Además, incluso si compuestos como el cianuro de hidrógeno lograran sobrevivir al impacto, la probabilidad de que se depositaran en concentraciones útiles para reacciones químicas es muy baja. Esto plantea la pregunta sobre cómo se originó la vida en nuestro planeta si los cometas no fueron los responsables de traer sus componentes. Otra posibilidad es que los asteroides, que colisionaron con la Tierra con mayor frecuencia, hayan creado las condiciones necesarias para la formación de moléculas prebioticas. Alternativamente, la Tierra podría haber generado estos compuestos de manera independiente. Estas nuevas perspectivas no solo cambian la comprensión sobre la química temprana de la Tierra, sino que también podrían guiar futuras investigaciones sobre la habitabilidad en otros sistemas estelares.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "719dc2de74b94efcd79dc29a16cc43214c9dc3b7372c0ff4e0d9af50e3722477",
+        "source": "https://commons.wikimedia.org/wiki/File:Northeast_Africa_and_the_Arabian_Peninsula_from_space.jpg",
+        "title": "File:Northeast Africa and the Arabian Peninsula from space.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/8/8c/Northeast_Africa_and_the_Arabian_Peninsula_from_space.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/3e88f22729696f9a6f40.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "3eab963d6643b5f128db": {
       "article": {
         "category": "oceanos",
