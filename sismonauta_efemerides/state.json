@@ -43,7 +43,9 @@
           "status": "pending"
         },
         "instagram": {
-          "status": "pending"
+          "attempt_id": "730c6b14fe164226bf1f2ec9c0195be6",
+          "attempted_at": "2026-11-11T12:00:45.024160+00:00",
+          "status": "uncertain"
         }
       }
     }
