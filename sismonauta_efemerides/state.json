@@ -1,23 +1,51 @@
 {
   "posts": {
     "2026-11-04:3bd2c6846f2429cf54": {
-      "targets": {
-        "instagram": {
-          "status": "published",
-          "id": "18104231594647390"
-        },
-        "facebook": {
-          "status": "published",
-          "id": "305263296226466_1144564191452145"
-        }
-      },
       "event": {
         "date": "1952-11-04",
-        "magnitude": 9.0,
+        "deaths": 10000,
         "location": "RUSSIA: KAMCHATKA PENINSULA",
-        "deaths": 10000
+        "magnitude": 9.0
       },
-      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/3a3539cb9407b4a277e3429093c4d4674eb8559b/sismonauta_efemerides/images/2026-11-04_3bd2c6846f2429cf54.jpg"
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/3a3539cb9407b4a277e3429093c4d4674eb8559b/sismonauta_efemerides/images/2026-11-04_3bd2c6846f2429cf54.jpg",
+      "targets": {
+        "facebook": {
+          "id": "305263296226466_1144564191452145",
+          "status": "published"
+        },
+        "instagram": {
+          "id": "18104231594647390",
+          "status": "published"
+        }
+      }
+    },
+    "2026-11-11:c64cae2cd7faf69837": {
+      "caption": "UN DÍA COMO HOY, pero hace 104 años...\n\nEl 11/11/1922 ocurrió un terremoto de magnitud 8.5 en la zona de Atacama, Chile. El registro histórico consigna 700 personas fallecidas considerando los efectos asociados, incluido el tsunami cuando corresponde. Este episodio forma parte del registro histórico de terremotos significativos y permite recordar el impacto que pueden producir los grandes movimientos de la Tierra.\n\nTe leemos en los comentarios.\n\n#SISMONAUTA #EfemeridesSismicas #Terremotos #Sismologia #HistoriaSismica #CienciaDeLaTierra #PrevencionSismica",
+      "checked_at": "2026-11-11T12:00:43.069491+00:00",
+      "event": {
+        "date": "1922-11-11",
+        "deaths": 700,
+        "depth_km": 70.0,
+        "fatalities_type": "total",
+        "id": "c64cae2cd7faf69837",
+        "latitude": -28.293,
+        "location": "CHILE: ATACAMA",
+        "longitude": -69.852,
+        "magnitude": 8.5,
+        "tsunami_flag": false
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/d2429f84a20b8819af8fb6f96a081ef4dc7c6cc5/sismonauta_efemerides/images/2026-11-11_c64cae2cd7faf69837.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
     }
   }
 }
