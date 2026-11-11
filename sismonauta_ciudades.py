@@ -35,7 +35,7 @@ PLATFORMS=('instagram','facebook','facebook_feed')
 HTTP=requests.Session(); HTTP.headers.update({'User-Agent':'Sismonauta-EMSC/5.2','Accept':'application/json'})
 CITIES=[
  ('Santiago','Chile','🇨🇱',-33.4489,-70.6693,'America/Santiago'),
- ('Ancud','Chile','🇨🇱',-33.4489,-70.6693,'America/Santiago'),
+ ('Ancud','Chile','🇨🇱',-41.8675,-73.8277,'America/Santiago'),
  ('Coquimbo','Chile','🇨🇱',-29.9533,-71.3395,'America/Santiago'),
  ('Concepción','Chile','🇨🇱',-36.8201,-73.0444,'America/Santiago'),
  ('Iquique','Chile','🇨🇱',-20.2307,-70.1357,'America/Santiago'),
