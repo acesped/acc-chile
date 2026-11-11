@@ -16,7 +16,7 @@ Cada destino tiene estado propio. No se reintentan envíos inciertos.
 """
 from __future__ import annotations
 
-import argparse, base64, hashlib, html, io, json, math, os, random, re, sys, time
+import argparse, base64, copy, hashlib, html, io, json, math, os, random, re, sys, time
 import unicodedata, urllib.parse, xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
@@ -489,7 +489,7 @@ def used_photo_keys(state):
     for entry in (state.get('stories') or {}).values():
         if not isinstance(entry,dict):continue
         targets=entry.get('targets') or {}
-        if not any((targets.get(k) or {}).get('status') in ('published','uncertain','enviando') for k in ('instagram','facebook')):continue
+        if not any((targets.get(k) or {}).get('status') in ('published','uncertain','enviando') for k in ('instagram','facebook_feed','facebook')):continue
         meta=entry.get('image') or {}
         if not isinstance(meta,dict) or meta.get('generated'):continue
         for field in ('source','title','sha256'):
@@ -1104,6 +1104,7 @@ def publish_article(gh,state,article,image_file,credit,description,output):
     # antes de generar la portada si otra ejecución pudo actualizarlo.
     remote_state,sha=load_state(gh)
     article_id=article['id']
+    original_entry=copy.deepcopy(remote_state['stories'].get(article_id))
     entry=remote_state['stories'].setdefault(article_id,{'article':article,'image':credit,'targets':{}})
     targets=targets_of(entry)
     receipt_path=output/'estado_publicacion.json'
@@ -1117,9 +1118,44 @@ def publish_article(gh,state,article,image_file,credit,description,output):
         if targets[dest].get('status') not in (None,'pending','published','uncertain','enviando'):
             raise RuntimeError('Estado previo desconocido: '+dest)
 
+    # Instantánea del artículo que esta ejecución leyó por última vez.
+    # Sólo fusionamos modificaciones de OTRAS noticias; nunca pisamos
+    # cambios concurrentes del mismo artículo ni reintentamos Meta a ciegas.
+    baseline_entry=original_entry
+
     def persist():
-        nonlocal sha
-        sha=save_state(gh,remote_state,sha)
+        nonlocal sha, baseline_entry
+        for attempt in range(6):
+            latest_raw,latest_sha=gh.read(STATE_FILE)
+            latest=json.loads(latest_raw) if latest_raw else {'stories':{}}
+            latest.setdefault('stories',{})
+            current=latest['stories'].get(article_id)
+            desired=copy.deepcopy(entry)
+            if current != baseline_entry and current != desired:
+                raise RuntimeError(
+                    'GitHub: otra ejecución modificó ESTA noticia; '
+                    'no sobrescribir ni reintentar publicaciones de Meta. '
+                    'Revisar '+STATE_FILE+' y los IDs ya publicados'
+                )
+            latest['stories'][article_id]=desired
+            payload=json.dumps(latest,ensure_ascii=False,indent=2,sort_keys=True).encode()
+            if latest_raw==payload:
+                sha=latest_sha
+                baseline_entry=copy.deepcopy(desired)
+                return
+            try:
+                result=gh.write(STATE_FILE,payload,expected_sha=latest_sha)
+            except RuntimeError as exc:
+                # La rama avanzó entre lectura y PUT: volver a leer y fusionar
+                # sólo si nuestra noticia conserva su instantánea anterior.
+                if ('SHA distinto' in str(exc) or 'otro proceso cambió' in str(exc)) and attempt<5:
+                    log('GITHUB: cambio concurrente, fusionando historial de otras noticias; intento',attempt+2)
+                    continue
+                raise
+            sha=(result.get('content') or {}).get('sha')
+            baseline_entry=copy.deepcopy(desired)
+            return
+        raise RuntimeError('GitHub: demasiados conflictos al fusionar el historial')
 
     def receipt(status=None):
         result={'status':status or ('published' if is_confirmed(entry) else 'partial_or_uncertain'),
@@ -1199,9 +1235,14 @@ def publish_article(gh,state,article,image_file,credit,description,output):
         try:
             identifier=action()
             row.update(status='published',id=str(identifier),published_at=now().isoformat())
-            persist();receipt()
+            # Registrar evidencia local ANTES del PUT de GitHub: si éste falla,
+            # el ID confirmado por Meta permanece en el artefacto del workflow.
+            receipt('partial_or_uncertain')
             log('META PUBLICADO:',platform,'ID:',identifier)
+            persist();receipt()
         except Exception as exc:
+            # El registro local de un ID publicado se mantiene aunque falle GitHub.
+            # Jamás degradar a pendiente ni reintentar el POST automáticamente.
             row['error']=safe_error(exc)
             failures.append(platform+': '+safe_error(exc))
             try:persist()
@@ -1209,7 +1250,11 @@ def publish_article(gh,state,article,image_file,credit,description,output):
                 log('ERROR GUARDANDO ESTADO:',safe_error(persist_exc))
             receipt();log('ERROR META:',platform,safe_error(exc))
     if is_confirmed(entry):
-        entry['published_at']=now().isoformat();persist()
+        # La evidencia de Meta queda disponible en el artefacto incluso si
+        # GitHub rechaza la escritura final de published_at.
+        receipt('partial_or_uncertain')
+        entry['published_at']=now().isoformat()
+        persist()
     result=receipt()
     if failures:raise RuntimeError('Publicación parcial/incierta; revisar Meta: '+' / '.join(failures))
     return result
@@ -1275,6 +1320,84 @@ def test_publication():
     assert pending_story_ids(ig_recovery)==['old'], 'Instagram pendiente no se recupera'
     assert instagram_candidate_allowed({'id':'old'},ig_recovery)
     log('SELECCIÓN IG: pendientes reales priorizados, cola solo Facebook no bloquea Instagram')
+
+    # Historial: cambios en OTRA noticia se fusionan sin perder el ID de Meta.
+    # Cambios en ESTA misma noticia detienen la escritura.
+    from tempfile import TemporaryDirectory
+    class FakeGithub:
+        def __init__(self):
+            self.state={'stories':{}}
+            self.sha=0
+            self.inject=None
+        def read(self,path):
+            if path!=STATE_FILE:return b'foto-original','foto-sha'
+            return json.dumps(self.state,ensure_ascii=False).encode(),str(self.sha)
+        def write(self,path,raw,expected_sha=None):
+            if self.inject is not None:
+                self.state['stories'].update(self.inject)
+                self.inject=None
+                self.sha+=1
+            if expected_sha!=str(self.sha):
+                raise RuntimeError('GitHub: SHA distinto')
+            self.state=json.loads(raw)
+            self.sha+=1
+            return {'content':{'sha':str(self.sha)}}
+        def image_url(self,path):return 'https://example.org/card.jpg'
+
+    article={'id':'test-merge','title':'Investigación científica de océanos',
+             'category':'oceanos','explanation':' '.join(['Investigadores analizan observaciones de los océanos.']*22)}
+    initial={'stories':{'test-merge':{'article':article,'caption':'texto',
+                      'image_url':'https://example.org/card.jpg',
+                      'targets':{'instagram':{'status':'pending'},
+                                 'facebook_feed':{'status':'published','id':'fb_99'}}}}}
+    with TemporaryDirectory() as temporary:
+        gh=FakeGithub();gh.state=copy.deepcopy(initial)
+        gh.inject={'noticia-ajena':{'targets':{'instagram':{'status':'published','id':'ig_55'}}}}
+        fake_image_response=type('ImageResponse',(),{'ok':True,'headers':{'Content-Type':'image/jpeg'}})()
+        with (patch(__name__+'.ig_check',return_value=('123','token')),
+              patch(__name__+'.publish_ig',return_value='ig_88'),
+              patch.object(HTTP,'get',return_value=fake_image_response)):
+            result=publish_article(gh,gh.state,article,None,{},'texto',Path(temporary))
+        assert result['status']=='published'
+        assert gh.state['stories']['test-merge']['targets']['instagram']['id']=='ig_88'
+        assert 'noticia-ajena' in gh.state['stories']
+        # Segunda ejecución: no volver a enviar a Meta.
+        with patch(__name__+'.publish_ig',side_effect=AssertionError('duplicado')):
+            again=publish_article(gh,gh.state,article,None,{},'texto',Path(temporary))
+        assert again['status']=='already_published'
+    # Un artículo completamente nuevo también debe poder crear su registro.
+    with TemporaryDirectory() as temporary:
+        gh=FakeGithub()
+        fresh=dict(article,id='test-new')
+        gh.inject={'noticia-ajena':{'targets':{'instagram':{'status':'published','id':'ig_55'}}}}
+        fake_image_response=type('ImageResponse',(),{'ok':True,'headers':{'Content-Type':'image/jpeg'}})()
+        with (patch(__name__+'.ig_check',return_value=('123','token')),
+              patch(__name__+'.fb_check',return_value=('123','token')),
+              patch(__name__+'.publish_ig',return_value='ig_new'),
+              patch(__name__+'.publish_fb_feed',return_value='fb_new'),
+              patch.object(HTTP,'get',return_value=fake_image_response)):
+            folder=Path(temporary)
+            img=folder/'test-new.jpg';img.write_bytes(b'foto-demo')
+            created=publish_article(gh,gh.state,fresh,img,{},'texto',folder)
+        assert created['status']=='published'
+        assert gh.state['stories']['test-new']['targets']['instagram']['id']=='ig_new'
+        assert gh.state['stories']['test-new']['targets']['facebook_feed']['id']=='fb_new'
+        assert 'noticia-ajena' in gh.state['stories']
+    # Nunca sustituir el registro del mismo artículo modificado por otro proceso.
+    with TemporaryDirectory() as temporary:
+        gh=FakeGithub();gh.state=copy.deepcopy(initial)
+        gh.inject={'test-merge':{'article':article,'caption':'texto',
+            'image_url':'https://example.org/card.jpg',
+            'targets':{'instagram':{'status':'published','id':'ig_otro'},
+                       'facebook_feed':{'status':'published','id':'fb_99'}}}}
+        fake_image_response=type('ImageResponse',(),{'ok':True,'headers':{'Content-Type':'image/jpeg'}})()
+        with patch.object(HTTP,'get',return_value=fake_image_response):
+            try:publish_article(gh,gh.state,article,None,{},'texto',Path(temporary))
+            except RuntimeError as exc:
+                assert 'ESTA noticia' in str(exc)
+            else:raise AssertionError('Se sobrescribió una publicación concurrente')
+    log('PRUEBA SHA: fusionar otras noticias, conservar IDs de Meta y bloquear reenvío')
+
     log('PRUEBAS PUBLICACIÓN: Instagram foto y UN SOLO Facebook feed con imagen')
 
 def test_extraction():
