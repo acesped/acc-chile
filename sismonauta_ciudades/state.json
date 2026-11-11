@@ -96,7 +96,7 @@
       "source": "EMSC-CSEM",
       "targets": {
         "facebook": {
-          "status": "pending"
+          "status": "uncertain"
         },
         "facebook_feed": {
           "status": "pending"
