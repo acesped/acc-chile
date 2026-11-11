@@ -2417,6 +2417,43 @@
         }
       }
     },
+    "695f90e784c3f7c90c52": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-09T17:20:16+00:00",
+        "description": "Satellite technology can increasingly track vessels across the world's oceans and has the ability to detect industrial fishing inside marine protected areas (MPAs). But new research has suggested that regulations governing these often vulnerable parts of our planet could be preventing global authorities from turning satellite detection into effective enforcement.",
+        "editorial_mode": "documented_brief",
+        "explanation": "La tecnología satelital puede rastrear cada vez más embarcaciones a través de los océanos del mundo y tiene la capacidad de detectar la pesca industrial dentro de áreas marinas protegidas (AMP). Pero nuevas investigaciones han sugerido que las regulaciones que rigen estas partes a menudo vulnerables de nuestro planeta podrían estar impidiendo que las autoridades globales conviertan la detección satelital en una aplicación efectiva.",
+        "id": "695f90e784c3f7c90c52",
+        "image_headline": "El monitoreo satelital de los océanos del mundo está siendo restringido por barreras legales, sugiere un estudio.",
+        "lang": "en",
+        "original_title": "Satellite monitoring of the world's oceans is being restricted by legal barriers, study suggests",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "El monitoreo satelital de los océanos del mundo está siendo restringido por barreras legales, sugiere un estudio.",
+        "url": "https://phys.org/news/2026-11-satellite-world-oceans-restricted-legal.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nEl monitoreo satelital de los océanos del mundo está siendo restringido por barreras legales, sugiere un estudio.\n\nLa tecnología satelital puede rastrear cada vez más embarcaciones a través de los océanos del mundo y tiene la capacidad de detectar la pesca industrial dentro de áreas marinas protegidas (AMP). Pero nuevas investigaciones han sugerido que las regulaciones que rigen estas partes a menudo vulnerables de nuestro planeta podrían estar impidiendo que las autoridades globales conviertan la detección satelital en una aplicación efectiva.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "coastal landscape",
+        "sha256": "474cfe473c3a0094e885b3a15bedd24ecd702f4b6e85bd1cd85747f6ab08a509",
+        "source": "https://commons.wikimedia.org/wiki/File:Girolamo_Nerli_-_Coastal_Landscape_-_Sarjeant_Gallery.jpg",
+        "title": "File:Girolamo Nerli - Coastal Landscape - Sarjeant Gallery.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/8/8f/Girolamo_Nerli_-_Coastal_Landscape_-_Sarjeant_Gallery.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/695f90e784c3f7c90c52.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "69bb11c587d192461a9b": {
       "article": {
         "date": "2026-10-26T22:35:00+00:00",
