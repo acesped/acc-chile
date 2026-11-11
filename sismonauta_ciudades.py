@@ -494,7 +494,7 @@ def process_event(event,github,state,publish,credentials=None):
     return 'published' if is_finished(ensure_entry(state,event)) else 'partial_or_uncertain'
 
 def test_recovery():
-    assert len(CITIES)==15 and EMSC_RECOVERY_MINUTES>=10
+    assert len(CITIES)==16 and EMSC_RECOVERY_MINUTES>=10
     iquique=next(c for c in CITIES if c[0]=='Iquique')
     d=haversine(-20.1237,-69.9368,iquique[3],iquique[4])
     assert d<100,(d,iquique)
