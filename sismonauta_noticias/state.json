@@ -5071,6 +5071,43 @@
         }
       }
     },
+    "f1cfdd2578767aca38cb": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-10T19:20:16+00:00",
+        "description": "Once regarded as potential safe havens for corals in a warming climate, deep reefs, which lie at depths between 90 and 150 meters (295 and 490 feet), are no longer sheltered from increasingly intense marine heat waves, according to a new study in Geophysical Research Letters.",
+        "editorial_mode": "verified_summary",
+        "explanation": "Considerados alguna vez como posibles refugios seguros para los corales en un clima que se calienta, los arrec",
+        "id": "f1cfdd2578767aca38cb",
+        "image_headline": "Los arrecifes profundos ofrecen poco refugio a los corales ante el calor oceánico extremo.",
+        "lang": "en",
+        "original_title": "Deep reefs provide corals little refuge from extreme ocean heat",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Los arrecifes profundos ofrecen poco refugio a los corales ante el calor oceánico extremo.",
+        "url": "https://phys.org/news/2026-11-deep-reefs-corals-refuge-extreme.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nLos arrecifes profundos ofrecen poco refugio a los corales ante el calor oceánico extremo.\n\nConsiderados alguna vez como posibles refugios seguros para los corales en un clima que se calienta, los arrec\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "coastal landscape",
+        "sha256": "38288f9c4067f8978bdb9f22d2a55d553b1b4437ebee8eb75443d5f20f2bb8b6",
+        "source": "https://commons.wikimedia.org/wiki/File:Frank_William_Warwick_Topham_-_Coastal_Landscape_-_B1977.14.4386_-_Yale_Center_for_British_Art.jpg",
+        "title": "File:Frank William Warwick Topham - Coastal Landscape - B1977.14.4386 - Yale Center for British Art.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Frank_William_Warwick_Topham_-_Coastal_Landscape_-_B1977.14.4386_-_Yale_Center_for_British_Art.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/f1cfdd2578767aca38cb.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "f4822954d93d67feeff6": {
       "article": {
         "category": "sismos",
