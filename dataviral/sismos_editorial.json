@@ -1041,6 +1041,16 @@
       "angle": "relieve",
       "time": "2026-11-11T21:02:38.140756+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-fa6e62cb6b3e",
+      "topic": "riesgo:prediccion:pregunta",
+      "topic_key": "prediccion",
+      "title": "¿Qué deberíamos preguntarnos sobre las predicciones sísmicas?",
+      "style": "pregunta_respuesta",
+      "angle": "pregunta",
+      "time": "2026-11-12T00:01:24.850852+00:00",
+      "status": "publicado"
     }
   ]
 }
