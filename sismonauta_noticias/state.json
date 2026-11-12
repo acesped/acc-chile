@@ -2618,6 +2618,43 @@
         }
       }
     },
+    "6cef2e2600f8d2dddca6": {
+      "article": {
+        "category": "climatologia",
+        "date": "2026-11-11T10:00:12+00:00",
+        "description": "A new study quantifies, for the first time, the interrelationships and competing objectives of two major areas of action for reducing greenhouse gas emissions: the phaseout of fossil fuels and measures taken on natural land, such as farmland, forests and wetlands. It demonstrates how a well-balanced policy mix can keep costs low for both people and nature. The study, conducted at the Potsdam Institute for Climate Impact Research (PIK), was published in Nature Sustainability.",
+        "editorial_mode": "verified_summary",
+        "explanation": "Un nuevo estudio cuantifica, por primera vez, las interrelaciones y los objetivos contrapuestos de dos grandes áreas de acción",
+        "id": "6cef2e2600f8d2dddca6",
+        "image_headline": "Por qué la tierra —un recurso escaso— es tan importante para la protección del clima",
+        "lang": "en",
+        "original_title": "Why land—a scarce resource—is so important for climate protection",
+        "search_category": "direct",
+        "source": "Phys.org Medio Ambiente",
+        "source_body": "",
+        "title": "Por qué la tierra —un recurso escaso— es tan importante para la protección del clima",
+        "url": "https://phys.org/news/2026-11-scarce-resource-important-climate.html"
+      },
+      "caption": "🌎 SISMONAUTA | CLIMATOLOGÍA\n\nPor qué la tierra —un recurso escaso— es tan importante para la protección del clima\n\nUn nuevo estudio cuantifica, por primera vez, las interrelaciones y los objetivos contrapuestos de dos grandes áreas de acción\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Climatologia #Clima #CambioClimatico #Glaciares",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "glacier landscape",
+        "sha256": "770c64d80740f85351928625482dfe18bbc28188fe45f40c468a334af1c2a9ea",
+        "source": "https://commons.wikimedia.org/wiki/File:Glacier_National_Park_-_HCP_-_October_23,_2022_-_006.jpg",
+        "title": "File:Glacier National Park - HCP - October 23, 2022 - 006.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bf/Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_006.jpg/1920px-Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_006.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/6cef2e2600f8d2dddca6.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "6d6cd588226885d566a4": {
       "article": {
         "category": "climatologia",
