@@ -6,7 +6,8 @@
   "selection_origin": "github_rotation",
   "targets": {
     "instagram": {
-      "status": "uncertain"
+      "status": "uncertain",
+      "release_id": "442826517"
     },
     "facebook": {
       "status": "pending"
