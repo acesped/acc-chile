@@ -1828,7 +1828,7 @@
       "topic_key": "prediccion",
       "title": "¿Qué deberíamos preguntarnos sobre las predicciones sísmicas?",
       "reel": "publicado",
-      "updated_at": "2026-11-12T00:03:08.306350+00:00",
+      "updated_at": "2026-11-12T00:03:44.077839+00:00",
       "reel_id": "17919150297466830",
       "story": "publicado",
       "story_id": "18580692733078308",
@@ -1837,7 +1837,8 @@
       "facebook_story": "publicado",
       "facebook_story_id": "2347212082698701",
       "youtube_short": "publicado",
-      "youtube_short_id": "B5Zy1BoJE8U"
+      "youtube_short_id": "B5Zy1BoJE8U",
+      "youtube_video": "enviando"
     }
   },
   "youtube_upload_retry_after": "2026-11-11T06:03:09.909316+00:00"
