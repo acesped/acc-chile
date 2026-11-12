@@ -1822,6 +1822,13 @@
       "youtube_short_id": "DsoySgMyW4o",
       "youtube_video": "publicado",
       "youtube_video_id": "rlD6zjhO1Hs"
+    },
+    "sismos-fa6e62cb6b3e": {
+      "topic": "riesgo:prediccion:pregunta",
+      "topic_key": "prediccion",
+      "title": "¿Qué deberíamos preguntarnos sobre las predicciones sísmicas?",
+      "reel": "enviando",
+      "updated_at": "2026-11-12T00:01:27.290427+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-11T06:03:09.909316+00:00"
