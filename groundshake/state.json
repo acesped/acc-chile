@@ -1887,6 +1887,13 @@
       "facebook_reel_id": "1800404564557051",
       "facebook_story": "publicado",
       "facebook_story_id": "1472570282599858"
+    },
+    "sismos-1c3a86752e60": {
+      "topic": "fallas:falla_inversa:consecuencia",
+      "topic_key": "falla_inversa",
+      "title": "¿Por qué importa una falla inversa?",
+      "reel": "enviando",
+      "updated_at": "2026-11-12T12:01:17.165329+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-13T06:03:57.630596+00:00"
