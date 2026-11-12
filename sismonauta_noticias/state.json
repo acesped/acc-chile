@@ -2417,6 +2417,43 @@
         }
       }
     },
+    "6868489c8c0b24bfe8ce": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-10T21:50:01+00:00",
+        "description": "Researchers have analyzed water samples collected during two expeditions aboard the research icebreaker Polarstern to investigate how life and changing conditions on the Antarctic continental shelf affect carbon carried into the deep ocean. Published in Nature Communications, the study reveals a surprising finding: Despite intense biological activity and major changes in the water masses, the amount and make-up of dissolved organic matter remain almost unchanged.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Los investigadores han analizado muestras de agua recolectadas durante dos expediciones a bordo del rompehielos de investigación Polarstern para investigar cómo la vida y las condiciones cambiantes en la plataforma continental antártica afectan el carbono transportado hacia el océano profundo. Publicado en Nature Communications, el estudio revela un hallazgo sorprendente: A pesar de la intensa actividad biológica y los importantes cambios en las masas de agua, la cantidad y la composición de la materia orgánica disuelta permanecen casi sin cambios.",
+        "id": "6868489c8c0b24bfe8ce",
+        "image_headline": "El análisis del agua antártica revela una estabilidad inesperada en el carbono orgánico disuelto.",
+        "lang": "en",
+        "original_title": "Antarctic water analysis reveals unexpected stability in dissolved organic carbon",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "El análisis del agua antártica revela una estabilidad inesperada en el carbono orgánico disuelto.",
+        "url": "https://phys.org/news/2026-11-antarctic-analysis-reveals-unexpected-stability.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nEl análisis del agua antártica revela una estabilidad inesperada en el carbono orgánico disuelto.\n\nLos investigadores han analizado muestras de agua recolectadas durante dos expediciones a bordo del rompehielos de investigación Polarstern para investigar cómo la vida y las condiciones cambiantes en la plataforma continental antártica afectan el carbono transportado hacia el océano profundo. Publicado en Nature Communications, el estudio revela un hallazgo sorprendente: A pesar de la intensa actividad biológica y los importantes cambios en las masas de agua, la cantidad y la composición de la materia orgánica disuelta permanecen casi sin cambios.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "coastal landscape",
+        "sha256": "71eff8746dc8dd43a29cdb7c7a128d11ad8f13ec2f8fe8761848b82c187f6da6",
+        "source": "https://commons.wikimedia.org/wiki/File:Henry_Swinburne_-_Coastal_Landscape_-_B1977.14.3985_-_Yale_Center_for_British_Art.jpg",
+        "title": "File:Henry Swinburne - Coastal Landscape - B1977.14.3985 - Yale Center for British Art.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/e/ed/Henry_Swinburne_-_Coastal_Landscape_-_B1977.14.3985_-_Yale_Center_for_British_Art.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/6868489c8c0b24bfe8ce.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "695f90e784c3f7c90c52": {
       "article": {
         "category": "oceanos",
