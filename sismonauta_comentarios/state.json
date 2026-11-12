@@ -107,9 +107,10 @@
       "updated_at": "2026-11-12T12:16:10.849792+00:00"
     },
     "1152476090660955_29168247586140054": {
-      "status": "uncertain",
+      "status": "published",
+      "reply_id": "1152476090660955_934454306269124",
       "reply": "¡Muchas gracias por acompañar a SISMONAUTA! 🌎",
-      "updated_at": "2026-11-12T12:16:11.835423+00:00"
+      "updated_at": "2026-11-12T12:16:15.015012+00:00"
     }
   }
 }
