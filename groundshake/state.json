@@ -1892,8 +1892,9 @@
       "topic": "fallas:falla_inversa:consecuencia",
       "topic_key": "falla_inversa",
       "title": "¿Por qué importa una falla inversa?",
-      "reel": "enviando",
-      "updated_at": "2026-11-12T12:01:17.165329+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-12T12:02:37.891469+00:00",
+      "reel_id": "18102145865370521"
     }
   },
   "youtube_upload_retry_after": "2026-11-13T06:03:57.630596+00:00"
