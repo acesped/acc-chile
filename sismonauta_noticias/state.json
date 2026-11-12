@@ -4753,6 +4753,43 @@
         }
       }
     },
+    "df7ac0f6e26493a1e922": {
+      "article": {
+        "category": "geologia",
+        "date": "2026-11-09T19:10:01+00:00",
+        "description": "Iran and Afghanistan have a certain iconic status as largely inhospitable areas, rich in raw materials. But where does this remarkable geology come from? Researchers from the University of Central Asia and Utrecht University have now reconstructed the history of this 'geological Silk Road' in detail. \"Culturally, the region lies at the crossroads of European, Central Asian, East Asian, Indian and Arab influences. Our reconstruction shows that the same is true geologically.\" Their results are published in the journal Gondwana Research.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Irán y Afganistán tienen un cierto estatus icónico como áreas en gran medida inhóspitas, ricas en materias primas. Pero, ¿de dónde proviene esta notable geología? Investigadores de la Universidad de Asia Central y la Universidad de Utrecht han reconstruido ahora la historia de esta 'Ruta de la Seda geológica' en detalle. \"Culturalmente, la región se encuentra en la encrucijada de influencias europeas, centroasiáticas, esteasiáticas, indias y árabes. Nuestra reconstrucción muestra que lo mismo es cierto geológicamente.\" Sus resultados se publican en la revista Gondwana Research.",
+        "id": "df7ac0f6e26493a1e922",
+        "image_headline": "Donde Oriente se encuentra con Occidente: Rastreando la encrucijada geológica de Irán y Afganistán.",
+        "lang": "en",
+        "original_title": "Where East meets West: Tracing the geological crossroads of Iran and Afghanistan",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Donde Oriente se encuentra con Occidente: Rastreando la encrucijada geológica de Irán y Afganistán.",
+        "url": "https://phys.org/news/2026-11-east-west-geological-crossroads-iran.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DE LA TIERRA\n\nDonde Oriente se encuentra con Occidente: Rastreando la encrucijada geológica de Irán y Afganistán.\n\nIrán y Afganistán tienen un cierto estatus icónico como áreas en gran medida inhóspitas, ricas en materias primas. Pero, ¿de dónde proviene esta notable geología? Investigadores de la Universidad de Asia Central y la Universidad de Utrecht han reconstruido ahora la historia de esta 'Ruta de la Seda geológica' en detalle. \"Culturalmente, la región se encuentra en la encrucijada de influencias europeas, centroasiáticas, esteasiáticas, indias y árabes. Nuestra reconstrucción muestra que lo mismo es cierto geológicamente.\" Sus resultados se publican en la revista Gondwana Research.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Geologia #PlanetaTierra #Geociencias #Investigacion",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "rock formations landscape",
+        "sha256": "56528bece7c60470188b448075c9bc9b2f8bca5f576c14d2d3f2d6716418e91e",
+        "source": "https://commons.wikimedia.org/wiki/File:Zion_national_park_natural_rock_formations_landscape.jpg",
+        "title": "File:Zion national park natural rock formations landscape.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/ca/Zion_national_park_natural_rock_formations_landscape.jpg/1920px-Zion_national_park_natural_rock_formations_landscape.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/df7ac0f6e26493a1e922.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "e3229668c17e50e483d8": {
       "article": {
         "category": "espacio",
