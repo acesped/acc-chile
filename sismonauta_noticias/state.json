@@ -5208,6 +5208,43 @@
         }
       }
     },
+    "eef2d9e317f97428a192": {
+      "article": {
+        "category": "climatologia",
+        "date": "2026-11-12T19:01:01+00:00",
+        "description": "Nitrate, a chemical compound of oxygen and nitrogen often used in farm fertilizers, can rise to toxic levels in surrounding water under very dry conditions. This relationship has traditionally been attributed to agricultural runoff or human waste in the environment, but new research led by scientists at Penn State shows that a hot and dry climate elevates concentrations of nitrate in rivers and streams, even in areas without urban or agricultural development.",
+        "editorial_mode": "documented_brief",
+        "explanation": "El nitrato, un compuesto químico de oxígeno y nitrógeno que se utiliza a menudo en fertilizantes agrícolas, puede alcanzar niveles tóxicos en el agua circundante bajo condiciones muy secas. Esta relación se ha atribuido tradicionalmente al escurrimiento agrícola o a desechos humanos en el medio ambiente, pero una nueva investigación liderada por científicos de Penn State muestra que un clima cálido y seco eleva las concentraciones de nitrato en ríos y arroyos, incluso en áreas sin desarrollo urbano o agrícola.",
+        "id": "eef2d9e317f97428a192",
+        "image_headline": "La contaminación por nitratos en ríos vinculada a climas secos, no solo a la actividad humana.",
+        "lang": "en",
+        "original_title": "Nitrate pollution in rivers linked to dry climates, not just human activity",
+        "search_category": "direct",
+        "source": "Phys.org Medio Ambiente",
+        "source_body": "",
+        "title": "La contaminación por nitratos en ríos vinculada a climas secos, no solo a la actividad humana.",
+        "url": "https://phys.org/news/2026-11-nitrate-pollution-rivers-linked-dry.html"
+      },
+      "caption": "🌎 SISMONAUTA | CLIMATOLOGÍA\n\nLa contaminación por nitratos en ríos vinculada a climas secos, no solo a la actividad humana.\n\nEl nitrato, un compuesto químico de oxígeno y nitrógeno que se utiliza a menudo en fertilizantes agrícolas, puede alcanzar niveles tóxicos en el agua circundante bajo condiciones muy secas. Esta relación se ha atribuido tradicionalmente al escurrimiento agrícola o a desechos humanos en el medio ambiente, pero una nueva investigación liderada por científicos de Penn State muestra que un clima cálido y seco eleva las concentraciones de nitrato en ríos y arroyos, incluso en áreas sin desarrollo urbano o agrícola.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Climatologia #Clima #CambioClimatico #Glaciares",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "glacier landscape",
+        "sha256": "7595a884121fc8a886b24121212853ef7009f37125f6b7b1f7115361c4910733",
+        "source": "https://commons.wikimedia.org/wiki/File:Glacier_National_Park_-_HCP_-_October_23,_2022_-_099_-_Apgar_Lookout_Trail.jpg",
+        "title": "File:Glacier National Park - HCP - October 23, 2022 - 099 - Apgar Lookout Trail.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/96/Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_099_-_Apgar_Lookout_Trail.jpg/1920px-Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_099_-_Apgar_Lookout_Trail.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/eef2d9e317f97428a192.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "efb065e7e45d060781bc": {
       "article": {
         "category": "espacio",
