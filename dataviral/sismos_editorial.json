@@ -1081,6 +1081,16 @@
       "angle": "impacto",
       "time": "2026-11-12T09:01:30.663405+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-1c3a86752e60",
+      "topic": "fallas:falla_inversa:consecuencia",
+      "topic_key": "falla_inversa",
+      "title": "¿Por qué importa una falla inversa?",
+      "style": "mito_realidad",
+      "angle": "consecuencia",
+      "time": "2026-11-12T12:01:11.949846+00:00",
+      "status": "publicado"
     }
   ]
 }
