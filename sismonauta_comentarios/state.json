@@ -131,9 +131,10 @@
       "updated_at": "2026-11-12T12:16:27.403157+00:00"
     },
     "1152905460618018_1578075580755262": {
-      "status": "uncertain",
+      "status": "published",
+      "reply_id": "1152905460618018_1481787754019559",
       "reply": "¡Gracias por tu apoyo y por seguir nuestras publicaciones! 🙌",
-      "updated_at": "2026-11-12T12:16:28.643175+00:00"
+      "updated_at": "2026-11-12T12:16:33.227140+00:00"
     }
   }
 }
