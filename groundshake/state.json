@@ -1920,8 +1920,9 @@
       "topic": "ondas:ondas_superficiales:contexto",
       "topic_key": "ondas_superficiales",
       "title": "¿En qué contexto aparece las ondas superficiales?",
-      "reel": "enviando",
-      "updated_at": "2026-11-12T18:01:30.886824+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-12T18:02:09.638815+00:00",
+      "reel_id": "17884556703627084"
     }
   },
   "youtube_upload_retry_after": "2026-11-13T06:03:57.630596+00:00"
