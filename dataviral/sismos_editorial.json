@@ -1111,6 +1111,16 @@
       "angle": "contexto",
       "time": "2026-11-12T18:01:27.939599+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-2ffc54e99052",
+      "topic": "tectonica:divergencia:origen",
+      "topic_key": "divergencia",
+      "title": "¿Qué procesos explican la separación de placas?",
+      "style": "descubrimiento",
+      "angle": "origen",
+      "time": "2026-11-12T21:01:24.806630+00:00",
+      "status": "publicado"
     }
   ]
 }
