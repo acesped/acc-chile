@@ -1051,6 +1051,16 @@
       "angle": "pregunta",
       "time": "2026-11-12T00:01:24.850852+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-3b5cfa6634ba",
+      "topic": "tsunamis:primera_ola:clave",
+      "topic_key": "primera_ola",
+      "title": "¿Cuál es la clave para comprender la primera ola de un tsunami?",
+      "style": "microdocumental",
+      "angle": "clave",
+      "time": "2026-11-12T03:02:13.118952+00:00",
+      "status": "publicado"
     }
   ]
 }
