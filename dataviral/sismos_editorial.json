@@ -1061,6 +1061,16 @@
       "angle": "clave",
       "time": "2026-11-12T03:02:13.118952+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-4ec28f7c979d",
+      "topic": "geologia:valle_rift:investigacion",
+      "topic_key": "valle_rift",
+      "title": "¿Por qué se investiga los valles de rift?",
+      "style": "descubrimiento",
+      "angle": "investigacion",
+      "time": "2026-11-12T06:02:09.173320+00:00",
+      "status": "publicado"
     }
   ]
 }
