@@ -1915,6 +1915,13 @@
       "facebook_reel_id": "4434846863316692",
       "facebook_story": "publicado",
       "facebook_story_id": "1673746880930773"
+    },
+    "sismos-d1d7c4aed34a": {
+      "topic": "ondas:ondas_superficiales:contexto",
+      "topic_key": "ondas_superficiales",
+      "title": "¿En qué contexto aparece las ondas superficiales?",
+      "reel": "enviando",
+      "updated_at": "2026-11-12T18:01:30.886824+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-13T06:03:57.630596+00:00"
