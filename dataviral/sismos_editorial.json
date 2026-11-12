@@ -1071,6 +1071,16 @@
       "angle": "investigacion",
       "time": "2026-11-12T06:02:09.173320+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-62514a32b6f3",
+      "topic": "tsunamis:estuarios:impacto",
+      "topic_key": "estuarios",
+      "title": "¿Qué importancia tiene comprender los tsunamis en ríos?",
+      "style": "descubrimiento",
+      "angle": "impacto",
+      "time": "2026-11-12T09:01:30.663405+00:00",
+      "status": "publicado"
     }
   ]
 }
