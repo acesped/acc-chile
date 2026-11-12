@@ -1091,6 +1091,16 @@
       "angle": "consecuencia",
       "time": "2026-11-12T12:01:11.949846+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-6631d5d5f067",
+      "topic": "tsunamis:inundacion:comparacion",
+      "topic_key": "inundacion",
+      "title": "¿Qué hace especial a la inundación por tsunami dentro de la geología?",
+      "style": "mito_realidad",
+      "angle": "comparacion",
+      "time": "2026-11-12T15:01:22.153746+00:00",
+      "status": "publicado"
     }
   ]
 }
