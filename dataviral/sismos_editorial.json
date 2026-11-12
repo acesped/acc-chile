@@ -1101,6 +1101,16 @@
       "angle": "comparacion",
       "time": "2026-11-12T15:01:22.153746+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-d1d7c4aed34a",
+      "topic": "ondas:ondas_superficiales:contexto",
+      "topic_key": "ondas_superficiales",
+      "title": "¿En qué contexto aparece las ondas superficiales?",
+      "style": "mapa_explicado",
+      "angle": "contexto",
+      "time": "2026-11-12T18:01:27.939599+00:00",
+      "status": "publicado"
     }
   ]
 }
