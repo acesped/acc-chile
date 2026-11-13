@@ -1984,8 +1984,10 @@
           "status": "pending"
         },
         "instagram": {
+          "id": "18146182399720093",
+          "published_at": "2026-11-13T23:02:36.323053+00:00",
           "started_at": "2026-11-13T23:02:19.320744+00:00",
-          "status": "uncertain"
+          "status": "published"
         }
       }
     },
