@@ -1131,6 +1131,16 @@
       "angle": "pregunta",
       "time": "2026-11-13T00:01:17.049922+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-944a13236cae",
+      "topic": "ondas:ondas_s:limites",
+      "topic_key": "ondas_s",
+      "title": "¿Qué no podemos concluir solamente a partir de las ondas S?",
+      "style": "mapa_explicado",
+      "angle": "limites",
+      "time": "2026-11-13T03:01:32.917740+00:00",
+      "status": "publicado"
     }
   ]
 }
