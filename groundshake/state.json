@@ -1976,8 +1976,9 @@
       "topic": "riesgo:prediccion:evidencia",
       "topic_key": "prediccion",
       "title": "¿Qué señales deja las predicciones sísmicas?",
-      "reel": "enviando",
-      "updated_at": "2026-11-13T06:01:47.309577+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-13T06:02:26.784449+00:00",
+      "reel_id": "17871325920662119"
     }
   },
   "youtube_upload_retry_after": "2026-11-13T06:03:57.630596+00:00"
