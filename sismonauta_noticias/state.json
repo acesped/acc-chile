@@ -2467,6 +2467,40 @@
         }
       }
     },
+    "5af2a1b09cc6b17fc9d8": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-13T16:00:13+00:00",
+        "description": "Submarine landslides have significant implications for marine ecology and infrastructure, yet these unpredictable events have remained challenging to study. New research co-led by Newcastle University's Dr. Sanem Acikalin and involving an international team of collaborators from 10 institutions has provided the first direct observations of these elusive events.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Los deslizamientos de tierra submarinos tienen implicaciones significativas para la ecología marina y la infraestructura, sin embargo, estos eventos impredecibles han seguido siendo difíciles de estudiar. Nueva investigación co-dirigida por la Dra. Sanem Acikalin de la Universidad de Newcastle e involucrando a un equipo internacional de colaboradores de 10 instituciones ha proporcionado las primeras observaciones directas de estos elusivos eventos.",
+        "id": "5af2a1b09cc6b17fc9d8",
+        "image_headline": "La observación directa de un deslizamiento submarino revela procesos en el fondo marino.",
+        "lang": "en",
+        "original_title": "Direct observation of a submarine landslide reveals seafloor processes",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "La observación directa de un deslizamiento submarino revela procesos en el fondo marino.",
+        "url": "https://phys.org/news/2026-11-submarine-landslide-reveals-seafloor.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nLa observación directa de un deslizamiento submarino revela procesos en el fondo marino.\n\nLos deslizamientos de tierra submarinos tienen implicaciones significativas para la ecología marina y la infraestructura, sin embargo, estos eventos impredecibles han seguido siendo difíciles de estudiar. Nueva investigación co-dirigida por la Dra. Sanem Acikalin de la Universidad de Newcastle e involucrando a un equipo internacional de colaboradores de 10 instituciones ha proporcionado las primeras observaciones directas de estos elusivos eventos.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": true,
+        "license": "Obra original",
+        "title": "Arte original SISMONAUTA",
+        "url": ""
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/5af2a1b09cc6b17fc9d8.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "5b5980c7a6087e9b2fc5": {
       "article": {
         "category": "espacio",
