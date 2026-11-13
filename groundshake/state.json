@@ -2044,8 +2044,9 @@
       "topic": "medicion:replicas:investigacion",
       "topic_key": "replicas",
       "title": "¿Por qué se investiga las réplicas?",
-      "reel": "enviando",
-      "updated_at": "2026-11-13T18:01:19.203933+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-13T18:01:58.977142+00:00",
+      "reel_id": "18103108268070555"
     }
   },
   "youtube_upload_retry_after": "2026-11-13T06:03:57.630596+00:00"
