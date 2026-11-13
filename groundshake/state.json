@@ -1948,8 +1948,9 @@
       "topic": "medicion:epicentro:pregunta",
       "topic_key": "epicentro",
       "title": "¿Qué deberíamos preguntarnos sobre el epicentro?",
-      "reel": "enviando",
-      "updated_at": "2026-11-13T00:01:19.649999+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-13T00:01:58.154200+00:00",
+      "reel_id": "18120875659992679"
     }
   },
   "youtube_upload_retry_after": "2026-11-13T06:03:57.630596+00:00"
