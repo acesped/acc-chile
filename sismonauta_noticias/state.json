@@ -2548,6 +2548,43 @@
         }
       }
     },
+    "5e10defa9147baacace4": {
+      "article": {
+        "category": "volcanes",
+        "date": "2026-11-12T20:00:12+00:00",
+        "description": "The ocean covers around 70% of the Earth's surface, but large parts of the seafloor remain largely unexplored.",
+        "editorial_mode": "verified_summary",
+        "explanation": "El océano cubre cerca del 70% de la superficie de la Tierra, pero gran parte del fondo marino sigue estando mayormente inexplorada.",
+        "id": "5e10defa9147baacace4",
+        "image_headline": "Dos zonas calientes cerca del núcleo de la Tierra podrían alimentar volcanes bajo los océanos.",
+        "lang": "en",
+        "original_title": "Two hot zones near Earth's core may fuel volcanoes beneath oceans",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Dos zonas calientes cerca del núcleo de la Tierra podrían alimentar volcanes bajo los océanos.",
+        "url": "https://phys.org/news/2026-11-hot-zones-earth-core-fuel.html"
+      },
+      "caption": "🌎 SISMONAUTA | ACTUALIDAD VOLCÁNICA\n\nDos zonas calientes cerca del núcleo de la Tierra podrían alimentar volcanes bajo los océanos.\n\nEl océano cubre cerca del 70% de la superficie de la Tierra, pero gran parte del fondo marino sigue estando mayormente inexplorada.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Volcanes #Erupciones #Volcanologia #Geologia",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "volcanic eruption",
+        "sha256": "982a0325ff3357ad92ab0e0c06125d545e0ba7ffca3ee8477bbd2f8bec27797c",
+        "source": "https://commons.wikimedia.org/wiki/File:Sarychev_Peak.jpg",
+        "title": "File:Sarychev Peak.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b4/Sarychev_Peak.jpg/1920px-Sarychev_Peak.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/5e10defa9147baacace4.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "60a3945e6c56499d12d4": {
       "article": {
         "category": "oceanos",
