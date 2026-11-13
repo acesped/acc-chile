@@ -1141,6 +1141,16 @@
       "angle": "limites",
       "time": "2026-11-13T03:01:32.917740+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-b798d3017929",
+      "topic": "riesgo:prediccion:evidencia",
+      "topic_key": "prediccion",
+      "title": "¿Qué señales deja las predicciones sísmicas?",
+      "style": "microdocumental",
+      "angle": "evidencia",
+      "time": "2026-11-13T06:01:45.124254+00:00",
+      "status": "publicado"
     }
   ]
 }
