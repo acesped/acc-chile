@@ -617,6 +617,43 @@
         }
       }
     },
+    "223c386f712b08819504": {
+      "article": {
+        "category": "desastres",
+        "date": "2026-11-09T17:40:20+00:00",
+        "description": "A new study reveals a troubling consequence of climate change: Even as rainfall decreases, cities could face increasingly severe flooding. The study was led by Ph.D. student Raz Nussbaum and co-authored by Dr. Moshe Armon and supervised by professor Efrat Morin from the Hebrew University of Jerusalem.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Un nuevo estudio revela una consecuencia preocupante del cambio climático: incluso a medida que disminuye la lluvia, las ciudades podrían enfrentar inundaciones cada vez más severas. Estudiante Raz Nussbaum y coautorado por el Dr. Moshe Armon y supervisado por la profesora Efrat Morin de la Universidad Hebrea de Jerusalén.",
+        "id": "223c386f712b08819504",
+        "image_headline": "Menos lluvia, tormentas más intensas: El cambio climático refuerza las inundaciones urbanas extremas.",
+        "lang": "en",
+        "original_title": "Less rain, more intense storms: Climate change strengthens extreme urban floods",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Menos lluvia, tormentas más intensas: El cambio climático refuerza las inundaciones urbanas extremas.",
+        "url": "https://phys.org/news/2026-11-intense-storms-climate-extreme-urban.html"
+      },
+      "caption": "🌎 SISMONAUTA | RIESGOS NATURALES\n\nMenos lluvia, tormentas más intensas: El cambio climático refuerza las inundaciones urbanas extremas.\n\nUn nuevo estudio revela una consecuencia preocupante del cambio climático: incluso a medida que disminuye la lluvia, las ciudades podrían enfrentar inundaciones cada vez más severas. Estudiante Raz Nussbaum y coautorado por el Dr. Moshe Armon y supervisado por la profesora Efrat Morin de la Universidad Hebrea de Jerusalén.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #DesastresNaturales #Prevencion #RiesgosNaturales",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "landslide mountain",
+        "sha256": "a2768d848bdc5e292ec31a30e0e5c33b71a115b5a5c26921993883fb4eebb4e1",
+        "source": "https://commons.wikimedia.org/wiki/File:Myanmar_Landslide_2015_(before).jpg",
+        "title": "File:Myanmar Landslide 2015 (before).jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/c/ce/Myanmar_Landslide_2015_%28before%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/223c386f712b08819504.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "224348141fff207934b3": {
       "article": {
         "category": "espacio",
