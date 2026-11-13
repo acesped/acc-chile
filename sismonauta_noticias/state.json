@@ -4722,6 +4722,43 @@
         }
       }
     },
+    "ce7d7279928c8ce6dccc": {
+      "article": {
+        "category": "climatologia",
+        "date": "2026-11-12T21:40:07+00:00",
+        "description": "Accurate, up-to-date climate projections are essential for planning decisions that enhance the resilience of power grids, protect public health, maximize agricultural yields and more. Now, MIT researchers have developed a technique that streamlines the production of fast, trustworthy and adaptable artificial intelligence models for climate prediction.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Proyecciones climáticas precisas y actualizadas son esenciales para decisiones de planificación que mejoren la resiliencia de las redes eléctricas, protejan la salud pública, maximicen los rendimientos agrícolas y más. Ahora, investigadores del MIT han desarrollado una técnica que agiliza la producción de modelos de inteligencia artificial rápidos, confiables y adaptables para la predicción climática.",
+        "id": "ce7d7279928c8ce6dccc",
+        "image_headline": "Escenarios de emisiones poco realistas ayudan a los modelos climáticos de IA a prepararse para futuros desconocidos.",
+        "lang": "en",
+        "original_title": "Unrealistic emissions scenarios help AI climate models prepare for unfamiliar futures",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Escenarios de emisiones poco realistas ayudan a los modelos climáticos de IA a prepararse para futuros desconocidos.",
+        "url": "https://phys.org/news/2026-11-unrealistic-emissions-scenarios-ai-climate.html"
+      },
+      "caption": "🌎 SISMONAUTA | CLIMATOLOGÍA\n\nEscenarios de emisiones poco realistas ayudan a los modelos climáticos de IA a prepararse para futuros desconocidos.\n\nProyecciones climáticas precisas y actualizadas son esenciales para decisiones de planificación que mejoren la resiliencia de las redes eléctricas, protejan la salud pública, maximicen los rendimientos agrícolas y más. Ahora, investigadores del MIT han desarrollado una técnica que agiliza la producción de modelos de inteligencia artificial rápidos, confiables y adaptables para la predicción climática.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Climatologia #Clima #CambioClimatico #Glaciares",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "glacier landscape",
+        "sha256": "b732cc8b4448d4bd505d9a8217773c78f1d32006b70a628f2d3e9f12dc1ae3ad",
+        "source": "https://commons.wikimedia.org/wiki/File:Glacier_National_Park_-_HCP_-_October_23,_2022_-_100_-_Apgar_Lookout_Trail.jpg",
+        "title": "File:Glacier National Park - HCP - October 23, 2022 - 100 - Apgar Lookout Trail.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cd/Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_100_-_Apgar_Lookout_Trail.jpg/1920px-Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_100_-_Apgar_Lookout_Trail.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/ce7d7279928c8ce6dccc.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "d1d988fc5869132e8728": {
       "article": {
         "category": "espacio",
