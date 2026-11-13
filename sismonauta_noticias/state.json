@@ -3099,6 +3099,42 @@
         }
       }
     },
+    "76b5f7f4e0dbaa387ae0": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-13T16:39:33+00:00",
+        "description": "millions de años luz de la Tierra. Los astrónomos estiman que el […]\" *",
+        "explanation": "**Estallidos de una estrella masiva**\n\nAstrónomos han identificado el origen de los repetidos estallidos de una estrella masiva y inestable, conocida como AT 2016blu, ubicada en la galaxia espiral NGC 4559, a unos 30 millones de años luz de la Tierra. Este descubrimiento fue realizado utilizando el Observatorio de Rayos X Chandra de la NASA.\n\nAT 2016blu es una estrella de gran tamaño, con una masa estimada de al menos 33 veces la del Sol. Su inestabilidad ha generado una serie de explosiones que han llamado la atención de los científicos, quienes buscan entender los mecanismos detrás de estos fenómenos.\n\nEl estudio de estas explosiones no solo proporciona información sobre la vida y muerte de las estrellas masivas, sino que también puede ofrecer pistas sobre la formación de elementos pesados en el universo. Las observaciones continuas de AT 2016blu permitirán a los astrónomos profundizar en la dinámica de las estrellas en sus etapas finales, contribuyendo así al conocimiento sobre la evolución estelar y la estructura del cosmos.",
+        "id": "76b5f7f4e0dbaa387ae0",
+        "image_headline": "Astrónomos descubren que una estrella masiva en NGC 4559 experimenta estallidos repetidos, revelando su inestabilidad.",
+        "lang": "en",
+        "original_title": "Outbursts from a Massive Star",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "X-ray: NASA/CXC/Univ. of Virginia/M. Aghakhanloo et al.; Optical: SDSS; Image Processing: NASA/CXC/SAO/P. Edmonds Using NASA’s Chandra X-ray Observatory, astronomers have discovered what is triggering repeated outbursts from a giant, unstable star located in the galaxy shown in this image released on Nov. 9, 2026. The volatile star, known as AT 2016blu, is in the spiral galaxy NGC 4559, located about 30 million light-years from Earth. Astronomers estimate the mass of this star is at least 33 times that of the Sun. Read more about the discovery. Image credit: X-ray: NASA/CXC/Univ. of Virginia/M. Aghakhanloo et al.; Optical: SDSS; Image Processing: NASA/CXC/SAO/P. Edmonds",
+        "title": "Estallidos de una estrella masiva.",
+        "url": "https://www.nasa.gov/image-article/outbursts-from-a-massive-star/"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nAstrónomos descubren que una estrella masiva en NGC 4559 experimenta estallidos repetidos, revelando su inestabilidad.\n\nEstallidos de una estrella masiva Astrónomos han identificado el origen de los repetidos estallidos de una estrella masiva y inestable, conocida como AT 2016blu, ubicada en la galaxia espiral NGC 4559, a unos 30 millones de años luz de la Tierra. Este descubrimiento fue realizado utilizando el Observatorio de Rayos X Chandra de la NASA. AT 2016blu es una estrella de gran tamaño, con una masa estimada de al menos 33 veces la del Sol. Su inestabilidad ha generado una serie de explosiones que han llamado la atención de los científicos, quienes buscan entender los mecanismos detrás de estos fenómenos. El estudio de estas explosiones no solo proporciona información sobre la vida y muerte de las estrellas masivas, sino que también puede ofrecer pistas sobre la formación de elementos pesados en el universo. Las observaciones continuas de AT 2016blu permitirán a los astrónomos profundizar en la dinámica de las estrellas en sus etapas finales, contribuyendo así al conocimiento sobre la evolución estelar y la estructura del cosmos.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "a6d6fff13a47ed34dbcb5d9e8eb4070c62ef097148a64971d40621cd728802bf",
+        "source": "https://commons.wikimedia.org/wiki/File:STS093-723-082_-_STS-093_-_Earth_observations_taken_from_Space_Shuttle_Columbia_during_STS-93_mission_-_DPLA_-_93828f049698e62c38f52fc2fea659bf.jpg",
+        "title": "File:STS093-723-082 - STS-093 - Earth observations taken from Space Shuttle Columbia during STS-93 mission - DPLA - 93828f049698e62c38f52fc2fea659bf.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bf/STS093-723-082_-_STS-093_-_Earth_observations_taken_from_Space_Shuttle_Columbia_during_STS-93_mission_-_DPLA_-_93828f049698e62c38f52fc2fea659bf.jpg/1920px-STS093-723-082_-_STS-093_-_Earth_observations_taken_from_Space_Shuttle_Columbia_during_STS-93_mission_-_DPLA_-_93828f049698e62c38f52fc2fea659bf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/76b5f7f4e0dbaa387ae0.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "7bac83d0497a00629e11": {
       "article": {
         "category": "meteorologia",
