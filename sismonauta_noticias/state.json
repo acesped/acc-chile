@@ -691,6 +691,43 @@
         }
       }
     },
+    "25b8e22a30fa8d359517": {
+      "article": {
+        "category": "geologia",
+        "date": "2026-11-12T11:24:47+00:00",
+        "description": "Un análisis exhaustivo de 540 millones de años de fósiles marinos ha revelado vacíos",
+        "explanation": "Los fósiles proporcionan una ventana extraordinaria al pasado distante de la Tierra, revelando los animales, plantas y ecosistemas que existieron hace millones de años. Sin embargo, el registro fósil solo cuenta una parte de la historia. La fosilización es excepcionalmente rara, lo que significa que solo una pequeña fracción de los organismos que una vez vivieron en la Tierra ha sido preservada. Incluso cuando los fósiles sobreviven, los científicos solo pueden descubrirlos si las capas de roca que los contienen son accesibles hoy en día. Como resultado, nuestra imagen de la vida prehistórica está llena de importantes vacíos. Algunos períodos geológicos y partes del mundo han producido fósiles abundantes, brindando a los científicos una comprensión detallada de la vida que existió allí. Debido a que las excavaciones de fósiles requieren un tiempo y recursos considerables, saber dónde buscar podría hacer una gran diferencia en el descubrimiento de nuevas evidencias de vida antigua. Neubauer de las Colecciones Estatales de Historia Natural de Baviera (SNSB) y Mathias Harzhauser del Museo de Historia Natural de Viena han desarrollado una nueva herramienta para guiar la investigación de fósiles. Los dos paleontólogos analizaron la distribución geográfica de los descubrimientos fósiles de animales que habitaron ambientes marinos poco profundos durante los últimos 540 millones de años.",
+        "id": "25b8e22a30fa8d359517",
+        "image_headline": "Un nuevo mapa identifica áreas inexploradas que podrían revelar fósiles de vida prehistórica en la Tierra.",
+        "lang": "en",
+        "original_title": "A new treasure map reveals where Earth's lost prehistoric life may be hiding",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261112025529.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "Un nuevo mapa del tesoro revela dónde podría estar escondida la vida prehistórica perdida de la Tierra.",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261112025529.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DE LA TIERRA\n\nUn nuevo mapa identifica áreas inexploradas que podrían revelar fósiles de vida prehistórica en la Tierra.\n\nLos fósiles proporcionan una ventana extraordinaria al pasado distante de la Tierra, revelando los animales, plantas y ecosistemas que existieron hace millones de años. Sin embargo, el registro fósil solo cuenta una parte de la historia. La fosilización es excepcionalmente rara, lo que significa que solo una pequeña fracción de los organismos que una vez vivieron en la Tierra ha sido preservada. Incluso cuando los fósiles sobreviven, los científicos solo pueden descubrirlos si las capas de roca que los contienen son accesibles hoy en día. Como resultado, nuestra imagen de la vida prehistórica está llena de importantes vacíos. Algunos períodos geológicos y partes del mundo han producido fósiles abundantes, brindando a los científicos una comprensión detallada de la vida que existió allí. Debido a que las excavaciones de fósiles requieren un tiempo y recursos considerables, saber dónde buscar podría hacer una gran diferencia en el descubrimiento de nuevas evidencias de vida antigua. Neubauer de las Colecciones Estatales de Historia Natural de Baviera (SNSB) y Mathias Harzhauser del Museo de Historia Natural de Viena han desarrollado una nueva herramienta para guiar la investigación de fósiles. Los dos paleontólogos analizaron la distribución geográfica de los descubrimientos fósiles de animales que habitaron ambientes marinos poco profundos durante los últimos 540 millones de años.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Geologia #PlanetaTierra #Geociencias #Investigacion",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "rock formations landscape",
+        "sha256": "7d01da40f748dc499825769dab329fb08811830dfd1b67889e70f1fc44e8b7ed",
+        "source": "https://commons.wikimedia.org/wiki/File:Seascape_inlet_with_rock_formations_--_11_of_33.jpg",
+        "title": "File:Seascape inlet with rock formations -- 11 of 33.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/78/Seascape_inlet_with_rock_formations_--_11_of_33.jpg/1920px-Seascape_inlet_with_rock_formations_--_11_of_33.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/25b8e22a30fa8d359517.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "28315ffe3b3be15ec8fe": {
       "article": {
         "category": "sismos",
