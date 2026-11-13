@@ -1121,6 +1121,16 @@
       "angle": "origen",
       "time": "2026-11-12T21:01:24.806630+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-22913a271292",
+      "topic": "medicion:epicentro:pregunta",
+      "topic_key": "epicentro",
+      "title": "¿Qué deberíamos preguntarnos sobre el epicentro?",
+      "style": "mapa_explicado",
+      "angle": "pregunta",
+      "time": "2026-11-13T00:01:17.049922+00:00",
+      "status": "publicado"
     }
   ]
 }
