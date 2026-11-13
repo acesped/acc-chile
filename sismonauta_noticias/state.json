@@ -2373,6 +2373,43 @@
         }
       }
     },
+    "60a3945e6c56499d12d4": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-13T00:20:01+00:00",
+        "description": "Every few years, an unusual warming of surface waters across the central and eastern tropical Pacific—known as El Niño—reorganizes atmospheric circulation worldwide, bringing severe droughts to some continents and torrential rainfall to others. For decades, oceanographers and meteorologists have mapped the intricate internal machinery behind the El Niño–Southern Oscillation (ENSO), from shifting trade winds to subsurface ocean waves.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Cada pocos años, un inusual calentamiento de las aguas superficiales en el Pacífico tropical central y oriental—conocido como El Niño—reorganiza la circulación atmosférica a nivel mundial, trayendo sequías severas a algunos continentes y lluvias torrenciales a otros. Durante décadas, oceanógrafos y meteorólogos han mapeado la intrincada maquinaria interna detrás de la Oscilación Sur-El Niño (ENSO), desde los vientos alisios cambiantes hasta las olas oceánicas subsuperficiales.",
+        "id": "60a3945e6c56499d12d4",
+        "image_headline": "Las asimetrías orbitales de la Tierra comparten ritmos recurrentes con El Niño, revela un estudio.",
+        "lang": "en",
+        "original_title": "Earth's orbital asymmetries share recurring rhythms with El Niño, study finds",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Las asimetrías orbitales de la Tierra comparten ritmos recurrentes con El Niño, revela un estudio.",
+        "url": "https://phys.org/news/2026-11-earth-orbital-asymmetries-recurring-rhythms.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nLas asimetrías orbitales de la Tierra comparten ritmos recurrentes con El Niño, revela un estudio.\n\nCada pocos años, un inusual calentamiento de las aguas superficiales en el Pacífico tropical central y oriental—conocido como El Niño—reorganiza la circulación atmosférica a nivel mundial, trayendo sequías severas a algunos continentes y lluvias torrenciales a otros. Durante décadas, oceanógrafos y meteorólogos han mapeado la intrincada maquinaria interna detrás de la Oscilación Sur-El Niño (ENSO), desde los vientos alisios cambiantes hasta las olas oceánicas subsuperficiales.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "coastal landscape",
+        "sha256": "95872e5991015c395a103e2b59c9995f0dbae96b60097bb44a3245b31d49011e",
+        "source": "https://commons.wikimedia.org/wiki/File:Henry_Swinburne_-_Coastal_Landscape_-_B1977.14.4019_-_Yale_Center_for_British_Art.jpg",
+        "title": "File:Henry Swinburne - Coastal Landscape - B1977.14.4019 - Yale Center for British Art.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/8/85/Henry_Swinburne_-_Coastal_Landscape_-_B1977.14.4019_-_Yale_Center_for_British_Art.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/60a3945e6c56499d12d4.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "61b9051e61adffdd0619": {
       "article": {
         "category": "oceanos",
