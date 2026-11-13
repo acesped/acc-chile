@@ -1171,6 +1171,16 @@
       "angle": "errores",
       "time": "2026-11-13T12:01:21.235082+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-36f3d3d0afd8",
+      "topic": "fallas:ruptura_superficie:riesgo",
+      "topic_key": "ruptura_superficie",
+      "title": "¿Por qué conviene conocer mejor la ruptura superficial?",
+      "style": "microdocumental",
+      "angle": "riesgo",
+      "time": "2026-11-13T15:01:32.748117+00:00",
+      "status": "publicado"
     }
   ]
 }
