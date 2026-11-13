@@ -1943,6 +1943,13 @@
       "facebook_reel_id": "1870903787422522",
       "facebook_story": "publicado",
       "facebook_story_id": "2588123264993482"
+    },
+    "sismos-22913a271292": {
+      "topic": "medicion:epicentro:pregunta",
+      "topic_key": "epicentro",
+      "title": "¿Qué deberíamos preguntarnos sobre el epicentro?",
+      "reel": "enviando",
+      "updated_at": "2026-11-13T00:01:19.649999+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-13T06:03:57.630596+00:00"
