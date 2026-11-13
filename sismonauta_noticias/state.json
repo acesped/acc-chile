@@ -3683,6 +3683,43 @@
         }
       }
     },
+    "99741880e8a818b8459b": {
+      "article": {
+        "category": "meteorologia",
+        "date": "2026-11-13T09:49:36+00:00",
+        "description": "La masiva tormenta solar que iluminó los cielos de todo el mundo en mayo de 20",
+        "explanation": "En mayo de 2024, la Tierra enfrentó una tormenta solar histórica, conocida como la \"tormenta de Gannon\". Sin embargo, nuevos datos del satélite japonés Arase revelaron que nuestro propio planeta pudo haber empeorado el fenómeno.\n\nA diferencia de lo que se creía, el 85% de los iones en la \"corriente de anillo\" —una zona de partículas cargadas que rodea la Tierra— no provenían del viento solar, sino de la propia ionósfera terrestre. Estos iones de oxígeno, al ser más pesados, fortalecieron el disturbio magnético inusualmente cerca de la superficie, a unos 16.000 kilómetros de altura.\n\nEl evento alcanzó",
+        "id": "99741880e8a818b8459b",
+        "image_headline": "El Sol desató una tormenta monstruosa. La Tierra podría haberla empeorado.",
+        "lang": "en",
+        "original_title": "The Sun unleashed a monster storm. Earth may have made it worse",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261111005905.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "El Sol desató una tormenta monstruosa. La Tierra podría haberla empeorado.",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261111005905.htm"
+      },
+      "caption": "🌎 SISMONAUTA | METEOROLOGÍA\n\nEl Sol desató una tormenta monstruosa. La Tierra podría haberla empeorado.\n\nEn mayo de 2024, la Tierra enfrentó una tormenta solar histórica, conocida como la \"tormenta de Gannon\". Sin embargo, nuevos datos del satélite japonés Arase revelaron que nuestro propio planeta pudo haber empeorado el fenómeno. A diferencia de lo que se creía, el 85% de los iones en la \"corriente de anillo\" —una zona de partículas cargadas que rodea la Tierra— no provenían del viento solar, sino de la propia ionósfera terrestre. Estos iones de oxígeno, al ser más pesados, fortalecieron el disturbio magnético inusualmente cerca de la superficie, a unos 16.000 kilómetros de altura. El evento alcanzó\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Meteorologia #Tiempo #Tormentas #Atmosfera",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "storm clouds landscape",
+        "sha256": "168e39c8e2e580de97e31f9204ccf2967ce02289233cc91304e12011e9fae16b",
+        "source": "https://commons.wikimedia.org/wiki/File:Storm_clouds_over_the_Oasis_of_Mara_(51185138204).jpg",
+        "title": "File:Storm clouds over the Oasis of Mara (51185138204).jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6b/Storm_clouds_over_the_Oasis_of_Mara_%2851185138204%29.jpg/1920px-Storm_clouds_over_the_Oasis_of_Mara_%2851185138204%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/99741880e8a818b8459b.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "99c12d92af70d96eeb57": {
       "article": {
         "date": "2026-10-26T20:51:37+00:00",
