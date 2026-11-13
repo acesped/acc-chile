@@ -1971,6 +1971,13 @@
       "facebook_reel_id": "1174964105046848",
       "facebook_story": "publicado",
       "facebook_story_id": "2810742195989413"
+    },
+    "sismos-b798d3017929": {
+      "topic": "riesgo:prediccion:evidencia",
+      "topic_key": "prediccion",
+      "title": "¿Qué señales deja las predicciones sísmicas?",
+      "reel": "enviando",
+      "updated_at": "2026-11-13T06:01:47.309577+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-13T06:03:57.630596+00:00"
