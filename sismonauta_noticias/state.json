@@ -1385,6 +1385,43 @@
         }
       }
     },
+    "3cd846cdaada110e16a0": {
+      "article": {
+        "category": "climatologia",
+        "date": "2026-11-12T20:40:10+00:00",
+        "description": "Though it may not always feel like it, we are a part of nature, and our health depends on the quality of our environmental surroundings. A new study published in Scientific Reports explores a surprising new connection between climate change, pollution and the negative health impacts marginalized communities disproportionately face.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Aunque no siempre se sienta así, somos parte de la naturaleza, y nuestra salud depende de la calidad de nuestro entorno ambiental. Un nuevo estudio publicado en Scientific Reports explora una sorprendente nueva conexión entre el cambio climático, la contaminación y los impactos negativos en la salud que las comunidades marginadas enfrentan de manera desproporcionada.",
+        "id": "3cd846cdaada110e16a0",
+        "image_headline": "El polvo tóxico del Salton Sea podría gatillar inflamación pulmonar y reducir la diversidad microbiana intestinal.",
+        "lang": "en",
+        "original_title": "Toxic Salton Sea dust may trigger lung inflammation and reduce gut microbial diversity",
+        "search_category": "direct",
+        "source": "Phys.org Medio Ambiente",
+        "source_body": "",
+        "title": "El polvo tóxico del Salton Sea podría gatillar inflamación pulmonar y reducir la diversidad microbiana intestinal.",
+        "url": "https://phys.org/news/2026-11-toxic-salton-sea-trigger-lung.html"
+      },
+      "caption": "🌎 SISMONAUTA | CLIMATOLOGÍA\n\nEl polvo tóxico del Salton Sea podría gatillar inflamación pulmonar y reducir la diversidad microbiana intestinal.\n\nAunque no siempre se sienta así, somos parte de la naturaleza, y nuestra salud depende de la calidad de nuestro entorno ambiental. Un nuevo estudio publicado en Scientific Reports explora una sorprendente nueva conexión entre el cambio climático, la contaminación y los impactos negativos en la salud que las comunidades marginadas enfrentan de manera desproporcionada.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Climatologia #Clima #CambioClimatico #Glaciares",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "glacier landscape",
+        "sha256": "a7dab9ffba29ea7675f92b5f7f7ddd836ed67c440109825de37f40e144997f23",
+        "source": "https://commons.wikimedia.org/wiki/File:Glacier_National_Park_-_HCP_-_October_23,_2022_-_086_-_Apgar_Lookout_Trail.jpg",
+        "title": "File:Glacier National Park - HCP - October 23, 2022 - 086 - Apgar Lookout Trail.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e3/Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_086_-_Apgar_Lookout_Trail.jpg/1920px-Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_086_-_Apgar_Lookout_Trail.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/3cd846cdaada110e16a0.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "3dccd283bd59d015c354": {
       "article": {
         "category": "espacio",
