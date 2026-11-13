@@ -1951,6 +1951,43 @@
         }
       }
     },
+    "4ad5741ee2d9d634bc1e": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-13T19:00:02+00:00",
+        "description": "Mountain ranges grew higher throughout Earth's history in two distinct \"spurts\" that correlated with the flourishing of biological diversity on our planet, according to new research published in the journal Science Advances. The study suggests mountains may have played a key role in sparking complex life.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Las cadenas montañosas crecieron más altas a lo largo de la historia de la Tierra en dos \"impulsos\" distintos que se correlacionaron con el florecimiento de la diversidad biológica en nuestro planeta, según una nueva investigación publicada en la revista Science Advances. El estudio sugiere que las montañas pueden haber desempeñado un papel clave en el surgimiento de la vida compleja.",
+        "id": "4ad5741ee2d9d634bc1e",
+        "image_headline": "Los brotes de crecimiento de montañas pueden haber desencadenado la vida compleja en la Tierra.",
+        "lang": "en",
+        "original_title": "Mountain growth spurts may have sparked complex life on Earth",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Los brotes de crecimiento de montañas pueden haber desencadenado la vida compleja en la Tierra.",
+        "url": "https://phys.org/news/2026-11-mountain-growth-spurts-complex-life.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nLos brotes de crecimiento de montañas pueden haber desencadenado la vida compleja en la Tierra.\n\nLas cadenas montañosas crecieron más altas a lo largo de la historia de la Tierra en dos \"impulsos\" distintos que se correlacionaron con el florecimiento de la diversidad biológica en nuestro planeta, según una nueva investigación publicada en la revista Science Advances. El estudio sugiere que las montañas pueden haber desempeñado un papel clave en el surgimiento de la vida compleja.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "83906bdb82886dd421909bbe0db6f572409c1b3ab7d767fbe0a006c5505d6281",
+        "source": "https://commons.wikimedia.org/wiki/File:STS057-89-009_-_STS-057_-_Earth_observations_during_mission_STS-57_from_Space_Shuttle_Endeavour._-_DPLA_-_23cda1975b5457e98fcc45dc62e6b96c.jpg",
+        "title": "File:STS057-89-009 - STS-057 - Earth observations during mission STS-57 from Space Shuttle Endeavour. - DPLA - 23cda1975b5457e98fcc45dc62e6b96c.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/2/25/STS057-89-009_-_STS-057_-_Earth_observations_during_mission_STS-57_from_Space_Shuttle_Endeavour._-_DPLA_-_23cda1975b5457e98fcc45dc62e6b96c.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/4ad5741ee2d9d634bc1e.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "4dad43665fc2e3d1168a": {
       "article": {
         "category": "meteorologia",
