@@ -1991,7 +1991,7 @@
       "topic_key": "retroceso_mar",
       "title": "¿Qué relación guarda el paisaje con el retroceso del mar?",
       "reel": "publicado",
-      "updated_at": "2026-11-13T09:03:19.952558+00:00",
+      "updated_at": "2026-11-13T09:03:55.723672+00:00",
       "reel_id": "18110195741243217",
       "story": "publicado",
       "story_id": "18130095913852946",
@@ -2000,7 +2000,8 @@
       "facebook_story": "publicado",
       "facebook_story_id": "1851467345878873",
       "youtube_short": "publicado",
-      "youtube_short_id": "QqTrGyaKjRc"
+      "youtube_short_id": "QqTrGyaKjRc",
+      "youtube_video": "enviando"
     }
   },
   "youtube_upload_retry_after": "2026-11-13T06:03:57.630596+00:00"
