@@ -1191,6 +1191,16 @@
       "angle": "investigacion",
       "time": "2026-11-13T18:01:16.084876+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-de36c2a7d581",
+      "topic": "geologia:rocas_deformadas:diferencia",
+      "topic_key": "rocas_deformadas",
+      "title": "¿Cómo distinguir la deformación de las rocas de otros fenómenos?",
+      "style": "pregunta_respuesta",
+      "angle": "diferencia",
+      "time": "2026-11-13T21:01:58.886699+00:00",
+      "status": "publicado"
     }
   ]
 }
