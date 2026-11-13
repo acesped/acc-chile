@@ -1151,6 +1151,16 @@
       "angle": "evidencia",
       "time": "2026-11-13T06:01:45.124254+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-6c89c1bea170",
+      "topic": "tsunamis:retroceso_mar:relieve",
+      "topic_key": "retroceso_mar",
+      "title": "¿Qué relación guarda el paisaje con el retroceso del mar?",
+      "style": "mito_realidad",
+      "angle": "relieve",
+      "time": "2026-11-13T09:01:25.935020+00:00",
+      "status": "publicado"
     }
   ]
 }
