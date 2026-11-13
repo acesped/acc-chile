@@ -1181,6 +1181,16 @@
       "angle": "riesgo",
       "time": "2026-11-13T15:01:32.748117+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-bdf42b055d31",
+      "topic": "medicion:replicas:investigacion",
+      "topic_key": "replicas",
+      "title": "¿Por qué se investiga las réplicas?",
+      "style": "mapa_explicado",
+      "angle": "investigacion",
+      "time": "2026-11-13T18:01:16.084876+00:00",
+      "status": "publicado"
     }
   ]
 }
