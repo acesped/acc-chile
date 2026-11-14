@@ -1241,6 +1241,16 @@
       "angle": "lectura",
       "time": "2026-11-14T09:01:14.599863+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-a0a9322261c4",
+      "topic": "ondas:ondas_p:pregunta",
+      "topic_key": "ondas_p",
+      "title": "¿Qué deberíamos preguntarnos sobre las ondas P?",
+      "style": "mito_realidad",
+      "angle": "pregunta",
+      "time": "2026-11-14T12:01:09.148441+00:00",
+      "status": "publicado"
     }
   ]
 }
