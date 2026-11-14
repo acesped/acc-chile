@@ -2890,6 +2890,43 @@
         }
       }
     },
+    "6276663bcc64d9420d9d": {
+      "article": {
+        "category": "volcanes",
+        "date": "2026-11-13T11:56:39+00:00",
+        "description": "Why do some volcanoes erupt with spectacular lava fountains while others release lava more quietly? Scientists have discovered that a hidden effect of extreme heat inside magma may help explain the difference. Experiments revealed that superheated magma can delay crystal formation for more than eight hours, compared with just 20 minutes in magma that has not been superheated.",
+        "editorial_mode": "documented_brief",
+        "explanation": "¿Por qué algunos volcanes envían fuentes de lava imponentes al cielo mientras que otros liberan roca fundida en erupciones mucho más tranquilas? Los científicos han descubierto que un efecto oculto del calor extremo dentro del magma puede ayudar a explicar estas marcadas diferencias. Un equipo de investigación internacional liderado por la Universidad de Manchester investigó material volcánico de la erupción de Tajogaite en 2021 en La Palma, España. Sus hallazgos revelan que un proceso conocido como \"sobrecalentamiento\" puede ralentizar drásticamente la formación de cristales dentro del magma a medida que asciende hacia la superficie de la Tierra. El sobrecalentamiento ocurre cuando el magma alcanza temperaturas superiores a las que sus cristales normalmente permanecerían estables. Los investigadores encontraron que este calor adicional puede mantener el magma relativamente fluido durante mucho más tiempo del esperado, lo que potencialmente le permite ascender rápidamente y producir espectaculares fuentes de lava. El descubrimiento, publicado en Nature Communications, ofrece una nueva perspectiva sobre una pregunta de larga data en volcanología: ¿Cómo influye la historia de temperatura del magma en la forma en que un volcán erupciona?",
+        "id": "6276663bcc64d9420d9d",
+        "image_headline": "El magma sobrecalentado podría alimentar fuentes de lava imponentes.",
+        "lang": "en",
+        "original_title": "Superheated magma could fuel towering lava fountains",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "El magma sobrecalentado podría alimentar fuentes de lava imponentes.",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261111221811.htm"
+      },
+      "caption": "🌎 SISMONAUTA | ACTUALIDAD VOLCÁNICA\n\nEl magma sobrecalentado podría alimentar fuentes de lava imponentes.\n\n¿Por qué algunos volcanes envían fuentes de lava imponentes al cielo mientras que otros liberan roca fundida en erupciones mucho más tranquilas? Los científicos han descubierto que un efecto oculto del calor extremo dentro del magma puede ayudar a explicar estas marcadas diferencias. Un equipo de investigación internacional liderado por la Universidad de Manchester investigó material volcánico de la erupción de Tajogaite en 2021 en La Palma, España. Sus hallazgos revelan que un proceso conocido como \"sobrecalentamiento\" puede ralentizar drásticamente la formación de cristales dentro del magma a medida que asciende hacia la superficie de la Tierra. El sobrecalentamiento ocurre cuando el magma alcanza temperaturas superiores a las que sus cristales normalmente permanecerían estables. Los investigadores encontraron que este calor adicional puede mantener el magma relativamente fluido durante mucho más tiempo del esperado, lo que potencialmente le permite ascender rápidamente y producir espectaculares fuentes de lava. El descubrimiento, publicado en Nature Communications, ofrece una nueva perspectiva sobre una pregunta de larga data en volcanología: ¿Cómo influye la historia de temperatura del magma en la forma en que un volcán erupciona?\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Volcanes #Erupciones #Volcanologia #Geologia",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "volcanic eruption",
+        "sha256": "c98b563c764f07c6a7a13cc855435696ee393ec0d97f969d484a48af93b44913",
+        "source": "https://commons.wikimedia.org/wiki/File:Cast_sitting_victim_Pompeii.jpg",
+        "title": "File:Cast sitting victim Pompeii.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9e/Cast_sitting_victim_Pompeii.jpg/1920px-Cast_sitting_victim_Pompeii.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/6276663bcc64d9420d9d.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "63d774c9de7f1d8a01b1": {
       "article": {
         "category": "climatologia",
