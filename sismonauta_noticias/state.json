@@ -905,6 +905,43 @@
         }
       }
     },
+    "28a5c90d2c0039c0eb73": {
+      "article": {
+        "category": "meteorologia",
+        "date": "2026-11-12T22:40:06+00:00",
+        "description": "As communities around the world shore up their infrastructure in anticipation of one of the most powerful El Niños on record in late 2026 and early 2027, they need to think about rising health risks, too—and include them in early weather warnings.",
+        "editorial_mode": "verified_summary",
+        "explanation": "A medida que las comunidades de todo el mundo refuerzan su infraestructura ante la llegada de uno de los fenómenos",
+        "id": "28a5c90d2c0039c0eb73",
+        "image_headline": "El Niño también amenaza la salud: las alertas tempranas bien hechas pueden salvar vidas.",
+        "lang": "en",
+        "original_title": "El Niño threatens health, too—early warnings done right can save lives",
+        "search_category": "direct",
+        "source": "Phys.org Medio Ambiente",
+        "source_body": "",
+        "title": "El Niño también amenaza la salud: las alertas tempranas bien hechas pueden salvar vidas.",
+        "url": "https://phys.org/news/2026-11-el-nio-threatens-health-early.html"
+      },
+      "caption": "🌎 SISMONAUTA | METEOROLOGÍA\n\nEl Niño también amenaza la salud: las alertas tempranas bien hechas pueden salvar vidas.\n\nA medida que las comunidades de todo el mundo refuerzan su infraestructura ante la llegada de uno de los fenómenos\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Meteorologia #Tiempo #Tormentas #Atmosfera",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "storm clouds landscape",
+        "sha256": "c865e6da73110d26848e17f95da654da44c604a4e47cfe5abc43a793448ed98e",
+        "source": "https://commons.wikimedia.org/wiki/File:Storm_clouds_over_the_Oasis_of_Mara_(51184357046).jpg",
+        "title": "File:Storm clouds over the Oasis of Mara (51184357046).jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d6/Storm_clouds_over_the_Oasis_of_Mara_%2851184357046%29.jpg/1920px-Storm_clouds_over_the_Oasis_of_Mara_%2851184357046%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/28a5c90d2c0039c0eb73.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "2946b6851eb28900c574": {
       "article": {
         "category": "sismos",
