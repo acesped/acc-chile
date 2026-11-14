@@ -2802,6 +2802,43 @@
         }
       }
     },
+    "63d774c9de7f1d8a01b1": {
+      "article": {
+        "category": "climatologia",
+        "date": "2026-11-13T16:40:17+00:00",
+        "description": "New research published at COP31 issues a stark warning about the health of the frozen parts of the planet—ice sheets, mountain glaciers, sea ice, permafrost and snow cover—known as the cryosphere. The study, published in Science, finds that human-driven climate change is degrading these landscapes beyond safe environmental limits, systematically threatening the Earth system conditions on which humanity fundamentally depends.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Nueva investigación publicada en la COP31 emite una advertencia contundente sobre la salud de las partes congeladas del planeta—casquetes de hielo, glaciares de montaña, hielo marino, permafrost y cubierta de nieve—conocidas como la criósfera. El estudio, publicado en Science, encuentra que el cambio climático impulsado por el ser humano está degradando estos paisajes más allá de los límites ambientales seguros, amenazando sistemáticamente las condiciones del sistema terrestre de las cuales la humanidad depende fundamentalmente.",
+        "id": "63d774c9de7f1d8a01b1",
+        "image_headline": "Declive de la criosfera más allá de los límites planetarios seguros, poniendo en riesgo las condiciones para la sociedad humana.",
+        "lang": "en",
+        "original_title": "Cryosphere decline beyond safe planetary limits, putting conditions for human society at risk",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Declive de la criosfera más allá de los límites planetarios seguros, poniendo en riesgo las condiciones para la sociedad humana.",
+        "url": "https://phys.org/news/2026-11-cryosphere-decline-safe-planetary-limits.html"
+      },
+      "caption": "🌎 SISMONAUTA | CLIMATOLOGÍA\n\nDeclive de la criosfera más allá de los límites planetarios seguros, poniendo en riesgo las condiciones para la sociedad humana.\n\nNueva investigación publicada en la COP31 emite una advertencia contundente sobre la salud de las partes congeladas del planeta—casquetes de hielo, glaciares de montaña, hielo marino, permafrost y cubierta de nieve—conocidas como la criósfera. El estudio, publicado en Science, encuentra que el cambio climático impulsado por el ser humano está degradando estos paisajes más allá de los límites ambientales seguros, amenazando sistemáticamente las condiciones del sistema terrestre de las cuales la humanidad depende fundamentalmente.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Climatologia #Clima #CambioClimatico #Glaciares",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "glacier landscape",
+        "sha256": "e9150e8aa41339f4a9719470048024c2a89fe7ce75952da5602b4ead53b7e1ff",
+        "source": "https://commons.wikimedia.org/wiki/File:Glacier_National_Park_-_HCP_-_October_23,_2022_-_092_-_Apgar_Lookout_Trail.jpg",
+        "title": "File:Glacier National Park - HCP - October 23, 2022 - 092 - Apgar Lookout Trail.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/20/Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_092_-_Apgar_Lookout_Trail.jpg/1920px-Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_092_-_Apgar_Lookout_Trail.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/63d774c9de7f1d8a01b1.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "672e68c0f474a3dc50e2": {
       "article": {
         "category": "climatologia",
