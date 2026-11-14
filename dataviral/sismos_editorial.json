@@ -1261,6 +1261,16 @@
       "angle": "sintesis",
       "time": "2026-11-14T15:01:31.243946+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-272efe96ea84",
+      "topic": "fallas:escarpes:pregunta",
+      "topic_key": "escarpes",
+      "title": "¿Qué deberíamos preguntarnos sobre un escarpe de falla?",
+      "style": "descubrimiento",
+      "angle": "pregunta",
+      "time": "2026-11-14T18:01:29.682584+00:00",
+      "status": "publicado"
     }
   ]
 }
