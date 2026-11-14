@@ -5460,6 +5460,40 @@
         }
       }
     },
+    "daf1b673901fc7c2db4e": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-13T18:40:21+00:00",
+        "description": "The ocean has been absorbing carbon dioxide from fossil fuel emissions at an increasing rate since 1990, while the net uptake of carbon by forests, soils and other land ecosystems has not grown, according to a new study led by scientists at UC San Diego's Scripps Institution of Oceanography.",
+        "editorial_mode": "verified_summary",
+        "explanation": "El océano ha estado absorbiendo dióxido de carbono de las emisiones de combustibles fósiles a un ritmo creciente desde",
+        "id": "daf1b673901fc7c2db4e",
+        "image_headline": "El océano absorbe más carbono de combustibles fósiles mientras la absorción terrestre se estanca, muestran 30 años de datos.",
+        "lang": "en",
+        "original_title": "Ocean absorbs more fossil fuel carbon while land uptake stalls, 30 years of data show",
+        "search_category": "direct",
+        "source": "Phys.org Medio Ambiente",
+        "source_body": "",
+        "title": "El océano absorbe más carbono de combustibles fósiles mientras la absorción terrestre se estanca, muestran 30 años de datos.",
+        "url": "https://phys.org/news/2026-11-ocean-absorbs-fossil-fuel-carbon.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nEl océano absorbe más carbono de combustibles fósiles mientras la absorción terrestre se estanca, muestran 30 años de datos.\n\nEl océano ha estado absorbiendo dióxido de carbono de las emisiones de combustibles fósiles a un ritmo creciente desde\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": true,
+        "license": "Obra original",
+        "title": "Arte original SISMONAUTA",
+        "url": ""
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/daf1b673901fc7c2db4e.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "dec9f077a7f855246f29": {
       "article": {
         "category": "espacio",
