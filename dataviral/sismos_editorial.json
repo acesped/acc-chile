@@ -1211,6 +1211,16 @@
       "angle": "significado",
       "time": "2026-11-14T00:01:30.837996+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-3970225e52eb",
+      "topic": "medicion:magnitud_intensidad:mito",
+      "topic_key": "magnitud_intensidad",
+      "title": "¿Qué solemos confundir sobre la magnitud y la intensidad?",
+      "style": "mapa_explicado",
+      "angle": "mito",
+      "time": "2026-11-14T03:01:45.305434+00:00",
+      "status": "publicado"
     }
   ]
 }
