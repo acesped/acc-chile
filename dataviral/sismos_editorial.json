@@ -1271,6 +1271,16 @@
       "angle": "pregunta",
       "time": "2026-11-14T18:01:29.682584+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-517dcc07e9af",
+      "topic": "fallas:falla_normal:investigacion",
+      "topic_key": "falla_normal",
+      "title": "¿Por qué se investiga una falla normal?",
+      "style": "descubrimiento",
+      "angle": "investigacion",
+      "time": "2026-11-14T21:01:27.337388+00:00",
+      "status": "publicado"
     }
   ]
 }
