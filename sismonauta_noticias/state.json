@@ -4426,6 +4426,40 @@
         }
       }
     },
+    "af2f047697da655729f9": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-13T14:00:07+00:00",
+        "description": "A new comprehensive study by researchers at the University of Hawaiʻi (UH) at Mānoa Climate Resilience Collaborative reveals that traditional sea-level rise models, which account only for rising ocean waters, drastically underestimate the true threat to coastal infrastructure on Oʻahu, Hawai'i.",
+        "editorial_mode": "verified_summary",
+        "explanation": "Un nuevo estudio integral realizado por investigadores de la Universidad de Hawái (UH) en Mānoa Climate Resilience Collaborative revela que los modelos tradicionales de aumento del nivel del mar, que solo consideran el aumento de las aguas oceánicas, subestiman drásticamente la verdadera amenaza para la infraestructura costera en Oʻahu, Hawái.",
+        "id": "af2f047697da655729f9",
+        "image_headline": "Infraestructura de Oʻahu amenazada por punto de inflexión en impactos del aumento del nivel del mar.",
+        "lang": "en",
+        "original_title": "Oʻahu infrastructure threatened by tipping point in sea-level rise impacts",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Infraestructura de Oʻahu amenazada por punto de inflexión en impactos del aumento del nivel del mar.",
+        "url": "https://phys.org/news/2026-11-oahu-infrastructure-threatened-sea-impacts.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nInfraestructura de Oʻahu amenazada por punto de inflexión en impactos del aumento del nivel del mar.\n\nUn nuevo estudio integral realizado por investigadores de la Universidad de Hawái (UH) en Mānoa Climate Resilience Collaborative revela que los modelos tradicionales de aumento del nivel del mar, que solo consideran el aumento de las aguas oceánicas, subestiman drásticamente la verdadera amenaza para la infraestructura costera en Oʻahu, Hawái.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": true,
+        "license": "Obra original",
+        "title": "Arte original SISMONAUTA",
+        "url": ""
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/af2f047697da655729f9.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "af5f37092e93b6f5b96e": {
       "article": {
         "category": "espacio",
