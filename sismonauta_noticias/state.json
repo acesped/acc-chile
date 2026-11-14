@@ -5490,8 +5490,10 @@
           "status": "pending"
         },
         "instagram": {
+          "id": "18139580452727203",
+          "published_at": "2026-11-14T09:02:00.564605+00:00",
           "started_at": "2026-11-14T09:01:42.753117+00:00",
-          "status": "uncertain"
+          "status": "published"
         }
       }
     },
