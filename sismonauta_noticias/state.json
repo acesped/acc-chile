@@ -4736,6 +4736,43 @@
         }
       }
     },
+    "b93e807e391f74e9990e": {
+      "article": {
+        "category": "desastres",
+        "date": "2026-11-14T11:40:06+00:00",
+        "description": "California was bracing Friday for a storm series packing heavy rain and surf that could once again flood coastal communities and potentially send monster waves pounding shores.",
+        "editorial_mode": "verified_summary",
+        "explanation": "California se preparaba el viernes para una serie de tormentas con intensas lluvias y marejadas que podrían inundar nuevamente a las comunidades costeras y potencialmente enviar olas gigantes azotando las costas.",
+        "id": "b93e807e391f74e9990e",
+        "image_headline": "California se prepara para tormentas que podrían provocar olas masivas e inundaciones.",
+        "lang": "en",
+        "original_title": "California steels for storms that could trigger massive waves, flooding",
+        "search_category": "direct",
+        "source": "Phys.org Medio Ambiente",
+        "source_body": "",
+        "title": "California se prepara para tormentas que podrían provocar olas masivas e inundaciones.",
+        "url": "https://phys.org/news/2026-11-california-steels-storms-trigger-massive.html"
+      },
+      "caption": "🌎 SISMONAUTA | RIESGOS NATURALES\n\nCalifornia se prepara para tormentas que podrían provocar olas masivas e inundaciones.\n\nCalifornia se preparaba el viernes para una serie de tormentas con intensas lluvias y marejadas que podrían inundar nuevamente a las comunidades costeras y potencialmente enviar olas gigantes azotando las costas.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #DesastresNaturales #Prevencion #RiesgosNaturales",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "landslide mountain",
+        "sha256": "631d4e76c89cbce7f1f3c3ac082142e6fd171f5336553a63d09f769d3216d889",
+        "source": "https://commons.wikimedia.org/wiki/File:Blackhawk_Landslide,_California_(ASTER).jpg",
+        "title": "File:Blackhawk Landslide, California (ASTER).jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/d/d4/Blackhawk_Landslide%2C_California_%28ASTER%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/b93e807e391f74e9990e.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "bbd19f1e77582757a235": {
       "article": {
         "category": "climatologia",
