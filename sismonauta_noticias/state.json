@@ -544,6 +544,43 @@
         }
       }
     },
+    "1cc615ede7df3c813894": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-10T22:40:12+00:00",
+        "description": "Scientists have discovered the best evidence yet to show that West Antarctica's most vulnerable ice streams—including its giant Thwaites Glacier—repeatedly collapsed and retreated far inland during natural warm periods of the last 800,000 years.",
+        "editorial_mode": "verified_summary",
+        "explanation": "Científicos han descubierto la mejor evidencia hasta ahora que demuestra que las corrientes de hielo más vulnerables de la Antártica",
+        "id": "1cc615ede7df3c813894",
+        "image_headline": "Arcilla del fondo marino revela dramática pérdida de hielo en el pasado en la Antártica Occidental",
+        "lang": "en",
+        "original_title": "Seafloor clay reveals past dramatic ice loss in West Antarctica",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Arcilla del fondo marino revela dramática pérdida de hielo en el pasado en la Antártica Occidental",
+        "url": "https://phys.org/news/2026-11-seafloor-clay-reveals-ice-loss.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nArcilla del fondo marino revela dramática pérdida de hielo en el pasado en la Antártica Occidental\n\nCientíficos han descubierto la mejor evidencia hasta ahora que demuestra que las corrientes de hielo más vulnerables de la Antártica\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "sea waves shore",
+        "sha256": "0cda9c4c3802026b42b96a62df7d20ed80cb23a48bc1b23713fe80a52da83ab4",
+        "source": "https://commons.wikimedia.org/wiki/File:Shore_cliffs_and_rock_ledges_with_breaking_waves,_looking_northeast,_Cap_Le_Moine,_Inverness_County,_Nova_Scotia.jpg",
+        "title": "File:Shore cliffs and rock ledges with breaking waves, looking northeast, Cap Le Moine, Inverness County, Nova Scotia.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/85/Shore_cliffs_and_rock_ledges_with_breaking_waves%2C_looking_northeast%2C_Cap_Le_Moine%2C_Inverness_County%2C_Nova_Scotia.jpg/1920px-Shore_cliffs_and_rock_ledges_with_breaking_waves%2C_looking_northeast%2C_Cap_Le_Moine%2C_Inverness_County%2C_Nova_Scotia.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/1cc615ede7df3c813894.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "1f6bd6cc7d0b2fc6fb2b": {
       "article": {
         "category": "espacio",
