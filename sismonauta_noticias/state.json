@@ -861,6 +861,43 @@
         }
       }
     },
+    "285a27378f944c0226b9": {
+      "article": {
+        "category": "climatologia",
+        "date": "2026-11-13T14:40:08+00:00",
+        "description": "While young people are constantly exposed to news about climate change, their resulting anxiety does not always translate into environmental action. A new study published in Climate reveals that the relationship between climate distress and climate action is highly complex. While worry pushes some youth to seek solutions, it causes others to freeze up.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Mientras los jóvenes están constantemente expuestos a noticias sobre el cambio climático, la ansiedad resultante no siempre se traduce en acción ambiental. Un nuevo estudio publicado en Climate revela que la relación entre la angustia climática y la acción climática es altamente compleja. Mientras que la preocupación impulsa a algunos jóvenes a buscar soluciones, provoca que otros se paralicen.",
+        "id": "285a27378f944c0226b9",
+        "image_headline": "Por qué la ansiedad climática hace que algunos jóvenes actúen, mientras otros se paralizan",
+        "lang": "en",
+        "original_title": "Why climate anxiety makes some youth take action, while others freeze",
+        "search_category": "direct",
+        "source": "Phys.org Medio Ambiente",
+        "source_body": "",
+        "title": "Por qué la ansiedad climática hace que algunos jóvenes actúen, mientras otros se paralizan",
+        "url": "https://phys.org/news/2026-11-climate-anxiety-youth-action.html"
+      },
+      "caption": "🌎 SISMONAUTA | CLIMATOLOGÍA\n\nPor qué la ansiedad climática hace que algunos jóvenes actúen, mientras otros se paralizan\n\nMientras los jóvenes están constantemente expuestos a noticias sobre el cambio climático, la ansiedad resultante no siempre se traduce en acción ambiental. Un nuevo estudio publicado en Climate revela que la relación entre la angustia climática y la acción climática es altamente compleja. Mientras que la preocupación impulsa a algunos jóvenes a buscar soluciones, provoca que otros se paralicen.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Climatologia #Clima #CambioClimatico #Glaciares",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "glacier landscape",
+        "sha256": "a9e809b1677e581bc663f018a69d1bced43c0b7f277c9282336992a4f0070a7b",
+        "source": "https://commons.wikimedia.org/wiki/File:Glacier_National_Park_-_HCP_-_October_23,_2022_-_091_-_Apgar_Lookout_Trail.jpg",
+        "title": "File:Glacier National Park - HCP - October 23, 2022 - 091 - Apgar Lookout Trail.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3c/Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_091_-_Apgar_Lookout_Trail.jpg/1920px-Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_091_-_Apgar_Lookout_Trail.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/285a27378f944c0226b9.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "2946b6851eb28900c574": {
       "article": {
         "category": "sismos",
