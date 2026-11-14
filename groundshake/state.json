@@ -2095,8 +2095,9 @@
       "topic": "medicion:magnitud_intensidad:mito",
       "topic_key": "magnitud_intensidad",
       "title": "¿Qué solemos confundir sobre la magnitud y la intensidad?",
-      "reel": "enviando",
-      "updated_at": "2026-11-14T03:01:47.481013+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-14T03:02:45.575564+00:00",
+      "reel_id": "18098506475670742"
     }
   },
   "youtube_upload_retry_after": "2026-11-15T00:04:02.582269+00:00"
