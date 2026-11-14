@@ -2080,8 +2080,9 @@
       "topic": "ondas:atenuacion:significado",
       "topic_key": "atenuacion",
       "title": "¿Qué nos enseña la propagación de las ondas?",
-      "reel": "enviando",
-      "updated_at": "2026-11-14T00:01:33.342360+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-14T00:02:11.926243+00:00",
+      "reel_id": "17989073412104840"
     }
   },
   "youtube_upload_retry_after": "2026-11-13T06:03:57.630596+00:00"
