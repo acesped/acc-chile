@@ -4514,6 +4514,43 @@
         }
       }
     },
+    "ab00ee2b3c3f245fdcf3": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-12T03:00:08+00:00",
+        "description": "Fires in Indonesia driven partly by a strong El Niño have burned through 2.88 million hectares (7.1 million acres) so far in 2026, a monitor analyzing satellite imagery told AFP on Wednesday.",
+        "editorial_mode": "verified_summary",
+        "explanation": "Los incendios en Indonesia, impulsados en parte por un fuerte El Niño, han consumido 2.88 millones de hectáreas (7.1 millones de acres) hasta ahora en 2026, informó un monitor que analiza imágenes satelitales a AFP el miércoles.",
+        "id": "ab00ee2b3c3f245fdcf3",
+        "image_headline": "Los incendios en Indonesia arrasaron casi 2,9 millones de hectáreas: Monitor",
+        "lang": "en",
+        "original_title": "Indonesia fires burned through nearly 2.9 million hectares: Monitor",
+        "search_category": "direct",
+        "source": "Phys.org Medio Ambiente",
+        "source_body": "",
+        "title": "Los incendios en Indonesia arrasaron casi 2,9 millones de hectáreas: Monitor",
+        "url": "https://phys.org/news/2026-11-indonesia-million-hectares.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nLos incendios en Indonesia arrasaron casi 2,9 millones de hectáreas: Monitor\n\nLos incendios en Indonesia, impulsados en parte por un fuerte El Niño, han consumido 2.88 millones de hectáreas (7.1 millones de acres) hasta ahora en 2026, informó un monitor que analiza imágenes satelitales a AFP el miércoles.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "d004041ea495384a01019a0c5f4b82274b35e6b923add3dbb000f7eee0650aa4",
+        "source": "https://commons.wikimedia.org/wiki/File:Earth_%26_Moon_from_MESSENGER.png",
+        "title": "File:Earth & Moon from MESSENGER.png",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/9/92/Earth_%26_Moon_from_MESSENGER.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/ab00ee2b3c3f245fdcf3.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "ae6dd65bdc07541f856c": {
       "article": {
         "category": "meteorologia",
