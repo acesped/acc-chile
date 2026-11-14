@@ -3648,6 +3648,43 @@
         }
       }
     },
+    "8a949b8b3095f95dc5a2": {
+      "article": {
+        "category": "climatologia",
+        "date": "2026-11-13T00:00:01+00:00",
+        "description": "The latest findings from the Oxford Climate Policy Monitor, led by the Blavatnik School of Government and the Oxford Sustainable Law Programme, show that progress in Asia, Africa and Latin America is more than offsetting the weakening or reversal of climate policies in parts of Europe and North America.",
+        "editorial_mode": "verified_summary",
+        "explanation": "Los últimos hallazgos del Monitor de Políticas Climáticas de Oxford, liderado por la Escuela de Gobierno Blavatnik y",
+        "id": "8a949b8b3095f95dc5a2",
+        "image_headline": "Las políticas climáticas globales siguen avanzando a pesar de los contratiempos, según revela una investigación.",
+        "lang": "en",
+        "original_title": "Global climate policies continue to advance despite setbacks, research finds",
+        "search_category": "direct",
+        "source": "Phys.org Medio Ambiente",
+        "source_body": "",
+        "title": "Las políticas climáticas globales siguen avanzando a pesar de los contratiempos, según revela una investigación.",
+        "url": "https://phys.org/news/2026-11-global-climate-policies-advance-setbacks.html"
+      },
+      "caption": "🌎 SISMONAUTA | CLIMATOLOGÍA\n\nLas políticas climáticas globales siguen avanzando a pesar de los contratiempos, según revela una investigación.\n\nLos últimos hallazgos del Monitor de Políticas Climáticas de Oxford, liderado por la Escuela de Gobierno Blavatnik y\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Climatologia #Clima #CambioClimatico #Glaciares",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "glacier landscape",
+        "sha256": "a203f3be1b65167072f9d649c39dd243eee236d94d9e59a5bbd3939287104848",
+        "source": "https://commons.wikimedia.org/wiki/File:Glacier_National_Park_-_HCP_-_October_23,_2022_-_090_-_Apgar_Lookout_Trail.jpg",
+        "title": "File:Glacier National Park - HCP - October 23, 2022 - 090 - Apgar Lookout Trail.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7c/Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_090_-_Apgar_Lookout_Trail.jpg/1920px-Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_090_-_Apgar_Lookout_Trail.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/8a949b8b3095f95dc5a2.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "9022b395cb1565fe8831": {
       "article": {
         "category": "climatologia",
