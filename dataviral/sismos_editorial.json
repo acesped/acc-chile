@@ -1251,6 +1251,16 @@
       "angle": "pregunta",
       "time": "2026-11-14T12:01:09.148441+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-be5c9ed76abb",
+      "topic": "fallas:grietas:sintesis",
+      "topic_key": "grietas",
+      "title": "¿Qué es lo esencial que debes saber de las grietas del terreno?",
+      "style": "mapa_explicado",
+      "angle": "sintesis",
+      "time": "2026-11-14T15:01:31.243946+00:00",
+      "status": "publicado"
     }
   ]
 }
