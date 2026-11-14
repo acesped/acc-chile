@@ -1201,6 +1201,16 @@
       "angle": "diferencia",
       "time": "2026-11-13T21:01:58.886699+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-283d92df5924",
+      "topic": "ondas:atenuacion:significado",
+      "topic_key": "atenuacion",
+      "title": "¿Qué nos enseña la propagación de las ondas?",
+      "style": "mapa_explicado",
+      "angle": "significado",
+      "time": "2026-11-14T00:01:30.837996+00:00",
+      "status": "publicado"
     }
   ]
 }
