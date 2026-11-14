@@ -1221,6 +1221,16 @@
       "angle": "mito",
       "time": "2026-11-14T03:01:45.305434+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-1c6ad257d6ae",
+      "topic": "tectonica:subduccion:fundamentos",
+      "topic_key": "subduccion",
+      "title": "¿Qué principios científicos ayudan a explicar la subducción?",
+      "style": "descubrimiento",
+      "angle": "fundamentos",
+      "time": "2026-11-14T06:01:18.404481+00:00",
+      "status": "publicado"
     }
   ]
 }
