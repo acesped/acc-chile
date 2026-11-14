@@ -2132,6 +2132,13 @@
       "facebook_reel_id": "956960233903540",
       "facebook_story": "publicado",
       "facebook_story_id": "1602072168254883"
+    },
+    "sismos-a0a9322261c4": {
+      "topic": "ondas:ondas_p:pregunta",
+      "topic_key": "ondas_p",
+      "title": "¿Qué deberíamos preguntarnos sobre las ondas P?",
+      "reel": "enviando",
+      "updated_at": "2026-11-14T12:01:11.898441+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-15T00:04:02.582269+00:00"
