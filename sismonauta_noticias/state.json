@@ -5490,7 +5490,8 @@
           "status": "pending"
         },
         "instagram": {
-          "status": "pending"
+          "started_at": "2026-11-14T09:01:42.753117+00:00",
+          "status": "uncertain"
         }
       }
     },
