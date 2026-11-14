@@ -1231,6 +1231,16 @@
       "angle": "fundamentos",
       "time": "2026-11-14T06:01:18.404481+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-adae8e0acb5b",
+      "topic": "tectonica:placas_movimiento:lectura",
+      "topic_key": "placas_movimiento",
+      "title": "¿Cómo leer las pistas que deja el movimiento de las placas?",
+      "style": "pregunta_respuesta",
+      "angle": "lectura",
+      "time": "2026-11-14T09:01:14.599863+00:00",
+      "status": "publicado"
     }
   ]
 }
