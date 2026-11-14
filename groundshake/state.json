@@ -2137,8 +2137,9 @@
       "topic": "ondas:ondas_p:pregunta",
       "topic_key": "ondas_p",
       "title": "¿Qué deberíamos preguntarnos sobre las ondas P?",
-      "reel": "enviando",
-      "updated_at": "2026-11-14T12:01:11.898441+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-14T12:02:42.373698+00:00",
+      "reel_id": "18114287711126931"
     }
   },
   "youtube_upload_retry_after": "2026-11-15T00:04:02.582269+00:00"
