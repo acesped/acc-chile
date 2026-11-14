@@ -2090,6 +2090,13 @@
       "facebook_story": "publicado",
       "facebook_story_id": "1459301972805757",
       "youtube_short": "aplazado"
+    },
+    "sismos-3970225e52eb": {
+      "topic": "medicion:magnitud_intensidad:mito",
+      "topic_key": "magnitud_intensidad",
+      "title": "¿Qué solemos confundir sobre la magnitud y la intensidad?",
+      "reel": "enviando",
+      "updated_at": "2026-11-14T03:01:47.481013+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-15T00:04:02.582269+00:00"
