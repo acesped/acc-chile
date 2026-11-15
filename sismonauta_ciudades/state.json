@@ -117,7 +117,7 @@
       "source": "EMSC-CSEM",
       "targets": {
         "facebook": {
-          "status": "pending"
+          "status": "uncertain"
         },
         "instagram": {
           "status": "published",
