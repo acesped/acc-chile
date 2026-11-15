@@ -5883,7 +5883,8 @@
           "status": "pending"
         },
         "instagram": {
-          "status": "pending"
+          "started_at": "2026-11-15T09:01:39.808485+00:00",
+          "status": "uncertain"
         }
       }
     },
