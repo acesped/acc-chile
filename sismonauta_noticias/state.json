@@ -5850,6 +5850,43 @@
         }
       }
     },
+    "dd203f8a98d6338d05b8": {
+      "article": {
+        "category": "sismos",
+        "date": "2026-11-11T00:10:08+00:00",
+        "description": "Scientists have identified a major turning point in Earth's geological history, when the processes shaping the planet's crust changed dramatically and began to resemble the plate tectonics we see today—about 2.5 billion years ago.",
+        "editorial_mode": "verified_summary",
+        "explanation": "Científicos han identificado un importante punto de inflexión en la historia geológica de la Tierra, cuando los procesos que",
+        "id": "dd203f8a98d6338d05b8",
+        "image_headline": "Rocas antiguas revelan cuándo se \"encendió\" el motor tectónico de la Tierra.",
+        "lang": "en",
+        "original_title": "Ancient rocks reveal when Earth's tectonic engine 'switched on'",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Rocas antiguas revelan cuándo se \"encendió\" el motor tectónico de la Tierra.",
+        "url": "https://phys.org/news/2026-11-ancient-reveal-earth-tectonic.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA SÍSMICA\n\nRocas antiguas revelan cuándo se \"encendió\" el motor tectónico de la Tierra.\n\nCientíficos han identificado un importante punto de inflexión en la historia geológica de la Tierra, cuando los procesos que\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Sismos #Terremotos #Sismologia #Geofisica #Tectonica",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "San Andreas Fault",
+        "sha256": "2409d77e5653e7de4c6e3a9ba507c6c2ea3a052aed8ee02c67f172e339abaf69",
+        "source": "https://commons.wikimedia.org/wiki/File:Wallace_Creek_offset_across_the_San_Andreas_Fault.png",
+        "title": "File:Wallace Creek offset across the San Andreas Fault.png",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/3/3f/Wallace_Creek_offset_across_the_San_Andreas_Fault.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/dd203f8a98d6338d05b8.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "dec9f077a7f855246f29": {
       "article": {
         "category": "espacio",
