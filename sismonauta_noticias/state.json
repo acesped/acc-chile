@@ -4430,8 +4430,10 @@
           "status": "pending"
         },
         "instagram": {
+          "id": "18110221790363735",
+          "published_at": "2026-11-15T17:01:39.578380+00:00",
           "started_at": "2026-11-15T17:01:22.367949+00:00",
-          "status": "uncertain"
+          "status": "published"
         }
       }
     },
