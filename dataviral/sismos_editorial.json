@@ -1301,6 +1301,16 @@
       "angle": "relieve",
       "time": "2026-11-15T03:01:50.033908+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-0d45126d3d20",
+      "topic": "tectonica:transformantes:preguntas_frecuentes",
+      "topic_key": "transformantes",
+      "title": "¿Qué pregunta frecuente surge al hablar de las fallas transformantes?",
+      "style": "mapa_explicado",
+      "angle": "preguntas_frecuentes",
+      "time": "2026-11-15T06:01:20.713960+00:00",
+      "status": "publicado"
     }
   ]
 }
