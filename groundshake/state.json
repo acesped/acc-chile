@@ -2262,7 +2262,7 @@
       "topic_key": "retroceso_mar",
       "title": "¿Cómo leer las pistas que deja el retroceso del mar?",
       "reel": "publicado",
-      "updated_at": "2026-11-15T15:03:45.478153+00:00",
+      "updated_at": "2026-11-15T15:03:48.541292+00:00",
       "reel_id": "18135451471703328",
       "story": "publicado",
       "story_id": "18094103603242627",
@@ -2272,7 +2272,8 @@
       "facebook_story_id": "4487275241487848",
       "youtube_short": "publicado",
       "youtube_short_id": "dP5xbplXs7o",
-      "youtube_video": "enviando"
+      "youtube_video": "publicado",
+      "youtube_video_id": "MpRKmYsY-W0"
     }
   },
   "youtube_upload_retry_after": "2026-11-15T00:04:02.582269+00:00"
