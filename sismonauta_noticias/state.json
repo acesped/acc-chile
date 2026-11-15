@@ -4895,6 +4895,43 @@
         }
       }
     },
+    "b1a14efe71b0bbe865a4": {
+      "article": {
+        "category": "climatologia",
+        "date": "2026-11-15T15:30:01+00:00",
+        "description": "Global temperatures may continue to rise even after human CO₂ emissions stop. The temperature change that follows is known as the zero emissions commitment (ZEC), and it is often assumed to be close to zero. A study led by the Met Office Hadley Center, with co-authors from several institutions including the University of Liverpool, found that the temperature response depends on how much warming has already occurred.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Las temperaturas globales pueden seguir aumentando incluso después de que las emisiones de CO₂ humanas se detengan. El cambio de temperatura que sigue se conoce como el compromiso de cero emisiones (ZEC), y a menudo se asume que es cercano a cero. Un estudio liderado por el Met Office Hadley Center, con coautores de varias instituciones, incluida la Universidad de Liverpool, encontró que la respuesta de temperatura depende de cuánto calentamiento ya ha ocurrido.",
+        "id": "b1a14efe71b0bbe865a4",
+        "image_headline": "Respuesta climática: Por qué el calentamiento previo marca toda la diferencia",
+        "lang": "en",
+        "original_title": "Climate response: Why previous warming makes all the difference",
+        "search_category": "direct",
+        "source": "Phys.org Medio Ambiente",
+        "source_body": "",
+        "title": "Respuesta climática: Por qué el calentamiento previo marca toda la diferencia",
+        "url": "https://phys.org/news/2026-11-climate-response-previous-difference.html"
+      },
+      "caption": "🌎 SISMONAUTA | CLIMATOLOGÍA\n\nRespuesta climática: Por qué el calentamiento previo marca toda la diferencia\n\nLas temperaturas globales pueden seguir aumentando incluso después de que las emisiones de CO₂ humanas se detengan. El cambio de temperatura que sigue se conoce como el compromiso de cero emisiones (ZEC), y a menudo se asume que es cercano a cero. Un estudio liderado por el Met Office Hadley Center, con coautores de varias instituciones, incluida la Universidad de Liverpool, encontró que la respuesta de temperatura depende de cuánto calentamiento ya ha ocurrido.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Climatologia #Clima #CambioClimatico #Glaciares",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "glacier landscape",
+        "sha256": "4a00f9455f2a427eca89c6ae6170c2e90064a7fe210b3919a40dc6fff90f552e",
+        "source": "https://commons.wikimedia.org/wiki/File:Glacier_National_Park_-_HCP_-_October_23,_2022_-_095_-_Apgar_Lookout_Trail.jpg",
+        "title": "File:Glacier National Park - HCP - October 23, 2022 - 095 - Apgar Lookout Trail.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cf/Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_095_-_Apgar_Lookout_Trail.jpg/1920px-Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_095_-_Apgar_Lookout_Trail.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/b1a14efe71b0bbe865a4.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "b5273b67f52da33d6451": {
       "article": {
         "category": "espacio",
