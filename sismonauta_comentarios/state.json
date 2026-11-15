@@ -143,9 +143,10 @@
       "updated_at": "2026-11-15T12:56:07.493191+00:00"
     },
     "1155972050311359_1643711927451920": {
-      "status": "uncertain",
+      "status": "published",
+      "reply_id": "1155972050311359_1699639462207965",
       "reply": "¡Gracias por tu pregunta! Para responder con precisión es importante revisar fuentes científicas oficiales. ¿Podrías precisar un poco tu consulta? 🌎",
-      "updated_at": "2026-11-15T13:06:05.765602+00:00"
+      "updated_at": "2026-11-15T13:06:09.259729+00:00"
     }
   }
 }
