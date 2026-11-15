@@ -2261,8 +2261,9 @@
       "topic": "tsunamis:retroceso_mar:lectura",
       "topic_key": "retroceso_mar",
       "title": "¿Cómo leer las pistas que deja el retroceso del mar?",
-      "reel": "enviando",
-      "updated_at": "2026-11-15T15:01:26.697674+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-15T15:02:06.720214+00:00",
+      "reel_id": "18135451471703328"
     }
   },
   "youtube_upload_retry_after": "2026-11-15T00:04:02.582269+00:00"
