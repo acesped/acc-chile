@@ -4928,8 +4928,10 @@
           "status": "pending"
         },
         "instagram": {
+          "id": "18109839551253055",
+          "published_at": "2026-11-15T21:02:03.764933+00:00",
           "started_at": "2026-11-15T21:01:45.467703+00:00",
-          "status": "uncertain"
+          "status": "published"
         }
       }
     },
