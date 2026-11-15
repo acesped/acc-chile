@@ -4430,7 +4430,8 @@
           "status": "pending"
         },
         "instagram": {
-          "status": "pending"
+          "started_at": "2026-11-15T17:01:22.367949+00:00",
+          "status": "uncertain"
         }
       }
     },
