@@ -2274,6 +2274,13 @@
       "youtube_short_id": "dP5xbplXs7o",
       "youtube_video": "publicado",
       "youtube_video_id": "MpRKmYsY-W0"
+    },
+    "sismos-ab22ae888bce": {
+      "topic": "geologia:rocas_deformadas:interpretacion",
+      "topic_key": "rocas_deformadas",
+      "title": "¿Cómo interpretar correctamente la deformación de las rocas?",
+      "reel": "enviando",
+      "updated_at": "2026-11-15T18:01:22.973224+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-15T00:04:02.582269+00:00"
