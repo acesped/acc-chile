@@ -2188,6 +2188,13 @@
       "facebook_reel_id": "1658839258964018",
       "facebook_story": "publicado",
       "facebook_story_id": "1511047470893787"
+    },
+    "sismos-344cbbe6fd04": {
+      "topic": "geologia:valle_rift:origen",
+      "topic_key": "valle_rift",
+      "title": "¿Qué procesos explican los valles de rift?",
+      "reel": "enviando",
+      "updated_at": "2026-11-15T00:01:23.320770+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-15T00:04:02.582269+00:00"
