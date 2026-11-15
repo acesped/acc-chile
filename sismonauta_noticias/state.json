@@ -4397,6 +4397,43 @@
         }
       }
     },
+    "a10b54ac4c772bba44fa": {
+      "article": {
+        "category": "desastres",
+        "date": "2026-11-15T13:53:25+00:00",
+        "description": "Científicos de la NASA advierten que el fenómeno de El Niño de 2026, que",
+        "explanation": "**TITULAR: La NASA advierte que el fenómeno de El Niño monstruo de este año podría ser incluso más grande que el legendario**\n**CATEGORÍA: desastres**\n\nCientíficos de la NASA monitorean un fenómeno de El Niño excepcionalmente potente para este 2026. Tras analizar 35 años de observaciones satelitales, los expertos advierten que este evento se está desarrollando de forma más abrupta que el histórico de 1997, con el potencial de superarlo en magnitud.\n\nEl fenómeno se origina por el debilitamiento de los vientos alisios, lo que desplaza masas de agua cálida hacia el este del Pacífico. Actualmente, los datos muestran una elevación del nivel del mar y temperaturas inusualmente altas que ya alcanzan las costas de Sudamérica, replicando patrones de los episodios más extremos registrados anteriormente.\n\nRespecto a las consecuencias, la NOAA estima un 83% de probabilidad de que las condiciones se intensifiquen",
+        "id": "a10b54ac4c772bba44fa",
+        "image_headline": "La NASA detecta un fenómeno",
+        "lang": "en",
+        "original_title": "NASA warns this year's Monster El Niño could be even bigger than legendary 1997 event",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261114202227.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "La NASA advierte que el fenómeno de El Niño monstruo de este año podría ser incluso más grande que el legendario",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261114202227.htm"
+      },
+      "caption": "🌎 SISMONAUTA | RIESGOS NATURALES\n\nLa NASA detecta un fenómeno\n\nCATEGORÍA: desastres Científicos de la NASA monitorean un fenómeno de El Niño excepcionalmente potente para este 2026. Tras analizar 35 años de observaciones satelitales, los expertos advierten que este evento se está desarrollando de forma más abrupta que el histórico de 1997, con el potencial de superarlo en magnitud. El fenómeno se origina por el debilitamiento de los vientos alisios, lo que desplaza masas de agua cálida hacia el este del Pacífico. Actualmente, los datos muestran una elevación del nivel del mar y temperaturas inusualmente altas que ya alcanzan las costas de Sudamérica, replicando patrones de los episodios más extremos registrados anteriormente. Respecto a las consecuencias, la NOAA estima un 83% de probabilidad de que las condiciones se intensifiquen\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #DesastresNaturales #Prevencion #RiesgosNaturales",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "landslide mountain",
+        "sha256": "451b572d77dcfb8f752cdee242d1e92ce80813058cd886cd8fc840ef9b30203b",
+        "source": "https://commons.wikimedia.org/wiki/File:USGS_Khait_landslide.jpg",
+        "title": "File:USGS Khait landslide.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/5/5b/USGS_Khait_landslide.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/a10b54ac4c772bba44fa.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "a1672a0256a7299c19f1": {
       "article": {
         "category": "espacio",
