@@ -6051,6 +6051,40 @@
         }
       }
     },
+    "e5cc1c88b25e6c87a363": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-15T03:42:52+00:00",
+        "description": "Una innovadora encuesta con drones ha revelado una sorprendente división en el destino de los pingüinos en peligro de extinción de cresta erecta de Nueva Zelanda. Mientras que una población se ha mantenido estable durante décadas, otra ha disminuido en más del 40%, aparentemente debido a una combinación de depredadores, tormentas cada vez más intensas y condiciones oceánicas cambiantes. Aún más sorprendentemente, las pequeñas Islas Bounty albergan casi tantos pares de cría como las Islas Antípodas, a pesar de ser 40 veces más pequeñas.",
+        "explanation": "**Científicos descubren una extraña paradoja entre pingüinos en peligro de extinción**\n\nUn estudio de la Universidad de Otago ha revelado una sorprendente división en las poblaciones de pingüinos de cresta erguida en Nueva Zelanda. Aunque esta especie se reproduce en solo dos grupos de islas remotas, sus destinos son notablemente diferentes. Mientras que la población de las Islas Bounty se ha mantenido estable durante al menos 25 años, la de las Islas Antipodes ha disminuido en más de un 40% en las últimas tres décadas.\n\nLos investigadores realizaron extensas encuestas con drones entre 2022 y 2024, lo que permitió contar y fotografiar cada colonia reproductora. Este esfuerzo resultó en la primera encuesta poblacional integral de la especie. Los resultados contradicen la creencia de que las Islas Antipodes, más grandes, eran el bastión de la especie.\n\nLas diferencias en las tendencias poblacionales se atribuyen a varios factores, incluidos depredadores naturales como los skuas, tormentas destructivas y diferencias en los hábitats marinos. A medida que las colonias de Antipodes se han reducido, su defensa colectiva contra los depredadores ha disminuido, lo que ha llevado a un aumento en las pérdidas de huevos y crías.\n\nEste descubrimiento resalta la necesidad de enfoques de conservación que consideren las circunstancias de cada población individual, en lugar de basarse únicamente en el estado global de la especie.",
+        "id": "e5cc1c88b25e6c87a363",
+        "image_headline": "Científicos descubren una extraña paradoja entre pingüinos en peligro de extinción.",
+        "lang": "en",
+        "original_title": "Scientists discover a bizarre paradox among endangered penguins",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261112230458.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Ambiente",
+        "source_body": "",
+        "title": "Científicos descubren una extraña paradoja entre pingüinos en peligro de extinción.",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261112230458.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nCientíficos descubren una extraña paradoja entre pingüinos en peligro de extinción.\n\nCientíficos descubren una extraña paradoja entre pingüinos en peligro de extinción Un estudio de la Universidad de Otago ha revelado una sorprendente división en las poblaciones de pingüinos de cresta erguida en Nueva Zelanda. Aunque esta especie se reproduce en solo dos grupos de islas remotas, sus destinos son notablemente diferentes. Mientras que la población de las Islas Bounty se ha mantenido estable durante al menos 25 años, la de las Islas Antipodes ha disminuido en más de un 40% en las últimas tres décadas. Los investigadores realizaron extensas encuestas con drones entre 2022 y 2024, lo que permitió contar y fotografiar cada colonia reproductora. Este esfuerzo resultó en la primera encuesta poblacional integral de la especie. Los resultados contradicen la creencia de que las Islas Antipodes, más grandes, eran el bastión de la especie. Las diferencias en las tendencias poblacionales se atribuyen a varios factores, incluidos depredadores naturales como los skuas, tormentas destructivas y diferencias en los hábitats marinos. A medida que las colonias de Antipodes se han reducido, su defensa colectiva contra los depredadores ha disminuido, lo que ha llevado a un aumento en las pérdidas de huevos y crías. Este descubrimiento resalta la necesidad de enfoques de conservación que consideren las circunstancias de cada población individual, en lugar de basarse únicamente en el estado global de la especie.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": true,
+        "license": "Obra original",
+        "title": "Arte original SISMONAUTA",
+        "url": ""
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/e5cc1c88b25e6c87a363.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "e5d87a1a746c0e32e9d6": {
       "article": {
         "category": "espacio",
