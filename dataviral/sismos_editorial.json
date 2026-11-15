@@ -1281,6 +1281,16 @@
       "angle": "investigacion",
       "time": "2026-11-14T21:01:27.337388+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-344cbbe6fd04",
+      "topic": "geologia:valle_rift:origen",
+      "topic_key": "valle_rift",
+      "title": "¿Qué procesos explican los valles de rift?",
+      "style": "descubrimiento",
+      "angle": "origen",
+      "time": "2026-11-15T00:01:19.276808+00:00",
+      "status": "publicado"
     }
   ]
 }
