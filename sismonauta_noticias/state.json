@@ -4176,6 +4176,43 @@
         }
       }
     },
+    "9835fc1977e740564921": {
+      "article": {
+        "category": "meteorologia",
+        "date": "2026-11-11T12:32:48+00:00",
+        "description": "El agujero de ozono antártico se expandió hasta alcanzar su séptimo mayor tamaño registrado en 20",
+        "explanation": "**NASA revela que el agujero de ozono de la Tierra ha crecido a un tamaño no visto en una década**\n\nRecientes observaciones de la NASA y NOAA indican que el agujero de ozono sobre la Antártida alcanzó su máxima extensión en 2026, convirtiéndose en uno de los más grandes registrados en 48 años. Este fenómeno se atribuye a un polar vortex excepcionalmente fuerte, que ha permitido que la pérdida de ozono se extienda más allá de lo habitual.\n\nEl agujero alcanzó su tamaño máximo el 18 de septiembre, cubriendo aproximadamente 10.5 millones de millas cuadradas. Aunque este crecimiento es notable, los científicos destacan que los esfuerzos internacionales para reducir sustancias químicas dañinas han evitado que el agujero sea aún más grande. Sin estas medidas, se estima que el área afectada podría haber sido de 1 a 2 millones de millas cuadradas mayor.\n\nA pesar de la expansión, los datos sugieren que la capa de ozono sigue en proceso de recuperación. Desde la implementación del Protocolo de Montreal en 1987, las concentraciones de cloro en la estratosfera han disminuido en aproximadamente un tercio. Esto es un indicativo del impacto positivo de la cooperación global en la protección de la atmósfera terrestre.",
+        "id": "9835fc1977e740564921",
+        "image_headline": "El agujero de ozono antártico alcanzó su mayor tamaño en diez años, destacando la importancia de la protección ambiental.",
+        "lang": "en",
+        "original_title": "NASA reveals Earth's ozone hole has grown to a size not seen in a decade",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261110042546.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "NASA revela que el agujero de ozono de la Tierra ha crecido a un tamaño no visto en una década.",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261110042546.htm"
+      },
+      "caption": "🌎 SISMONAUTA | METEOROLOGÍA\n\nEl agujero de ozono antártico alcanzó su mayor tamaño en diez años, destacando la importancia de la protección ambiental.\n\nNASA revela que el agujero de ozono de la Tierra ha crecido a un tamaño no visto en una década Recientes observaciones de la NASA y NOAA indican que el agujero de ozono sobre la Antártida alcanzó su máxima extensión en 2026, convirtiéndose en uno de los más grandes registrados en 48 años. Este fenómeno se atribuye a un polar vortex excepcionalmente fuerte, que ha permitido que la pérdida de ozono se extienda más allá de lo habitual. El agujero alcanzó su tamaño máximo el 18 de septiembre, cubriendo aproximadamente 10.5 millones de millas cuadradas. Aunque este crecimiento es notable, los científicos destacan que los esfuerzos internacionales para reducir sustancias químicas dañinas han evitado que el agujero sea aún más grande. Sin estas medidas, se estima que el área afectada podría haber sido de 1 a 2 millones de millas cuadradas mayor. A pesar de la expansión, los datos sugieren que la capa de ozono sigue en proceso de recuperación. Desde la implementación del Protocolo de Montreal en 1987, las concentraciones de cloro en la estratosfera han disminuido en aproximadamente un tercio. Esto es un indicativo del impacto positivo de la cooperación global en la protección de la atmósfera terrestre.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Meteorologia #Tiempo #Tormentas #Atmosfera",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "storm clouds landscape",
+        "sha256": "3a70713b496f98a9b8bfabdbedfb729b9c8c7deff9e9cc154f68ff592fff4fe7",
+        "source": "https://commons.wikimedia.org/wiki/File:Storm_clouds_over_the_Oasis_of_Mara_(51184356081).jpg",
+        "title": "File:Storm clouds over the Oasis of Mara (51184356081).jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/34/Storm_clouds_over_the_Oasis_of_Mara_%2851184356081%29.jpg/1920px-Storm_clouds_over_the_Oasis_of_Mara_%2851184356081%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/9835fc1977e740564921.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "98384a5fc56d1bf69496": {
       "article": {
         "date": "2026-10-28T13:17:12+00:00",
