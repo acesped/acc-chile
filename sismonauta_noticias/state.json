@@ -5891,6 +5891,43 @@
         }
       }
     },
+    "d828595390e2845c4280": {
+      "article": {
+        "category": "meteorologia",
+        "date": "2026-11-12T23:20:01+00:00",
+        "description": "How does climate change affect the East Asian monsoon? Researchers from Utrecht University's Faculty of Geosciences, together with colleagues at research institutes in China and Belgium, are investigating this question by looking back 250,000 years. They found that, over long timescales, the monsoon system tracks changes in incoming solar radiation caused by variations in Earth's orbit and tilt. But when radiation falls below a certain threshold, abrupt periods of extreme cold and drought occur, particularly when atmospheric CO₂ concentrations are low. The study was published in Communications Earth & Environment.",
+        "editorial_mode": "documented_brief",
+        "explanation": "¿Cómo afecta el cambio climático al monzón de Asia Oriental? Investigadores de la Facultad de Geociencias de la Universidad de Utrecht, junto con colegas de institutos de investigación en China y Bélgica, están investigando esta pregunta al mirar hacia atrás 250,000 años. Encontraron que, a lo largo de escalas de tiempo largas, el sistema de monzón sigue los cambios en la radiación solar entrante causados por variaciones en la órbita y la inclinación de la Tierra. Pero cuando la radiación cae por debajo de un cierto umbral, ocurren períodos abruptos de frío extremo y sequía, particularmente cuando las concentraciones de CO₂ atmosférico son bajas. El estudio fue publicado en Communications Earth & Environment.",
+        "id": "d828595390e2845c4280",
+        "image_headline": "Registros climáticos antiguos revelan cómo el monzón de Asia Oriental cambió abruptamente hacia el frío y la sequía.",
+        "lang": "en",
+        "original_title": "Ancient climate records reveal how East Asian monsoon shifted abruptly into cold and drought",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Registros climáticos antiguos revelan cómo el monzón de Asia Oriental cambió abruptamente hacia el frío y la sequía.",
+        "url": "https://phys.org/news/2026-11-ancient-climate-reveal-east-asian.html"
+      },
+      "caption": "🌎 SISMONAUTA | METEOROLOGÍA\n\nRegistros climáticos antiguos revelan cómo el monzón de Asia Oriental cambió abruptamente hacia el frío y la sequía.\n\n¿Cómo afecta el cambio climático al monzón de Asia Oriental? Investigadores de la Facultad de Geociencias de la Universidad de Utrecht, junto con colegas de institutos de investigación en China y Bélgica, están investigando esta pregunta al mirar hacia atrás 250,000 años. Encontraron que, a lo largo de escalas de tiempo largas, el sistema de monzón sigue los cambios en la radiación solar entrante causados por variaciones en la órbita y la inclinación de la Tierra. Pero cuando la radiación cae por debajo de un cierto umbral, ocurren períodos abruptos de frío extremo y sequía, particularmente cuando las concentraciones de CO₂ atmosférico son bajas. El estudio fue publicado en Communications Earth & Environment.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Meteorologia #Tiempo #Tormentas #Atmosfera",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "storm clouds landscape",
+        "sha256": "f13a1f83875f88a575fd394d633f766332720563be64b90a58771baadbf7a4d9",
+        "source": "https://commons.wikimedia.org/wiki/File:Storm_clouds_over_the_Oasis_of_Mara_(51185137469).jpg",
+        "title": "File:Storm clouds over the Oasis of Mara (51185137469).jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/84/Storm_clouds_over_the_Oasis_of_Mara_%2851185137469%29.jpg/1920px-Storm_clouds_over_the_Oasis_of_Mara_%2851185137469%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/d828595390e2845c4280.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "da4105976ddec9ba5030": {
       "article": {
         "category": "oceanos",
