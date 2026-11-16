@@ -1401,6 +1401,16 @@
       "angle": "tiempo",
       "time": "2026-11-16T19:09:25.574312+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-849b05702cb6",
+      "topic": "fallas:grietas:lectura",
+      "topic_key": "grietas",
+      "title": "¿Cómo leer las pistas que deja las grietas del terreno?",
+      "style": "mapa_explicado",
+      "angle": "lectura",
+      "time": "2026-11-16T21:01:26.381600+00:00",
+      "status": "publicado"
     }
   ]
 }
