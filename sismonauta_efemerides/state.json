@@ -80,7 +80,9 @@
           "status": "published"
         },
         "facebook_feed": {
-          "status": "pending"
+          "attempt_id": "522a065a8df945f79d9b473dc510f0d1",
+          "attempted_at": "2026-11-16T12:01:33.792420+00:00",
+          "status": "uncertain"
         },
         "instagram": {
           "attempt_id": "2467147249e54614bf7f8a3411281222",
