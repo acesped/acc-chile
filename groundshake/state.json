@@ -2378,6 +2378,13 @@
       "story": "publicado",
       "story_id": "18111825064930719",
       "facebook_reel": "enviando"
+    },
+    "sismos-9c629bb0e427": {
+      "topic": "ondas:resonancia_suelo:tiempo",
+      "topic_key": "resonancia_suelo",
+      "title": "¿Qué cambia con el tiempo al analizar el efecto del suelo?",
+      "reel": "enviando",
+      "updated_at": "2026-11-16T19:09:28.202949+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-17T00:04:42.810193+00:00"
