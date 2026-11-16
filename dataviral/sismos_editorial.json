@@ -1351,6 +1351,16 @@
       "angle": "clave",
       "time": "2026-11-15T21:01:13.135228+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-f4abf8feab58",
+      "topic": "geologia:levantamiento:estudio",
+      "topic_key": "levantamiento",
+      "title": "¿Cómo se estudia el levantamiento de montañas paso a paso?",
+      "style": "pregunta_respuesta",
+      "angle": "estudio",
+      "time": "2026-11-16T00:01:38.621399+00:00",
+      "status": "publicado"
     }
   ]
 }
