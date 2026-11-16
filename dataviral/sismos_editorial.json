@@ -1391,6 +1391,16 @@
       "angle": "estudio",
       "time": "2026-11-16T09:02:04.074984+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-9c629bb0e427",
+      "topic": "ondas:resonancia_suelo:tiempo",
+      "topic_key": "resonancia_suelo",
+      "title": "¿Qué cambia con el tiempo al analizar el efecto del suelo?",
+      "style": "mapa_explicado",
+      "angle": "tiempo",
+      "time": "2026-11-16T19:09:25.574312+00:00",
+      "status": "publicado"
     }
   ]
 }
