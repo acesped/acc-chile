@@ -2353,6 +2353,13 @@
       "facebook_reel_id": "1133137202909097",
       "facebook_story": "publicado",
       "facebook_story_id": "997626322868101"
+    },
+    "sismos-3b6eea04ffde": {
+      "topic": "medicion:epicentro:estudio",
+      "topic_key": "epicentro",
+      "title": "¿Cómo se estudia el epicentro paso a paso?",
+      "reel": "enviando",
+      "updated_at": "2026-11-16T09:02:09.815420+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-17T00:04:42.810193+00:00"
