@@ -1449,6 +1449,43 @@
         }
       }
     },
+    "2f7690adf82a51410b96": {
+      "article": {
+        "category": "desastres",
+        "date": "2026-11-16T12:10:06+00:00",
+        "description": "Fuel breaks are linear strips of land along which vegetation is cleared or thinned—constructed along ridgelines, roads and other strategic places—to give firefighters a better chance to safely slow or steer a fire. Often described as \"speed bumps\" for wildfires, fuel breaks rarely stop fire spread on their own, but they do give crews critical anchor points for building firelines, setting backfires or safely applying water and retardant. They have been used since the 1960s across many landscapes.",
+        "editorial_mode": "verified_summary",
+        "explanation": "Los cortafuegos son franjas lineales de terreno a lo largo de las cuales se despeja o ralea la vegetación",
+        "id": "2f7690adf82a51410b96",
+        "image_headline": "El modelamiento de incendios forestales ayuda a los gestores a decidir dónde construir y mantener cortafuegos.",
+        "lang": "en",
+        "original_title": "Wildfire modeling helps managers decide where to build and maintain fuel breaks",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "El modelamiento de incendios forestales ayuda a los gestores a decidir dónde construir y mantener cortafuegos.",
+        "url": "https://phys.org/news/2026-11-wildfire-fuel.html"
+      },
+      "caption": "🌎 SISMONAUTA | RIESGOS NATURALES\n\nEl modelamiento de incendios forestales ayuda a los gestores a decidir dónde construir y mantener cortafuegos.\n\nLos cortafuegos son franjas lineales de terreno a lo largo de las cuales se despeja o ralea la vegetación\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #DesastresNaturales #Prevencion #RiesgosNaturales",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "landslide mountain",
+        "sha256": "053f8cd61b5d5ebe8d76c9bcb96cf5e4780708931a0070cf2fd3aafdcc3ce93a",
+        "source": "https://commons.wikimedia.org/wiki/File:Stereo_Pair,_Lake_Palanskoye_Landslide,_Kamchatka_Peninsula,_Russia_Corrected.png",
+        "title": "File:Stereo Pair, Lake Palanskoye Landslide, Kamchatka Peninsula, Russia Corrected.png",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/f/fa/Stereo_Pair%2C_Lake_Palanskoye_Landslide%2C_Kamchatka_Peninsula%2C_Russia_Corrected.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/2f7690adf82a51410b96.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "32a6c31dc84d605ef461": {
       "article": {
         "category": "oceanos",
