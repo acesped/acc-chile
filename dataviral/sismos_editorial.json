@@ -1381,6 +1381,16 @@
       "angle": "lectura",
       "time": "2026-11-16T06:01:24.867026+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-3b6eea04ffde",
+      "topic": "medicion:epicentro:estudio",
+      "topic_key": "epicentro",
+      "title": "¿Cómo se estudia el epicentro paso a paso?",
+      "style": "mapa_explicado",
+      "angle": "estudio",
+      "time": "2026-11-16T09:02:04.074984+00:00",
+      "status": "publicado"
     }
   ]
 }
