@@ -1482,8 +1482,10 @@
           "status": "pending"
         },
         "instagram": {
+          "id": "18083915795447644",
+          "published_at": "2026-11-16T13:02:47.300965+00:00",
           "started_at": "2026-11-16T13:02:25.780741+00:00",
-          "status": "uncertain"
+          "status": "published"
         }
       }
     },
