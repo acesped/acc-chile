@@ -76,7 +76,8 @@
         "facebook": {
           "attempt_id": "5ba98f87e4cc4b1e94e1bb0d8763fa68",
           "attempted_at": "2026-11-16T12:01:21.312444+00:00",
-          "status": "uncertain"
+          "id": "305263296226466_1156984473543450",
+          "status": "published"
         },
         "facebook_feed": {
           "status": "pending"
