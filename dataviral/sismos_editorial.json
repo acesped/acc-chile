@@ -1361,6 +1361,16 @@
       "angle": "estudio",
       "time": "2026-11-16T00:01:38.621399+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-b8390dd675b9",
+      "topic": "geologia:levantamiento:detalles",
+      "topic_key": "levantamiento",
+      "title": "¿Qué detalle suele pasar inadvertido sobre el levantamiento de montañas?",
+      "style": "microdocumental",
+      "angle": "detalles",
+      "time": "2026-11-16T03:01:35.207783+00:00",
+      "status": "publicado"
     }
   ]
 }
