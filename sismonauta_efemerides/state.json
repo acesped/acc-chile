@@ -55,6 +55,34 @@
           "status": "published"
         }
       }
+    },
+    "2026-11-16:82677afed937f974e8": {
+      "caption": "UN DÍA COMO HOY, pero hace 26 años...\n\nEl 16/11/2000 ocurrió un terremoto de magnitud 8.0 en la zona de New Ireland,  Duke Of York, Papúa Nueva Guinea. El registro histórico consigna 2 personas fallecidas considerando los efectos asociados, incluido el tsunami cuando corresponde. Este episodio forma parte del registro histórico de terremotos significativos y permite recordar el impacto que pueden producir los grandes movimientos de la Tierra.\n\nTe leemos en los comentarios.\n\n#SISMONAUTA #EfemeridesSismicas #Terremotos #Sismologia #HistoriaSismica #CienciaDeLaTierra #PrevencionSismica",
+      "checked_at": "2026-11-16T12:00:52.656600+00:00",
+      "event": {
+        "date": "2000-11-16",
+        "deaths": 2,
+        "depth_km": 17.0,
+        "fatalities_type": "total",
+        "id": "82677afed937f974e8",
+        "latitude": -4.001,
+        "location": "PAPUA NEW GUINEA: NEW IRELAND, DUKE OF YORK",
+        "longitude": 152.327,
+        "magnitude": 8.0,
+        "tsunami_flag": false
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/3e2a89f79a0c8a576512f869ec362d83c64dd76c/sismonauta_efemerides/images/2026-11-16_82677afed937f974e8.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
     }
   }
 }
