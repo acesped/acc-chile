@@ -2487,8 +2487,9 @@
       "topic": "riesgo:alerta_temprana:interpretacion",
       "topic_key": "alerta_temprana",
       "title": "¿Cómo interpretar correctamente la alerta temprana?",
-      "reel": "enviando",
-      "updated_at": "2026-11-17T15:01:30.417918+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-17T15:02:22.136984+00:00",
+      "reel_id": "17992187478116004"
     }
   },
   "youtube_upload_retry_after": "2026-11-17T00:04:42.810193+00:00"
