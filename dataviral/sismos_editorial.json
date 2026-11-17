@@ -1441,6 +1441,16 @@
       "angle": "escala",
       "time": "2026-11-17T06:01:22.202851+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-6df8a825802c",
+      "topic": "medicion:replicas:preguntas_frecuentes",
+      "topic_key": "replicas",
+      "title": "¿Qué pregunta frecuente surge al hablar de las réplicas?",
+      "style": "descubrimiento",
+      "angle": "preguntas_frecuentes",
+      "time": "2026-11-17T12:01:33.137810+00:00",
+      "status": "publicado"
     }
   ]
 }
