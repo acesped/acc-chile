@@ -1411,6 +1411,16 @@
       "angle": "lectura",
       "time": "2026-11-16T21:01:26.381600+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-a33513764c49",
+      "topic": "tectonica:divergencia:fundamentos",
+      "topic_key": "divergencia",
+      "title": "¿Qué principios científicos ayudan a explicar la separación de placas?",
+      "style": "mapa_explicado",
+      "angle": "fundamentos",
+      "time": "2026-11-17T00:01:27.948021+00:00",
+      "status": "publicado"
     }
   ]
 }
