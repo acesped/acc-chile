@@ -258,6 +258,42 @@
         }
       }
     },
+    "b8e2f8c049930a4c8a11": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-17T17:12:20+00:00",
+        "description": "Nota del editor: Este artículo fue publicado originalmente el 15 de octubre de 2026 y ha sido actualizado para corregir la ubicación y actualizar la duración del despliegue del vuelo. Una aeronave A200 de Dynamic Aviation de la NASA realizará vuelos de investigación a baja altura sobre tierras agrícolas cerca de Amarillo, Texas, desde el jueves 22 de octubre hasta el lunes 2 de noviembre. Estos vuelos medirán […]",
+        "explanation": "**NASA realizará vuelos a baja altitud sobre tierras agrícolas de Texas**\n\nNASA llevará a cabo vuelos de investigación a baja altitud sobre tierras agrícolas cercanas a Amarillo, Texas, desde el 22 de octubre hasta el 2 de noviembre de 2026. Estos vuelos utilizarán un avión Dynamic Aviation A200 para medir las emisiones gaseosas y de partículas provenientes de las operaciones de alimentación animal.\n\nLa misión, denominada FarmFlux, tiene como objetivo estudiar las emisiones agrícolas, un aspecto importante y poco investigado de los sistemas terrestres y atmosféricos de la Tierra. Durante la misión, se desplegarán más de una docena de sensores para medir contaminantes como ozono, metano, amoníaco y partículas, así como su interacción con la atmósfera.\n\nLa iniciativa es liderada conjuntamente por el Centro de Vuelo Espacial Goddard de NASA, la Universidad Estatal de Colorado y la Universidad de Boston. Además, se han programado vuelos de investigación adicionales con un avión P-3 Orion de NASA entre marzo y julio de 2027, centrados en tierras de cultivo en el Medio Oeste y el Valle Central de California. Estos esfuerzos buscan mejorar la comprensión de las emisiones agrícolas y su impacto en el medio ambiente.",
+        "id": "b8e2f8c049930a4c8a11",
+        "image_headline": "NASA llevará a cabo vuelos de investigación sobre tierras agrícolas en Texas para medir emisiones contaminantes.",
+        "lang": "en",
+        "original_title": "NASA to Conduct Low-Altitude Flights Over Texas Farmland",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "Editor’s Note: This article was originally published on Oct. 15, 2026, and has been updated to correct the location and update the duration of the flight deployment. A NASA Dynamic Aviation A200 aircraft will conduct low-flying research flights over farmland near Amarillo, Texas, from Thursday, Oct. 22, through Monday, Nov. 2. These flights will measure gaseous and particulate emissions from animal feeding operations. A photo of the Dynamic Aviation A200 aircraft, which will conduct low-flying research flights over farmland near Amarillo, Texas, to measure emissions in October and November 2026. Dynamic Aviation Agricultural emissions represent an important and understudied part of Earth’s land and atmosphere systems. The FarmFlux mission will deploy more than a dozen sensors to measure ozone, methane, ammonia, particulates, and other pollutants rising from crop lands and livestock farms and their interaction with the Earth’s atmosphere. The mission is jointly led by NASA’s Goddard Space Flight Center in Greenbelt, Maryland; Colorado State University; and Boston University. Additional low-altitude research flights with a NASA P-3 Orion aircraft are scheduled for the March to July 2027 growing season in the Midwest and California’s Central Valley with a focus on cropland. For more information about the FarmFlux mission, visit: https://science.nasa.gov/mission/evs-4/farm-flux/ By Sharon Teitelbaum NASA’s Ames Research Center in California’s Silicon Valley",
+        "title": "NASA realizará vuelos a baja altitud sobre tierras agrícolas de Texas.",
+        "url": "https://www.nasa.gov/general/nasa-to-conduct-low-altitude-flights-over-texas-farmland/"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nNASA llevará a cabo vuelos de investigación sobre tierras agrícolas en Texas para medir emisiones contaminantes.\n\nNASA realizará vuelos a baja altitud sobre tierras agrícolas de Texas NASA llevará a cabo vuelos de investigación a baja altitud sobre tierras agrícolas cercanas a Amarillo, Texas, desde el 22 de octubre hasta el 2 de noviembre de 2026. Estos vuelos utilizarán un avión Dynamic Aviation A200 para medir las emisiones gaseosas y de partículas provenientes de las operaciones de alimentación animal. La misión, denominada FarmFlux, tiene como objetivo estudiar las emisiones agrícolas, un aspecto importante y poco investigado de los sistemas terrestres y atmosféricos de la Tierra. Durante la misión, se desplegarán más de una docena de sensores para medir contaminantes como ozono, metano, amoníaco y partículas, así como su interacción con la atmósfera. La iniciativa es liderada conjuntamente por el Centro de Vuelo Espacial Goddard de NASA, la Universidad Estatal de Colorado y la Universidad de Boston. Además, se han programado vuelos de investigación adicionales con un avión P-3 Orion de NASA entre marzo y julio de 2027, centrados en tierras de cultivo en el Medio Oeste y el Valle Central de California. Estos esfuerzos buscan mejorar la comprensión de las emisiones agrícolas y su impacto en el medio ambiente.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "436a3622a1b641238b02d0dc5c89b39118d0728bee585bf25d54ac82a019bc89",
+        "source": "https://commons.wikimedia.org/wiki/File:Earth_Eastern_Hemisphere.jpg",
+        "title": "File:Earth Eastern Hemisphere.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6f/Earth_Eastern_Hemisphere.jpg/1920px-Earth_Eastern_Hemisphere.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/b8e2f8c049930a4c8a11.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "c0abe8d1dd2fdd8fd1a2": {
       "article": {
         "category": "espacio",
