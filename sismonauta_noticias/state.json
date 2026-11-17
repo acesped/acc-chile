@@ -86,6 +86,42 @@
         }
       }
     },
+    "3c2df288338ed18daf19": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-17T05:05:00+00:00",
+        "description": "APOD Ciencia APOD APOD: 17 de noviembre de 2026 –… El APOD de hoy",
+        "explanation": "**TITULAR: APOD: 17 de noviembre de 2026 – Vía Láctea versus Aurora**\n\nEn la imagen del día de hoy, se presenta un fascinante contraste entre la Vía Láctea y una aurora boreal, capturada desde Kvaløya, Noruega. A la izquierda, la Vía Láctea se despliega como un arco central, representando un antiguo sistema de estrellas, gas y polvo que ha existido mucho antes de la formación de la Tierra. Este vasto conjunto de materia se encuentra a distancias inimaginables de nuestro planeta.\n\nPor otro lado, a la derecha, se observa un arco auroral, un fenómeno que se forma en la atmósfera terrestre a partir de átomos y moléculas energizados. Este espectáculo natural es el resultado de partículas energéticas expulsadas por el Sol, que interactúan con el campo magnético de la Tierra. La imagen destaca cómo estos dos gigantes celestiales parecen competir por el dominio del cielo, aunque en realidad se encuentran en diferentes escalas y contextos temporales.\n\nEn el fondo de la imagen, se puede identificar la constelación del Gran Carro, y aún más lejos, la galaxia de Andrómeda, lo que añade una capa adicional de profundidad y maravilla a esta representación del cosmos.",
+        "id": "3c2df288338ed18daf19",
+        "image_headline": "Una imagen muestra la Vía Láctea y una aurora, destacando su belleza y conexión con el Sol.",
+        "lang": "en",
+        "original_title": "APOD: 2026 November 17 – Milky Way versus Aurora",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "APOD Science APOD APOD: 2026 November 17 –… Today’s APOD Archive Submissions Index Search Calendar RSS Education About Discuss APOD Astronomy Picture of the Day Discover the cosmos! Each day a different image or photograph of our fascinating universe is featured, along with a brief explanation written by a professional astronomer. Original Annotated Milky Way versus Aurora Explanation: Are these two giant arches battling for control of the sky? No, but it sure looks like it! The arch on the left is the central band of our Milky Way Galaxy , an ancient system of stars, gas, and dust that predates our Earth and is very far away. The arch on the right, by contrast, is an auroral ribbon that is only hours old, composed of energized atoms and molecules , and is close by — right in Earth’s upper atmosphere . These chance-superposed titan s have our Sun in common, a stellar member of the Milky Way that ejects energetic particles which create aurora s. Far behind the middle of the auroral arch is the Big Dipper . Even farther in the distance is the Andromeda galaxy — the bright spot near the top of the frame, just left of center. The featured image was taken about a month ago from Kvaløya in northern Norway . Tomorrow’s picture: open space Date November 17, 2026 Credit & Copyright Guillaume Scheib Authors & editors: Robert Nemiroff, Jerry Bonnell, Cecilia Chirenti, Keighley Rockcliffe A service of: ASD at NASA / GSFC , NASA Science Activation & Michigan Tech. U. Random APOD Generator Yesterday’s Image APOD: 2026 November 16 – NGC 7129: Star Formation with Jets from Webb Tomorrow’s Image",
+        "title": "APOD: 17 de noviembre de 2026 – Vía Láctea versus Aurora",
+        "url": "https://science.nasa.gov/image-article/apod-2026-november-17-milky-way-versus-aurora/"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nUna imagen muestra la Vía Láctea y una aurora, destacando su belleza y conexión con el Sol.\n\nEn la imagen del día de hoy, se presenta un fascinante contraste entre la Vía Láctea y una aurora boreal, capturada desde Kvaløya, Noruega. A la izquierda, la Vía Láctea se despliega como un arco central, representando un antiguo sistema de estrellas, gas y polvo que ha existido mucho antes de la formación de la Tierra. Este vasto conjunto de materia se encuentra a distancias inimaginables de nuestro planeta. Por otro lado, a la derecha, se observa un arco auroral, un fenómeno que se forma en la atmósfera terrestre a partir de átomos y moléculas energizados. Este espectáculo natural es el resultado de partículas energéticas expulsadas por el Sol, que interactúan con el campo magnético de la Tierra. La imagen destaca cómo estos dos gigantes celestiales parecen competir por el dominio del cielo, aunque en realidad se encuentran en diferentes escalas y contextos temporales. En el fondo de la imagen, se puede identificar la constelación del Gran Carro, y aún más lejos, la galaxia de Andrómeda, lo que añade una capa adicional de profundidad y maravilla a esta representación del cosmos.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "0ca68660e5a77ccb5fc6bccaf0e7cf677aff55340dbccf7e91e78cff5a1b38fe",
+        "source": "https://commons.wikimedia.org/wiki/File:Michael_Gernhardt_in_space_during_STS-69_in_1995.jpg",
+        "title": "File:Michael Gernhardt in space during STS-69 in 1995.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/75/Michael_Gernhardt_in_space_during_STS-69_in_1995.jpg/1920px-Michael_Gernhardt_in_space_during_STS-69_in_1995.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/3c2df288338ed18daf19.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "b114f068ccd28f3e0419": {
       "article": {
         "category": "espacio",
