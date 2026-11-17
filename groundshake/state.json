@@ -2469,8 +2469,9 @@
       "topic": "medicion:replicas:preguntas_frecuentes",
       "topic_key": "replicas",
       "title": "¿Qué pregunta frecuente surge al hablar de las réplicas?",
-      "reel": "enviando",
-      "updated_at": "2026-11-17T12:01:37.095495+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-17T12:02:16.374601+00:00",
+      "reel_id": "17896297155435867"
     }
   },
   "youtube_upload_retry_after": "2026-11-17T00:04:42.810193+00:00"
