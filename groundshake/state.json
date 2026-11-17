@@ -2438,6 +2438,13 @@
       "youtube_short_id": "ZYwxSawA0fA",
       "youtube_video": "publicado",
       "youtube_video_id": "BFK6ZAUz1U8"
+    },
+    "sismos-b671eeae82f6": {
+      "topic": "ondas:resonancia_suelo:escala",
+      "topic_key": "resonancia_suelo",
+      "title": "¿Por qué la escala importa al estudiar el efecto del suelo?",
+      "reel": "enviando",
+      "updated_at": "2026-11-17T06:01:24.864582+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-17T00:04:42.810193+00:00"
