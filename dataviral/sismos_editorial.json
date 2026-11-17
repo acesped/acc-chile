@@ -1431,6 +1431,16 @@
       "angle": "escala",
       "time": "2026-11-17T03:02:11.942791+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-b671eeae82f6",
+      "topic": "ondas:resonancia_suelo:escala",
+      "topic_key": "resonancia_suelo",
+      "title": "¿Por qué la escala importa al estudiar el efecto del suelo?",
+      "style": "pregunta_respuesta",
+      "angle": "escala",
+      "time": "2026-11-17T06:01:22.202851+00:00",
+      "status": "publicado"
     }
   ]
 }
