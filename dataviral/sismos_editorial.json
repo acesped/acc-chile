@@ -1421,6 +1421,16 @@
       "angle": "fundamentos",
       "time": "2026-11-17T00:01:27.948021+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-9a14a8c075b4",
+      "topic": "riesgo:prediccion:escala",
+      "topic_key": "prediccion",
+      "title": "¿Por qué la escala importa al estudiar las predicciones sísmicas?",
+      "style": "pregunta_respuesta",
+      "angle": "escala",
+      "time": "2026-11-17T03:02:11.942791+00:00",
+      "status": "publicado"
     }
   ]
 }
