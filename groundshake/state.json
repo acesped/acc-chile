@@ -2488,7 +2488,7 @@
       "topic_key": "alerta_temprana",
       "title": "¿Cómo interpretar correctamente la alerta temprana?",
       "reel": "publicado",
-      "updated_at": "2026-11-17T15:03:25.945170+00:00",
+      "updated_at": "2026-11-17T15:03:58.706142+00:00",
       "reel_id": "17992187478116004",
       "story": "publicado",
       "story_id": "17990734406881537",
@@ -2497,7 +2497,8 @@
       "facebook_story": "publicado",
       "facebook_story_id": "1532288715375343",
       "youtube_short": "publicado",
-      "youtube_short_id": "xPQ3bbqpMHw"
+      "youtube_short_id": "xPQ3bbqpMHw",
+      "youtube_video": "enviando"
     }
   },
   "youtube_upload_retry_after": "2026-11-17T00:04:42.810193+00:00"
