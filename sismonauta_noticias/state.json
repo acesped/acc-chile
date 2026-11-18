@@ -1023,8 +1023,10 @@
           "status": "pending"
         },
         "instagram": {
+          "id": "18126519766937423",
+          "published_at": "2026-11-18T23:01:58.687670+00:00",
           "started_at": "2026-11-18T23:01:41.335733+00:00",
-          "status": "uncertain"
+          "status": "published"
         }
       }
     },
