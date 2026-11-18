@@ -2607,6 +2607,13 @@
       "facebook_reel_id": "1117704400895765",
       "facebook_story": "publicado",
       "facebook_story_id": "1154201390909011"
+    },
+    "sismos-c0ec1a497156": {
+      "topic": "ondas:atenuacion:pregunta",
+      "topic_key": "atenuacion",
+      "title": "¿Qué deberíamos preguntarnos sobre la propagación de las ondas?",
+      "reel": "enviando",
+      "updated_at": "2026-11-18T21:29:34.608625+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-19T06:09:54.122812+00:00"
