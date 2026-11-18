@@ -2579,6 +2579,13 @@
       "facebook_reel_id": "3376965366026637",
       "facebook_story": "publicado",
       "facebook_story_id": "1095780910124168"
+    },
+    "sismos-de8782ff30a0": {
+      "topic": "fallas:falla_normal:relacion",
+      "topic_key": "falla_normal",
+      "title": "¿Cómo se relaciona una falla normal con otros procesos de la Tierra?",
+      "reel": "enviando",
+      "updated_at": "2026-11-18T15:28:00.764885+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-19T06:09:54.122812+00:00"
