@@ -473,6 +473,42 @@
         }
       }
     },
+    "ba6462df4d464bfc759b": {
+      "article": {
+        "category": "meteorologia",
+        "date": "2026-11-18T05:05:00+00:00",
+        "description": "APOD Ciencia APOD APOD: 18 de noviembre de 2026 – Un… Archivo de APOD Envíos Índice Búsqueda Calendario RSS Educación Acerca de Discutir APOD Imagen Astronómica del Día ¡Descubre el cosmos! Cada día se presenta una imagen o fotografía diferente de nuestro fascinante universo, junto con una breve explicación escrita por un astrónomo profesional. Un tamaño mediano […]",
+        "explanation": "**TITULAR: APOD: 18 de noviembre de 2026 – Una llamarada solar de clase M** El 18 de noviembre de 2026, el Astronomy Picture of the Day (APOD) presenta una imagen de la cromosfera solar, capturada durante una llamarada solar de clase M1 ocurrida el 14 de mayo de 2025. Esta llamarada, moderadamente brillante en rayos X, es un fenómeno que se origina en la atmósfera del Sol, donde la temperatura aumenta debido a la energía generada por campos magnéticos en movimiento. Las llamaradas solares, como la M1, pueden provocar interrupciones en las comunicaciones de radio en los polos de la Tierra y generar tormentas de radiación menores que representan un riesgo para los astronautas en el espacio. Aunque no son las más potentes, su monitoreo es crucial para la seguridad de las actividades espaciales y terrestres. Agencias como NASA y NOAA están constantemente vigilando la actividad solar para predecir y gestionar estos eventos, asegurando así la protección de los seres humanos tanto en la Tierra como en el espacio. La comprensión de estos fenómenos es esencial para mitigar sus efectos y avanzar en la exploración espacial.",
+        "id": "ba6462df4d464bfc759b",
+        "image_headline": "El 18 de noviembre de 2026, se registró una llamarada solar de clase M, afectando comunicaciones en la Tierra.",
+        "lang": "en",
+        "original_title": "APOD: 2026 November 18 – An M-class Solar Flare",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "APOD Science APOD APOD: 2026 November 18 – An… Today’s APOD Archive Submissions Index Search Calendar RSS Education About Discuss APOD Astronomy Picture of the Day Discover the cosmos! Each day a different image or photograph of our fascinating universe is featured, along with a brief explanation written by a professional astronomer. A Medium-Sized Solar Flare Explanation: What a flare for the chromatic ! Today’s image captures a piece of the Sun ’s chromosphere , the layer of the Sun ’s atmosphere above its surface where the temperature rises . Why would the Sun become hotter farther away from its core ? This is potentially due to energy from the swirling magnetic fields extending up through the Sun’s atmosphere. Those same magnetic fields can twist and snap , releasing light and energetic particles as a solar flare . The H-alpha filter used for today’s image captures light from energized hydrogen atoms as they travel off the Sun’s surface during a flare on May 14, 2025. This flare was classified as an M1 based on GOES observations , meaning it was moderately bright in X-rays . M-class flares can cause radio blackouts at Earth’s poles and minor radiation storms that can harm astronauts. They aren’t even the most powerful flares ! NASA, NOAA , and other agencies monitor the Sun to predict and identify such storms so we can protect humans on Earth and in space. Tomorrow’s picture: a horse of a different color Date: November 18, 2026 Credit & Copyright: Mario Cogo Authors & editors: Keighley Rockcliffe, Robert Nemiroff, Jerry Bonnell, Cecilia Chirenti A service of: ASD at NASA / GSFC , NASA Science Activation & Michigan Tech. U. Random APOD Generator Yesterday’s Image APOD: 2026 November 17 – Milky Way versus Aurora Tomorrow’s Image",
+        "title": "APOD: 18 de noviembre de 2026 – Una llamarada solar de clase M",
+        "url": "https://science.nasa.gov/image-article/apod-2026-november-18-an-m-class-solar-flare/"
+      },
+      "caption": "🌎 SISMONAUTA | METEOROLOGÍA\n\nEl 18 de noviembre de 2026, se registró una llamarada solar de clase M, afectando comunicaciones en la Tierra.\n\nEl 18 de noviembre de 2026, el Astronomy Picture of the Day (APOD) presenta una imagen de la cromosfera solar, capturada durante una llamarada solar de clase M1 ocurrida el 14 de mayo de 2025. Esta llamarada, moderadamente brillante en rayos X, es un fenómeno que se origina en la atmósfera del Sol, donde la temperatura aumenta debido a la energía generada por campos magnéticos en movimiento. Las llamaradas solares, como la M1, pueden provocar interrupciones en las comunicaciones de radio en los polos de la Tierra y generar tormentas de radiación menores que representan un riesgo para los astronautas en el espacio. Aunque no son las más potentes, su monitoreo es crucial para la seguridad de las actividades espaciales y terrestres. Agencias como NASA y NOAA están constantemente vigilando la actividad solar para predecir y gestionar estos eventos, asegurando así la protección de los seres humanos tanto en la Tierra como en el espacio. La comprensión de estos fenómenos es esencial para mitigar sus efectos y avanzar en la exploración espacial.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Meteorologia #Tiempo #Tormentas #Atmosfera",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "storm clouds landscape",
+        "sha256": "688d9a9222ab303f90b42fff48434d818abd8db6dc1f6b5d38f7ff391ba72e99",
+        "source": "https://commons.wikimedia.org/wiki/File:Storm_Clouds_MET_DP847086.jpg",
+        "title": "File:Storm Clouds MET DP847086.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cd/Storm_Clouds_MET_DP847086.jpg/1920px-Storm_Clouds_MET_DP847086.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/ba6462df4d464bfc759b.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "c0abe8d1dd2fdd8fd1a2": {
       "article": {
         "category": "espacio",
