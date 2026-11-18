@@ -1531,6 +1531,16 @@
       "angle": "clave",
       "time": "2026-11-18T18:01:26.501884+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-c0ec1a497156",
+      "topic": "ondas:atenuacion:pregunta",
+      "topic_key": "atenuacion",
+      "title": "¿Qué deberíamos preguntarnos sobre la propagación de las ondas?",
+      "style": "mapa_explicado",
+      "angle": "pregunta",
+      "time": "2026-11-18T21:29:31.382616+00:00",
+      "status": "publicado"
     }
   ]
 }
