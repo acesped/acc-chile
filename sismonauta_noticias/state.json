@@ -732,6 +732,42 @@
         }
       }
     },
+    "ccb648eb87709cee49a1": {
+      "article": {
+        "category": "meteorologia",
+        "date": "2026-11-18T05:05:00+00:00",
+        "description": "APOD Science APOD APOD: 18 de noviembre de 2026 – A… El APOD",
+        "explanation": "**APOD: 18 de noviembre de 2026 – Una fulguración solar de tamaño mediano**\n\nEl 18 de noviembre de 2026, se observó una fulguración solar de tamaño mediano, clasificada como M1, que se produjo el 14 de mayo de 2025. Este fenómeno fue capturado en una serie de imágenes que muestran la cromosfera del Sol, la capa de su atmósfera donde la temperatura aumenta a medida que se aleja del núcleo.\n\nLas fulguraciones solares son explosiones de energía que ocurren debido a la interacción de campos magnéticos en la superficie solar. Durante este evento, se liberaron luz y partículas energéticas, lo que puede tener consecuencias en la Tierra. Las fulguraciones de clase M, aunque no son las más potentes, pueden causar apagones de radio en los polos y generar tormentas de radiación menores que pueden afectar a los astronautas en el espacio.\n\nAgencias como NASA y NOAA monitorean constantemente la actividad solar para predecir estos eventos y proteger a los seres humanos tanto en la Tierra como en el espacio. La comprensión de estos fenómenos es crucial para mitigar sus efectos en la tecnología y la salud de los astronautas.",
+        "id": "ccb648eb87709cee49a1",
+        "image_headline": "APOD: 18 de noviembre de 2026 – Una fulguración solar de tamaño mediano.",
+        "lang": "en",
+        "original_title": "APOD: 2026 November 18 – A Medium-Sized Solar Flare",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "APOD Science APOD APOD: 2026 November 18 – A… Today’s APOD Archive Submissions Index Search Calendar RSS Education About Discuss APOD Astronomy Picture of the Day Discover the cosmos! Each day a different image or photograph of our fascinating universe is featured, along with a brief explanation written by a professional astronomer. A Medium-Sized Solar Flare Explanation: What a flare for the chromatic ! Today’s image combines a series of images taken over ten minutes capturing the Sun ’s chromosphere , the layer of the Sun ’s atmosphere above its surface where the temperature rises . Why would the Sun become hotter farther away from its core ? This is potentially due to energy from the swirling magnetic fields extending up through the Sun’s atmosphere. Those same magnetic fields can twist and snap , releasing light and energetic particles as a solar flare . The H-alpha filter used for today’s image captures light from energized hydrogen atoms as they travel off the Sun’s surface during a flare on May 14, 2025. This flare was classified as an M1 based on GOES observations , meaning it was moderately bright in X-rays . M-class flares can cause radio blackouts at Earth’s poles and minor radiation storms that can harm astronauts. They aren’t even the most powerful flares ! NASA, NOAA , and other agencies monitor the Sun to predict and identify such storms so we can protect humans on Earth and in space. Tomorrow’s picture: a horse of a different color Date: November 18, 2026 Credit & Copyright: Mario Cogo Authors & editors: Keighley Rockcliffe, Robert Nemiroff, Jerry Bonnell, Cecilia Chirenti A service of: ASD at NASA / GSFC , NASA Science Activation & Michigan Tech. U. Random APOD Generator Yesterday’s Image APOD: 2026 November 17 – Milky Way versus Aurora Tomorrow’s Image",
+        "title": "APOD: 18 de noviembre de 2026 – Una fulguración solar de tamaño mediano.",
+        "url": "https://science.nasa.gov/image-article/apod-2026-november-18-an-m-class-solar-flare/"
+      },
+      "caption": "🌎 SISMONAUTA | METEOROLOGÍA\n\nAPOD: 18 de noviembre de 2026 – Una fulguración solar de tamaño mediano.\n\nAPOD: 18 de noviembre de 2026 – Una fulguración solar de tamaño mediano El 18 de noviembre de 2026, se observó una fulguración solar de tamaño mediano, clasificada como M1, que se produjo el 14 de mayo de 2025. Este fenómeno fue capturado en una serie de imágenes que muestran la cromosfera del Sol, la capa de su atmósfera donde la temperatura aumenta a medida que se aleja del núcleo. Las fulguraciones solares son explosiones de energía que ocurren debido a la interacción de campos magnéticos en la superficie solar. Durante este evento, se liberaron luz y partículas energéticas, lo que puede tener consecuencias en la Tierra. Las fulguraciones de clase M, aunque no son las más potentes, pueden causar apagones de radio en los polos y generar tormentas de radiación menores que pueden afectar a los astronautas en el espacio. Agencias como NASA y NOAA monitorean constantemente la actividad solar para predecir estos eventos y proteger a los seres humanos tanto en la Tierra como en el espacio. La comprensión de estos fenómenos es crucial para mitigar sus efectos en la tecnología y la salud de los astronautas.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Meteorologia #Tiempo #Tormentas #Atmosfera",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "storm clouds landscape",
+        "sha256": "43d04cc41171df576b46169136cd5f294eded861aae4f79aaf59907f456a0d0f",
+        "source": "https://commons.wikimedia.org/wiki/File:L%C3%A9on_Germain_Pelouse,_Landscape_with_storm_clouds,_1881.jpg",
+        "title": "File:Léon Germain Pelouse, Landscape with storm clouds, 1881.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9f/L%C3%A9on_Germain_Pelouse%2C_Landscape_with_storm_clouds%2C_1881.jpg/1920px-L%C3%A9on_Germain_Pelouse%2C_Landscape_with_storm_clouds%2C_1881.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/ccb648eb87709cee49a1.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "dce7315a9bd1bdf86957": {
       "article": {
         "category": "espacio",
