@@ -420,8 +420,10 @@
           "status": "pending"
         },
         "instagram": {
+          "id": "18421256674083901",
+          "published_at": "2026-11-18T21:02:36.350955+00:00",
           "started_at": "2026-11-18T21:02:17.857011+00:00",
-          "status": "uncertain"
+          "status": "published"
         }
       }
     },
