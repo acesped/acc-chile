@@ -1471,6 +1471,16 @@
       "angle": "significado",
       "time": "2026-11-17T18:02:21.260842+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-49d6902ebbce",
+      "topic": "medicion:profundidad:consecuencia",
+      "topic_key": "profundidad",
+      "title": "¿Por qué importa la profundidad de los sismos?",
+      "style": "mapa_explicado",
+      "angle": "consecuencia",
+      "time": "2026-11-18T00:01:23.092795+00:00",
+      "status": "publicado"
     }
   ]
 }
