@@ -215,6 +215,43 @@
         }
       }
     },
+    "4370255080823904dc67": {
+      "article": {
+        "category": "volcanes",
+        "date": "2026-11-18T10:00:00+00:00",
+        "description": "Incluso los volcanes más modestos de Marte llaman la atención. La captura de este mes de la Mars Express de la",
+        "explanation": "**A la sombra de gigantes volcánicos**\n\nEl volcán Tharsis Tholus, ubicado en Marte, ha captado la atención de los científicos gracias a su compleja historia geológica. Con una altura de aproximadamente 8 km, es uno de los volcanes más destacados del planeta rojo, aunque no se compara con los gigantes como Olympus Mons, que alcanza casi 22 km.\n\nLas imágenes recientes de la misión Mars Express revelan características fascinantes de Tharsis Tholus, incluyendo su caldera, una depresión en la cima formada por colapsos tras erupciones. Se han identificado al menos dos colapsos calderales en su historia, lo que sugiere una actividad volcánica significativa en el pasado. Estas calderas son inusualmente grandes en relación con el tamaño del volcán, alcanzando casi 3 km de profundidad.\n\nAdemás, las laderas del volcán presentan diversas formaciones geológicas, como escarpes y fallas, resultado de la presión ejercida por su masa sobre las capas más blandas del subsuelo. La erosión y los impactos de meteoritos han dejado su huella en la superficie, creando un paisaje complejo y dinámico.\n\nEl estudio de Tharsis Tholus no solo enriquece nuestro conocimiento sobre Marte, sino que también ofrece comparaciones valiosas con la actividad volcánica en la Tierra, destacando las diferencias en los procesos geológicos entre ambos planetas.",
+        "id": "4370255080823904dc67",
+        "image_headline": "La Mars Express revela la compleja historia del volcán Tharsis Tholus, destacando su caldera y actividad pasada.",
+        "lang": "en",
+        "original_title": "In the shadow of volcanic giants",
+        "resolved_source_url": "https://www.esa.int/articles/about-us/directorates/science/mars-express/in-the-shadow-of-volcanic-giants",
+        "search_category": "direct",
+        "source": "ESA ciencia espacial",
+        "source_body": "",
+        "title": "A la sombra de gigantes volcánicos",
+        "url": "https://www.esa.int/articles/about-us/directorates/science/mars-express/in-the-shadow-of-volcanic-giants"
+      },
+      "caption": "🌎 SISMONAUTA | ACTUALIDAD VOLCÁNICA\n\nLa Mars Express revela la compleja historia del volcán Tharsis Tholus, destacando su caldera y actividad pasada.\n\nEl volcán Tharsis Tholus, ubicado en Marte, ha captado la atención de los científicos gracias a su compleja historia geológica. Con una altura de aproximadamente 8 km, es uno de los volcanes más destacados del planeta rojo, aunque no se compara con los gigantes como Olympus Mons, que alcanza casi 22 km. Las imágenes recientes de la misión Mars Express revelan características fascinantes de Tharsis Tholus, incluyendo su caldera, una depresión en la cima formada por colapsos tras erupciones. Se han identificado al menos dos colapsos calderales en su historia, lo que sugiere una actividad volcánica significativa en el pasado. Estas calderas son inusualmente grandes en relación con el tamaño del volcán, alcanzando casi 3 km de profundidad. Además, las laderas del volcán presentan diversas formaciones geológicas, como escarpes y fallas, resultado de la presión ejercida por su masa sobre las capas más blandas del subsuelo. La erosión y los impactos de meteoritos han dejado su huella en la superficie, creando un paisaje complejo y dinámico. El estudio de Tharsis Tholus no solo enriquece nuestro conocimiento sobre Marte, sino que también ofrece comparaciones valiosas con la actividad volcánica en la Tierra, destacando las diferencias en los procesos geológicos entre ambos planetas.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Volcanes #Erupciones #Volcanologia #Geologia",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "volcano landscape",
+        "sha256": "c24aa08a93887ff75a88650ea19163b2d6294199f61e74cb76121a1346f7de04",
+        "source": "https://commons.wikimedia.org/wiki/File:Vegetation_around_the_Volcano_House.jpg",
+        "title": "File:Vegetation around the Volcano House.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/9/96/Vegetation_around_the_Volcano_House.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/4370255080823904dc67.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "4eca08d7e9b2fe59f165": {
       "article": {
         "category": "espacio",
