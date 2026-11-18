@@ -1481,6 +1481,16 @@
       "angle": "consecuencia",
       "time": "2026-11-18T00:01:23.092795+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-85596caf53aa",
+      "topic": "riesgo:alerta_temprana:escala",
+      "topic_key": "alerta_temprana",
+      "title": "¿Por qué la escala importa al estudiar la alerta temprana?",
+      "style": "mito_realidad",
+      "angle": "escala",
+      "time": "2026-11-18T06:08:13.818067+00:00",
+      "status": "publicado"
     }
   ]
 }
