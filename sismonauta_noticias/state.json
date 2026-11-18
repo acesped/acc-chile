@@ -258,6 +258,42 @@
         }
       }
     },
+    "5d356e2ed5d19009c725": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-04T18:00:02+00:00",
+        "description": "La NASA seleccionó a tres empresas el miércoles para realizar trabajos de desarrollo de conceptos de capacidad de relé espacial en banda Ka que sean compatibles con las misiones actuales en el espacio, asegurando la continuidad del servicio para las naves espaciales existentes sin requerir modificaciones en sus sistemas a bordo. A través de este trabajo, la NASA buscará adquirir soluciones de extremo a extremo que incluyan espacio, tierra, lanzamiento, operaciones e integración […]",
+        "explanation": "**NASA Anuncia Premios de Relé Satelital Ka-Band para Comunicaciones Espaciales**\n\nNASA ha seleccionado a tres empresas para desarrollar conceptos de capacidad de relé espacial en banda Ka, compatibles con misiones actuales. Este avance busca asegurar la continuidad del servicio para naves espaciales existentes sin necesidad de modificar sus sistemas a bordo.\n\nLos contratos, bajo el programa Next Space Technologies for Exploration Partnerships-3, son de precio fijo y permiten a NASA financiar el desarrollo desde la fase inicial hasta una demostración de vuelo en órbita. El periodo inicial de trabajo se extiende desde el 4 de noviembre de 2026 hasta el 3 de mayo de 2027, con opciones para continuar hasta 2029.\n\nLas empresas seleccionadas son Astranis Space Technologies Corp., Global Enterprise Solutions Inc. y Viasat Inc., con valores máximos de contrato de $264.3 millones, $340.4 millones y $460.9 millones, respectivamente. Este esfuerzo es parte del programa SCaN de NASA, que busca reemplazar gradualmente la flota de satélites de seguimiento y datos, adoptando servicios comerciales para futuras misiones.\n\nLa implementación de servicios en banda Ka es crucial para misiones en órbita que no pueden modificar su hardware de vuelo, asegurando así la continuidad y sostenibilidad de las comunicaciones espaciales.",
+        "id": "5d356e2ed5d19009c725",
+        "image_headline": "NASA Anuncia Premios de Relé Satelital Ka-Band para Comunicaciones Espaciales",
+        "lang": "en",
+        "original_title": "NASA Announces Ka-Band Satellite Relay Awards for Space Communications",
+        "search_category": "direct",
+        "source": "NASA tecnología",
+        "source_body": "Credit: NASA NASA selected three companies on Wednesday to perform work to develop Ka-band space relay capability concepts that are compatible with current missions in space, ensuring service continuity for existing spacecraft without requiring modifications to their onboard systems. Through this work, NASA will aim to acquire end-to-end solutions that include space, ground, launch, operations, and integration elements, as one of many customers in the commercial marketplace. The awards, under the Next Space Technologies for Exploration Partnerships-3 Broad Agency Announcement Appendix E, are firm-fixed-price contracts that give NASA the option to provide additional funding up to the award limit to advance from initial concept development and risk reduction to an in-orbit flight demonstration. The initial period of performance runs from Nov. 4 through May 3, 2027, with additional priced options to continue work through 2029. The contract awardees with maximum potential value inclusive of all future options are: Astranis Space Technologies Corp. for $264.3 million. Global Enterprise Solutions Inc. for $340.4 million. Viasat Inc. for $460.9 million. Facilitated through the agency’s SCaN (Space Communications and Navigation) program’s Communications Services Project, this work supports NASA’s decision to gradually retire the Tracking and Data Relay Satellite fleet and adopt commercial services for future missions. In addition to the commercial capabilities currently under development by the program’s industry partners, Ka-band services are needed to support select in-orbit missions that cannot feasibly modify flight hardware or transition to non-compatible commercial services. To learn more about NASA’s Network Extension for User Continuity and Sustainability Ka-band service acquisition, visit: https://go.nasa.gov/4iVfeVB -end- Jennifer Dooren / Jessica Taveau Headquarters, Washington 202-358-1600 jennifer.m.dooren@nasa.gov / jessica.c.taveau@nasa.gov Share Details Last Updated Nov 04, 2026 Editor Jessica Taveau Location NASA Headquarters Related Terms Space Communications & Navigation Program Space Communications Technology",
+        "title": "NASA Anuncia Premios de Relé Satelital Ka-Band para Comunicaciones Espaciales",
+        "url": "https://www.nasa.gov/news-release/nasa-announces-ka-band-satellite-relay-awards-for-space-communications/"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nNASA Anuncia Premios de Relé Satelital Ka-Band para Comunicaciones Espaciales\n\nNASA ha seleccionado a tres empresas para desarrollar conceptos de capacidad de relé espacial en banda Ka, compatibles con misiones actuales. Este avance busca asegurar la continuidad del servicio para naves espaciales existentes sin necesidad de modificar sus sistemas a bordo. Los contratos, bajo el programa Next Space Technologies for Exploration Partnerships-3, son de precio fijo y permiten a NASA financiar el desarrollo desde la fase inicial hasta una demostración de vuelo en órbita. El periodo inicial de trabajo se extiende desde el 4 de noviembre de 2026 hasta el 3 de mayo de 2027, con opciones para continuar hasta 2029. Las empresas seleccionadas son Astranis Space Technologies Corp., Global Enterprise Solutions Inc. y Viasat Inc., con valores máximos de contrato de $264.3 millones, $340.4 millones y $460.9 millones, respectivamente. Este esfuerzo es parte del programa SCaN de NASA, que busca reemplazar gradualmente la flota de satélites de seguimiento y datos, adoptando servicios comerciales para futuras misiones. La implementación de servicios en banda Ka es crucial para misiones en órbita que no pueden modificar su hardware de vuelo, asegurando así la continuidad y sostenibilidad de las comunicaciones espaciales.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "2baa288cbbea526a92e9991ee722acf941fec2fb7bee0241dafdbadd45514550",
+        "source": "https://commons.wikimedia.org/wiki/File:NASA_Earth_America_2002.jpg",
+        "title": "File:NASA Earth America 2002.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/aa/NASA_Earth_America_2002.jpg/1920px-NASA_Earth_America_2002.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/5d356e2ed5d19009c725.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "82a472687dea91b6fd66": {
       "article": {
         "category": "meteorologia",
