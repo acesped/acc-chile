@@ -818,6 +818,43 @@
         }
       }
     },
+    "e8d46e6eb22fe2ad12d5": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-16T11:40:14+00:00",
+        "description": "Profundamente bajo el Océano Pacífico, los científicos han descubierto pequeños ecosistemas ocultos dentro de rocas ricas en metales que tardan millones de años en formarse. Los investigadores examinaron 244 nódulos y encontraron más de 4,100 animales viviendo en sus grietas y cavidades, incluyendo comunidades únicas diferentes a las del barro del fondo marino circundante. Estos notables hábitats en miniatura podrían estar ahora amenazados por la minería en aguas profundas en busca de metales valiosos.",
+        "explanation": "**Ecosistema oculto: Científicos descubren 245 animales viviendo dentro de una sola roca en el fondo del mar**\n\nInvestigadores han revelado un ecosistema sorprendente en el fondo del océano Pacífico, donde 245 animales habitan dentro de una única roca, conocida como nódulo polimetálico. Estos nódulos, formados por óxidos de hierro y manganeso, ofrecen refugio a organismos microscópicos en sus grietas y cavidades, creando hábitats en un entorno predominantemente blando.\n\nEl estudio, liderado por la ecóloga marina Dr. Tanja Stratmann, identificó un total de 4,139 animales en 244 nódulos, con un promedio de 17 por nódulo. Aunque la cantidad de vida en los nódulos es menor que en el sedimento circundante, su diversidad es notable. Las comunidades de animales dentro de los nódulos son genéticamente distintas de las que habitan en el sedimento, lo que sugiere que estos nódulos son hábitats especializados.\n\nLa investigación también plantea preocupaciones sobre el impacto de la minería en el fondo marino, ya que la extracción de nódulos podría llevar a la pérdida irreversible de biodiversidad. Los nódulos requieren millones de años para formarse, lo que significa que su eliminación podría resultar en la extinción de especies que dependen de estos hábitats únicos. La protección de estos ecosistemas ocultos es crucial para la conservación marina.",
+        "id": "e8d46e6eb22fe2ad12d5",
+        "image_headline": "Científicos descubren 245 animales en rocas del fondo marino, revelando ecosistemas únicos amenazados por la minería profunda.",
+        "lang": "en",
+        "original_title": "Hidden ecosystem: Scientists discover 245 animals living inside a single deep-sea rock",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261114202133.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "Ecosistema oculto: Científicos descubren 245 animales viviendo dentro de una sola roca en el fondo del mar.",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261114202133.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nCientíficos descubren 245 animales en rocas del fondo marino, revelando ecosistemas únicos amenazados por la minería profunda.\n\nEcosistema oculto: Científicos descubren 245 animales viviendo dentro de una sola roca en el fondo del mar Investigadores han revelado un ecosistema sorprendente en el fondo del océano Pacífico, donde 245 animales habitan dentro de una única roca, conocida como nódulo polimetálico. Estos nódulos, formados por óxidos de hierro y manganeso, ofrecen refugio a organismos microscópicos en sus grietas y cavidades, creando hábitats en un entorno predominantemente blando. El estudio, liderado por la ecóloga marina Dr. Tanja Stratmann, identificó un total de 4,139 animales en 244 nódulos, con un promedio de 17 por nódulo. Aunque la cantidad de vida en los nódulos es menor que en el sedimento circundante, su diversidad es notable. Las comunidades de animales dentro de los nódulos son genéticamente distintas de las que habitan en el sedimento, lo que sugiere que estos nódulos son hábitats especializados. La investigación también plantea preocupaciones sobre el impacto de la minería en el fondo marino, ya que la extracción de nódulos podría llevar a la pérdida irreversible de biodiversidad. Los nódulos requieren millones de años para formarse, lo que significa que su eliminación podría resultar en la extinción de especies que dependen de estos hábitats únicos. La protección de estos ecosistemas ocultos es crucial para la conservación marina.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "ocean coastline",
+        "sha256": "ca233b7f9fc08359e2423936b654c94a12feaa132b590266742cd7aacb98dd5b",
+        "source": "https://commons.wikimedia.org/wiki/File:The_Soutuern_Ocean_coastline_facing_East_Mount_Barren_near_Hopetoun,_WA_01.jpg",
+        "title": "File:The Soutuern Ocean coastline facing East Mount Barren near Hopetoun, WA 01.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/91/The_Soutuern_Ocean_coastline_facing_East_Mount_Barren_near_Hopetoun%2C_WA_01.jpg/1920px-The_Soutuern_Ocean_coastline_facing_East_Mount_Barren_near_Hopetoun%2C_WA_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/e8d46e6eb22fe2ad12d5.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "f651cdfe890431eff24c": {
       "article": {
         "category": "espacio",
