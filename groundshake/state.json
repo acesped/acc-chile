@@ -2523,8 +2523,9 @@
       "topic": "medicion:profundidad:consecuencia",
       "topic_key": "profundidad",
       "title": "¿Por qué importa la profundidad de los sismos?",
-      "reel": "enviando",
-      "updated_at": "2026-11-18T00:01:25.772688+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-18T00:02:03.616096+00:00",
+      "reel_id": "18011127765006069"
     }
   },
   "youtube_upload_retry_after": "2026-11-17T00:04:42.810193+00:00"
