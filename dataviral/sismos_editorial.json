@@ -1501,6 +1501,16 @@
       "angle": "datos",
       "time": "2026-11-18T09:01:26.306433+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-b89137563cf8",
+      "topic": "tsunamis:primera_ola:significado",
+      "topic_key": "primera_ola",
+      "title": "¿Qué nos enseña la primera ola de un tsunami?",
+      "style": "pregunta_respuesta",
+      "angle": "significado",
+      "time": "2026-11-18T12:01:28.105112+00:00",
+      "status": "publicado"
     }
   ]
 }
