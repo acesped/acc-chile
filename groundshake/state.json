@@ -2551,6 +2551,13 @@
       "facebook_story": "publicado",
       "facebook_story_id": "1450272103264087",
       "youtube_short": "aplazado"
+    },
+    "sismos-6f41be237e2f": {
+      "topic": "medicion:profundidad:datos",
+      "topic_key": "profundidad",
+      "title": "¿Qué información necesitamos para estudiar la profundidad de los sismos?",
+      "reel": "enviando",
+      "updated_at": "2026-11-18T09:01:29.071653+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-19T06:09:54.122812+00:00"
