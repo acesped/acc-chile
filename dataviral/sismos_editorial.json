@@ -1511,6 +1511,16 @@
       "angle": "significado",
       "time": "2026-11-18T12:01:28.105112+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-de8782ff30a0",
+      "topic": "fallas:falla_normal:relacion",
+      "topic_key": "falla_normal",
+      "title": "¿Cómo se relaciona una falla normal con otros procesos de la Tierra?",
+      "style": "descubrimiento",
+      "angle": "relacion",
+      "time": "2026-11-18T15:27:57.612838+00:00",
+      "status": "publicado"
     }
   ]
 }
