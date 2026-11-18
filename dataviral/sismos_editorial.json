@@ -1521,6 +1521,16 @@
       "angle": "relacion",
       "time": "2026-11-18T15:27:57.612838+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-c6a3c857aeda",
+      "topic": "geologia:valle_rift:clave",
+      "topic_key": "valle_rift",
+      "title": "¿Cuál es la clave para comprender los valles de rift?",
+      "style": "descubrimiento",
+      "angle": "clave",
+      "time": "2026-11-18T18:01:26.501884+00:00",
+      "status": "publicado"
     }
   ]
 }
