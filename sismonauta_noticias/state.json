@@ -420,7 +420,8 @@
           "status": "pending"
         },
         "instagram": {
-          "status": "pending"
+          "started_at": "2026-11-18T21:02:17.857011+00:00",
+          "status": "uncertain"
         }
       }
     },
