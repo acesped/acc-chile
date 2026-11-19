@@ -388,6 +388,43 @@
         }
       }
     },
+    "6276663bcc64d9420d9d": {
+      "article": {
+        "category": "volcanes",
+        "date": "2026-11-13T11:56:39+00:00",
+        "description": "¿Por qué algunos volcanes hacen erupción con espectaculares fuentes de lava mientras otros liberan lava de forma más",
+        "explanation": "**TITULAR: Magma sobrecalentado podría alimentar altísimas fuentes de lava.**\n**CATEGORÍA: volcanes**\n\nInvestigadores de la Universidad de Manchester, tras analizar material de la erupción del volcán Tajogaite en La Palma, descubrieron que el \"sobrecalentamiento\" del magma es clave para entender la violencia de las erupciones. Este proceso ocurre cuando la roca fundida alcanza temperaturas tan altas que disuelve las \"semillas\" microscópicas necesarias para formar cristales.\n\nLos experimentos, que recrearon condiciones subterráneas, revelaron que este calor extremo puede retrasar la cristalización por más de ocho horas. Sin estos cristales, el magma mantiene una baja viscosidad, permaneciendo fluido por mucho más tiempo del esperado. Esto facilita un ascenso rápido hacia la superficie, lo que gatilla la formación de altísimas fuentes de lava impulsadas por gases.\n\nEn contraste, si el magma genera cristales temprano, se vuelve espeso y asciende lentamente, resultando en erupciones efusivas más calmas. Este hallazgo, publicado en *Nature Communications*, sugiere que la historia térmica del magma es fundamental para los modelos de pronóstico. Incorporar estos datos permitiría a los científicos prever con mayor precisión si un volcán presentará chorros de lava espectaculares o flujos de movimiento lento.",
+        "id": "6276663bcc64d9420d9d",
+        "image_headline": "Importance:* This delay keeps magma",
+        "lang": "en",
+        "original_title": "Superheated magma could fuel towering lava fountains",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261111221811.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "Magma sobrecalentado podría alimentar altísimas fuentes de lava.",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261111221811.htm"
+      },
+      "caption": "🌎 SISMONAUTA | ACTUALIDAD VOLCÁNICA\n\nImportance:* This delay keeps magma\n\nCATEGORÍA: volcanes Investigadores de la Universidad de Manchester, tras analizar material de la erupción del volcán Tajogaite en La Palma, descubrieron que el \"sobrecalentamiento\" del magma es clave para entender la violencia de las erupciones. Este proceso ocurre cuando la roca fundida alcanza temperaturas tan altas que disuelve las \"semillas\" microscópicas necesarias para formar cristales. Los experimentos, que recrearon condiciones subterráneas, revelaron que este calor extremo puede retrasar la cristalización por más de ocho horas. Sin estos cristales, el magma mantiene una baja viscosidad, permaneciendo fluido por mucho más tiempo del esperado. Esto facilita un ascenso rápido hacia la superficie, lo que gatilla la formación de altísimas fuentes de lava impulsadas por gases. En contraste, si el magma genera cristales temprano, se vuelve espeso y asciende lentamente, resultando en erupciones efusivas más calmas. Este hallazgo, publicado en *Nature Communications*, sugiere que la historia térmica del magma es fundamental para los modelos de pronóstico. Incorporar estos datos permitiría a los científicos prever con mayor precisión si un volcán presentará chorros de lava espectaculares o flujos de movimiento lento.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Volcanes #Erupciones #Volcanologia #Geologia",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "volcano landscape",
+        "sha256": "ce2b3fb74bcbc4db88ce09b147a3245c2034e8a9a6dd34f3923c29319041bf28",
+        "source": "https://commons.wikimedia.org/wiki/File:Katla_Volcano_from_the_South.jpg",
+        "title": "File:Katla Volcano from the South.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e5/Katla_Volcano_from_the_South.jpg/1920px-Katla_Volcano_from_the_South.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/6276663bcc64d9420d9d.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "7a2eab2214b16c996c66": {
       "article": {
         "category": "oceanos",
