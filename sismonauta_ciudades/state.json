@@ -74,13 +74,13 @@
       "time": "2026-11-08T11:58:32.140000+00:00",
       "source": "EMSC-CSEM",
       "targets": {
-        "facebook": {
-          "status": "published",
-          "id": "305263296226466_1148616331046931"
-        },
         "facebook_feed": {
           "status": "published",
           "id": "305263296226466_1148616441046920"
+        },
+        "facebook": {
+          "status": "published",
+          "id": "305263296226466_1148616331046931"
         },
         "instagram": {
           "status": "published",
@@ -95,13 +95,13 @@
       "time": "2026-11-11T19:21:17.374000+00:00",
       "source": "EMSC-CSEM",
       "targets": {
-        "facebook": {
-          "status": "published",
-          "id": "305263296226466_1152259977349233"
-        },
         "facebook_feed": {
           "status": "published",
           "id": "305263296226466_1152260107349220"
+        },
+        "facebook": {
+          "status": "published",
+          "id": "305263296226466_1152259977349233"
         },
         "instagram": {
           "status": "published",
@@ -116,13 +116,13 @@
       "time": "2026-11-15T11:23:57.520000+00:00",
       "source": "EMSC-CSEM",
       "targets": {
-        "facebook": {
-          "status": "published",
-          "id": "305263296226466_1155972050311359"
-        },
         "facebook_feed": {
           "status": "published",
           "id": "305263296226466_1155972160311348"
+        },
+        "facebook": {
+          "status": "published",
+          "id": "305263296226466_1155972050311359"
         },
         "instagram": {
           "status": "published",
@@ -137,13 +137,13 @@
       "time": "2026-11-17T18:50:40.298000+00:00",
       "source": "EMSC-CSEM",
       "targets": {
-        "facebook": {
-          "status": "published",
-          "id": "305263296226466_1158340450074519"
-        },
         "facebook_feed": {
           "status": "published",
           "id": "305263296226466_1158340543407843"
+        },
+        "facebook": {
+          "status": "published",
+          "id": "305263296226466_1158340450074519"
         },
         "instagram": {
           "status": "published",
@@ -158,13 +158,13 @@
       "time": "2026-11-18T06:45:51.220000+00:00",
       "source": "EMSC-CSEM",
       "targets": {
-        "facebook": {
-          "status": "published",
-          "id": "305263296226466_1158709253370972"
-        },
         "facebook_feed": {
           "status": "published",
           "id": "305263296226466_1158709346704296"
+        },
+        "facebook": {
+          "status": "published",
+          "id": "305263296226466_1158709253370972"
         },
         "instagram": {
           "status": "published",
@@ -172,6 +172,24 @@
         }
       },
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_ciudades/images/emsc_20261118_0000111.jpg"
+    },
+    "emsc_20261119_0000232": {
+      "magnitude": 5.1,
+      "place": "OFFSHORE COQUIMBO, CHILE",
+      "time": "2026-11-19T18:09:46.530000+00:00",
+      "source": "EMSC-CSEM",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "facebook": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_ciudades/images/emsc_20261119_0000232.jpg"
     }
   }
 }
