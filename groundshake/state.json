@@ -2649,6 +2649,13 @@
       "facebook_reel_id": "2332282784227385",
       "facebook_story": "publicado",
       "facebook_story_id": "1152810850701383"
+    },
+    "sismos-1a387a1c21fd": {
+      "topic": "fallas:falla_inversa:explicacion",
+      "topic_key": "falla_inversa",
+      "title": "La ciencia detrás de una falla inversa",
+      "reel": "enviando",
+      "updated_at": "2026-11-19T06:01:32.399954+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-19T06:09:54.122812+00:00"
