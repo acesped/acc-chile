@@ -1561,6 +1561,16 @@
       "angle": "estudio",
       "time": "2026-11-19T03:15:46.199164+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-1a387a1c21fd",
+      "topic": "fallas:falla_inversa:explicacion",
+      "topic_key": "falla_inversa",
+      "title": "La ciencia detrás de una falla inversa",
+      "style": "mapa_explicado",
+      "angle": "explicacion",
+      "time": "2026-11-19T06:01:29.342349+00:00",
+      "status": "publicado"
     }
   ]
 }
