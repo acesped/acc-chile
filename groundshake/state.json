@@ -2704,8 +2704,9 @@
       "topic": "medicion:sismometros:relacion",
       "topic_key": "sismometros",
       "title": "¿Cómo se relaciona los sismómetros con otros procesos de la Tierra?",
-      "reel": "enviando",
-      "updated_at": "2026-11-19T18:05:43.113048+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-19T18:06:24.283516+00:00",
+      "reel_id": "18142537984728342"
     }
   },
   "youtube_upload_retry_after": "2026-11-19T06:09:54.122812+00:00"
