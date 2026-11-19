@@ -1571,6 +1571,16 @@
       "angle": "explicacion",
       "time": "2026-11-19T06:01:29.342349+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-21c03aac2e1b",
+      "topic": "tectonica:placas_movimiento:mecanismo",
+      "topic_key": "placas_movimiento",
+      "title": "¿Cómo funciona el movimiento de las placas?",
+      "style": "pregunta_respuesta",
+      "angle": "mecanismo",
+      "time": "2026-11-19T09:27:50.617801+00:00",
+      "status": "publicado"
     }
   ]
 }
