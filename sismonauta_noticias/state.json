@@ -1548,6 +1548,42 @@
           "status": "published"
         }
       }
+    },
+    "fb6b0736c82286a655a4": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-19T05:05:00+00:00",
+        "description": "APODCienciaAPODAPOD: 19 de noviembre de 2026 – El… El",
+        "explanation": "**TITULAR: APOD: 19 de noviembre de 2026 – Las nebulosas Cabeza de Caballo y de la Flama**\n\nLas nebulosas Cabeza de Caballo y de la Flama son dos de los objetos más fascinantes del cielo nocturno, y su reciente imagen destaca su belleza y complejidad. La nebulosa Cabeza de Caballo, que se asemeja a la silueta de un caballo, se encuentra a aproximadamente 1,500 años luz de la Tierra y tiene una altura de cerca de cinco años luz. Este oscuro objeto está compuesto de polvo y gas que ocultan la luz roja de la ionización del hidrógeno, provocada por la estrella Sigma Orionis.\n\nA la izquierda de la Cabeza de Caballo se encuentra la nebulosa de la Flama, que presenta un color anaranjado y filamentos oscuros. Esta nebulosa es un lugar activo de formación estelar, donde se están creando nuevas estrellas. Además, la imagen incluye la nebulosa de reflexión NGC 2023, que también está en proceso de formación estelar.\n\nLa captura de esta imagen requirió casi seis horas de observación en los Observatorios Remotos del Desierto de Utah, con el equipo controlado de manera remota desde Illinois, a más de 2,000 km de distancia. Este avance en la tecnología de observación astronómica permite a los científicos y aficionados explorar el cosmos de maneras innovadoras.",
+        "id": "fb6b0736c82286a655a4",
+        "image_headline": "APOD: 19 de noviembre de 2026 – Las nebulosas Cabeza de Caballo y de la Flama",
+        "lang": "en",
+        "original_title": "APOD: 2026 November 19 – The Horsehead and Flame Nebulas",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "APOD Science APOD APOD: 2026 November 19 – The… Today’s APOD Archive Submissions Index Search Calendar RSS Education About Discuss APOD Astronomy Picture of the Day Discover the cosmos! Each day a different image or photograph of our fascinating universe is featured, along with a brief explanation written by a professional astronomer. Original Annotated The Horsehead and Flame Nebulas Explanation: Today’s image could have been a painting. But what do these colors mean? The brightest star, left of the center, is blue Alnitak (the Girdle): a triple star system best known for being the easternmost star in Orion’s Belt . The instantly recognizable shape of a dark horse’s head at the center is the aptly named Horsehead Nebula . It is about five light-years tall and lies approximately 1,500 light-years away. It is made of dust and gas that obscure the red glow behind it, which is caused by hydrogen gas being ionized by the bright star Sigma Orionis at the top. The orange nebula with dark filaments on the left is the Flame Nebula . Closer to the Horsehead, the blue reflection nebula NGC 2023 is actively forming stars. The data for this “painting” were collected for almost six hours at the Utah Desert Remote Observatories , but the equipment was remotely controlled by the astrophotographer from his home, over 2,000 km away in Illinois . Tomorrow’s picture: V-G-R Date November 19, 2026 Credit Mark E. Killion Authors & editors: Cecilia Chirenti, Robert Nemiroff, Jerry Bonnell, Keighley Rockcliffe A service of: ASD at NASA / GSFC , NASA Science Activation & Michigan Tech. U. Random APOD Generator Yesterday’s Image APOD: 2026 November 18 – A Medium-Sized Solar Flare Tomorrow’s Image",
+        "title": "APOD: 19 de noviembre de 2026 – Las nebulosas Cabeza de Caballo y de la Flama",
+        "url": "https://science.nasa.gov/image-article/apod-2026-november-19-the-horsehead-and-flame-nebulas/"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nAPOD: 19 de noviembre de 2026 – Las nebulosas Cabeza de Caballo y de la Flama\n\nLas nebulosas Cabeza de Caballo y de la Flama son dos de los objetos más fascinantes del cielo nocturno, y su reciente imagen destaca su belleza y complejidad. La nebulosa Cabeza de Caballo, que se asemeja a la silueta de un caballo, se encuentra a aproximadamente 1,500 años luz de la Tierra y tiene una altura de cerca de cinco años luz. Este oscuro objeto está compuesto de polvo y gas que ocultan la luz roja de la ionización del hidrógeno, provocada por la estrella Sigma Orionis. A la izquierda de la Cabeza de Caballo se encuentra la nebulosa de la Flama, que presenta un color anaranjado y filamentos oscuros. Esta nebulosa es un lugar activo de formación estelar, donde se están creando nuevas estrellas. Además, la imagen incluye la nebulosa de reflexión NGC 2023, que también está en proceso de formación estelar. La captura de esta imagen requirió casi seis horas de observación en los Observatorios Remotos del Desierto de Utah, con el equipo controlado de manera remota desde Illinois, a más de 2,000 km de distancia. Este avance en la tecnología de observación astronómica permite a los científicos y aficionados explorar el cosmos de maneras innovadoras.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "fc3b915204e4afb8d09f3064c2529822fee41ef5e3540874c72d582e25d04a61",
+        "source": "https://commons.wikimedia.org/wiki/File:Earth,_Moon_and_Lunar_Module,_AS11-44-6643.jpg",
+        "title": "File:Earth, Moon and Lunar Module, AS11-44-6643.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/81/Earth%2C_Moon_and_Lunar_Module%2C_AS11-44-6643.jpg/1920px-Earth%2C_Moon_and_Lunar_Module%2C_AS11-44-6643.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/fb6b0736c82286a655a4.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
     }
   }
 }
