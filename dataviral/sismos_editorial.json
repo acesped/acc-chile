@@ -1541,6 +1541,16 @@
       "angle": "pregunta",
       "time": "2026-11-18T21:29:31.382616+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-dd0561186cc1",
+      "topic": "tectonica:subduccion:interpretacion",
+      "topic_key": "subduccion",
+      "title": "¿Cómo interpretar correctamente la subducción?",
+      "style": "mapa_explicado",
+      "angle": "interpretacion",
+      "time": "2026-11-19T00:26:14.459109+00:00",
+      "status": "publicado"
     }
   ]
 }
