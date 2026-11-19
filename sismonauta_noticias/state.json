@@ -773,6 +773,42 @@
         }
       }
     },
+    "99c43b65e1a071ea4c4b": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-19T14:44:39+00:00",
+        "description": "La NASA probó el motor RS-25 N° 10001 el 18 de noviembre en el",
+        "explanation": "**TITULAR: NASA realiza la más reciente prueba del motor RS-25 en apoyo a las futuras misiones Artemis.**\n**CATEGORÍA: espacio**\n\nLa NASA concretó una prueba de encendido estático del motor RS-25 número 10001 en el Centro Espacial Stennis, Mississippi. El ensayo, realizado el 18 de noviembre de 2026, consistió en activar este motor de desarrollo durante 200 segundos, cumpliendo con la duración que los equipos técnicos habían planificado originalmente.\n\nAunque esta unidad específica no se utilizará en vuelos reales, los datos obtenidos por la agencia y la empresa L3Harris Technologies son cruciales. La información capturada permitirá optimizar el rendimiento y la fiabilidad de los propulsores que integrarán el cohete SLS en las futuras etapas del programa Artemis.\n\nEstos avances son clave para la misión Artemis IV, prevista para 2028, cuyo objetivo es llevar astronautas al Polo Sur lunar. Cada lanzamiento del SLS emplea cuatro motores RS-25 que generan dos millones de libras de empuje combinado. Con esto, la NASA busca establecer una presencia humana permanente en la superficie lunar y preparar el camino para las primeras misiones tripuladas hacia Marte.",
+        "id": "99c43b65e1a071ea4c4b",
+        "image_headline": "NASA probó el motor RS",
+        "lang": "en",
+        "original_title": "NASA Conducts Latest RS-25 Engine Test in Support of Future Artemis Missions",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "1 min read Preparations for Next Moonwalk Simulations Underway (and Underwater) NASA conducts a hot fire test of RS-25 engine No. 10001 on the Fred Haise Test Stand at NASA’s Stennis Space Center near Bay St. Louis, Mississippi, on Nov. 18, 2026. NASA/Danny Nowlin NASA conducts a hot fire test of RS-25 engine No. 10001 on the Fred Haise Test Stand at NASA’s Stennis Space Center near Bay St. Louis, Mississippi, on Nov. 18, 2026. NASA/Danny Nowlin NASA conducts a hot fire test of RS-25 engine No. 10001 on the Fred Haise Test Stand at NASA’s Stennis Space Center near Bay St. Louis, Mississippi, on Nov. 18, 2026. NASA/Danny Nowlin NASA tested RS-25 engine No. 10001 on Nov. 18 on the Fred Haise Test Stand at NASA’s Stennis Space Center near Bay St. Louis, Mississippi. Test teams fired the developmental engine for the planned duration of three minutes and 20 seconds (200 seconds). While this developmental engine will not be used in flight, the hot fire test provides NASA and NASA’s prime contractor L3Harris Technologies with the capability to capture critical data to improve engine performance and reliability for future Artemis missions. For the Artemis IV Moon landing mission in 2028, the SLS rocket will launch astronauts aboard the Orion spacecraft from NASA’s Kennedy Space Center in Florida. This mission will be a key step in the agency’s broader goals to explore the lunar South Pole, establish an enduring human presence on the lunar surface, and build on the agency’s foundation for the first crewed mission to Mars. For each Artemis mission, four RS-25 engines produce up to 2 million pounds of combined thrust to help launch the SLS rocket. All RS-25 engines are tested and proven flightworthy at NASA Stennis prior to use. Tests are conducted by a team of operators from NASA, L3Harris, and Nova Space Solutions. Learn more about Artemis",
+        "title": "NASA realiza la más reciente prueba del motor RS-25 en apoyo a las futuras misiones Artemis.",
+        "url": "https://www.nasa.gov/image-article/latest-rs-25-engine-test-in-support-of-future-artemis-missions/"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nNASA probó el motor RS\n\nCATEGORÍA: espacio La NASA concretó una prueba de encendido estático del motor RS-25 número 10001 en el Centro Espacial Stennis, Mississippi. El ensayo, realizado el 18 de noviembre de 2026, consistió en activar este motor de desarrollo durante 200 segundos, cumpliendo con la duración que los equipos técnicos habían planificado originalmente. Aunque esta unidad específica no se utilizará en vuelos reales, los datos obtenidos por la agencia y la empresa L3Harris Technologies son cruciales. La información capturada permitirá optimizar el rendimiento y la fiabilidad de los propulsores que integrarán el cohete SLS en las futuras etapas del programa Artemis. Estos avances son clave para la misión Artemis IV, prevista para 2028, cuyo objetivo es llevar astronautas al Polo Sur lunar. Cada lanzamiento del SLS emplea cuatro motores RS-25 que generan dos millones de libras de empuje combinado. Con esto, la NASA busca establecer una presencia humana permanente en la superficie lunar y preparar el camino para las primeras misiones tripuladas hacia Marte.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "7e503ba0688b6b07f069560c679006a30eca266c7514267744ebb260c1c64219",
+        "source": "https://commons.wikimedia.org/wiki/File:Blue_Marble_Eastern_Hemisphere.jpg",
+        "title": "File:Blue Marble Eastern Hemisphere.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4e/Blue_Marble_Eastern_Hemisphere.jpg/1920px-Blue_Marble_Eastern_Hemisphere.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/99c43b65e1a071ea4c4b.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "b114f068ccd28f3e0419": {
       "article": {
         "category": "espacio",
