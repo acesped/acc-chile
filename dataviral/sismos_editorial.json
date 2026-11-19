@@ -1551,6 +1551,16 @@
       "angle": "interpretacion",
       "time": "2026-11-19T00:26:14.459109+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-5ee5c8c3bed8",
+      "topic": "tsunamis:primera_ola:estudio",
+      "topic_key": "primera_ola",
+      "title": "¿Cómo se estudia la primera ola de un tsunami paso a paso?",
+      "style": "pregunta_respuesta",
+      "angle": "estudio",
+      "time": "2026-11-19T03:15:46.199164+00:00",
+      "status": "publicado"
     }
   ]
 }
