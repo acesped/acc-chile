@@ -1207,6 +1207,43 @@
         }
       }
     },
+    "e5cc1c88b25e6c87a363": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-15T03:42:52+00:00",
+        "description": "Un estudio pionero con drones ha revelado una división sorprendente en el destino de los pingüinos de cresta erecta",
+        "explanation": "**CATEGORIA: oceanos**\n\nInvestigadores de la Universidad de Otago han revelado una desconcertante realidad dual para el pingüino de cresta erecta en Nueva Zelanda. Tras realizar censos con drones entre 2022 y 2024, el estudio determinó que, mientras la población en las pequeñas islas Bounty se ha mantenido estable por 25 años, la de las islas Antípodas ha caído más de un 40% desde 1995.\n\nEsta \"paradoja de Schrödinger\" se explica por presiones ambientales divergentes. En las Antípodas, el declive se vincula a tormentas más intensas y al aumento de la depredación por parte de skúas, aves que aprovechan la reducción de las colonias para atacar huevos y polluelos. Además, estos pingüinos migran distancias mayores hacia zonas polares, a diferencia de los ejemplares de las Bounty, que permanecen en aguas más protegidas.\n\nLa principal consecuencia es un dilema para su conservación. Si se promedian ambas poblaciones, el estatus de la especie podría mejorar artificialmente a \"Vulnerable\". Los científicos advierten que esto generaría una falsa sensación de seguridad, ocultando la crisis en las Antípodas y dejando a las colonias estables de las Bounty desprotegidas frente a amenazas como la pesca industrial.",
+        "id": "e5cc1c88b25e6c87a363",
+        "image_headline": "Un estudio revela que las poblaciones de pingüinos de cresta erecta en islas de Nueva Zelanda tienen destinos opuestos.",
+        "lang": "en",
+        "original_title": "Scientists discover a bizarre paradox among endangered penguins",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261112230458.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Ambiente",
+        "source_body": "",
+        "title": "Científicos descubren una extraña paradoja entre pingüinos en peligro de extinción.",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261112230458.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nUn estudio revela que las poblaciones de pingüinos de cresta erecta en islas de Nueva Zelanda tienen destinos opuestos.\n\nCATEGORIA: oceanos Investigadores de la Universidad de Otago han revelado una desconcertante realidad dual para el pingüino de cresta erecta en Nueva Zelanda. Tras realizar censos con drones entre 2022 y 2024, el estudio determinó que, mientras la población en las pequeñas islas Bounty se ha mantenido estable por 25 años, la de las islas Antípodas ha caído más de un 40% desde 1995. Esta \"paradoja de Schrödinger\" se explica por presiones ambientales divergentes. En las Antípodas, el declive se vincula a tormentas más intensas y al aumento de la depredación por parte de skúas, aves que aprovechan la reducción de las colonias para atacar huevos y polluelos. Además, estos pingüinos migran distancias mayores hacia zonas polares, a diferencia de los ejemplares de las Bounty, que permanecen en aguas más protegidas. La principal consecuencia es un dilema para su conservación. Si se promedian ambas poblaciones, el estatus de la especie podría mejorar artificialmente a \"Vulnerable\". Los científicos advierten que esto generaría una falsa sensación de seguridad, ocultando la crisis en las Antípodas y dejando a las colonias estables de las Bounty desprotegidas frente a amenazas como la pesca industrial.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "ocean coastline",
+        "sha256": "6ef33f1fe2e602239a00af92376b6741f81cf70144791d06d015b289710d17f4",
+        "source": "https://commons.wikimedia.org/wiki/File:Ocean_shaped_coastline_and_silhouette_person_(Unsplash).jpg",
+        "title": "File:Ocean shaped coastline and silhouette person (Unsplash).jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ea/Ocean_shaped_coastline_and_silhouette_person_%28Unsplash%29.jpg/1920px-Ocean_shaped_coastline_and_silhouette_person_%28Unsplash%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/e5cc1c88b25e6c87a363.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "e8d46e6eb22fe2ad12d5": {
       "article": {
         "category": "oceanos",
