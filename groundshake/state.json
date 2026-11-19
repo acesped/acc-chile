@@ -2669,7 +2669,7 @@
       "topic_key": "placas_movimiento",
       "title": "¿Cómo funciona el movimiento de las placas?",
       "reel": "publicado",
-      "updated_at": "2026-11-19T09:29:42.211960+00:00",
+      "updated_at": "2026-11-19T09:30:08.376998+00:00",
       "reel_id": "18243493006318438",
       "story": "publicado",
       "story_id": "18161353846519131",
@@ -2678,7 +2678,8 @@
       "facebook_story": "publicado",
       "facebook_story_id": "1454840242756801",
       "youtube_short": "publicado",
-      "youtube_short_id": "RQuZnkfvFMY"
+      "youtube_short_id": "RQuZnkfvFMY",
+      "youtube_video": "enviando"
     }
   },
   "youtube_upload_retry_after": "2026-11-19T06:09:54.122812+00:00"
