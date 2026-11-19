@@ -1591,6 +1591,16 @@
       "angle": "riesgo",
       "time": "2026-11-19T15:04:55.727737+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-3ab01a9bd050",
+      "topic": "medicion:sismometros:relacion",
+      "topic_key": "sismometros",
+      "title": "¿Cómo se relaciona los sismómetros con otros procesos de la Tierra?",
+      "style": "microdocumental",
+      "angle": "relacion",
+      "time": "2026-11-19T18:05:39.910409+00:00",
+      "status": "publicado"
     }
   ]
 }
