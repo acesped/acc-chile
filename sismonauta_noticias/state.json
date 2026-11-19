@@ -646,6 +646,43 @@
         }
       }
     },
+    "97b750b21ae8af3ad8e6": {
+      "article": {
+        "category": "geologia",
+        "date": "2026-11-18T08:27:56+00:00",
+        "description": "Los científicos pueden haber explicado finalmente por qué más de mil millones de años de la historia geológica de la Tierra están ausentes en las rocas de todo el mundo. Nuevas investigaciones sugieren que corrientes poderosas en el interior del planeta elevaron y bajaron lentamente continentes enteros, permitiendo que la erosión borrara vastas extensiones de historia geológica antes de que fueran enterradas y preservadas.",
+        "explanation": "**Más de mil millones de años de la historia de la Tierra desaparecieron. Los científicos podrían saber por fin por qué.**\n\nInvestigaciones recientes han arrojado luz sobre el misterio de la Gran Inconformidad, un fenómeno geológico que ha dejado un vacío de más de mil millones de años en algunas formaciones rocosas de la Tierra. Un estudio liderado por un candidato a doctorado de la Universidad de Wollongong sugiere que este vacío podría explicarse por el movimiento lento de los continentes, impulsado por fuerzas profundas en el interior del planeta.\n\nLos científicos han observado que, en diversas partes del mundo, rocas sedimentarias del período Cámbrico descansan directamente sobre rocas cristalinas mucho más antiguas, lo que indica la ausencia de capas geológicas intermedias. Este fenómeno ha sido documentado en lugares como el Gran Cañón en Estados Unidos y en regiones de Europa, Australia, África y Asia.\n\nEl estudio propone que la convección del manto terrestre, un proceso que provoca el levantamiento y hundimiento de grandes áreas de la superficie terrestre, podría ser responsable de la erosión que eliminó estas capas de roca. A medida que los continentes se elevaban, la erosión podría haber desgastado su superficie, y posteriormente, al hundirse, nuevos sedimentos se acumularon sobre las rocas expuestas, preservando así el límite geológico que observamos hoy.",
+        "id": "97b750b21ae8af3ad8e6",
+        "image_headline": "Científicos explican la ausencia de más de mil millones de años de historia geológica por movimientos continentales y erosión.",
+        "lang": "en",
+        "original_title": "More than a billion years of Earth's history vanished. Scientists may finally know why",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261116023403.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "Más de mil millones de años de la historia de la Tierra desaparecieron. Los científicos podrían saber por fin por qué.",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261116023403.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DE LA TIERRA\n\nCientíficos explican la ausencia de más de mil millones de años de historia geológica por movimientos continentales y erosión.\n\nInvestigaciones recientes han arrojado luz sobre el misterio de la Gran Inconformidad, un fenómeno geológico que ha dejado un vacío de más de mil millones de años en algunas formaciones rocosas de la Tierra. Un estudio liderado por un candidato a doctorado de la Universidad de Wollongong sugiere que este vacío podría explicarse por el movimiento lento de los continentes, impulsado por fuerzas profundas en el interior del planeta. Los científicos han observado que, en diversas partes del mundo, rocas sedimentarias del período Cámbrico descansan directamente sobre rocas cristalinas mucho más antiguas, lo que indica la ausencia de capas geológicas intermedias. Este fenómeno ha sido documentado en lugares como el Gran Cañón en Estados Unidos y en regiones de Europa, Australia, África y Asia. El estudio propone que la convección del manto terrestre, un proceso que provoca el levantamiento y hundimiento de grandes áreas de la superficie terrestre, podría ser responsable de la erosión que eliminó estas capas de roca. A medida que los continentes se elevaban, la erosión podría haber desgastado su superficie, y posteriormente, al hundirse, nuevos sedimentos se acumularon sobre las rocas expuestas, preservando así el límite geológico que observamos hoy.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Geologia #PlanetaTierra #Geociencias #Investigacion",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "rock formations landscape",
+        "sha256": "35332bfb431b0d082361bc559ad4dcf962670ea54c87dd47be4081df165e0034",
+        "source": "https://commons.wikimedia.org/wiki/File:Basalt_rock_formations_scenics_landscapes.jpg",
+        "title": "File:Basalt rock formations scenics landscapes.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ee/Basalt_rock_formations_scenics_landscapes.jpg/1920px-Basalt_rock_formations_scenics_landscapes.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/97b750b21ae8af3ad8e6.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "b114f068ccd28f3e0419": {
       "article": {
         "category": "espacio",
