@@ -1681,6 +1681,16 @@
       "angle": "evidencia",
       "time": "2026-11-20T18:01:34.219511+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-e0ba1081b0ed",
+      "topic": "fallas:escarpes:explicacion",
+      "topic_key": "escarpes",
+      "title": "La ciencia detrás de un escarpe de falla",
+      "style": "pregunta_respuesta",
+      "angle": "explicacion",
+      "time": "2026-11-20T21:01:57.700895+00:00",
+      "status": "publicado"
     }
   ]
 }
