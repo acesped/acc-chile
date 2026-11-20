@@ -1661,6 +1661,16 @@
       "angle": "aprendizaje",
       "time": "2026-11-20T12:01:52.780152+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-f4b7e88c698b",
+      "topic": "riesgo:deslizamientos:sintesis",
+      "topic_key": "deslizamientos",
+      "title": "¿Qué es lo esencial que debes saber de los deslizamientos por sismos?",
+      "style": "pregunta_respuesta",
+      "angle": "sintesis",
+      "time": "2026-11-20T15:01:31.546218+00:00",
+      "status": "publicado"
     }
   ]
 }
