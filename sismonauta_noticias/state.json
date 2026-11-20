@@ -1,5 +1,42 @@
 {
   "stories": {
+    "002e53731725999d4472": {
+      "article": {
+        "category": "climatologia",
+        "date": "2026-11-20T03:17:52+00:00",
+        "description": "Un estudio revolucionario del fósil del Niño de Taung, de 3 millones de años de antigüedad",
+        "explanation": "Un siglo después de que el Niño de Taung transformara nuestra comprensión de dónde provienen los humanos, los científicos están descubriendo que este famoso fósil aún tiene sorpresas por revelar. Un nuevo estudio publicado en Nature data los restos antiguos entre 2.96 y 3.03 millones de años atrás y sugiere que el árbol genealógico humano en el sur de África era mucho más complicado de lo que se creía anteriormente. El estudio internacional fue liderado por el profesor Gabriele Macho del grupo de investigación de Arqueología, Cambios Ambientales y Geoquímica (AMGC) de la Vrije Universiteit Brussel (VUB). Los hallazgos desafían suposiciones de larga data sobre cómo evolucionaron los parientes humanos tempranos y cómo estaban relacionadas las diferentes especies. Descubierto por primera vez en Sudáfrica en 1924, el Niño de Taung proporcionó la primera evidencia concreta que apoya los orígenes africanos de la humanidad. También se convirtió en el \"especimen tipo\" original utilizado para definir la especie Australopithecus africanus. Sin embargo, los científicos nunca establecieron criterios definitivos para asignar descubrimientos fósiles posteriores a esta especie. Como resultado, el Niño de Taung sigue siendo el único fósil que puede ser identificado con certeza como Australopithecus africanus.",
+        "id": "002e53731725999d4472",
+        "image_headline": "Un niño de 3 millones de años acaba de volver la evolución humana mucho más complicada.",
+        "lang": "en",
+        "original_title": "A 3-million-year-old child just made human evolution far more complicated",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261118065531.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Ambiente",
+        "source_body": "",
+        "title": "Un niño de 3 millones de años acaba de volver la evolución humana mucho más complicada.",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261118065531.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CLIMATOLOGÍA\n\nUn niño de 3 millones de años acaba de volver la evolución humana mucho más complicada.\n\nUn siglo después de que el Niño de Taung transformara nuestra comprensión de dónde provienen los humanos, los científicos están descubriendo que este famoso fósil aún tiene sorpresas por revelar. Un nuevo estudio publicado en Nature data los restos antiguos entre 2.96 y 3.03 millones de años atrás y sugiere que el árbol genealógico humano en el sur de África era mucho más complicado de lo que se creía anteriormente. El estudio internacional fue liderado por el profesor Gabriele Macho del grupo de investigación de Arqueología, Cambios Ambientales y Geoquímica (AMGC) de la Vrije Universiteit Brussel (VUB). Los hallazgos desafían suposiciones de larga data sobre cómo evolucionaron los parientes humanos tempranos y cómo estaban relacionadas las diferentes especies. Descubierto por primera vez en Sudáfrica en 1924, el Niño de Taung proporcionó la primera evidencia concreta que apoya los orígenes africanos de la humanidad. También se convirtió en el \"especimen tipo\" original utilizado para definir la especie Australopithecus africanus. Sin embargo, los científicos nunca establecieron criterios definitivos para asignar descubrimientos fósiles posteriores a esta especie. Como resultado, el Niño de Taung sigue siendo el único fósil que puede ser identificado con certeza como Australopithecus africanus.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Climatologia #Clima #CambioClimatico #Glaciares",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "glacier landscape",
+        "sha256": "ba3ec5ce603d4ebb3c2e1390eaee285d12b07959725d3746d8d13e44e93e6847",
+        "source": "https://commons.wikimedia.org/wiki/File:Glacier_National_Park_-_East_Glacier,_General_Store,_Lobby_and_Coffee_Shop_(NBY_430000).jpg",
+        "title": "File:Glacier National Park - East Glacier, General Store, Lobby and Coffee Shop (NBY 430000).jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/2/24/Glacier_National_Park_-_East_Glacier%2C_General_Store%2C_Lobby_and_Coffee_Shop_%28NBY_430000%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/002e53731725999d4472.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "0f5f4598cd7b777e10d2": {
       "article": {
         "category": "oceanos",
