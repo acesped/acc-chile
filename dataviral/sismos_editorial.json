@@ -1621,6 +1621,16 @@
       "angle": "clave",
       "time": "2026-11-20T00:03:48.956790+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-8aa62fd87a0a",
+      "topic": "medicion:magnitud_intensidad:contexto",
+      "topic_key": "magnitud_intensidad",
+      "title": "¿En qué contexto aparece la magnitud y la intensidad?",
+      "style": "descubrimiento",
+      "angle": "contexto",
+      "time": "2026-11-20T03:13:24.498371+00:00",
+      "status": "publicado"
     }
   ]
 }
