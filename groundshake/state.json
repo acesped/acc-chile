@@ -2758,8 +2758,9 @@
       "topic": "medicion:magnitud_intensidad:contexto",
       "topic_key": "magnitud_intensidad",
       "title": "¿En qué contexto aparece la magnitud y la intensidad?",
-      "reel": "enviando",
-      "updated_at": "2026-11-20T03:13:27.630486+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-20T03:14:28.662335+00:00",
+      "reel_id": "18110980673203421"
     }
   },
   "youtube_upload_retry_after": "2026-11-19T06:09:54.122812+00:00"
