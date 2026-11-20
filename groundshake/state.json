@@ -2782,6 +2782,13 @@
       "facebook_reel_id": "1690853355979351",
       "facebook_story": "publicado",
       "facebook_story_id": "1135679152381640"
+    },
+    "sismos-0395d86c5ce6": {
+      "topic": "ondas:ondas_superficiales:tiempo",
+      "topic_key": "ondas_superficiales",
+      "title": "¿Qué cambia con el tiempo al analizar las ondas superficiales?",
+      "reel": "enviando",
+      "updated_at": "2026-11-20T09:01:25.027441+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-21T03:15:38.339306+00:00"
