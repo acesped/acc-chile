@@ -172,6 +172,43 @@
         }
       }
     },
+    "25b8e22a30fa8d359517": {
+      "article": {
+        "category": "geologia",
+        "date": "2026-11-12T11:24:47+00:00",
+        "description": "Un análisis exhaustivo de 540 millones de años de fósiles marinos ha revelado brechas sorprendentes",
+        "explanation": "Paleontólogos de la Colección Estatal de Historia Natural de Baviera y el Museo de Historia Natural de Viena desarrollaron una herramienta inédita para optimizar la búsqueda de fósiles. Tras analizar la distribución de hallazgos en ambientes marinos someros de los últimos 540 millones de años, el equipo logró mapear las zonas donde la información científica aún es escasa.\n\nEl estudio, que cruzó datos de las plataformas PBDB y Macrostat, reveló un desequilibrio en el conocimiento actual. Mientras que los periodos Paleozoico y Mesozoico temprano han sido explorados extensamente, el mayor potencial para descubrir nuevas especies se encuentra en la Era Cenozoica. Según los investigadores, los depósitos marinos de los últimos 66 millones de años todavía guardan secretos significativos que podrían expandir el registro fósil de manera sustancial.\n\nEsta investigación permite priorizar expediciones en regiones con formaciones geológicas accesibles pero poco estudiadas. Como consecuencia, los científicos podrán gestionar mejor sus recursos limitados, enfocándose en lugares con altas probabilidades de éxito en lugar de insistir en sitios ya documentados. Este enfoque estratégico busca",
+        "id": "25b8e22a30fa8d359517",
+        "image_headline": "Un nuevo mapa del tesoro revela dónde podría estar escondida la vida prehistórica perdida de la Tierra.",
+        "lang": "en",
+        "original_title": "A new treasure map reveals where Earth's lost prehistoric life may be hiding",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261112025529.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "Un nuevo mapa del tesoro revela dónde podría estar escondida la vida prehistórica perdida de la Tierra.",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261112025529.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DE LA TIERRA\n\nUn nuevo mapa del tesoro revela dónde podría estar escondida la vida prehistórica perdida de la Tierra.\n\nPaleontólogos de la Colección Estatal de Historia Natural de Baviera y el Museo de Historia Natural de Viena desarrollaron una herramienta inédita para optimizar la búsqueda de fósiles. Tras analizar la distribución de hallazgos en ambientes marinos someros de los últimos 540 millones de años, el equipo logró mapear las zonas donde la información científica aún es escasa. El estudio, que cruzó datos de las plataformas PBDB y Macrostat, reveló un desequilibrio en el conocimiento actual. Mientras que los periodos Paleozoico y Mesozoico temprano han sido explorados extensamente, el mayor potencial para descubrir nuevas especies se encuentra en la Era Cenozoica. Según los investigadores, los depósitos marinos de los últimos 66 millones de años todavía guardan secretos significativos que podrían expandir el registro fósil de manera sustancial. Esta investigación permite priorizar expediciones en regiones con formaciones geológicas accesibles pero poco estudiadas. Como consecuencia, los científicos podrán gestionar mejor sus recursos limitados, enfocándose en lugares con altas probabilidades de éxito en lugar de insistir en sitios ya documentados. Este enfoque estratégico busca\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Geologia #PlanetaTierra #Geociencias #Investigacion",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "rock formations landscape",
+        "sha256": "9d40ee43995e6628d75dd0b46165890e48e5a03e6ed1db1c5d773cbbe6da640a",
+        "source": "https://commons.wikimedia.org/wiki/File:Rock_formations_in_Zion.jpg",
+        "title": "File:Rock formations in Zion.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/a/a0/Rock_formations_in_Zion.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/25b8e22a30fa8d359517.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "31e6d7b31134f9007865": {
       "article": {
         "category": "oceanos",
