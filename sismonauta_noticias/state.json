@@ -903,6 +903,43 @@
         }
       }
     },
+    "a10b54ac4c772bba44fa": {
+      "article": {
+        "category": "desastres",
+        "date": "2026-11-15T13:53:25+00:00",
+        "description": "Científicos de la NASA advierten que el fenómeno de El Niño de 2026, que se intensifica",
+        "explanation": "**TITULAR:** La NASA advierte que el monstruoso El Niño de este año podría ser incluso más grande que el legendario evento de 1997\n\n**CATEGORÍA:** desastres\n\nCientíficos de la NASA alertan que el fenómeno de El Niño de 2026 se está desarrollando con una fuerza inusual, pudiendo superar al histórico evento de 1997. Gracias a 35 años de datos satelitales, los expertos detectaron que este ciclo se intensificó de forma mucho más abrupta que sus predecesores, mostrando niveles del mar inusualmente altos en el Pacífico central y oriental.\n\nEl monitoreo actual revela una acumulación de agua cálida que se extiende hacia las costas de Sudamérica, un patrón muy similar al registrado hace casi tres décadas. Este proceso ocurre cuando los vientos alisios se debilitan, permitiendo que el calor se desplace hacia el este, alterando la circulación atmosférica global.\n\nAunque cada evento",
+        "id": "a10b54ac4c772bba44fa",
+        "image_headline": "NASA vigila un potente El Niño",
+        "lang": "en",
+        "original_title": "NASA warns this year's Monster El Niño could be even bigger than legendary 1997 event",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261114202227.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "La NASA advierte que el monstruoso El Niño de este año podría ser incluso más grande que el legendario evento de",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261114202227.htm"
+      },
+      "caption": "🌎 SISMONAUTA | RIESGOS NATURALES\n\nNASA vigila un potente El Niño\n\nLa NASA advierte que el monstruoso El Niño de este año podría ser incluso más grande que el legendario evento de 1997 CATEGORÍA: desastres Científicos de la NASA alertan que el fenómeno de El Niño de 2026 se está desarrollando con una fuerza inusual, pudiendo superar al histórico evento de 1997. Gracias a 35 años de datos satelitales, los expertos detectaron que este ciclo se intensificó de forma mucho más abrupta que sus predecesores, mostrando niveles del mar inusualmente altos en el Pacífico central y oriental. El monitoreo actual revela una acumulación de agua cálida que se extiende hacia las costas de Sudamérica, un patrón muy similar al registrado hace casi tres décadas. Este proceso ocurre cuando los vientos alisios se debilitan, permitiendo que el calor se desplace hacia el este, alterando la circulación atmosférica global. Aunque cada evento\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #DesastresNaturales #Prevencion #RiesgosNaturales",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "landslide mountain",
+        "sha256": "c3373fc4e357fa01ac5f283a13ba932bddad82e8440b63d6e56dbc5ff79e5b58",
+        "source": "https://commons.wikimedia.org/wiki/File:Landslide_in_Southern_China.jpg",
+        "title": "File:Landslide in Southern China.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b6/Landslide_in_Southern_China.jpg/1920px-Landslide_in_Southern_China.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/a10b54ac4c772bba44fa.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "b114f068ccd28f3e0419": {
       "article": {
         "category": "espacio",
