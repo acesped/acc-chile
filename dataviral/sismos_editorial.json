@@ -1611,6 +1611,16 @@
       "angle": "contexto",
       "time": "2026-11-19T21:01:17.825724+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-7583787e88ff",
+      "topic": "medicion:sismometros:clave",
+      "topic_key": "sismometros",
+      "title": "¿Cuál es la clave para comprender los sismómetros?",
+      "style": "mito_realidad",
+      "angle": "clave",
+      "time": "2026-11-20T00:03:48.956790+00:00",
+      "status": "publicado"
     }
   ]
 }
