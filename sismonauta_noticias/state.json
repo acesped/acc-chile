@@ -1282,8 +1282,10 @@
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/a5fc5c52168f38d6493f.jpg",
       "targets": {
         "facebook_feed": {
+          "id": "305263296226466_1161347726440458",
+          "published_at": "2026-11-20T21:01:54.807802+00:00",
           "started_at": "2026-11-20T21:01:49.433190+00:00",
-          "status": "uncertain"
+          "status": "published"
         },
         "instagram": {
           "id": "18581107663073068",
