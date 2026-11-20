@@ -1671,6 +1671,16 @@
       "angle": "sintesis",
       "time": "2026-11-20T15:01:31.546218+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-517dd798bd5c",
+      "topic": "tectonica:transformantes:evidencia",
+      "topic_key": "transformantes",
+      "title": "¿Qué señales deja las fallas transformantes?",
+      "style": "pregunta_respuesta",
+      "angle": "evidencia",
+      "time": "2026-11-20T18:01:34.219511+00:00",
+      "status": "publicado"
     }
   ]
 }
