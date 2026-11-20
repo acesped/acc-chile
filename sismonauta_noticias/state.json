@@ -1723,6 +1723,42 @@
           "status": "published"
         }
       }
+    },
+    "fe9173786c0ab58bd671": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-20T05:05:00+00:00",
+        "description": "APOD Ciencia APOD APOD: Noviembre de 2026… Archivo de APOD Envíos Índice Búsqueda Calendario RSS Educación Acerca de Discutir APOD Imagen Astronómica del Día ¡Descubre el cosmos! Cada día se presenta una imagen o fotografía diferente de nuestro fascinante universo, junto con una breve explicación escrita por un astrónomo profesional. Explicación V-G-R: El 17 de noviembre, […]",
+        "explanation": "**TITULAR: APOD: 20 de noviembre de 2026 – V-G-R**  \n**CATEGORÍA: espacio**\n\nEl 17 de noviembre de 2026, entusiastas de la exploración espacial se unieron para enviar un mensaje al Voyager 1, la sonda que se encuentra en el espacio interestelar. Utilizando un haz de luz, los participantes transmitieron un mensaje en código Morse que se traduce como V-G-R, el llamado de la sonda que ha estado viajando desde su lanzamiento en 1977.\n\nEste evento fue documentado desde el Observatorio Astronómico de los Emiratos, donde se capturó la imagen del mensaje en el cielo nocturno. La distancia a la que se encuentra Voyager 1 es de aproximadamente 26 mil millones de kilómetros, lo que significa que el mensaje tardó un día en llegar a la sonda, viajando a la velocidad de la luz.\n\nEl 18 de noviembre, se confirmó que Voyager 1 alcanzó un hito significativo al llegar a una distancia de un día luz de la Tierra. Este avance resalta la longevidad y la resistencia de la misión, que ha proporcionado valiosos datos sobre nuestro sistema solar y más allá. Se estima que, a este ritmo, la sonda alcanzará un año luz en aproximadamente 18,250 años.",
+        "id": "fe9173786c0ab58bd671",
+        "image_headline": "APOD: 20 de noviembre de 2026 – V-G-R",
+        "lang": "en",
+        "original_title": "APOD: 2026 November 20 – V-G-R",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "APOD Science APOD APOD: 2026 November… Today’s APOD Archive Submissions Index Search Calendar RSS Education About Discuss APOD Astronomy Picture of the Day Discover the cosmos! Each day a different image or photograph of our fascinating universe is featured, along with a brief explanation written by a professional astronomer. V-G-R Explanation: On November 17, fans of interstellar spaceflight around planet Earth were invited to shine a message into the night sky. Traced by a flashlight beam switched on and off, the dashes and dots of a Morse code message captured in this time exposure from the Emirates Astronomical Observatory, are read V-G-R. That’s a call sign for the Voyager 1 spacecraft currently in interstellar space some 26 billion kilometers away. How long did it take the message to reach humanity’s most distant interstellar spacecraft ? Traveling at the speed of light, the answer is one day . In fact, the Voyager 1 spacecraft was confirmed to reach its one light-day distance milestone on November 18, at 10:16:07 UTC, nearly 50 years after launch in 1977. For extra credit, fans of math can calculate that at one light-day per 50 years, Voyager 1 will reach its one light-year (365 light-days) distance milestone in about 18,250 years. Tomorrow’s picture: pixels in space Date: November 20, 2026 Credit & Copyright: Apostolos Kyriazis Authors & editors: Jerry Bonnell, Cecilia Chirenti, Robert Nemiroff, Keighley Rockcliffe A service of: ASD at NASA / GSFC , NASA Science Activation & Michigan Tech. U. Random APOD Generator Yesterday’s Image APOD: 2026 November 19 – The Horsehead and Flame Nebulas Tomorrow’s Image",
+        "title": "APOD: 20 de noviembre de 2026 – V-G-R",
+        "url": "https://science.nasa.gov/image-article/apod-2026-november-20-v-g-r/"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nAPOD: 20 de noviembre de 2026 – V-G-R\n\nCATEGORÍA: espacio El 17 de noviembre de 2026, entusiastas de la exploración espacial se unieron para enviar un mensaje al Voyager 1, la sonda que se encuentra en el espacio interestelar. Utilizando un haz de luz, los participantes transmitieron un mensaje en código Morse que se traduce como V-G-R, el llamado de la sonda que ha estado viajando desde su lanzamiento en 1977. Este evento fue documentado desde el Observatorio Astronómico de los Emiratos, donde se capturó la imagen del mensaje en el cielo nocturno. La distancia a la que se encuentra Voyager 1 es de aproximadamente 26 mil millones de kilómetros, lo que significa que el mensaje tardó un día en llegar a la sonda, viajando a la velocidad de la luz. El 18 de noviembre, se confirmó que Voyager 1 alcanzó un hito significativo al llegar a una distancia de un día luz de la Tierra. Este avance resalta la longevidad y la resistencia de la misión, que ha proporcionado valiosos datos sobre nuestro sistema solar y más allá. Se estima que, a este ritmo, la sonda alcanzará un año luz en aproximadamente 18,250 años.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "1bf61eef7183761439b916a70fa4968342ea3b7c7ecda4daf60652c5d111477c",
+        "source": "https://commons.wikimedia.org/wiki/File:Good_Morning_From_the_International_Space_Station.jpg",
+        "title": "File:Good Morning From the International Space Station.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3b/Good_Morning_From_the_International_Space_Station.jpg/1920px-Good_Morning_From_the_International_Space_Station.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/fe9173786c0ab58bd671.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
     }
   }
 }
