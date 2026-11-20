@@ -730,6 +730,43 @@
         }
       }
     },
+    "86ca4ee50aacddc902a0": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-18T04:30:31+00:00",
+        "description": "Investigadores de aguas profundas capturaron nuevas y sorprendentes imágenes de un pez extraordinariamente raro con una",
+        "explanation": "Un encuentro raro a casi 2,000 pies bajo la superficie del océano le dio a los científicos una oportunidad extraordinaria para filmar a una de las criaturas más inusuales del fondo marino. Investigadores del Instituto de Investigación del Acuario de la Bahía de Monterey (MBARI) avistaron un pez barreleye (Macropinna microstoma), una especie misteriosa conocida por su cabeza transparente y ojos notables que pueden rotar para seguir a su presa. El descubrimiento ocurrió durante una expedición a bordo del buque de investigación David Packard. Fue solo la undécima vez que los científicos de MBARI han encontrado este pez esquivo durante casi cuatro décadas de exploración oceánica. Miembros del Equipo de Biodiversidad y Bioóptica de MBARI estaban investigando la vida marina aproximadamente a 90 kilómetros (55 millas) de la costa cuando avistaron el pez a unos 600 metros (1,970 pies) debajo de la superficie. Usando el vehículo operado remotamente (ROV) Doc Ricketts, los investigadores estaban filmando y recolectando organismos de aguas profundas cuando apareció el visitante inesperado. \"Ver un pez barreleye es un regalo raro. La tripulación de todo el barco se unió al equipo científico en la sala de control, hipnotizados por este animal notable.",
+        "id": "86ca4ee50aacddc902a0",
+        "image_headline": "Investigadores capturan imágenes en 4K de un raro pez abisal con cabeza transparente, destacando su singularidad y adaptación.",
+        "lang": "en",
+        "original_title": "Bizarre deep-sea fish with a see-through head captured in stunning 4K",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261117033917.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Ambiente",
+        "source_body": "",
+        "title": "Bizarro pez abisal con cabeza transparente captado en un impresionante 4K",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261117033917.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nInvestigadores capturan imágenes en 4K de un raro pez abisal con cabeza transparente, destacando su singularidad y adaptación.\n\nUn encuentro raro a casi 2,000 pies bajo la superficie del océano le dio a los científicos una oportunidad extraordinaria para filmar a una de las criaturas más inusuales del fondo marino. Investigadores del Instituto de Investigación del Acuario de la Bahía de Monterey (MBARI) avistaron un pez barreleye (Macropinna microstoma), una especie misteriosa conocida por su cabeza transparente y ojos notables que pueden rotar para seguir a su presa. El descubrimiento ocurrió durante una expedición a bordo del buque de investigación David Packard. Fue solo la undécima vez que los científicos de MBARI han encontrado este pez esquivo durante casi cuatro décadas de exploración oceánica. Miembros del Equipo de Biodiversidad y Bioóptica de MBARI estaban investigando la vida marina aproximadamente a 90 kilómetros (55 millas) de la costa cuando avistaron el pez a unos 600 metros (1,970 pies) debajo de la superficie. Usando el vehículo operado remotamente (ROV) Doc Ricketts, los investigadores estaban filmando y recolectando organismos de aguas profundas cuando apareció el visitante inesperado. \"Ver un pez barreleye es un regalo raro. La tripulación de todo el barco se unió al equipo científico en la sala de control, hipnotizados por este animal notable.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "sea waves shore",
+        "sha256": "35dbe4bb26fa8b0a0f0127b732ca1a0d7905ec4f64c7c0c0ff8b78f262e27e7b",
+        "source": "https://commons.wikimedia.org/wiki/File:AlbertBierstadt-The_Shore_of_the_Turquoise_Sea_1878.jpg",
+        "title": "File:AlbertBierstadt-The Shore of the Turquoise Sea 1878.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/d/dd/AlbertBierstadt-The_Shore_of_the_Turquoise_Sea_1878.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/86ca4ee50aacddc902a0.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "8c0a96b77877b8995689": {
       "article": {
         "category": "espacio",
