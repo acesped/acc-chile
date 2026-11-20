@@ -1651,6 +1651,16 @@
       "angle": "tiempo",
       "time": "2026-11-20T09:01:22.329494+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-d0dc48297dcd",
+      "topic": "ondas:ondas_p:aprendizaje",
+      "topic_key": "ondas_p",
+      "title": "¿Qué podemos aprender hoy acerca de las ondas P?",
+      "style": "microdocumental",
+      "angle": "aprendizaje",
+      "time": "2026-11-20T12:01:52.780152+00:00",
+      "status": "publicado"
     }
   ]
 }
