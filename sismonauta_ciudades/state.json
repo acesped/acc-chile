@@ -6,13 +6,13 @@
       "time": "2026-10-28T12:52:13.080000+00:00",
       "source": "EMSC-CSEM",
       "targets": {
-        "facebook": {
-          "status": "published",
-          "id": "305263296226466_1137694658805765"
-        },
         "instagram": {
           "status": "published",
           "id": "18160724884511901"
+        },
+        "facebook": {
+          "status": "published",
+          "id": "305263296226466_1137694658805765"
         }
       },
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_ciudades/images/emsc_20261028_0000184.jpg"
@@ -23,13 +23,13 @@
       "time": "2026-10-30T12:57:48.540000+00:00",
       "source": "EMSC-CSEM",
       "targets": {
-        "facebook": {
-          "status": "published",
-          "id": "305263296226466_1139688475273050"
-        },
         "instagram": {
           "status": "published",
           "id": "18140978554535514"
+        },
+        "facebook": {
+          "status": "published",
+          "id": "305263296226466_1139688475273050"
         }
       },
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_ciudades/images/emsc_20261030_0000185.jpg"
@@ -40,13 +40,13 @@
       "time": "2026-11-02T14:08:02+00:00",
       "source": "EMSC-CSEM",
       "targets": {
-        "facebook": {
-          "status": "published",
-          "id": "305263296226466_1142599868315244"
-        },
         "instagram": {
           "status": "published",
           "id": "17962485339260336"
+        },
+        "facebook": {
+          "status": "published",
+          "id": "305263296226466_1142599868315244"
         }
       },
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_ciudades/images/emsc_20261102_0000177.jpg"
@@ -57,13 +57,13 @@
       "time": "2026-11-03T09:13:14.972000+00:00",
       "source": "EMSC-CSEM",
       "targets": {
-        "facebook": {
-          "status": "published",
-          "id": "305263296226466_1143361948239036"
-        },
         "instagram": {
           "status": "published",
           "id": "18115632908034873"
+        },
+        "facebook": {
+          "status": "published",
+          "id": "305263296226466_1143361948239036"
         }
       },
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_ciudades/images/emsc_20261103_0000108.jpg"
@@ -74,6 +74,10 @@
       "time": "2026-11-08T11:58:32.140000+00:00",
       "source": "EMSC-CSEM",
       "targets": {
+        "instagram": {
+          "status": "published",
+          "id": "18110117614954958"
+        },
         "facebook_feed": {
           "status": "published",
           "id": "305263296226466_1148616441046920"
@@ -81,10 +85,6 @@
         "facebook": {
           "status": "published",
           "id": "305263296226466_1148616331046931"
-        },
-        "instagram": {
-          "status": "published",
-          "id": "18110117614954958"
         }
       },
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_ciudades/images/emsc_20261108_0000137.jpg"
@@ -95,6 +95,10 @@
       "time": "2026-11-11T19:21:17.374000+00:00",
       "source": "EMSC-CSEM",
       "targets": {
+        "instagram": {
+          "status": "published",
+          "id": "17990657117877367"
+        },
         "facebook_feed": {
           "status": "published",
           "id": "305263296226466_1152260107349220"
@@ -102,10 +106,6 @@
         "facebook": {
           "status": "published",
           "id": "305263296226466_1152259977349233"
-        },
-        "instagram": {
-          "status": "published",
-          "id": "17990657117877367"
         }
       },
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_ciudades/images/emsc_20261111_0000268.jpg"
@@ -116,6 +116,10 @@
       "time": "2026-11-15T11:23:57.520000+00:00",
       "source": "EMSC-CSEM",
       "targets": {
+        "instagram": {
+          "status": "published",
+          "id": "18134420449832137"
+        },
         "facebook_feed": {
           "status": "published",
           "id": "305263296226466_1155972160311348"
@@ -123,10 +127,6 @@
         "facebook": {
           "status": "published",
           "id": "305263296226466_1155972050311359"
-        },
-        "instagram": {
-          "status": "published",
-          "id": "18134420449832137"
         }
       },
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_ciudades/images/emsc_20261115_0000119.jpg"
@@ -137,6 +137,10 @@
       "time": "2026-11-17T18:50:40.298000+00:00",
       "source": "EMSC-CSEM",
       "targets": {
+        "instagram": {
+          "status": "published",
+          "id": "17969378370198667"
+        },
         "facebook_feed": {
           "status": "published",
           "id": "305263296226466_1158340543407843"
@@ -144,10 +148,6 @@
         "facebook": {
           "status": "published",
           "id": "305263296226466_1158340450074519"
-        },
-        "instagram": {
-          "status": "published",
-          "id": "17969378370198667"
         }
       },
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_ciudades/images/emsc_20261117_0000298.jpg"
@@ -158,6 +158,10 @@
       "time": "2026-11-18T06:45:51.220000+00:00",
       "source": "EMSC-CSEM",
       "targets": {
+        "instagram": {
+          "status": "published",
+          "id": "18388638766227329"
+        },
         "facebook_feed": {
           "status": "published",
           "id": "305263296226466_1158709346704296"
@@ -165,10 +169,6 @@
         "facebook": {
           "status": "published",
           "id": "305263296226466_1158709253370972"
-        },
-        "instagram": {
-          "status": "published",
-          "id": "18388638766227329"
         }
       },
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_ciudades/images/emsc_20261118_0000111.jpg"
@@ -179,6 +179,10 @@
       "time": "2026-11-19T18:09:46.530000+00:00",
       "source": "EMSC-CSEM",
       "targets": {
+        "instagram": {
+          "status": "published",
+          "id": "17989527987092187"
+        },
         "facebook_feed": {
           "status": "published",
           "id": "305263296226466_1160225886552642"
@@ -186,13 +190,27 @@
         "facebook": {
           "status": "published",
           "id": "305263296226466_1160225769885987"
-        },
-        "instagram": {
-          "status": "published",
-          "id": "17989527987092187"
         }
       },
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_ciudades/images/emsc_20261119_0000232.jpg"
+    },
+    "emsc_20261120_0000170": {
+      "magnitude": 4.2,
+      "place": "GREATER LOS ANGELES AREA, CALIF.",
+      "time": "2026-11-20T11:25:35.120000+00:00",
+      "source": "EMSC-CSEM",
+      "targets": {
+        "instagram": {
+          "status": "pending"
+        },
+        "facebook": {
+          "status": "pending"
+        },
+        "facebook_feed": {
+          "status": "pending"
+        }
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_ciudades/images/emsc_20261120_0000170.jpg"
     }
   }
 }
