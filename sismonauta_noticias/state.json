@@ -816,6 +816,43 @@
         }
       }
     },
+    "99741880e8a818b8459b": {
+      "article": {
+        "category": "meteorologia",
+        "date": "2026-11-13T09:49:36+00:00",
+        "description": "La masiva tormenta solar que iluminó los cielos de todo el mundo en mayo de 2024 ha",
+        "explanation": "**El Sol desató una tormenta monstruosa. La Tierra podría haberla empeorado.**\n\nEn mayo de 2024, una tormenta solar extraordinaria provocó auroras brillantes en regiones del mundo donde estos fenómenos son poco comunes. Este evento, conocido como la \"tormenta de Gannon\", se caracterizó por una intensa perturbación en la magnetosfera terrestre, la cual fue medida por primera vez de manera directa. \n\nLos científicos observaron que, a diferencia de lo esperado, las partículas del viento solar contribuyeron muy poco a la corriente anular de la Tierra. En cambio, los iones provenientes de la atmósfera terrestre dominaron la composición de esta corriente, lo que sugiere que la atmósfera podría tener un papel más significativo en la severidad de las tormentas geomagnéticas de lo que se pensaba anteriormente. Este hallazgo fue posible gracias a las mediciones del satélite japonés Arase, que detectó que aproximadamente el 85% de los iones eran oxígeno de la ionosfera terrestre.\n\nLas implicaciones de estos resultados son importantes, ya que las tormentas geomagnéticas pueden afectar satélites, sistemas de navegación y redes eléctricas. Comprender cómo se desarrollan estas tormentas es crucial para mejorar las predicciones y mitigar sus efectos en la tecnología moderna.",
+        "id": "99741880e8a818b8459b",
+        "image_headline": "Una tormenta solar en mayo de 2024 reveló que la atmósfera terrestre intensifica las tormentas geomagnéticas.",
+        "lang": "en",
+        "original_title": "The Sun unleashed a monster storm. Earth may have made it worse",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261111005905.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "El Sol desató una tormenta monstruosa. La Tierra podría haberla empeorado.",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261111005905.htm"
+      },
+      "caption": "🌎 SISMONAUTA | METEOROLOGÍA\n\nUna tormenta solar en mayo de 2024 reveló que la atmósfera terrestre intensifica las tormentas geomagnéticas.\n\nEn mayo de 2024, una tormenta solar extraordinaria provocó auroras brillantes en regiones del mundo donde estos fenómenos son poco comunes. Este evento, conocido como la \"tormenta de Gannon\", se caracterizó por una intensa perturbación en la magnetosfera terrestre, la cual fue medida por primera vez de manera directa. Los científicos observaron que, a diferencia de lo esperado, las partículas del viento solar contribuyeron muy poco a la corriente anular de la Tierra. En cambio, los iones provenientes de la atmósfera terrestre dominaron la composición de esta corriente, lo que sugiere que la atmósfera podría tener un papel más significativo en la severidad de las tormentas geomagnéticas de lo que se pensaba anteriormente. Este hallazgo fue posible gracias a las mediciones del satélite japonés Arase, que detectó que aproximadamente el 85% de los iones eran oxígeno de la ionosfera terrestre. Las implicaciones de estos resultados son importantes, ya que las tormentas geomagnéticas pueden afectar satélites, sistemas de navegación y redes eléctricas. Comprender cómo se desarrollan estas tormentas es crucial para mejorar las predicciones y mitigar sus efectos en la tecnología moderna.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Meteorologia #Tiempo #Tormentas #Atmosfera",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "storm clouds landscape",
+        "sha256": "35a64e3ea861fd19a8d8900e50d5aa1e72ec10d44ba88346d7ea6a43d9ed1496",
+        "source": "https://commons.wikimedia.org/wiki/File:Charles_Harold_Davis_-_Clouds_after_Storm_-_1927.213_-_Fogg_Museum.jpg",
+        "title": "File:Charles Harold Davis - Clouds after Storm - 1927.213 - Fogg Museum.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/1/15/Charles_Harold_Davis_-_Clouds_after_Storm_-_1927.213_-_Fogg_Museum.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/99741880e8a818b8459b.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "99c43b65e1a071ea4c4b": {
       "article": {
         "category": "espacio",
