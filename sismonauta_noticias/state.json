@@ -172,6 +172,43 @@
         }
       }
     },
+    "31e6d7b31134f9007865": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-19T10:59:55+00:00",
+        "description": "Una extraña ballena que vivió hace unos 6 millones de años tenía una cara tan dramáticamente chue",
+        "explanation": "**Esta ballena de 6 millones de años podría haber tenido la cara más chueca en la historia de los mamíferos**\n\nUn equipo internacional de científicos ha identificado una especie extinta de ballena pigmea, llamada *Scaphokogia huachafo*, que vivió hace aproximadamente 6 millones de años. Este cetáceo presenta una asimetría facial extrema, lo que llevó a los investigadores a cuestionar si su cráneo había sido deformado tras su muerte. Sin embargo, los estudios confirmaron que esta peculiaridad era parte de su anatomía natural.\n\nEl cráneo de *Scaphokogia huachafo* muestra que ambas fosas nasales están desplazadas hacia el lado izquierdo, y los huesos faciales presentan diferencias significativas en tamaño y posición. Esta estructura inusual sugiere que la ballena estaba adaptada para buscar alimento en aguas costeras poco profundas, utilizando un sistema de ecolocalización especializado para detectar presas escondidas bajo el sedimento.\n\nLa investigación también indica que, a medida que las condiciones oceánicas cambiaron al final del Mioceno, el nicho ecológico que ocupaba esta ballena desapareció, dando paso a las comunidades de mamíferos marinos que conocemos hoy. Este hallazgo ofrece una visión fascinante de la evolución de los cetáceos y cómo sus adaptaciones han cambiado a lo largo del tiempo.",
+        "id": "31e6d7b31134f9007865",
+        "image_headline": "Un estudio revela que una ballena de 6 millones de años tenía la cara más asimétrica documentada en mamíferos.",
+        "lang": "en",
+        "original_title": "This 6-million-year-old whale may have had the most crooked face in mammal history",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261118065528.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Ambiente",
+        "source_body": "",
+        "title": "Esta ballena de 6 millones de años podría haber tenido la cara más chueca en la historia de los mamíferos.",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261118065528.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nUn estudio revela que una ballena de 6 millones de años tenía la cara más asimétrica documentada en mamíferos.\n\nEsta ballena de 6 millones de años podría haber tenido la cara más chueca en la historia de los mamíferos Un equipo internacional de científicos ha identificado una especie extinta de ballena pigmea, llamada *Scaphokogia huachafo*, que vivió hace aproximadamente 6 millones de años. Este cetáceo presenta una asimetría facial extrema, lo que llevó a los investigadores a cuestionar si su cráneo había sido deformado tras su muerte. Sin embargo, los estudios confirmaron que esta peculiaridad era parte de su anatomía natural. El cráneo de *Scaphokogia huachafo* muestra que ambas fosas nasales están desplazadas hacia el lado izquierdo, y los huesos faciales presentan diferencias significativas en tamaño y posición. Esta estructura inusual sugiere que la ballena estaba adaptada para buscar alimento en aguas costeras poco profundas, utilizando un sistema de ecolocalización especializado para detectar presas escondidas bajo el sedimento. La investigación también indica que, a medida que las condiciones oceánicas cambiaron al final del Mioceno, el nicho ecológico que ocupaba esta ballena desapareció, dando paso a las comunidades de mamíferos marinos que conocemos hoy. Este hallazgo ofrece una visión fascinante de la evolución de los cetáceos y cómo sus adaptaciones han cambiado a lo largo del tiempo.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "ocean coastline",
+        "sha256": "990dc9b2ac694f65caa7544f5e5feaa432d1138457a2c27fa06ff40f6ccc54a4",
+        "source": "https://commons.wikimedia.org/wiki/File:Green_coastline_by_the_ocean_(Unsplash).jpg",
+        "title": "File:Green coastline by the ocean (Unsplash).jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/06/Green_coastline_by_the_ocean_%28Unsplash%29.jpg/1920px-Green_coastline_by_the_ocean_%28Unsplash%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/31e6d7b31134f9007865.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "3a0b166ddd2884e6a5b0": {
       "article": {
         "category": "espacio",
