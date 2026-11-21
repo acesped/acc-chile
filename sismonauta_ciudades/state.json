@@ -330,7 +330,8 @@
           "status": "pending"
         },
         "instagram": {
-          "status": "uncertain"
+          "status": "published",
+          "id": "18110089013337892"
         },
         "facebook_feed": {
           "status": "pending"
