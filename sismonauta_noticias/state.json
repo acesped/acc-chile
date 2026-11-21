@@ -44,6 +44,43 @@
         }
       }
     },
+    "06afef01c44e71e10da0": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-15T03:00:54+00:00",
+        "description": "Los dinosaurios pueden haber estado picoteando algas y otros alimentos del océano hace más de 100 millones de años, según nuevas y sorprendentes evidencias ocultas en sus dientes fosilizados. Los investigadores descubrieron firmas químicas que sugieren que los dinosaurios costeros y otros animales prehistóricos dependían en parte de nutrientes que se originaban en el mar. Los hallazgos revelan que los recursos marinos viajaron a través de antiguas cadenas alimenticias, suplementando las dietas de todo, desde dinosaurios herbívoros hasta depredadores.",
+        "explanation": "**Los dinosaurios podrían haber estado comiendo algas hace 100 millones de años** Investigaciones recientes sugieren que los dinosaurios que habitaban antiguas costas podrían haber complementado su dieta con recursos marinos, como algas. Este fenómeno, conocido como subsidización marina, se observa hoy en día cuando tormentas depositan material oceánico en las playas, ofreciendo alimento adicional a los animales terrestres. Un estudio publicado en *Frontiers in Ecology and Evolution* analizó firmas químicas en fósiles de dinosaurios y otros animales de la época, revelando que los recursos marinos formaron parte de las cadenas alimenticias prehistóricas. Los investigadores encontraron que los valores de isótopos de carbono en los dientes de los dinosaurios eran más altos de lo esperado para animales herbívoros terrestres, lo que sugiere que estos animales obtenían nutrientes del océano. Los fósiles analizados provenían de ambientes costeros y de zonas interiores, mostrando que los organismos costeros tenían una dieta enriquecida con materia orgánica marina. Sin embargo, no todos los dinosaurios se beneficiaron de estos recursos; por ejemplo, el *Tenontosaurus tilletti* mostró un patrón de dieta diferente, sugiriendo que no dependía de alimentos marinos. Este hallazgo resalta la interconexión entre los ecosistemas terrestres y marinos a lo largo de la historia de la Tierra, subrayando la importancia de proteger estos vínculos en la actualidad.",
+        "id": "06afef01c44e71e10da0",
+        "image_headline": "Investigaciones revelan que los dinosaurios costeros consumían algas, integrando recursos marinos en sus dietas.",
+        "lang": "en",
+        "original_title": "Dinosaurs may have been eating seaweed 100 million years ago",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261112230502.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Ambiente",
+        "source_body": "",
+        "title": "Los dinosaurios podrían haber estado comiendo algas hace 100 millones de años.",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261112230502.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nInvestigaciones revelan que los dinosaurios costeros consumían algas, integrando recursos marinos en sus dietas.\n\nLos dinosaurios podrían haber estado comiendo algas hace 100 millones de años Investigaciones recientes sugieren que los dinosaurios que habitaban antiguas costas podrían haber complementado su dieta con recursos marinos, como algas. Este fenómeno, conocido como subsidización marina, se observa hoy en día cuando tormentas depositan material oceánico en las playas, ofreciendo alimento adicional a los animales terrestres. Un estudio publicado en *Frontiers in Ecology and Evolution* analizó firmas químicas en fósiles de dinosaurios y otros animales de la época, revelando que los recursos marinos formaron parte de las cadenas alimenticias prehistóricas. Los investigadores encontraron que los valores de isótopos de carbono en los dientes de los dinosaurios eran más altos de lo esperado para animales herbívoros terrestres, lo que sugiere que estos animales obtenían nutrientes del océano. Los fósiles analizados provenían de ambientes costeros y de zonas interiores, mostrando que los organismos costeros tenían una dieta enriquecida con materia orgánica marina. Sin embargo, no todos los dinosaurios se beneficiaron de estos recursos; por ejemplo, el *Tenontosaurus tilletti* mostró un patrón de dieta diferente, sugiriendo que no dependía de alimentos marinos. Este hallazgo resalta la interconexión entre los ecosistemas terrestres y marinos a lo largo de la historia de la Tierra, subrayando la importancia de proteger estos vínculos en la actualidad.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "sea waves shore",
+        "sha256": "423eff51bc0a0197cbebae9097e388be8c98a9aa1d4a22cf552cdae62c38b1f1",
+        "source": "https://commons.wikimedia.org/wiki/File:Shore_3.jpg",
+        "title": "File:Shore 3.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/63/Shore_3.jpg/1920px-Shore_3.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/06afef01c44e71e10da0.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "0dad71912f5e9a8580e0": {
       "article": {
         "category": "espacio",
