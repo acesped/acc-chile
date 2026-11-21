@@ -2958,7 +2958,7 @@
       "topic_key": "resonancia_suelo",
       "title": "¿Qué procesos explican el efecto del suelo?",
       "reel": "publicado",
-      "updated_at": "2026-11-21T18:04:38.337463+00:00",
+      "updated_at": "2026-11-21T18:04:41.209489+00:00",
       "reel_id": "18083817164437233",
       "story": "publicado",
       "story_id": "17996745402112490",
@@ -2968,7 +2968,8 @@
       "facebook_story_id": "1131303289659285",
       "youtube_short": "publicado",
       "youtube_short_id": "kBCJvrl2f1A",
-      "youtube_video": "enviando"
+      "youtube_video": "publicado",
+      "youtube_video_id": "go29WlT0d4E"
     }
   },
   "youtube_upload_retry_after": "2026-11-21T03:15:38.339306+00:00"
