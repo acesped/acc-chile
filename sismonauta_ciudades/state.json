@@ -354,7 +354,8 @@
           "status": "pending"
         },
         "instagram": {
-          "status": "uncertain"
+          "status": "published",
+          "id": "18095756051279052"
         }
       },
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_ciudades/images/emsc_20261121_0000034.jpg"
