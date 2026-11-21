@@ -371,10 +371,10 @@
         "facebook": {
           "status": "pending"
         },
-        "facebook_feed": {
-          "status": "pending"
-        },
         "instagram": {
+          "status": "uncertain"
+        },
+        "facebook_feed": {
           "status": "pending"
         }
       },
