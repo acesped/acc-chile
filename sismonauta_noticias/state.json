@@ -909,6 +909,43 @@
         }
       }
     },
+    "72c3e27b30a26fac1cb8": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-09T01:14:33+00:00",
+        "description": "Los científicos han descubierto que la pegajosidad de la \"nieve marina\" submarina juega un papel sorprendentemente importante en la cantidad de carbono que llega al océano profundo. Las partículas más viscosas resisten la descomposición bacteriana y pueden transportar más de seis veces la cantidad de carbono a las profundidades, revelando una conexión inesperada entre el limo oceánico y el clima de la Tierra.",
+        "explanation": "**Superpoder climático oculto: Por qué parte de la \"nieve\" marina transporta seis veces más carbono**\n\nInvestigaciones recientes han revelado que la \"nieve\" marina, compuesta por partículas de desechos y organismos muertos, juega un papel crucial en el ciclo del carbono del océano. Este fenómeno, conocido como \"marine snow\", transporta grandes cantidades de carbono desde la superficie hacia el fondo marino. Se estima que más de 10 gigatoneladas de carbono son removidas anualmente de las aguas superficiales, pero solo alrededor de 2 gigatoneladas logran llegar a profundidades donde pueden permanecer almacenadas durante siglos.\n\nUn estudio realizado por investigadores de la Universidad de California en San Diego y la Universidad de Lincoln ha identificado un factor clave en este proceso: la viscosidad de la nieve marina. Los hallazgos indican que las partículas más pegajosas pueden transportar más de seis veces la cantidad de carbono en comparación con aquellas de menor viscosidad. Esto se debe a que las partículas más densas resisten la degradación bacteriana durante más tiempo, permitiendo que desciendan a mayores profundidades.\n\nEste descubrimiento no solo amplía nuestra comprensión del ciclo del carbono, sino que también tiene implicaciones en otros ecosistemas donde las interacciones entre bacterias y mucosidades son fundamentales, como en los arrecifes de coral y la salud digestiva humana. La investigación destaca la complejidad de lo que antes se consideraba un material simple, revelando un paisaje interno que influye en el comportamiento bacteriano y, por ende, en los procesos biológicos del planeta.",
+        "id": "72c3e27b30a26fac1cb8",
+        "image_headline": "Investigadores descubren que la viscosidad de la \"nieve marina\" transporta seis veces más carbono al océano profundo.",
+        "lang": "en",
+        "original_title": "Hidden climate superpower: Why some ocean “snow” carries six times more carbon",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261105224558.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "Superpoder climático oculto: Por qué parte de la \"nieve\" marina transporta seis veces más carbono",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261105224558.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nInvestigadores descubren que la viscosidad de la \"nieve marina\" transporta seis veces más carbono al océano profundo.\n\nInvestigaciones recientes han revelado que la \"nieve\" marina, compuesta por partículas de desechos y organismos muertos, juega un papel crucial en el ciclo del carbono del océano. Este fenómeno, conocido como \"marine snow\", transporta grandes cantidades de carbono desde la superficie hacia el fondo marino. Se estima que más de 10 gigatoneladas de carbono son removidas anualmente de las aguas superficiales, pero solo alrededor de 2 gigatoneladas logran llegar a profundidades donde pueden permanecer almacenadas durante siglos. Un estudio realizado por investigadores de la Universidad de California en San Diego y la Universidad de Lincoln ha identificado un factor clave en este proceso: la viscosidad de la nieve marina. Los hallazgos indican que las partículas más pegajosas pueden transportar más de seis veces la cantidad de carbono en comparación con aquellas de menor viscosidad. Esto se debe a que las partículas más densas resisten la degradación bacteriana durante más tiempo, permitiendo que desciendan a mayores profundidades. Este descubrimiento no solo amplía nuestra comprensión del ciclo del carbono, sino que también tiene implicaciones en otros ecosistemas donde las interacciones entre bacterias y mucosidades son fundamentales, como en los arrecifes de coral y la salud digestiva humana. La investigación destaca la complejidad de lo que antes se consideraba un material simple, revelando un paisaje interno que influye en el comportamiento bacteriano y, por ende, en los procesos biológicos del planeta.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "sea waves shore",
+        "sha256": "f0698164b65ec586c0f155d0cdbbe241e8a70319e4371ba0c64b4a55f80f5e56",
+        "source": "https://commons.wikimedia.org/wiki/File:Turner_-_Shore_Scene_with_Waves_and_Breakwater,_c.1835,_D36680.jpg",
+        "title": "File:Turner - Shore Scene with Waves and Breakwater, c.1835, D36680.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/3/32/Turner_-_Shore_Scene_with_Waves_and_Breakwater%2C_c.1835%2C_D36680.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/72c3e27b30a26fac1cb8.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "7a2eab2214b16c996c66": {
       "article": {
         "category": "oceanos",
