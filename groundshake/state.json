@@ -2952,6 +2952,13 @@
       "youtube_short_id": "VXYc5VZcJOY",
       "youtube_video": "publicado",
       "youtube_video_id": "Us-ubvDDR-I"
+    },
+    "sismos-9bf4738536a3": {
+      "topic": "ondas:resonancia_suelo:origen",
+      "topic_key": "resonancia_suelo",
+      "title": "¿Qué procesos explican el efecto del suelo?",
+      "reel": "enviando",
+      "updated_at": "2026-11-21T18:01:51.711005+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-21T03:15:38.339306+00:00"
