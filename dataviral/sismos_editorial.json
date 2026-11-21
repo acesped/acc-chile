@@ -1761,6 +1761,16 @@
       "angle": "origen",
       "time": "2026-11-21T18:01:49.069535+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-7ad1765eb27d",
+      "topic": "tsunamis:origen_tsunami:explicacion",
+      "topic_key": "origen_tsunami",
+      "title": "La ciencia detrás de el origen de los tsunamis",
+      "style": "mito_realidad",
+      "angle": "explicacion",
+      "time": "2026-11-21T21:01:39.137321+00:00",
+      "status": "publicado"
     }
   ]
 }
