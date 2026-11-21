@@ -1751,6 +1751,16 @@
       "angle": "clave",
       "time": "2026-11-21T15:01:49.878136+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-9bf4738536a3",
+      "topic": "ondas:resonancia_suelo:origen",
+      "topic_key": "resonancia_suelo",
+      "title": "¿Qué procesos explican el efecto del suelo?",
+      "style": "microdocumental",
+      "angle": "origen",
+      "time": "2026-11-21T18:01:49.069535+00:00",
+      "status": "publicado"
     }
   ]
 }
