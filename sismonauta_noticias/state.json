@@ -691,6 +691,43 @@
         }
       }
     },
+    "53b5900d42bdb49ff2bf": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-11T00:59:32+00:00",
+        "description": "Un extraño anfibio, fuertemente acorazado, recorría los océanos hace 237",
+        "explanation": "**CATEGORIA: oceanos**\n\nUn equipo internacional liderado por la Universidad de California, Davis, identificó en la provincia de Guizhou, China, restos de un anfibio excepcional: el *Gerrothorax maritimus*. Con una antigüedad de 237 millones de años, este habitante del Triásico Tardío es el primer anfibio documentado que vivió íntegramente en el océano, un entorno hostil para las especies actuales debido a la salinidad.\n\nEl animal medía casi un metro y presentaba un cuerpo inusualmente ancho y aplanado, protegido por una robusta armadura ósea. Los científicos sugieren que era un depredador de emboscada que ace",
+        "id": "53b5900d42bdb49ff2bf",
+        "image_headline": "Fósiles de 237 millones de años revelan un anfibio marino acorazado, desafiando lo que se conocía sobre estos animales.",
+        "lang": "en",
+        "original_title": "237-million-year-old fossils reveal a bizarre armored sea amphibian",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261109205409.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Ambiente",
+        "source_body": "",
+        "title": "Fósiles de 237 millones de años revelan un extraño anfibio marino acorazado.",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261109205409.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nFósiles de 237 millones de años revelan un anfibio marino acorazado, desafiando lo que se conocía sobre estos animales.\n\nCATEGORIA: oceanos Un equipo internacional liderado por la Universidad de California, Davis, identificó en la provincia de Guizhou, China, restos de un anfibio excepcional: el *Gerrothorax maritimus*. Con una antigüedad de 237 millones de años, este habitante del Triásico Tardío es el primer anfibio documentado que vivió íntegramente en el océano, un entorno hostil para las especies actuales debido a la salinidad. El animal medía casi un metro y presentaba un cuerpo inusualmente ancho y aplanado, protegido por una robusta armadura ósea. Los científicos sugieren que era un depredador de emboscada que ace\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "sea waves shore",
+        "sha256": "ade11963116bf21ea5534e9b85ef1c2ff79c6cf9400b09a5aa0e954351bed81a",
+        "source": "https://commons.wikimedia.org/wiki/File:Shore_west_beach_waves.jpg",
+        "title": "File:Shore west beach waves.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/ca/Shore_west_beach_waves.jpg/1920px-Shore_west_beach_waves.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/53b5900d42bdb49ff2bf.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "5d356e2ed5d19009c725": {
       "article": {
         "category": "espacio",
