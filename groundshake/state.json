@@ -2939,8 +2939,9 @@
       "topic": "medicion:replicas:clave",
       "topic_key": "replicas",
       "title": "¿Cuál es la clave para comprender las réplicas?",
-      "reel": "enviando",
-      "updated_at": "2026-11-21T15:01:52.711438+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-21T15:02:53.684516+00:00",
+      "reel_id": "18291026245294993"
     }
   },
   "youtube_upload_retry_after": "2026-11-21T03:15:38.339306+00:00"
