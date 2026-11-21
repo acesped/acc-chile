@@ -2338,6 +2338,43 @@
         }
       }
     },
+    "f0fd77a0fac0b4d58d08": {
+      "article": {
+        "category": "sismos",
+        "date": "2026-11-16T22:00:04+00:00",
+        "description": "Donna dePolo and Shijie Zhong have never set foot on Antarctica. But with the help of satellites measuring ground motions and gravity, a supercomputer in Wyoming and years of seismic data collected at remote Antarctic research stations, the CU Boulder physicists have created a detailed picture of what's been happening beneath the West Antarctic ice as it rapidly melts.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Donna dePolo y Shijie Zhong nunca han pisado la Antártida. Pero con la ayuda de satélites que miden los movimientos del suelo y la gravedad, una supercomputadora en Wyoming y años de datos sísmicos recopilados en estaciones de investigación remotas en la Antártida, los físicos de CU Boulder han creado una imagen detallada de lo que ha estado sucediendo debajo del hielo de la Antártida Occidental mientras se derrite rápidamente.",
+        "id": "f0fd77a0fac0b4d58d08",
+        "image_headline": "El modelo 3D genera la imagen más detallada hasta ahora de lo que está sucediendo debajo del hielo derretido de la Antártida Occidental.",
+        "lang": "en",
+        "original_title": "3D model generates most detailed picture yet of what's going on beneath West Antarctica's melting ice",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "El modelo 3D genera la imagen más detallada hasta ahora de lo que está sucediendo debajo del hielo derretido de la Antártida Occidental.",
+        "url": "https://phys.org/news/2026-11-3d-generates-picture-beneath-west.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA SÍSMICA\n\nEl modelo 3D genera la imagen más detallada hasta ahora de lo que está sucediendo debajo del hielo derretido de la Antártida Occidental.\n\nDonna dePolo y Shijie Zhong nunca han pisado la Antártida. Pero con la ayuda de satélites que miden los movimientos del suelo y la gravedad, una supercomputadora en Wyoming y años de datos sísmicos recopilados en estaciones de investigación remotas en la Antártida, los físicos de CU Boulder han creado una imagen detallada de lo que ha estado sucediendo debajo del hielo de la Antártida Occidental mientras se derrite rápidamente.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Sismos #Terremotos #Sismologia #Geofisica #Tectonica",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "earthquake fault landscape",
+        "sha256": "bcc9d7fbdecdd8169031d1666f80735dde72e18379293004be33e962ed3dc0ae",
+        "source": "https://commons.wikimedia.org/wiki/File:San_Francisco_STS058-083-023.jpg",
+        "title": "File:San Francisco STS058-083-023.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3a/San_Francisco_STS058-083-023.jpg/1920px-San_Francisco_STS058-083-023.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/f0fd77a0fac0b4d58d08.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "f2f6eea46f22f9cf7529": {
       "article": {
         "category": "espacio",
