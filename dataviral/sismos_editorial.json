@@ -1721,6 +1721,16 @@
       "angle": "origen",
       "time": "2026-11-21T06:01:40.988809+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-1e35b3ca51d2",
+      "topic": "fallas:falla_inversa:comparacion",
+      "topic_key": "falla_inversa",
+      "title": "¿Qué hace especial a una falla inversa dentro de la geología?",
+      "style": "microdocumental",
+      "angle": "comparacion",
+      "time": "2026-11-21T09:01:18.706886+00:00",
+      "status": "publicado"
     }
   ]
 }
