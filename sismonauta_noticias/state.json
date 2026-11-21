@@ -2034,6 +2034,43 @@
         }
       }
     },
+    "d1b45c6475bcc3818afa": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-20T15:53:24+00:00",
+        "description": "This Nov. 16 collage shows 49 drill holes captured by NASA’s Curiosity Mars rover as of November 2026. Each hole represents a sample collected from rocks on the Martian surface; Curiosity’s drill, located on the end of its robotic arm, drops pulverized rock samples into instruments in its belly that analyze their composition. Learn more […]",
+        "editorial_mode": "documented_brief",
+        "explanation": "16 collage muestra 49 agujeros de perforación capturados por el rover Curiosity de NASA en noviembre de 2026. Cada agujero representa una muestra recolectada de rocas en la superficie marciana; el taladro de Curiosity, ubicado en el extremo de su brazo robótico, deja caer muestras de roca pulverizada en instrumentos en su interior que analizan su composición.",
+        "id": "d1b45c6475bcc3818afa",
+        "image_headline": "El rover Curiosity de la NASA en Marte recolecta muestras.",
+        "lang": "en",
+        "original_title": "NASA’s Curiosity Mars Rover Collects Samples",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "NASA/JPL-Caltech/MSSS This Nov. 16 collage shows 49 drill holes captured by NASA’s Curiosity Mars rover as of November 2026. Each hole represents a sample collected from rocks on the Martian surface; Curiosity’s drill, located on the end of its robotic arm, drops pulverized rock samples into instruments in its belly that analyze their composition. Learn more about Curiosity. Image credit: NASA/JPL-Caltech/MSSS",
+        "title": "El rover Curiosity de la NASA en Marte recolecta muestras.",
+        "url": "https://www.nasa.gov/image-article/nasas-curiosity-mars-rover-collects-samples/"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nEl rover Curiosity de la NASA en Marte recolecta muestras.\n\n16 collage muestra 49 agujeros de perforación capturados por el rover Curiosity de NASA en noviembre de 2026. Cada agujero representa una muestra recolectada de rocas en la superficie marciana; el taladro de Curiosity, ubicado en el extremo de su brazo robótico, deja caer muestras de roca pulverizada en instrumentos en su interior que analizan su composición.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "a94c0ff4d9bc8e3c7b3b5b77ec2d738b7195aee5a1ab557b9576d93b39a44429",
+        "source": "https://commons.wikimedia.org/wiki/File:City_Lights_of_Asia_and_Middle_East_2016.png",
+        "title": "File:City Lights of Asia and Middle East 2016.png",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1d/City_Lights_of_Asia_and_Middle_East_2016.png/1920px-City_Lights_of_Asia_and_Middle_East_2016.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/d1b45c6475bcc3818afa.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "d9884682b7305c24e886": {
       "article": {
         "category": "espacio",
