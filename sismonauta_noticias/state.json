@@ -380,8 +380,10 @@
           "status": "pending"
         },
         "instagram": {
+          "id": "18116234339175656",
+          "published_at": "2026-11-21T05:07:35.391222+00:00",
           "started_at": "2026-11-21T05:07:18.682122+00:00",
-          "status": "uncertain"
+          "status": "published"
         }
       }
     },
