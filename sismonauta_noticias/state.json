@@ -561,6 +561,43 @@
         }
       }
     },
+    "3e88f22729696f9a6f40": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-10T09:01:55+00:00",
+        "description": "Una teoría centenaria sobre los orígenes de la vida en la Tierra podría estar equivocada. Nueva investigación de la Universidad de Cambridge sugiere que los cometas viajaron demasiado rápido y chocaron en ángulos desfavorables para que las frágiles moléculas necesarias para la vida sobrevivieran, haciendo que la entrega exitosa fuera extraordinariamente improbable. Sorprendentemente, Marte podría haber tenido una mejor oportunidad de recibir estos ingredientes cósmicos, aunque incluso allí las probabilidades eran escasas. Los hallazgos apuntan hacia asteroides o procesos químicos en la Tierra como fuentes más plausibles de los bloques de construcción de la vida.",
+        "explanation": "Los cometas, que durante mucho tiempo se pensaron como portadores de los ingredientes esenciales para la vida en la Tierra, podrían haber tenido un impacto más destructivo que beneficioso. Un estudio reciente de la Universidad de Cambridge, publicado en *Scientific Reports*, desafía la teoría de que estos cuerpos celestes entregaron compuestos orgánicos vitales a nuestro planeta.\n\nLos investigadores utilizaron simulaciones avanzadas para analizar cómo los cometas se acercan a la Tierra. Los resultados indican que la mayoría de los cometas llegan a velocidades y ángulos que dificultan la supervivencia de las moléculas orgánicas delicadas. En lugar de entregar su carga química intacta, es probable que la destruyan durante su violento impacto. Esto sugiere que la entrega exitosa de bloques de construcción de la vida por parte de los cometas sería un evento extraordinariamente raro.\n\nAdemás, el estudio plantea que Marte podría haber ofrecido condiciones más favorables para recibir estas moléculas, aunque la probabilidad sigue siendo baja. Los hallazgos invitan a replantear cómo se formaron los ingredientes de la vida en la Tierra, sugiriendo que los asteroides o procesos químicos naturales en el propio planeta podrían haber jugado un papel más crucial en este proceso.",
+        "id": "3e88f22729696f9a6f40",
+        "image_headline": "Los cometas pueden haber destruido los ingredientes de la vida en lugar de entregarlos a la Tierra.",
+        "lang": "en",
+        "original_title": "Comets may have destroyed life's ingredients instead of delivering them to Earth",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261105224553.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "Los cometas pueden haber destruido los ingredientes de la vida en lugar de entregarlos a la Tierra.",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261105224553.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nLos cometas pueden haber destruido los ingredientes de la vida en lugar de entregarlos a la Tierra.\n\nLos cometas, que durante mucho tiempo se pensaron como portadores de los ingredientes esenciales para la vida en la Tierra, podrían haber tenido un impacto más destructivo que beneficioso. Un estudio reciente de la Universidad de Cambridge, publicado en *Scientific Reports*, desafía la teoría de que estos cuerpos celestes entregaron compuestos orgánicos vitales a nuestro planeta. Los investigadores utilizaron simulaciones avanzadas para analizar cómo los cometas se acercan a la Tierra. Los resultados indican que la mayoría de los cometas llegan a velocidades y ángulos que dificultan la supervivencia de las moléculas orgánicas delicadas. En lugar de entregar su carga química intacta, es probable que la destruyan durante su violento impacto. Esto sugiere que la entrega exitosa de bloques de construcción de la vida por parte de los cometas sería un evento extraordinariamente raro. Además, el estudio plantea que Marte podría haber ofrecido condiciones más favorables para recibir estas moléculas, aunque la probabilidad sigue siendo baja. Los hallazgos invitan a replantear cómo se formaron los ingredientes de la vida en la Tierra, sugiriendo que los asteroides o procesos químicos naturales en el propio planeta podrían haber jugado un papel más crucial en este proceso.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "3fab8343a0db73af9d53288cf4dce04a0575483025af78e2ee5fe5cb29dc6837",
+        "source": "https://commons.wikimedia.org/wiki/File:AS08-16-2593_remastered.jpg",
+        "title": "File:AS08-16-2593 remastered.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d6/AS08-16-2593_remastered.jpg/1920px-AS08-16-2593_remastered.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/3e88f22729696f9a6f40.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "426eaaaec1185877bdc1": {
       "article": {
         "category": "oceanos",
