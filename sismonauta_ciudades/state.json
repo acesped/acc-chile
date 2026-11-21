@@ -326,13 +326,13 @@
       "time": "2026-11-21T00:09:21.400000+00:00",
       "source": "EMSC-CSEM",
       "targets": {
-        "instagram": {
+        "facebook": {
           "status": "pending"
+        },
+        "instagram": {
+          "status": "uncertain"
         },
         "facebook_feed": {
-          "status": "pending"
-        },
-        "facebook": {
           "status": "pending"
         }
       },
