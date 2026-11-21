@@ -2934,6 +2934,13 @@
       "youtube_short_id": "132t9FG66As",
       "youtube_video": "publicado",
       "youtube_video_id": "zjaAqnUFHss"
+    },
+    "sismos-ed83530ce874": {
+      "topic": "medicion:replicas:clave",
+      "topic_key": "replicas",
+      "title": "¿Cuál es la clave para comprender las réplicas?",
+      "reel": "enviando",
+      "updated_at": "2026-11-21T15:01:52.711438+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-21T03:15:38.339306+00:00"
