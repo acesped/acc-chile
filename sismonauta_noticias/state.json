@@ -1473,6 +1473,43 @@
         }
       }
     },
+    "9a095cf488198aebc8b5": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-18T23:00:00+00:00",
+        "description": "Los Estados miembros de la ESA han seleccionado a Plasma Observatory como la próxima misión de clase media de la agencia. Sus siete naves espaciales coordinadas rastrearán cómo la energía del Sol se desplaza a través del escudo magnético de la Tierra, en diferentes escalas de distancia y tiempo.",
+        "explanation": "**Observatorio de siete naves espaciales para estudiar el universo de plasma**\n\nLa Agencia Espacial Europea (ESA) ha seleccionado el Plasma Observatory como su próxima misión de clase media. Este innovador proyecto contará con siete naves espaciales que, por primera vez, rastrearán cómo la energía del Sol se desplaza a través del escudo magnético de la Tierra, abarcando diferentes escalas de distancia y tiempo.\n\nEl plasma, que constituye el 99% del universo visible, es fundamental para entender fenómenos cósmicos como las tormentas solares y las auroras. Según la ESA, esta misión permitirá profundizar en cómo nuestro planeta interactúa con el plasma que lo rodea, ofreciendo una visión más detallada que nunca. La directora de ciencia de la ESA, Carole Mundell, destacó que el Plasma Observatory llevará el liderazgo europeo en heliophysics hacia la próxima década.\n\nLas mediciones simultáneas de campos magnéticos y partículas en múltiples ubicaciones permitirán conectar eventos pequeños y rápidos con cambios más grandes en la magnetosfera. Esto proporcionará una comprensión más completa de la física subyacente a estas interacciones, tanto en nuestro sistema solar como en otros contextos cósmicos. La misión está prevista para ser lanzada a finales de la próxima década, marcando un avance significativo en la exploración del plasma.",
+        "id": "9a095cf488198aebc8b5",
+        "image_headline": "Observatorio de siete naves espaciales para estudiar el universo de plasma",
+        "lang": "en",
+        "original_title": "Seven-spacecraft observatory to study plasma universe",
+        "resolved_source_url": "https://www.esa.int/articles/about-us/directorates/science/seven-spacecraft-observatory-to-study-plasma-universe",
+        "search_category": "direct",
+        "source": "ESA ciencia espacial",
+        "source_body": "",
+        "title": "Observatorio de siete naves espaciales para estudiar el universo de plasma",
+        "url": "https://www.esa.int/articles/about-us/directorates/science/seven-spacecraft-observatory-to-study-plasma-universe"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nObservatorio de siete naves espaciales para estudiar el universo de plasma\n\nLa Agencia Espacial Europea (ESA) ha seleccionado el Plasma Observatory como su próxima misión de clase media. Este innovador proyecto contará con siete naves espaciales que, por primera vez, rastrearán cómo la energía del Sol se desplaza a través del escudo magnético de la Tierra, abarcando diferentes escalas de distancia y tiempo. El plasma, que constituye el 99% del universo visible, es fundamental para entender fenómenos cósmicos como las tormentas solares y las auroras. Según la ESA, esta misión permitirá profundizar en cómo nuestro planeta interactúa con el plasma que lo rodea, ofreciendo una visión más detallada que nunca. La directora de ciencia de la ESA, Carole Mundell, destacó que el Plasma Observatory llevará el liderazgo europeo en heliophysics hacia la próxima década. Las mediciones simultáneas de campos magnéticos y partículas en múltiples ubicaciones permitirán conectar eventos pequeños y rápidos con cambios más grandes en la magnetosfera. Esto proporcionará una comprensión más completa de la física subyacente a estas interacciones, tanto en nuestro sistema solar como en otros contextos cósmicos. La misión está prevista para ser lanzada a finales de la próxima década, marcando un avance significativo en la exploración del plasma.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "2a28730827b047b39291a5a7b0ac3f7ac3098aa429ce68420f73882ce6cda77a",
+        "source": "https://commons.wikimedia.org/wiki/File:Partial_view_of_the_Federal_District,_Brazil_seen_from_space_in_2001_(3).jpg",
+        "title": "File:Partial view of the Federal District, Brazil seen from space in 2001 (3).jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ee/Partial_view_of_the_Federal_District%2C_Brazil_seen_from_space_in_2001_%283%29.jpg/1920px-Partial_view_of_the_Federal_District%2C_Brazil_seen_from_space_in_2001_%283%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/9a095cf488198aebc8b5.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "a10b54ac4c772bba44fa": {
       "article": {
         "category": "desastres",
