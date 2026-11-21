@@ -2380,6 +2380,43 @@
         }
       }
     },
+    "f756ce5b52c78443113d": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-08T22:45:01+00:00",
+        "description": "Un notable descubrimiento fósil en Colombia está desafiando la forma en que los científicos entienden los principales cambios evolutivos en la historia de la Tierra. Los investigadores descubrieron un ecosistema marino antiguo increíblemente diverso donde reptiles gigantes, tiburones y otras criaturas prosperaron mientras grupos evolutivos más antiguos se acercaban a la extinción y otros más nuevos emergían. Llaman a este patrón previamente no reconocido una \"Inflexión Biótica\", sugiriendo que transformaciones importantes en la vida pueden ocurrir sin extinciones masivas.",
+        "explanation": "**Un océano antiguo lleno de depredadores gigantes revela un giro sorprendente en la evolución**\n\nInvestigaciones en la Formación Paja, en Colombia, han desvelado un capítulo fascinante de la historia evolutiva de la Tierra. Un equipo de científicos de la Universidad McGill y el Centro de Investigaciones Paleontológicas ha encontrado fósiles que indican que grupos de animales antiguos, en peligro de extinción, coexistieron con nuevas especies que posteriormente prosperarían. Este hallazgo sugiere que las transiciones evolutivas significativas pueden ocurrir sin la destrucción masiva típica de las extinciones.\n\nLos investigadores han propuesto el concepto de \"Inflexión Biótica\", que describe un punto de inflexión evolutivo donde grupos antiguos y nuevos coexisten. Factores ambientales como temperaturas cálidas, niveles del mar elevados y aguas costeras ricas en nutrientes habrían facilitado esta diversidad. Además, la conexión entre el Pacífico oriental y el Atlántico temprano a través de Colombia permitió que diferentes grupos de animales prosperaran en el mismo ecosistema.\n\nLa Formación Paja ha proporcionado un registro fósil excepcional, incluyendo reptiles marinos gigantes y una compleja red alimentaria. Este descubrimiento podría cambiar la comprensión de cómo se producen los cambios en la biodiversidad, sugiriendo que algunas transiciones evolutivas pueden estar marcadas por periodos de diversidad extraordinaria. Sin embargo, los investigadores advierten que se necesita más evidencia para determinar la frecuencia de este patrón en la historia de la Tierra.",
+        "id": "f756ce5b52c78443113d",
+        "image_headline": "Un descubrimiento fósil en Colombia revela un ecosistema antiguo donde coexistieron depredadores gigantes y nuevas especies.",
+        "lang": "en",
+        "original_title": "An ancient ocean full of giant predators reveals a surprising twist in evolution",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261106174535.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Ambiente",
+        "source_body": "",
+        "title": "Un océano antiguo lleno de depredadores gigantes revela un giro sorprendente en la evolución.",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261106174535.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nUn descubrimiento fósil en Colombia revela un ecosistema antiguo donde coexistieron depredadores gigantes y nuevas especies.\n\nUn océano antiguo lleno de depredadores gigantes revela un giro sorprendente en la evolución Investigaciones en la Formación Paja, en Colombia, han desvelado un capítulo fascinante de la historia evolutiva de la Tierra. Un equipo de científicos de la Universidad McGill y el Centro de Investigaciones Paleontológicas ha encontrado fósiles que indican que grupos de animales antiguos, en peligro de extinción, coexistieron con nuevas especies que posteriormente prosperarían. Este hallazgo sugiere que las transiciones evolutivas significativas pueden ocurrir sin la destrucción masiva típica de las extinciones. Los investigadores han propuesto el concepto de \"Inflexión Biótica\", que describe un punto de inflexión evolutivo donde grupos antiguos y nuevos coexisten. Factores ambientales como temperaturas cálidas, niveles del mar elevados y aguas costeras ricas en nutrientes habrían facilitado esta diversidad. Además, la conexión entre el Pacífico oriental y el Atlántico temprano a través de Colombia permitió que diferentes grupos de animales prosperaran en el mismo ecosistema. La Formación Paja ha proporcionado un registro fósil excepcional, incluyendo reptiles marinos gigantes y una compleja red alimentaria. Este descubrimiento podría cambiar la comprensión de cómo se producen los cambios en la biodiversidad, sugiriendo que algunas transiciones evolutivas pueden estar marcadas por periodos de diversidad extraordinaria. Sin embargo, los investigadores advierten que se necesita más evidencia para determinar la frecuencia de este patrón en la historia de la Tierra.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "sea waves shore",
+        "sha256": "f22bcd74a5a3890f85854e1675d2540b5f66bc5365a9b4be25127702a3e84fdf",
+        "source": "https://commons.wikimedia.org/wiki/File:Emerald_Sea_-_Albert_Bierstadt.jpg",
+        "title": "File:Emerald Sea - Albert Bierstadt.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/2/2b/Emerald_Sea_-_Albert_Bierstadt.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/f756ce5b52c78443113d.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "fb6b0736c82286a655a4": {
       "article": {
         "category": "espacio",
