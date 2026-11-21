@@ -2866,6 +2866,13 @@
       "facebook_reel_id": "1719907296180178",
       "facebook_story": "publicado",
       "facebook_story_id": "1163219549576375"
+    },
+    "sismos-5c14f748633b": {
+      "topic": "tectonica:colision_continental:observacion",
+      "topic_key": "colision_continental",
+      "title": "¿Qué observan los científicos al estudiar la colisión continental?",
+      "reel": "enviando",
+      "updated_at": "2026-11-21T03:01:43.566814+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-21T03:15:38.339306+00:00"
