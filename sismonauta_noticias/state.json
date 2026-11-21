@@ -605,6 +605,43 @@
         }
       }
     },
+    "4006593cdd6634e02fbd": {
+      "article": {
+        "category": "desastres",
+        "date": "2026-11-20T19:40:06+00:00",
+        "description": "A footpath home disappears beneath brown water. The other side is only a few meters away and someone has already crossed. Turning back means a long detour and you will be late. Would you wade through? This is the kind of everyday decision that flood safety advice must address.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Un sendero a casa desaparece bajo el agua café. El otro lado está a solo unos metros y alguien ya cruzó. Darse la vuelta significa un desvío largo y vas a llegar tarde. Este es el tipo de decisión cotidiana que los consejos de seguridad ante inundaciones deben abordar.",
+        "id": "4006593cdd6634e02fbd",
+        "image_headline": "La gente camina por aguas de inundación porque subestima el peligro: cómo evitar el riesgo",
+        "lang": "en",
+        "original_title": "People wade through floodwater because they underestimate danger—how to avoid risk",
+        "search_category": "direct",
+        "source": "Phys.org Medio Ambiente",
+        "source_body": "",
+        "title": "La gente camina por aguas de inundación porque subestima el peligro: cómo evitar el riesgo",
+        "url": "https://phys.org/news/2026-11-people-wade-floodwater-underestimate-danger.html"
+      },
+      "caption": "🌎 SISMONAUTA | RIESGOS NATURALES\n\nLa gente camina por aguas de inundación porque subestima el peligro: cómo evitar el riesgo\n\nUn sendero a casa desaparece bajo el agua café. El otro lado está a solo unos metros y alguien ya cruzó. Darse la vuelta significa un desvío largo y vas a llegar tarde. Este es el tipo de decisión cotidiana que los consejos de seguridad ante inundaciones deben abordar.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #DesastresNaturales #Prevencion #RiesgosNaturales",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "landslide mountain",
+        "sha256": "4a775a7c80a85566f2a60b04aaee2df727e262650b20f050ebe36e58419f6076",
+        "source": "https://commons.wikimedia.org/wiki/File:June_2011_Landslide_Scars_in_Taiwan.jpg",
+        "title": "File:June 2011 Landslide Scars in Taiwan.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/64/June_2011_Landslide_Scars_in_Taiwan.jpg/1920px-June_2011_Landslide_Scars_in_Taiwan.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/4006593cdd6634e02fbd.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "426eaaaec1185877bdc1": {
       "article": {
         "category": "oceanos",
