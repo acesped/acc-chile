@@ -348,7 +348,8 @@
       "source": "EMSC-CSEM",
       "targets": {
         "facebook_feed": {
-          "status": "uncertain"
+          "status": "published",
+          "id": "305263296226466_1161570333084864"
         },
         "facebook": {
           "status": "published",
