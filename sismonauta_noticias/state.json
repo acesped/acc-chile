@@ -347,6 +347,43 @@
         }
       }
     },
+    "2bf4265eec037dfadb87": {
+      "article": {
+        "category": "climatologia",
+        "date": "2026-11-07T10:00:03+00:00",
+        "description": "Los humanos producen colectivamente más de 2 mil millones de toneladas de dióxido de carbono anualmente solo por convertir alimentos en energía, un aumento del 74% en tres décadas impulsado en gran parte por el crecimiento de la población. Sin embargo, a diferencia de las emisiones de combustibles fósiles, el CO2 que exhalamos es parte del ciclo natural del carbono, y los científicos dicen que medirlo con mayor precisión podría mejorar los modelos climáticos.",
+        "explanation": "**Los cuerpos humanos producen 2 mil millones de toneladas métricas de CO2 al año solo por mantenerse vivos**\n\nUn estudio reciente de la Universidad de Bath ha revelado que la producción de dióxido de carbono (CO2) por el metabolismo humano alcanzó los 2.05 mil millones de toneladas métricas anuales en 2015, un aumento del 74% desde 1985. Este incremento se atribuye principalmente al crecimiento de la población mundial, en lugar de un aumento significativo en la cantidad de CO2 que cada persona produce.\n\nLos investigadores destacan que el CO2 generado por la respiración humana es diferente al que proviene de la quema de combustibles fósiles. El carbono que exhalamos proviene de los alimentos que consumimos, que a su vez han absorbido carbono de la atmósfera recientemente. En contraste, la combustión de combustibles fósiles libera carbono que ha estado atrapado en la tierra durante millones de años.\n\nEste estudio, publicado en *The Lancet Planetary Health*, proporciona una mejor comprensión del ciclo del carbono global. Al medir con precisión la contribución humana al CO2, los científicos esperan mejorar las predicciones sobre la efectividad de las estrategias de reducción de emisiones. Sin embargo, los autores enfatizan que la respiración humana no es un motor del cambio climático, y no se sugiere que las personas cambien sus hábitos para reducir su producción de CO2.",
+        "id": "2bf4265eec037dfadb87",
+        "image_headline": "Los cuerpos humanos producen 2 mil millones de toneladas métricas de CO2 al año solo por mantenerse vivos.",
+        "lang": "en",
+        "original_title": "Human bodies produce 2 billion metric tons of CO2 a year just by staying alive",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261104012305.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "Los cuerpos humanos producen 2 mil millones de toneladas métricas de CO2 al año solo por mantenerse vivos.",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261104012305.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CLIMATOLOGÍA\n\nLos cuerpos humanos producen 2 mil millones de toneladas métricas de CO2 al año solo por mantenerse vivos.\n\nLos cuerpos humanos producen 2 mil millones de toneladas métricas de CO2 al año solo por mantenerse vivos Un estudio reciente de la Universidad de Bath ha revelado que la producción de dióxido de carbono (CO2) por el metabolismo humano alcanzó los 2.05 mil millones de toneladas métricas anuales en 2015, un aumento del 74% desde 1985. Este incremento se atribuye principalmente al crecimiento de la población mundial, en lugar de un aumento significativo en la cantidad de CO2 que cada persona produce. Los investigadores destacan que el CO2 generado por la respiración humana es diferente al que proviene de la quema de combustibles fósiles. El carbono que exhalamos proviene de los alimentos que consumimos, que a su vez han absorbido carbono de la atmósfera recientemente. En contraste, la combustión de combustibles fósiles libera carbono que ha estado atrapado en la tierra durante millones de años. Este estudio, publicado en *The Lancet Planetary Health*, proporciona una mejor comprensión del ciclo del carbono global. Al medir con precisión la contribución humana al CO2, los científicos esperan mejorar las predicciones sobre la efectividad de las estrategias de reducción de emisiones. Sin embargo, los autores enfatizan que la respiración humana no es un motor del cambio climático, y no se sugiere que las personas cambien sus hábitos para reducir su producción de CO2.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Climatologia #Clima #CambioClimatico #Glaciares",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "glacier landscape",
+        "sha256": "1abda6e6cd2a25e954e49284e546173c2e92298b74e4b34bd8f9e74e4889dbd2",
+        "source": "https://commons.wikimedia.org/wiki/File:Glacier_National_Park_-_Lobby,_Glacier_Park_Hotel_(NBY_430070).jpg",
+        "title": "File:Glacier National Park - Lobby, Glacier Park Hotel (NBY 430070).jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/c/cd/Glacier_National_Park_-_Lobby%2C_Glacier_Park_Hotel_%28NBY_430070%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/2bf4265eec037dfadb87.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "31e6d7b31134f9007865": {
       "article": {
         "category": "oceanos",
