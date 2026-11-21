@@ -1701,6 +1701,16 @@
       "angle": "diferencia",
       "time": "2026-11-21T00:01:21.656452+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-5c14f748633b",
+      "topic": "tectonica:colision_continental:observacion",
+      "topic_key": "colision_continental",
+      "title": "¿Qué observan los científicos al estudiar la colisión continental?",
+      "style": "mito_realidad",
+      "angle": "observacion",
+      "time": "2026-11-21T03:01:40.463831+00:00",
+      "status": "publicado"
     }
   ]
 }
