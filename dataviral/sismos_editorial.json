@@ -1711,6 +1711,16 @@
       "angle": "observacion",
       "time": "2026-11-21T03:01:40.463831+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-26f0dbbd8dc4",
+      "topic": "tsunamis:primera_ola:origen",
+      "topic_key": "primera_ola",
+      "title": "¿Qué procesos explican la primera ola de un tsunami?",
+      "style": "descubrimiento",
+      "angle": "origen",
+      "time": "2026-11-21T06:01:40.988809+00:00",
+      "status": "publicado"
     }
   ]
 }
