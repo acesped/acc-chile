@@ -2871,8 +2871,9 @@
       "topic": "tectonica:colision_continental:observacion",
       "topic_key": "colision_continental",
       "title": "¿Qué observan los científicos al estudiar la colisión continental?",
-      "reel": "enviando",
-      "updated_at": "2026-11-21T03:01:43.566814+00:00"
+      "reel": "publicado",
+      "updated_at": "2026-11-21T03:02:24.308775+00:00",
+      "reel_id": "17891101893622243"
     }
   },
   "youtube_upload_retry_after": "2026-11-21T03:15:38.339306+00:00"
