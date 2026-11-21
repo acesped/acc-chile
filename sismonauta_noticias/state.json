@@ -473,6 +473,43 @@
         }
       }
     },
+    "3ddea7029f96e88c44b4": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-20T08:30:00+00:00",
+        "description": "Tela bordada a punto cruz, figuras de greda, naves espaciales con material de desecho, ilustraciones",
+        "explanation": "**10 ganadores le dan la bienvenida a BepiColombo a Mercurio**\n\nLa misión BepiColombo, una colaboración entre la Agencia Espacial Europea (ESA) y la Agencia de Exploración Aeroespacial de Japón (JAXA), ha recibido un cálido recibimiento de parte de más de 60 participantes de todo el mundo. Estos contribuyentes enviaron mensajes creativos para celebrar la llegada de la misión a Mercurio, destacando la importancia de este evento en la exploración espacial.\n\nEl primer premio fue otorgado a una obra de teatro de sombras que combina una poesía original con música, creada por Malwina Lewera de Polonia. Su presentación captura la emoción del viaje y los desafíos de la misión, incluyendo las maniobras de separación de los orbitadores. La misión BepiColombo, que ha estado en desarrollo durante más de 25 años, se encuentra en su fase de llegada a Mercurio, tras un viaje de ocho años.\n\nEl 21 de noviembre, los dos orbitadores, el Mercury Planetary Orbiter (MPO) y el Mercury Magnetospheric Orbiter (Mio), serán capturados por la gravedad de Mercurio. Posteriormente, el 9 de diciembre, se separarán para iniciar sus operaciones científicas en abril de 2027. Este hito marca un avance significativo en la comprensión del planeta más cercano al Sol.",
+        "id": "3ddea7029f96e88c44b4",
+        "image_headline": "Diez ganadores celebran la llegada de BepiColombo a Mercurio con creativas obras artísticas y mensajes de bienvenida.",
+        "lang": "en",
+        "original_title": "10 winners welcome BepiColombo to Mercury",
+        "resolved_source_url": "https://www.esa.int/articles/about-us/directorates/science/bepicolombo/10-winners-welcome-bepicolombo-to-mercury",
+        "search_category": "direct",
+        "source": "ESA ciencia espacial",
+        "source_body": "",
+        "title": "10 ganadores le dan la bienvenida a BepiColombo a Mercurio",
+        "url": "https://www.esa.int/articles/about-us/directorates/science/bepicolombo/10-winners-welcome-bepicolombo-to-mercury"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nDiez ganadores celebran la llegada de BepiColombo a Mercurio con creativas obras artísticas y mensajes de bienvenida.\n\nLa misión BepiColombo, una colaboración entre la Agencia Espacial Europea (ESA) y la Agencia de Exploración Aeroespacial de Japón (JAXA), ha recibido un cálido recibimiento de parte de más de 60 participantes de todo el mundo. Estos contribuyentes enviaron mensajes creativos para celebrar la llegada de la misión a Mercurio, destacando la importancia de este evento en la exploración espacial. El primer premio fue otorgado a una obra de teatro de sombras que combina una poesía original con música, creada por Malwina Lewera de Polonia. Su presentación captura la emoción del viaje y los desafíos de la misión, incluyendo las maniobras de separación de los orbitadores. La misión BepiColombo, que ha estado en desarrollo durante más de 25 años, se encuentra en su fase de llegada a Mercurio, tras un viaje de ocho años. El 21 de noviembre, los dos orbitadores, el Mercury Planetary Orbiter (MPO) y el Mercury Magnetospheric Orbiter (Mio), serán capturados por la gravedad de Mercurio. Posteriormente, el 9 de diciembre, se separarán para iniciar sus operaciones científicas en abril de 2027. Este hito marca un avance significativo en la comprensión del planeta más cercano al Sol.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "68cf2d4bbada689ad32527e3bd04fa1c06d0b8d6ace4587cba3ebcccfecc02e6",
+        "source": "https://commons.wikimedia.org/wiki/File:NASA_Google%2B_Hangout-_%27Earthrise%27_A_New_Visualization_-_45th_Anniversary_of_Apollo_8_Viewing_Earth_from_Space_(11451493615).jpg",
+        "title": "File:NASA Google+ Hangout- 'Earthrise' A New Visualization - 45th Anniversary of Apollo 8 Viewing Earth from Space (11451493615).jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/9/9c/NASA_Google%2B_Hangout-_%27Earthrise%27_A_New_Visualization_-_45th_Anniversary_of_Apollo_8_Viewing_Earth_from_Space_%2811451493615%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/3ddea7029f96e88c44b4.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "426eaaaec1185877bdc1": {
       "article": {
         "category": "oceanos",
