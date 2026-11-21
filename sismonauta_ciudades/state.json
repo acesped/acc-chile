@@ -410,14 +410,14 @@
       "time": "2026-11-21T17:41:04+00:00",
       "source": "EMSC-CSEM",
       "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
         "facebook": {
           "status": "pending"
         },
         "instagram": {
-          "status": "pending"
-        },
-        "facebook_feed": {
-          "status": "pending"
+          "status": "uncertain"
         }
       },
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_ciudades/images/emsc_20261121_0000228.jpg"
