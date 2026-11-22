@@ -1605,6 +1605,43 @@
         }
       }
     },
+    "99ad25c483eff7b54063": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-14T17:00:33+00:00",
+        "description": "Earth is approximately 4.5 billion years old, according to estimates. However, rocks dating back to the planet's earliest days are extremely rare. Hence the excitement over the discovery in northern China of some of the oldest known rocks on Earth, dating back 3.95 billion years. And one of the reasons for all the attention is that they're revealing new clues about how Earth's crust formed and evolved.",
+        "editorial_mode": "documented_brief",
+        "explanation": "La Tierra tiene aproximadamente 4.5 mil millones de años, según estimaciones. Sin embargo, las rocas que datan de los primeros días del planeta son extremadamente raras. De ahí la emoción por el descubrimiento en el norte de China de algunas de las rocas más antiguas conocidas en la Tierra, que datan de hace 3.95 mil millones de años. Y una de las razones de toda la atención es que están revelando nuevas pistas sobre cómo se formó y evolucionó la corteza terrestre.",
+        "id": "99ad25c483eff7b54063",
+        "image_headline": "Algunas de las rocas más antiguas jamás descubiertas arrojan luz sobre la historia temprana de la Tierra.",
+        "lang": "en",
+        "original_title": "Some of the oldest rocks ever discovered shed light on Earth's early history",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Algunas de las rocas más antiguas jamás descubiertas arrojan luz sobre la historia temprana de la Tierra.",
+        "url": "https://phys.org/news/2026-11-oldest-earth-early-history.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nAlgunas de las rocas más antiguas jamás descubiertas arrojan luz sobre la historia temprana de la Tierra.\n\nLa Tierra tiene aproximadamente 4.5 mil millones de años, según estimaciones. Sin embargo, las rocas que datan de los primeros días del planeta son extremadamente raras. De ahí la emoción por el descubrimiento en el norte de China de algunas de las rocas más antiguas conocidas en la Tierra, que datan de hace 3.95 mil millones de años. Y una de las razones de toda la atención es que están revelando nuevas pistas sobre cómo se formó y evolucionó la corteza terrestre.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "a1fcbdd2c6fb253d84d479f3223b93aef117a1088c2649ebe0b4f6d92cfbea5f",
+        "source": "https://commons.wikimedia.org/wiki/File:Gigantic_jet_photographed_by_Nichole_Ayers_on_the_International_Space_Station,_some_edits.jpg",
+        "title": "File:Gigantic jet photographed by Nichole Ayers on the International Space Station, some edits.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fd/Gigantic_jet_photographed_by_Nichole_Ayers_on_the_International_Space_Station%2C_some_edits.jpg/1920px-Gigantic_jet_photographed_by_Nichole_Ayers_on_the_International_Space_Station%2C_some_edits.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/99ad25c483eff7b54063.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "99c43b65e1a071ea4c4b": {
       "article": {
         "category": "espacio",
