@@ -866,6 +866,43 @@
         }
       }
     },
+    "54c59cbf95f1cf983650": {
+      "article": {
+        "category": "volcanes",
+        "date": "2026-11-16T17:00:06+00:00",
+        "description": "The slow-moving lava of an effusive volcanic eruption can transform a landscape. But escaping gases, cloud cover, accessibility issues and limited local resources can make monitoring the development of a flow field dangerous and difficult.",
+        "editorial_mode": "documented_brief",
+        "explanation": "La lava de lento movimiento de una erupción volcánica efusiva puede transformar un paisaje. Pero la emanación de gases, la nubosidad, los problemas de accesibilidad y los limitados recursos locales pueden hacer que el monitoreo del desarrollo de un campo de",
+        "id": "54c59cbf95f1cf983650",
+        "image_headline": "Radar satelital rastrea flujos de lava y cambios en el cráter del volcán Kilauea de Hawái.",
+        "lang": "en",
+        "original_title": "Satellite radar tracks lava flows and crater changes at Hawaii's Kilauea volcano",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Radar satelital rastrea flujos de lava y cambios en el cráter del volcán Kilauea de Hawái.",
+        "url": "https://phys.org/news/2026-11-satellite-radar-tracks-lava-crater.html"
+      },
+      "caption": "🌎 SISMONAUTA | ACTUALIDAD VOLCÁNICA\n\nRadar satelital rastrea flujos de lava y cambios en el cráter del volcán Kilauea de Hawái.\n\nLa lava de lento movimiento de una erupción volcánica efusiva puede transformar un paisaje. Pero la emanación de gases, la nubosidad, los problemas de accesibilidad y los limitados recursos locales pueden hacer que el monitoreo del desarrollo de un campo de\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Volcanes #Erupciones #Volcanologia #Geologia",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "volcano landscape",
+        "sha256": "acb0809570a97ce5da7067d2c562f12c48542f71bbdcc7bdde121827e3e23dec",
+        "source": "https://commons.wikimedia.org/wiki/File:Boardwalk_at_Mud_Volcano_in_winter.jpg",
+        "title": "File:Boardwalk at Mud Volcano in winter.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d3/Boardwalk_at_Mud_Volcano_in_winter.jpg/1920px-Boardwalk_at_Mud_Volcano_in_winter.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/54c59cbf95f1cf983650.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "5d356e2ed5d19009c725": {
       "article": {
         "category": "espacio",
