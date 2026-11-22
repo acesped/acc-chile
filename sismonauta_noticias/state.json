@@ -2036,6 +2036,43 @@
         }
       }
     },
+    "c7bd5f77acc5d5cc0325": {
+      "article": {
+        "category": "sismos",
+        "date": "2026-11-18T19:00:06+00:00",
+        "description": "University of Michigan researchers have developed a better way to understand why earthquakes occur and what size they might be. Currently, models that predict earthquakes only account for slipping that occurs along a main fault, activity that usually generates large earthquakes. Instead, the U-M researchers have built a model that considers not only the main fault action but also the activity of rocks that lie adjacent to the fault and become damaged during earthquake events.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Investigadores de la Universidad de Michigan han desarrollado una mejor manera de entender por qué ocurren los terremotos y qué tamaño podrían tener. Actualmente, los modelos que predicen terremotos solo consideran el deslizamiento que ocurre a lo largo de una falla principal, actividad que generalmente genera grandes terremotos. En cambio, los investigadores de U-M han construido un modelo que considera no solo la acción de la falla principal, sino también la actividad de las rocas que se encuentran adyacentes a la falla y que se dañan durante los eventos sísmicos.",
+        "id": "c7bd5f77acc5d5cc0325",
+        "image_headline": "Las rocas dañadas podrían ayudar a explicar por qué los sismos pequeños superan en número a los grandes",
+        "lang": "en",
+        "original_title": "Damaged rocks may help explain why small earthquakes outnumber large ones",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Las rocas dañadas podrían ayudar a explicar por qué los sismos pequeños superan en número a los grandes",
+        "url": "https://phys.org/news/2026-11-small-earthquakes-outnumber-large.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA SÍSMICA\n\nLas rocas dañadas podrían ayudar a explicar por qué los sismos pequeños superan en número a los grandes\n\nInvestigadores de la Universidad de Michigan han desarrollado una mejor manera de entender por qué ocurren los terremotos y qué tamaño podrían tener. Actualmente, los modelos que predicen terremotos solo consideran el deslizamiento que ocurre a lo largo de una falla principal, actividad que generalmente genera grandes terremotos. En cambio, los investigadores de U-M han construido un modelo que considera no solo la acción de la falla principal, sino también la actividad de las rocas que se encuentran adyacentes a la falla y que se dañan durante los eventos sísmicos.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Sismos #Terremotos #Sismologia #Geofisica #Tectonica",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "earthquake fault landscape",
+        "sha256": "906b147b5c8162a8ee551546d9bbda93385b3ee1f8aa8c27154204c10b7c05bd",
+        "source": "https://commons.wikimedia.org/wiki/File:Lusi_Mud_Volcano,_Indonesia_2009-10-20.jpg",
+        "title": "File:Lusi Mud Volcano, Indonesia 2009-10-20.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/2/23/Lusi_Mud_Volcano%2C_Indonesia_2009-10-20.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/c7bd5f77acc5d5cc0325.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "cc4f59684ef1b0679f01": {
       "article": {
         "category": "espacio",
