@@ -3073,6 +3073,13 @@
       "facebook_reel_id": "1156120156793791",
       "facebook_story": "publicado",
       "facebook_story_id": "4165162327113854"
+    },
+    "sismos-2f03a74d83ed": {
+      "topic": "riesgo:alerta_temprana:diferencia",
+      "topic_key": "alerta_temprana",
+      "title": "¿Cómo distinguir la alerta temprana de otros fenómenos?",
+      "reel": "enviando",
+      "updated_at": "2026-11-22T21:01:34.514191+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-23T00:03:02.940028+00:00"
