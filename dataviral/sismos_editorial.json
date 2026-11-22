@@ -1781,6 +1781,16 @@
       "angle": "relacion",
       "time": "2026-11-22T00:01:18.286492+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-92d271b9d11c",
+      "topic": "tectonica:colision_continental:mecanismo",
+      "topic_key": "colision_continental",
+      "title": "¿Cómo funciona la colisión continental?",
+      "style": "mito_realidad",
+      "angle": "mecanismo",
+      "time": "2026-11-22T03:01:51.807910+00:00",
+      "status": "publicado"
     }
   ]
 }
