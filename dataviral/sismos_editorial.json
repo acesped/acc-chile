@@ -1831,6 +1831,16 @@
       "angle": "relieve",
       "time": "2026-11-22T18:01:26.884564+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-2f03a74d83ed",
+      "topic": "riesgo:alerta_temprana:diferencia",
+      "topic_key": "alerta_temprana",
+      "title": "¿Cómo distinguir la alerta temprana de otros fenómenos?",
+      "style": "microdocumental",
+      "angle": "diferencia",
+      "time": "2026-11-22T21:01:30.999916+00:00",
+      "status": "publicado"
     }
   ]
 }
