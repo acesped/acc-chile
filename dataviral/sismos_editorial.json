@@ -1821,6 +1821,16 @@
       "angle": "diferencia",
       "time": "2026-11-22T15:01:44.767601+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-0f3ab968bebb",
+      "topic": "tectonica:colision_continental:relieve",
+      "topic_key": "colision_continental",
+      "title": "¿Qué relación guarda el paisaje con la colisión continental?",
+      "style": "mapa_explicado",
+      "angle": "relieve",
+      "time": "2026-11-22T18:01:26.884564+00:00",
+      "status": "publicado"
     }
   ]
 }
