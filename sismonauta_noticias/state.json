@@ -434,6 +434,43 @@
         }
       }
     },
+    "2f7690adf82a51410b96": {
+      "article": {
+        "category": "desastres",
+        "date": "2026-11-16T12:10:06+00:00",
+        "description": "Fuel breaks are linear strips of land along which vegetation is cleared or thinned—constructed along ridgelines, roads and other strategic places—to give firefighters a better chance to safely slow or steer a fire. Often described as \"speed bumps\" for wildfires, fuel breaks rarely stop fire spread on their own, but they do give crews critical anchor points for building firelines, setting backfires or safely applying water and retardant. They have been used since the 1960s across many landscapes.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Los cortafuegos son franjas lineales de terreno a lo largo de las cuales se despeja o se reduce la vegetación—construidas a lo largo de crestas, caminos y otros lugares estratégicos—para dar a los bomberos una mejor oportunidad de frenar o desviar un incendio de manera segura. A menudo descritos como \"lomos de burro\" para incendios forestales, los cortafuegos rara vez detienen la propagación del fuego por sí solos, pero sí proporcionan a los equipos puntos de anclaje críticos para construir líneas de fuego, establecer contrafuegos o aplicar agua y retardantes de manera segura. Se han utilizado desde la década de 1960 en muchos paisajes.",
+        "id": "2f7690adf82a51410b96",
+        "image_headline": "El modelamiento de incendios forestales ayuda a los encargados a decidir dónde construir y mantener cortafuegos.",
+        "lang": "en",
+        "original_title": "Wildfire modeling helps managers decide where to build and maintain fuel breaks",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "El modelamiento de incendios forestales ayuda a los encargados a decidir dónde construir y mantener cortafuegos.",
+        "url": "https://phys.org/news/2026-11-wildfire-fuel.html"
+      },
+      "caption": "🌎 SISMONAUTA | RIESGOS NATURALES\n\nEl modelamiento de incendios forestales ayuda a los encargados a decidir dónde construir y mantener cortafuegos.\n\nLos cortafuegos son franjas lineales de terreno a lo largo de las cuales se despeja o se reduce la vegetación—construidas a lo largo de crestas, caminos y otros lugares estratégicos—para dar a los bomberos una mejor oportunidad de frenar o desviar un incendio de manera segura. A menudo descritos como \"lomos de burro\" para incendios forestales, los cortafuegos rara vez detienen la propagación del fuego por sí solos, pero sí proporcionan a los equipos puntos de anclaje críticos para construir líneas de fuego, establecer contrafuegos o aplicar agua y retardantes de manera segura. Se han utilizado desde la década de 1960 en muchos paisajes.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #DesastresNaturales #Prevencion #RiesgosNaturales",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "landslide mountain",
+        "sha256": "e2c5c10b07c263a72f43cde693665a8c48fa09689b81156b4e2442928a17eac6",
+        "source": "https://commons.wikimedia.org/wiki/File:Landslide_in_Northern_Pakistan,_Image_of_the_Day_DVIDS740655.jpg",
+        "title": "File:Landslide in Northern Pakistan, Image of the Day DVIDS740655.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ed/Landslide_in_Northern_Pakistan%2C_Image_of_the_Day_DVIDS740655.jpg/1920px-Landslide_in_Northern_Pakistan%2C_Image_of_the_Day_DVIDS740655.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/2f7690adf82a51410b96.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "31e6d7b31134f9007865": {
       "article": {
         "category": "oceanos",
