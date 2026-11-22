@@ -823,6 +823,43 @@
         }
       }
     },
+    "45ebaee18a67b1e662e6": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-22T11:31:14+00:00",
+        "description": "Científicos han descubierto una razón sorprendente de por qué la vida primitiva pudo haber sobrevivido a la intensa radiación",
+        "explanation": "**El protector solar secreto del ADN podría haber ayudado a que la vida sobreviviera en la Tierra primitiva**\n\nInvestigaciones recientes de la Universidad Texas A&M han arrojado luz sobre cómo el ADN pudo haber sobrevivido a las duras condiciones de la Tierra primitiva. Dirigidos por el Dr. Peter Rentzepis, los científicos han explorado el papel del componente químico llamado timina, que reemplaza al uracilo en el ADN. A pesar de que la timina es más susceptible a daños por radiación ultravioleta (UV), los investigadores han encontrado que podría ofrecer ventajas inesperadas.\n\nLos experimentos realizados simularon las condiciones de la Tierra primitiva, exponiendo timina y uracilo a radiación UV controlada. Los resultados sugieren que, aunque la timina puede ser vulnerable, también dirige el daño molecular hacia formas más reversibles. Esto implica que, en lugar de evitar el daño, la timina podría haber facilitado la recuperación de las moléculas genéticas, actuando como un \"bloqueador solar\" molecular.\n\nEste descubrimiento no solo ayuda a entender la evolución del ADN, sino que también podría tener aplicaciones prácticas en la detección de patógenos y en sistemas de desinfección por UV. Los investigadores planean continuar su trabajo para desentrañar el origen de estos componentes esenciales y su posible llegada a la Tierra a través de meteoritos.",
+        "id": "45ebaee18a67b1e662e6",
+        "image_headline": "El protector solar secreto del ADN podría haber ayudado a que la vida sobreviviera en la Tierra primitiva.",
+        "lang": "en",
+        "original_title": "DNA’s secret sunscreen may have helped life survive on early Earth",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261121221128.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Ambiente",
+        "source_body": "",
+        "title": "El protector solar secreto del ADN podría haber ayudado a que la vida sobreviviera en la Tierra primitiva.",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261121221128.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nEl protector solar secreto del ADN podría haber ayudado a que la vida sobreviviera en la Tierra primitiva.\n\nEl protector solar secreto del ADN podría haber ayudado a que la vida sobreviviera en la Tierra primitiva Investigaciones recientes de la Universidad Texas A&M han arrojado luz sobre cómo el ADN pudo haber sobrevivido a las duras condiciones de la Tierra primitiva. Dirigidos por el Dr. Peter Rentzepis, los científicos han explorado el papel del componente químico llamado timina, que reemplaza al uracilo en el ADN. A pesar de que la timina es más susceptible a daños por radiación ultravioleta (UV), los investigadores han encontrado que podría ofrecer ventajas inesperadas. Los experimentos realizados simularon las condiciones de la Tierra primitiva, exponiendo timina y uracilo a radiación UV controlada. Los resultados sugieren que, aunque la timina puede ser vulnerable, también dirige el daño molecular hacia formas más reversibles. Esto implica que, en lugar de evitar el daño, la timina podría haber facilitado la recuperación de las moléculas genéticas, actuando como un \"bloqueador solar\" molecular. Este descubrimiento no solo ayuda a entender la evolución del ADN, sino que también podría tener aplicaciones prácticas en la detección de patógenos y en sistemas de desinfección por UV. Los investigadores planean continuar su trabajo para desentrañar el origen de estos componentes esenciales y su posible llegada a la Tierra a través de meteoritos.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "32681b5fe7b294551a7c3bb595d32a215d594d242c00b1b4a9ca8ac517b6e140",
+        "source": "https://commons.wikimedia.org/wiki/File:Earthset_(art002e009288).jpg",
+        "title": "File:Earthset (art002e009288).jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/15/Earthset_%28art002e009288%29.jpg/1920px-Earthset_%28art002e009288%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/45ebaee18a67b1e662e6.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "4eca08d7e9b2fe59f165": {
       "article": {
         "category": "espacio",
