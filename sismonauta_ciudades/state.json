@@ -540,7 +540,8 @@
           "status": "pending"
         },
         "facebook": {
-          "status": "uncertain"
+          "status": "published",
+          "id": "305263296226466_1163491782892719"
         },
         "instagram": {
           "status": "published",
