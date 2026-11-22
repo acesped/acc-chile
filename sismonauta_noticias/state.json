@@ -1214,6 +1214,43 @@
         }
       }
     },
+    "7e08c9d28c0cda5e74dd": {
+      "article": {
+        "category": "desastres",
+        "date": "2026-11-20T01:00:01+00:00",
+        "description": "Climate change is a global reality, but people often encounter it through different local realities. For some, it enters everyday life through social media feeds, news reports, scientific findings and public discussion. For others, it is through water scarcity, food insecurity, floods, heat waves, wildfires or the loss of a home or a loved one.",
+        "editorial_mode": "documented_brief",
+        "explanation": "El cambio climático es una realidad global, pero las personas a menudo lo encuentran a través de diferentes realidades locales. Para algunos, entra en la vida cotidiana a través de las redes sociales, informes de noticias, hallazgos científicos y discusiones públicas. Para otros, es a través de la escasez de agua, la inseguridad alimentaria, inundaciones, olas de calor, incendios forestales o la pérdida de un hogar o de un ser querido.",
+        "id": "7e08c9d28c0cda5e74dd",
+        "image_headline": "La comunicación climática que resuena debe basarse en la empatía.",
+        "lang": "en",
+        "original_title": "Climate communication that resonates must be based on empathy",
+        "search_category": "direct",
+        "source": "Phys.org Medio Ambiente",
+        "source_body": "",
+        "title": "La comunicación climática que resuena debe basarse en la empatía.",
+        "url": "https://phys.org/news/2026-11-climate-communication-resonates-based-empathy.html"
+      },
+      "caption": "🌎 SISMONAUTA | RIESGOS NATURALES\n\nLa comunicación climática que resuena debe basarse en la empatía.\n\nEl cambio climático es una realidad global, pero las personas a menudo lo encuentran a través de diferentes realidades locales. Para algunos, entra en la vida cotidiana a través de las redes sociales, informes de noticias, hallazgos científicos y discusiones públicas. Para otros, es a través de la escasez de agua, la inseguridad alimentaria, inundaciones, olas de calor, incendios forestales o la pérdida de un hogar o de un ser querido.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #DesastresNaturales #Prevencion #RiesgosNaturales",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "landslide mountain",
+        "sha256": "8705f472318250772a42561f644f37f690111841742c9f5dee49558732e7e645",
+        "source": "https://commons.wikimedia.org/wiki/File:USGS_-_1989_Loma_Prieta_earthquake_-_Landslide_Debris_on_Highway.jpg",
+        "title": "File:USGS - 1989 Loma Prieta earthquake - Landslide Debris on Highway.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/1/19/USGS_-_1989_Loma_Prieta_earthquake_-_Landslide_Debris_on_Highway.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/7e08c9d28c0cda5e74dd.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "82690ba43d60100f822b": {
       "article": {
         "category": "oceanos",
