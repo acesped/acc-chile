@@ -227,9 +227,10 @@
       "updated_at": "2026-11-22T15:21:17.432968+00:00"
     },
     "1162782019630362_1128810030011057": {
-      "status": "uncertain",
+      "status": "published",
+      "reply_id": "1162782019630362_2310231419539386",
       "reply": "¡Muchas gracias por el dato! Nos ayuda harto a precisar la ubicación para la comunidad. Saludos.",
-      "updated_at": "2026-11-22T16:16:02.474645+00:00"
+      "updated_at": "2026-11-22T16:16:05.541664+00:00"
     }
   }
 }
