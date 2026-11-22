@@ -3003,6 +3003,13 @@
       "facebook_story": "publicado",
       "facebook_story_id": "2769069583512852",
       "youtube_short": "aplazado"
+    },
+    "sismos-92d271b9d11c": {
+      "topic": "tectonica:colision_continental:mecanismo",
+      "topic_key": "colision_continental",
+      "title": "¿Cómo funciona la colisión continental?",
+      "reel": "enviando",
+      "updated_at": "2026-11-22T03:01:54.980132+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-23T00:03:02.940028+00:00"
