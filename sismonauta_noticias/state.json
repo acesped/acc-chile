@@ -866,6 +866,43 @@
         }
       }
     },
+    "61c21dcf9f47423584a3": {
+      "article": {
+        "category": "meteorologia",
+        "date": "2026-11-19T16:20:01+00:00",
+        "description": "One in 100 of the tiny particles hanging in the air we breathe in Michigan is a microplastic, according to a University of Michigan study. The study tested the air for microplastics in four locations across lower Michigan, all in the parking lots of K-12 schools. It found that microplastics constitute about 1% of particles found in the atmosphere.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Uno de cada 100 de las pequeñas partículas que flotan en el aire que respiramos en Michigan es un microplástico, según un estudio de la Universidad de Michigan. El estudio analizó el aire en busca de microplásticos en cuatro ubicaciones en el sur de Michigan, todas en los estacionamientos de escuelas K-12. Se encontró que los microplásticos constituyen aproximadamente el 1% de las partículas encontradas en la atmósfera.",
+        "id": "61c21dcf9f47423584a3",
+        "image_headline": "Los microplásticos constituyen 1 de cada 100 partículas en el aire muestreadas en cuatro escuelas de Michigan.",
+        "lang": "en",
+        "original_title": "Microplastics make up 1 in 100 airborne particles sampled at four Michigan schools",
+        "search_category": "direct",
+        "source": "Phys.org Medio Ambiente",
+        "source_body": "",
+        "title": "Los microplásticos constituyen 1 de cada 100 partículas en el aire muestreadas en cuatro escuelas de Michigan.",
+        "url": "https://phys.org/news/2026-11-microplastics-airborne-particles-sampled-michigan.html"
+      },
+      "caption": "🌎 SISMONAUTA | METEOROLOGÍA\n\nLos microplásticos constituyen 1 de cada 100 partículas en el aire muestreadas en cuatro escuelas de Michigan.\n\nUno de cada 100 de las pequeñas partículas que flotan en el aire que respiramos en Michigan es un microplástico, según un estudio de la Universidad de Michigan. El estudio analizó el aire en busca de microplásticos en cuatro ubicaciones en el sur de Michigan, todas en los estacionamientos de escuelas K-12. Se encontró que los microplásticos constituyen aproximadamente el 1% de las partículas encontradas en la atmósfera.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Meteorologia #Tiempo #Tormentas #Atmosfera",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "storm clouds landscape",
+        "sha256": "44b3efc0a7ff0822012aeccd1cb6f08392d02d251cacc3bf37cfdedac9847f33",
+        "source": "https://commons.wikimedia.org/wiki/File:Storm_clouds_over_the_Oasis_of_Mara_(51185434575).jpg",
+        "title": "File:Storm clouds over the Oasis of Mara (51185434575).jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/97/Storm_clouds_over_the_Oasis_of_Mara_%2851185434575%29.jpg/1920px-Storm_clouds_over_the_Oasis_of_Mara_%2851185434575%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/61c21dcf9f47423584a3.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "6276663bcc64d9420d9d": {
       "article": {
         "category": "volcanes",
