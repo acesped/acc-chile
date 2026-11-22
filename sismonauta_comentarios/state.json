@@ -239,9 +239,10 @@
       "updated_at": "2026-11-22T18:31:23.090457+00:00"
     },
     "1162782019630362_1148256871143795": {
-      "status": "uncertain",
+      "status": "published",
+      "reply_id": "1162782019630362_1184995523961803",
       "reply": "¡Hola! Aquí en SISMONAUTA siempre aprendemos algo nuevo entre todos, así que bienvenido el diccionario y las ganas de compartir. Lo importante es informarnos juntos sobre los sismos y entenderlos mejor. Gracias por comentar y seguir la página, un abrazo.",
-      "updated_at": "2026-11-22T19:31:17.439440+00:00"
+      "updated_at": "2026-11-22T19:31:21.187754+00:00"
     }
   }
 }
