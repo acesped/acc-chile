@@ -1605,6 +1605,43 @@
         }
       }
     },
+    "a30b51a6252d9ec2bc6b": {
+      "article": {
+        "category": "volcanes",
+        "date": "2026-11-15T19:00:02+00:00",
+        "description": "Tsunamis triggered by volcanic eruptions are poorly understood because of the complex dynamics governing how falling rocks and ash interact with seawater to generate waves. As a result, it is difficult to anticipate whether a volcanic flow will trigger a tsunami and, if so, how big it will be. Researchers have used laboratory experiments to study this process, but little is known about how well these models mimic reality.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Los tsunamis provocados por erupciones volcánicas son poco comprendidos debido a la compleja dinámica que rige cómo las rocas y la ceniza que caen interactúan con el agua de mar para generar olas. Como resultado, es difícil anticipar si un flujo volcánico desencadenará un tsunami y, de ser así, cuán grande será. Los investigadores han utilizado experimentos de laboratorio para estudiar este proceso, pero se sabe poco sobre qué tan bien estos modelos imitan la realidad.",
+        "id": "a30b51a6252d9ec2bc6b",
+        "image_headline": "Los experimentos que mejoran nuestra comprensión de los tsunamis volcánicos.",
+        "lang": "en",
+        "original_title": "The experiments improving our understanding of volcanic tsunamis",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Los experimentos que mejoran nuestra comprensión de los tsunamis volcánicos.",
+        "url": "https://phys.org/news/2026-11-volcanic-tsunamis.html"
+      },
+      "caption": "🌎 SISMONAUTA | ACTUALIDAD VOLCÁNICA\n\nLos experimentos que mejoran nuestra comprensión de los tsunamis volcánicos.\n\nLos tsunamis provocados por erupciones volcánicas son poco comprendidos debido a la compleja dinámica que rige cómo las rocas y la ceniza que caen interactúan con el agua de mar para generar olas. Como resultado, es difícil anticipar si un flujo volcánico desencadenará un tsunami y, de ser así, cuán grande será. Los investigadores han utilizado experimentos de laboratorio para estudiar este proceso, pero se sabe poco sobre qué tan bien estos modelos imitan la realidad.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Volcanes #Erupciones #Volcanologia #Geologia",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "volcano landscape",
+        "sha256": "d9210454ac82d2ee6c08b856b0850f1c58046e56b5f942f20db7b84a919c704f",
+        "source": "https://commons.wikimedia.org/wiki/File:Landscape_with_Flaming_Volcano,_South_America_LACMA_M.77.174.2.jpg",
+        "title": "File:Landscape with Flaming Volcano, South America LACMA M.77.174.2.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2a/Landscape_with_Flaming_Volcano%2C_South_America_LACMA_M.77.174.2.jpg/1920px-Landscape_with_Flaming_Volcano%2C_South_America_LACMA_M.77.174.2.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/a30b51a6252d9ec2bc6b.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "a5fc5c52168f38d6493f": {
       "article": {
         "category": "espacio",
