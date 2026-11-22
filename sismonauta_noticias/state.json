@@ -1942,8 +1942,10 @@
           "status": "pending"
         },
         "instagram": {
+          "id": "18151467013559911",
+          "published_at": "2026-11-22T11:03:04.990421+00:00",
           "started_at": "2026-11-22T11:02:46.439222+00:00",
-          "status": "uncertain"
+          "status": "published"
         }
       }
     },
