@@ -3045,6 +3045,13 @@
       "facebook_reel_id": "4804862139832613",
       "facebook_story": "publicado",
       "facebook_story_id": "1892191618809940"
+    },
+    "sismos-8382fe55985a": {
+      "topic": "fallas:falla_normal:diferencia",
+      "topic_key": "falla_normal",
+      "title": "¿Cómo distinguir una falla normal de otros fenómenos?",
+      "reel": "enviando",
+      "updated_at": "2026-11-22T15:01:47.851801+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-23T00:03:02.940028+00:00"
