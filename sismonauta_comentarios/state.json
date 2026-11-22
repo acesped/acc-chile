@@ -201,6 +201,11 @@
       "reply_id": "1162781872963710_1492772316063375",
       "reply": "¡Gracias por compartir tu opinión! Nos alegra contar contigo en la comunidad SISMONAUTA. 🌎",
       "updated_at": "2026-11-22T07:21:03.526292+00:00"
+    },
+    "1162782019630362_2830051347391089": {
+      "status": "uncertain",
+      "reply": "Según el reporte que compartimos, el sismo se ubicó a unos 173,4 km de Santiago y a 28,5 km de profundidad, pero el aviso no especifica una localidad exacta. Si necesitas el detalle preciso, conviene revisar las coordenadas de la fuente EMSC-CSEM. Gracias por preguntar.",
+      "updated_at": "2026-11-22T07:35:55.225053+00:00"
     }
   }
 }
