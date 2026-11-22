@@ -1801,6 +1801,16 @@
       "angle": "datos",
       "time": "2026-11-22T09:01:46.825765+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-f343da0f6321",
+      "topic": "tectonica:placas_movimiento:pregunta",
+      "topic_key": "placas_movimiento",
+      "title": "¿Qué deberíamos preguntarnos sobre el movimiento de las placas?",
+      "style": "microdocumental",
+      "angle": "pregunta",
+      "time": "2026-11-22T12:01:54.439135+00:00",
+      "status": "publicado"
     }
   ]
 }
