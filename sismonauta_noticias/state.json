@@ -2126,6 +2126,43 @@
         }
       }
     },
+    "be9bf08a723f21ef1400": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-17T20:40:06+00:00",
+        "description": "Over the past 800,000 years, Earth's history has been marked by dramatic shifts in climate, swinging from warm periods to cold, when large ice sheets covered much of the Northern Hemisphere and sea ice greatly expanded. The transition between the two climates is paced by the Earth's orbit with respect to the sun, but changes in the amount of carbon dioxide (CO2), a greenhouse gas, also affect global temperatures. By understanding how CO2 is exchanged between the atmosphere and the ocean, scientists hope to apply that knowledge to future climate scenarios.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Durante los últimos 800,000 años, la historia de la Tierra ha estado marcada por cambios dramáticos en el clima, oscilando entre períodos cálidos y fríos, cuando grandes capas de hielo cubrían gran parte del Hemisferio Norte y el hielo marino se expandía considerablemente. La transición entre los dos climas está determinada por la órbita de la Tierra con respecto al sol, pero los cambios en la cantidad de dióxido de carbono (CO2), un gas de efecto invernadero, también afectan las temperaturas globales. Al comprender cómo se intercambia el CO2 entre la atmósfera y el océano, los científicos esperan aplicar ese conocimiento a futuros escenarios climáticos.",
+        "id": "be9bf08a723f21ef1400",
+        "image_headline": "¿Cómo cambia la captura de carbono oceánico bajo diferentes condiciones glaciares?",
+        "lang": "en",
+        "original_title": "How does ocean carbon sequestration change under different glacial conditions?",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "¿Cómo cambia la captura de carbono oceánico bajo diferentes condiciones glaciares?",
+        "url": "https://phys.org/news/2026-11-ocean-carbon-sequestration-glacial-conditions.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\n¿Cómo cambia la captura de carbono oceánico bajo diferentes condiciones glaciares?\n\nDurante los últimos 800,000 años, la historia de la Tierra ha estado marcada por cambios dramáticos en el clima, oscilando entre períodos cálidos y fríos, cuando grandes capas de hielo cubrían gran parte del Hemisferio Norte y el hielo marino se expandía considerablemente. La transición entre los dos climas está determinada por la órbita de la Tierra con respecto al sol, pero los cambios en la cantidad de dióxido de carbono (CO2), un gas de efecto invernadero, también afectan las temperaturas globales. Al comprender cómo se intercambia el CO2 entre la atmósfera y el océano, los científicos esperan aplicar ese conocimiento a futuros escenarios climáticos.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "sea waves shore",
+        "sha256": "69a6e7d030988f624f9f61e0ecdc683cf7071f229f46f0800665df2915eec790",
+        "source": "https://commons.wikimedia.org/wiki/File:LOOKING_OVER_TWO-STORY_ROOF_TOPS_TO_LAKE_MICHIGAN,_AS_WAVES_EXPLODE_AGAINST_A_SEA_WALL_-_NARA_-_547071.jpg",
+        "title": "File:LOOKING OVER TWO-STORY ROOF TOPS TO LAKE MICHIGAN, AS WAVES EXPLODE AGAINST A SEA WALL - NARA - 547071.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b0/LOOKING_OVER_TWO-STORY_ROOF_TOPS_TO_LAKE_MICHIGAN%2C_AS_WAVES_EXPLODE_AGAINST_A_SEA_WALL_-_NARA_-_547071.jpg/1920px-LOOKING_OVER_TWO-STORY_ROOF_TOPS_TO_LAKE_MICHIGAN%2C_AS_WAVES_EXPLODE_AGAINST_A_SEA_WALL_-_NARA_-_547071.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/be9bf08a723f21ef1400.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "c01b7b8b37291a4f78aa": {
       "article": {
         "category": "espacio",
