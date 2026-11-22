@@ -1909,6 +1909,43 @@
         }
       }
     },
+    "b3ccce3babf59670f9d6": {
+      "article": {
+        "category": "desastres",
+        "date": "2026-11-20T20:00:06+00:00",
+        "description": "As the climate warms, thousands of glacial lakes are growing behind potentially unstable natural dams. Despite the potential risk of flooding to communities downstream, these lakes remain outside formal safety regulation.",
+        "editorial_mode": "verified_summary",
+        "explanation": "A medida que el clima se calienta, miles de lagos glaciares están creciendo detrás de represas naturales potencialmente inestables. A pesar del riesgo potencial de inundaciones para las comunidades río abajo, estos lagos permanecen fuera de la regulación de seguridad formal.",
+        "id": "b3ccce3babf59670f9d6",
+        "image_headline": "Lagos glaciares peligrosos necesitan supervisión de seguridad estilo embalse, dice investigador.",
+        "lang": "en",
+        "original_title": "Hazardous glacial lakes need reservoir-style safety oversight, says researcher",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Lagos glaciares peligrosos necesitan supervisión de seguridad estilo embalse, dice investigador.",
+        "url": "https://phys.org/news/2026-11-hazardous-glacial-lakes-reservoir-style.html"
+      },
+      "caption": "🌎 SISMONAUTA | RIESGOS NATURALES\n\nLagos glaciares peligrosos necesitan supervisión de seguridad estilo embalse, dice investigador.\n\nA medida que el clima se calienta, miles de lagos glaciares están creciendo detrás de represas naturales potencialmente inestables. A pesar del riesgo potencial de inundaciones para las comunidades río abajo, estos lagos permanecen fuera de la regulación de seguridad formal.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #DesastresNaturales #Prevencion #RiesgosNaturales",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "landslide mountain",
+        "sha256": "5d410eb5d7ddebf7f2469b52835b64fcf1a43bf2a1f478e8015c8de016868070",
+        "source": "https://commons.wikimedia.org/wiki/File:Newfound_Gap_Landslide_January_16,_2013.jpg",
+        "title": "File:Newfound Gap Landslide January 16, 2013.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/6/6e/Newfound_Gap_Landslide_January_16%2C_2013.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/b3ccce3babf59670f9d6.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "b8e2f8c049930a4c8a11": {
       "article": {
         "category": "espacio",
