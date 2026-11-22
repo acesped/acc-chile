@@ -1811,6 +1811,16 @@
       "angle": "pregunta",
       "time": "2026-11-22T12:01:54.439135+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-8382fe55985a",
+      "topic": "fallas:falla_normal:diferencia",
+      "topic_key": "falla_normal",
+      "title": "¿Cómo distinguir una falla normal de otros fenómenos?",
+      "style": "pregunta_respuesta",
+      "angle": "diferencia",
+      "time": "2026-11-22T15:01:44.767601+00:00",
+      "status": "publicado"
     }
   ]
 }
