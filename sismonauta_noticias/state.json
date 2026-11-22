@@ -44,6 +44,42 @@
         }
       }
     },
+    "02064300be721a665ef5": {
+      "article": {
+        "category": "meteorologia",
+        "date": "2026-11-22T05:05:00+00:00",
+        "description": "APOD Ciencia APOD APOD: 22 de noviembre de 2026 –… Índice de Envíos del Archivo APOD Búsqueda Calendario RSS Educación Acerca de Discutir APOD Imagen Astronómica del Día ¡Descubre el cosmos! Cada día se presenta una imagen o fotografía diferente de nuestro fascinante universo, junto con una breve explicación escrita por un astrónomo profesional. Remolinos y Colores […]",
+        "explanation": "**TITULAR: APOD: 22 de noviembre de 2026 – Remolinos y colores en Júpiter desde la Juno**\n\nLa sonda Juno ha proporcionado una impresionante imagen de Júpiter, revelando los remolinos y colores de su atmósfera. Aunque la composición de la atmósfera jupiteriana es mayormente de hidrógeno y helio, elementos que son incoloros a las bajas temperaturas de sus nubes, la causa de los colores observados sigue siendo un misterio. Investigaciones recientes sugieren que pequeñas cantidades de moléculas como el sulfuro de amonio podrían ser responsables de estas tonalidades.\n\nLa imagen destaca que las nubes más claras suelen encontrarse a mayores altitudes que las más oscuras. En la fotografía, se pueden observar nubes ligeras que giran alrededor de regiones rojizas en la parte inferior derecha, mientras que cubren áreas más oscuras en la parte superior derecha. Esta observación es consistente con los patrones meteorológicos que se han documentado en el gigante gaseoso.\n\nJuno, que ha estado en órbita desde 2016, realiza un pasaje cercano a Júpiter cada 33 días, explorando diferentes sectores de su atmósfera en cada aproximación. Este continuo estudio promete desvelar más secretos sobre el comportamiento atmosférico de Júpiter en el futuro.",
+        "id": "02064300be721a665ef5",
+        "image_headline": "La sonda Juno capturó imágenes de remolinos y colores en las nubes de Júpiter, revelando su compleja atmósfera.",
+        "lang": "en",
+        "original_title": "APOD: 2026 November 22 – Swirls and Colors on Jupiter from Juno",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "APOD Science APOD APOD: 2026 November 22 –… Today’s APOD Archive Submissions Index Search Calendar RSS Education About Discuss APOD Astronomy Picture of the Day Discover the cosmos! Each day a different image or photograph of our fascinating universe is featured, along with a brief explanation written by a professional astronomer. Swirls and Colors on Jupiter from Juno Explanation: What creates the colors in Jupiter’s clouds? No one is sure. The thick atmosphere of Jupiter is mostly hydrogen and helium , elements which are colorless at the low temperatures of the Jovian cloud tops . Which trace molecules provide the colors remains a topic of research , although small amounts of ammonium hydrosulfide are one leading candidate . What is clear from the featured color-enhanced image — and many similar images — is that lighter clouds are typically higher up than darker ones. Pictured, light clouds swirl around reddish regions toward the lower right, while they appear to cover over some darker domains on the upper right. The featured image was taken by the robotic Juno spacecraft in 2018 during its 14th low pass over Jupiter . Juno continues in its looping elliptical orbit, swooping near the huge planet every 33 days and exploring a slightly different sector each time around. Tomorrow’s picture: emerging darkness Date: November 22, 2026 Credit: NASA , Juno , SwRI , MSSS ; Processing & License : Matt Brealey , Seán Doran Authors & editors: Robert Nemiroff, Jerry Bonnell, Cecilia Chirenti, Keighley Rockcliffe A service of: ASD at NASA / GSFC , NASA Science Activation & Michigan Tech. U. Random APOD Generator Yesterday’s Image APOD: 2026 November 21 – Voyager’s Neptune Tomorrow’s Image",
+        "title": "APOD: 22 de noviembre de 2026 – Remolinos y colores en Júpiter desde la Juno",
+        "url": "https://science.nasa.gov/image-article/apod-2026-november-22-swirls-and-colors-on-jupiter-from-juno/"
+      },
+      "caption": "🌎 SISMONAUTA | METEOROLOGÍA\n\nLa sonda Juno capturó imágenes de remolinos y colores en las nubes de Júpiter, revelando su compleja atmósfera.\n\nLa sonda Juno ha proporcionado una impresionante imagen de Júpiter, revelando los remolinos y colores de su atmósfera. Aunque la composición de la atmósfera jupiteriana es mayormente de hidrógeno y helio, elementos que son incoloros a las bajas temperaturas de sus nubes, la causa de los colores observados sigue siendo un misterio. Investigaciones recientes sugieren que pequeñas cantidades de moléculas como el sulfuro de amonio podrían ser responsables de estas tonalidades. La imagen destaca que las nubes más claras suelen encontrarse a mayores altitudes que las más oscuras. En la fotografía, se pueden observar nubes ligeras que giran alrededor de regiones rojizas en la parte inferior derecha, mientras que cubren áreas más oscuras en la parte superior derecha. Esta observación es consistente con los patrones meteorológicos que se han documentado en el gigante gaseoso. Juno, que ha estado en órbita desde 2016, realiza un pasaje cercano a Júpiter cada 33 días, explorando diferentes sectores de su atmósfera en cada aproximación. Este continuo estudio promete desvelar más secretos sobre el comportamiento atmosférico de Júpiter en el futuro.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Meteorologia #Tiempo #Tormentas #Atmosfera",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "storm clouds landscape",
+        "sha256": "56c99430fd11d69a9b0b3a499a386882151395d283cc66e242adb764da89fba7",
+        "source": "https://commons.wikimedia.org/wiki/File:Storm_clouds_over_the_Oasis_of_Mara_(51183673752).jpg",
+        "title": "File:Storm clouds over the Oasis of Mara (51183673752).jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/92/Storm_clouds_over_the_Oasis_of_Mara_%2851183673752%29.jpg/1920px-Storm_clouds_over_the_Oasis_of_Mara_%2851183673752%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/02064300be721a665ef5.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "06afef01c44e71e10da0": {
       "article": {
         "category": "oceanos",
