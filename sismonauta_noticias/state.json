@@ -3475,6 +3475,43 @@
           "status": "published"
         }
       }
+    },
+    "ff07d0b24829192dfadf": {
+      "article": {
+        "category": "climatologia",
+        "date": "2026-11-20T17:00:12+00:00",
+        "description": "New research from NIHR School of Public Health Research, published in the Lancet Planetary Health, provides new insights into how taking action on climate can impact young people's climate change distress, mental health and well-being.",
+        "editorial_mode": "verified_summary",
+        "explanation": "Nueva investigación de la Escuela de Investigación en Salud Pública del NIHR, publicada en The Lancet Planetary Health, proporciona nuevas perspectivas sobre cómo tomar medidas en relación al clima puede afectar el malestar por el cambio climático, la salud mental y el bienestar de los jóvenes.",
+        "id": "ff07d0b24829192dfadf",
+        "image_headline": "Más preocupados, pero más esperanzados: La paradoja de la acción climática de los jóvenes.",
+        "lang": "en",
+        "original_title": "More worried, yet more hopeful: The paradox of young people's climate action",
+        "search_category": "direct",
+        "source": "Phys.org Medio Ambiente",
+        "source_body": "",
+        "title": "Más preocupados, pero más esperanzados: La paradoja de la acción climática de los jóvenes.",
+        "url": "https://phys.org/news/2026-11-paradox-young-people-climate-action.html"
+      },
+      "caption": "🌎 SISMONAUTA | CLIMATOLOGÍA\n\nMás preocupados, pero más esperanzados: La paradoja de la acción climática de los jóvenes.\n\nNueva investigación de la Escuela de Investigación en Salud Pública del NIHR, publicada en The Lancet Planetary Health, proporciona nuevas perspectivas sobre cómo tomar medidas en relación al clima puede afectar el malestar por el cambio climático, la salud mental y el bienestar de los jóvenes.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Climatologia #Clima #CambioClimatico #Glaciares",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "glacier landscape",
+        "sha256": "d61cda3defe24cdad701da8fee7dadf69889e76fec08f9e85ae583d2d4986209",
+        "source": "https://commons.wikimedia.org/wiki/File:Mountain_Glacier_Landscape_(from_AvoPix).jpg",
+        "title": "File:Mountain Glacier Landscape (from AvoPix).jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3e/Mountain_Glacier_Landscape_%28from_AvoPix%29.jpg/1920px-Mountain_Glacier_Landscape_%28from_AvoPix%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/ff07d0b24829192dfadf.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
     }
   }
 }
