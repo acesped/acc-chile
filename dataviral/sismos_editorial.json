@@ -1891,6 +1891,16 @@
       "angle": "consecuencia",
       "time": "2026-11-23T12:09:27.388568+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-ed761620d330",
+      "topic": "riesgo:alerta_temprana:aprendizaje",
+      "topic_key": "alerta_temprana",
+      "title": "¿Qué podemos aprender hoy acerca de la alerta temprana?",
+      "style": "mapa_explicado",
+      "angle": "aprendizaje",
+      "time": "2026-11-23T15:02:24.438912+00:00",
+      "status": "publicado"
     }
   ]
 }
