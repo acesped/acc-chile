@@ -434,6 +434,43 @@
         }
       }
     },
+    "293aad544cc9ff3341f3": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-20T02:20:06+00:00",
+        "description": "On an early October morning, as MBARI's research vessel Paragon left Moss Landing with three robots loaded on its deck, Monterey Bay was showing off.",
+        "editorial_mode": "verified_summary",
+        "explanation": "En una mañana de principios de octubre, mientras el buque de investigación Paragon de MBARI zarpaba de Moss Landing con tres robots cargados en su cubierta, la bahía de Monterey se estaba luciendo.",
+        "id": "293aad544cc9ff3341f3",
+        "image_headline": "Tecnología innovadora ofrece una nueva y audaz visión para monitorear la salud de los océanos.",
+        "lang": "en",
+        "original_title": "Innovative technology offers a bold new vision for monitoring ocean health",
+        "search_category": "direct",
+        "source": "Phys.org Medio Ambiente",
+        "source_body": "",
+        "title": "Tecnología innovadora ofrece una nueva y audaz visión para monitorear la salud de los océanos.",
+        "url": "https://phys.org/news/2026-11-technology-bold-vision-ocean-health.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nTecnología innovadora ofrece una nueva y audaz visión para monitorear la salud de los océanos.\n\nEn una mañana de principios de octubre, mientras el buque de investigación Paragon de MBARI zarpaba de Moss Landing con tres robots cargados en su cubierta, la bahía de Monterey se estaba luciendo.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "sea waves shore",
+        "sha256": "6ceeb89917cfe8cb3efb815ebfb9821326924f95ca2a5814bee883a34f0f32c1",
+        "source": "https://commons.wikimedia.org/wiki/File:Drone_view_of_ocean_waves_(Unsplash).jpg",
+        "title": "File:Drone view of ocean waves (Unsplash).jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e2/Drone_view_of_ocean_waves_%28Unsplash%29.jpg/1920px-Drone_view_of_ocean_waves_%28Unsplash%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/293aad544cc9ff3341f3.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "2bf4265eec037dfadb87": {
       "article": {
         "category": "climatologia",
