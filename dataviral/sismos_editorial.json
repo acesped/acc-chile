@@ -1911,6 +1911,16 @@
       "angle": "errores",
       "time": "2026-11-23T18:15:56.709727+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-5cc62f59ec34",
+      "topic": "ondas:ondas_p:sintesis",
+      "topic_key": "ondas_p",
+      "title": "¿Qué es lo esencial que debes saber de las ondas P?",
+      "style": "descubrimiento",
+      "angle": "sintesis",
+      "time": "2026-11-23T21:06:40.305045+00:00",
+      "status": "publicado"
     }
   ]
 }
