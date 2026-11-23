@@ -1871,6 +1871,16 @@
       "angle": "escala",
       "time": "2026-11-23T06:01:53.147037+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-68f9f20ad8b7",
+      "topic": "tsunamis:estuarios:consecuencia",
+      "topic_key": "estuarios",
+      "title": "¿Por qué importa los tsunamis en ríos?",
+      "style": "pregunta_respuesta",
+      "angle": "consecuencia",
+      "time": "2026-11-23T09:02:28.850316+00:00",
+      "status": "publicado"
     }
   ]
 }
