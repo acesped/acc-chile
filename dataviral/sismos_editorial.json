@@ -1901,6 +1901,16 @@
       "angle": "aprendizaje",
       "time": "2026-11-23T15:02:24.438912+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-ad8cec013dec",
+      "topic": "tectonica:placas_movimiento:errores",
+      "topic_key": "placas_movimiento",
+      "title": "¿Qué errores conviene evitar al explicar el movimiento de las placas?",
+      "style": "microdocumental",
+      "angle": "errores",
+      "time": "2026-11-23T18:15:56.709727+00:00",
+      "status": "publicado"
     }
   ]
 }
