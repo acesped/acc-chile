@@ -735,6 +735,42 @@
         }
       }
     },
+    "3c39bcfd2f7fe57902f1": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-23T21:10:03+00:00",
+        "description": "NASA, en nombre de la Administración Nacional Oceánica y Atmosférica (NOAA), ha otorgado un contrato a Northrop Grumman Systems Corporation para los instrumentos Sounder para Aplicaciones Basadas en Microondas (SMBA) en los satélites de la Red de Órbita Cercana a la Tierra (NEON) de la NOAA. El contrato híbrido de costo más tarifa fija, precio fijo firme y tiempo y materiales tiene un valor de $290.6 millones. El período de ejecución se extiende desde […]",
+        "explanation": "**NASA adjudica contrato para el Programa de la Red de Órbita Terrestre Cercana de la NOAA**\n\nLa NASA, en colaboración con la Administración Nacional Oceánica y Atmosférica (NOAA), ha otorgado un contrato a Northrop Grumman Systems Corporation por un valor de $290.6 millones. Este contrato se destinará al desarrollo de instrumentos denominados Sounder for Microwave-Based Applications (SMBA) para los satélites de la Red de Órbita Terrestre Cercana (NEON) de la NOAA.\n\nEl contrato, que combina diferentes modalidades de pago, tiene un periodo de ejecución que se extiende desde el 23 de noviembre hasta el 1 de abril de 2042. Northrop Grumman será responsable del diseño, desarrollo, producción, pruebas y soporte de misión de tres instrumentos SMBA, que representan la próxima generación de sondas de microondas en órbita baja.\n\nEstos instrumentos son fundamentales para obtener mediciones precisas de temperatura y humedad en la atmósfera, lo que puede mejorar significativamente las previsiones meteorológicas a mediano plazo del Servicio Nacional de Meteorología de la NOAA. La misión NEON, liderada por la NOAA, busca optimizar la recopilación de datos atmosféricos, beneficiando a usuarios en todo el mundo.",
+        "id": "3c39bcfd2f7fe57902f1",
+        "image_headline": "NASA otorga un contrato a Northrop Grumman para desarrollar instrumentos clave en satélites de la NOAA.",
+        "lang": "en",
+        "original_title": "NASA Awards Contract for NOAA’s Near Earth Orbit Network Program",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "Credit: NASA NASA, on behalf of the National Oceanic and Atmospheric Administration (NOAA), has awarded a contract to Northrop Grumman Systems Corporation for the Sounder for Microwave-Based Applications (SMBA) instruments on NOAA’s Near Earth Orbit Network (NEON) satellites. The cost-plus-fixed-fee, firm-fixed-price, and time-and-materials hybrid contract has a value of $290.6 million. The period of performance runs from Nov. 23 through April 1, 2042. The work will take place at the awardee’s facility. Under the contract, Northrop Grumman will provide the design, development, production, testing, and mission support for three SMBA instruments, the next generation of low Earth orbit microwave sounders. NASA’s Goddard Space Flight Center in Greenbelt, Maryland, is managing the acquisition, and NOAA will own and operate the instruments and deliver the data to users worldwide. Microwave sounders provide critical measurements of temperature and moisture in the atmosphere, which significantly influence weather patterns. The SMBA instruments could improve the medium-range forecasts for NOAA’s National Weather Service. The NEON mission is a collaboration between NASA and NOAA. The mission is led by NOAA, which provides funding, technical requirements, and postlaunch operations. NASA will manage the development of the NEON satellites and launch them for NOAA. NASA and NOAA will work with commercial partners to design and build the NEON spacecraft and instruments. For information about NASA and agency programs, visit: https://www.nasa.gov -end- Liz Vlock Headquarters, Washington 202-358-1600 elizabeth.a.vlock@nasa.gov Peter Jacobs Goddard Space Flight Center, Greenbelt, Md. 301-286-3308 peter.jacobs@nasa.gov Share Details Last Updated Nov 23, 2026 Editor Jessica Taveau Location NASA Headquarters Related Terms Science Mission Directorate Goddard Space Flight Center NOAA (National Oceanic and Atmospheric Administration)",
+        "title": "NASA adjudica contrato para el Programa de la Red de Órbita Terrestre Cercana de la NOAA.",
+        "url": "https://www.nasa.gov/news-release/nasa-awards-contract-for-noaas-near-earth-orbit-network-program/"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nNASA otorga un contrato a Northrop Grumman para desarrollar instrumentos clave en satélites de la NOAA.\n\nNASA adjudica contrato para el Programa de la Red de Órbita Terrestre Cercana de la NOAA La NASA, en colaboración con la Administración Nacional Oceánica y Atmosférica (NOAA), ha otorgado un contrato a Northrop Grumman Systems Corporation por un valor de $290.6 millones. Este contrato se destinará al desarrollo de instrumentos denominados Sounder for Microwave-Based Applications (SMBA) para los satélites de la Red de Órbita Terrestre Cercana (NEON) de la NOAA. El contrato, que combina diferentes modalidades de pago, tiene un periodo de ejecución que se extiende desde el 23 de noviembre hasta el 1 de abril de 2042. Northrop Grumman será responsable del diseño, desarrollo, producción, pruebas y soporte de misión de tres instrumentos SMBA, que representan la próxima generación de sondas de microondas en órbita baja. Estos instrumentos son fundamentales para obtener mediciones precisas de temperatura y humedad en la atmósfera, lo que puede mejorar significativamente las previsiones meteorológicas a mediano plazo del Servicio Nacional de Meteorología de la NOAA. La misión NEON, liderada por la NOAA, busca optimizar la recopilación de datos atmosféricos, beneficiando a usuarios en todo el mundo.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "sea waves shore",
+        "sha256": "2dc607560658b7692c420b15e0f697e3a3129741b29c85511f4f69683087f263",
+        "source": "https://commons.wikimedia.org/wiki/File:The_waves_in_Croatia.jpg",
+        "title": "File:The waves in Croatia.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a3/The_waves_in_Croatia.jpg/1920px-The_waves_in_Croatia.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/3c39bcfd2f7fe57902f1.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "3ddea7029f96e88c44b4": {
       "article": {
         "category": "espacio",
