@@ -2030,8 +2030,10 @@
           "status": "pending"
         },
         "instagram": {
+          "id": "18043484561896781",
+          "published_at": "2026-11-23T21:02:04.829534+00:00",
           "started_at": "2026-11-23T21:01:46.202702+00:00",
-          "status": "uncertain"
+          "status": "published"
         }
       }
     },
