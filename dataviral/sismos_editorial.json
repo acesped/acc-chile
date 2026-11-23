@@ -1841,6 +1841,16 @@
       "angle": "diferencia",
       "time": "2026-11-22T21:01:30.999916+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-3442c38ce911",
+      "topic": "ondas:ondas_p:tiempo",
+      "topic_key": "ondas_p",
+      "title": "¿Qué cambia con el tiempo al analizar las ondas P?",
+      "style": "mapa_explicado",
+      "angle": "tiempo",
+      "time": "2026-11-23T00:01:52.651791+00:00",
+      "status": "publicado"
     }
   ]
 }
