@@ -998,6 +998,43 @@
         }
       }
     },
+    "45fc571212ac4721fa66": {
+      "article": {
+        "category": "volcanes",
+        "date": "2026-11-16T18:50:01+00:00",
+        "description": "Beneath the North Atlantic Ocean lies a series of underwater volcanic mountain chains stretching from the coast of North America toward the Azores. These include the New England Seamounts and the Great Meteor Seamounts.",
+        "editorial_mode": "verified_summary",
+        "explanation": "Bajo el Océano Atlántico Norte se encuentra una serie de cadenas montañosas volcánicas submarinas que se extienden desde la costa de Norteamérica hacia las Azores. Estas incluyen los montes submarinos de Nueva Inglaterra y los montes submarinos Great Meteor.",
+        "id": "45fc571212ac4721fa66",
+        "image_headline": "Una pluma errante podría haber creado varias cadenas volcánicas atlánticas.",
+        "lang": "en",
+        "original_title": "One wandering plume may have created several Atlantic volcanic chains",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Una pluma errante podría haber creado varias cadenas volcánicas atlánticas.",
+        "url": "https://phys.org/news/2026-11-plume-atlantic-volcanic-chains.html"
+      },
+      "caption": "🌎 SISMONAUTA | ACTUALIDAD VOLCÁNICA\n\nUna pluma errante podría haber creado varias cadenas volcánicas atlánticas.\n\nBajo el Océano Atlántico Norte se encuentra una serie de cadenas montañosas volcánicas submarinas que se extienden desde la costa de Norteamérica hacia las Azores. Estas incluyen los montes submarinos de Nueva Inglaterra y los montes submarinos Great Meteor.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Volcanes #Erupciones #Volcanologia #Geologia",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "volcano landscape",
+        "sha256": "56137e6af82665932abc62bf32d8a2f9a6f039a178eca126e03da0f2151a0209",
+        "source": "https://commons.wikimedia.org/wiki/File:Crater_of_Santa_Maria_volcano,_Guatemala,_1903.png",
+        "title": "File:Crater of Santa Maria volcano, Guatemala, 1903.png",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/8/89/Crater_of_Santa_Maria_volcano%2C_Guatemala%2C_1903.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/45fc571212ac4721fa66.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "4eca08d7e9b2fe59f165": {
       "article": {
         "category": "espacio",
