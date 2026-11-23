@@ -3159,6 +3159,13 @@
       "youtube_short_id": "MaShZ3WAU9o",
       "youtube_video": "publicado",
       "youtube_video_id": "5MNWUujl6Xc"
+    },
+    "sismos-9a811233df6f": {
+      "topic": "ondas:atenuacion:consecuencia",
+      "topic_key": "atenuacion",
+      "title": "¿Por qué importa la propagación de las ondas?",
+      "reel": "enviando",
+      "updated_at": "2026-11-23T12:09:31.497115+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-23T00:03:02.940028+00:00"
