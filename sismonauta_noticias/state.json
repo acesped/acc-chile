@@ -1346,6 +1346,43 @@
         }
       }
     },
+    "7fedd15ea542bbbfd7ba": {
+      "article": {
+        "category": "geologia",
+        "date": "2026-11-19T02:00:02+00:00",
+        "description": "A mountain range can bear the marks of events from tens of millions of years ago. The challenge lies in determining when each mark was created. In southern Türkiye's Central Taurides, scientists have developed a method to date some of these ancient movements by examining tiny calcite deposits that formed as faults shifted. This new timeline alters the region's geological history. Researchers discovered a previously unrecognized period during which parts of the crust slid laterally, between the Early Eocene and Early Miocene. They also found that the region's later extension began around 25 million years ago, earlier than previously believed.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Una cordillera puede llevar las marcas de eventos de hace decenas de millones de años. El desafío radica en determinar cuándo se creó cada marca. En los Taurides Centrales del sur de Türkiye, los científicos han desarrollado un método para datar algunos de estos antiguos movimientos al examinar pequeños depósitos de calcita que se formaron a medida que las fallas se desplazaban. Esta nueva cronología altera la historia geológica de la región. Los investigadores descubrieron un período previamente no reconocido durante el cual partes de la corteza se deslizaron lateralmente, entre el Eoceno Temprano y el Mioceno Temprano. También encontraron que la posterior extensión de la región comenzó hace alrededor de 25 millones de años, antes de lo que se creía anteriormente.",
+        "id": "7fedd15ea542bbbfd7ba",
+        "image_headline": "Minerales antiguos revelan un capítulo perdido en la historia de la formación de montañas de Türkiye.",
+        "lang": "en",
+        "original_title": "Ancient minerals reveal a missing chapter in Türkiye's mountain-building history",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Minerales antiguos revelan un capítulo perdido en la historia de la formación de montañas de Türkiye.",
+        "url": "https://phys.org/news/2026-11-ancient-minerals-reveal-chapter-trkiye.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DE LA TIERRA\n\nMinerales antiguos revelan un capítulo perdido en la historia de la formación de montañas de Türkiye.\n\nUna cordillera puede llevar las marcas de eventos de hace decenas de millones de años. El desafío radica en determinar cuándo se creó cada marca. En los Taurides Centrales del sur de Türkiye, los científicos han desarrollado un método para datar algunos de estos antiguos movimientos al examinar pequeños depósitos de calcita que se formaron a medida que las fallas se desplazaban. Esta nueva cronología altera la historia geológica de la región. Los investigadores descubrieron un período previamente no reconocido durante el cual partes de la corteza se deslizaron lateralmente, entre el Eoceno Temprano y el Mioceno Temprano. También encontraron que la posterior extensión de la región comenzó hace alrededor de 25 millones de años, antes de lo que se creía anteriormente.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Geologia #PlanetaTierra #Geociencias #Investigacion",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "rock formations landscape",
+        "sha256": "56528bece7c60470188b448075c9bc9b2f8bca5f576c14d2d3f2d6716418e91e",
+        "source": "https://commons.wikimedia.org/wiki/File:Zion_national_park_natural_rock_formations_landscape.jpg",
+        "title": "File:Zion national park natural rock formations landscape.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/ca/Zion_national_park_natural_rock_formations_landscape.jpg/1920px-Zion_national_park_natural_rock_formations_landscape.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/7fedd15ea542bbbfd7ba.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "82690ba43d60100f822b": {
       "article": {
         "category": "oceanos",
