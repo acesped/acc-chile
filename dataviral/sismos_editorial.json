@@ -1851,6 +1851,16 @@
       "angle": "tiempo",
       "time": "2026-11-23T00:01:52.651791+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-98270a81d9d7",
+      "topic": "riesgo:peligro_riesgo:mecanismo",
+      "topic_key": "peligro_riesgo",
+      "title": "¿Cómo funciona la amenaza y el riesgo sísmico?",
+      "style": "mito_realidad",
+      "angle": "mecanismo",
+      "time": "2026-11-23T03:01:31.848714+00:00",
+      "status": "publicado"
     }
   ]
 }
