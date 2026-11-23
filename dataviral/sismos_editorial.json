@@ -1861,6 +1861,16 @@
       "angle": "mecanismo",
       "time": "2026-11-23T03:01:31.848714+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-8a1d56668253",
+      "topic": "tsunamis:primera_ola:escala",
+      "topic_key": "primera_ola",
+      "title": "¿Por qué la escala importa al estudiar la primera ola de un tsunami?",
+      "style": "microdocumental",
+      "angle": "escala",
+      "time": "2026-11-23T06:01:53.147037+00:00",
+      "status": "publicado"
     }
   ]
 }
