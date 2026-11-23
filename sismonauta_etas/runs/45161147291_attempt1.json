@@ -1,5 +1,5 @@
 {
-  "status": "generating",
+  "status": "publishing",
   "country": "Chile",
   "created_at": "2026-11-23T11:01:18.667223+00:00",
   "run_id": "45161147291",
@@ -25,5 +25,6 @@
     "mc": 4.2,
     "b": 1.2915095312223812,
     "magnitude_target": 4.2
-  }
+  },
+  "reel_file": "/home/runner/work/acc-chile/acc-chile/output_etas/sismonauta_etas_reel_9x16.mp4"
 }
