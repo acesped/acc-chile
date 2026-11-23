@@ -2954,6 +2954,43 @@
         }
       }
     },
+    "e9d5a0bda8846643c53b": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-17T21:20:23+00:00",
+        "description": "Grand Theft Auto V is one of the world's best-known video games. It is set in Los Santos, and although the city is fictional, its landscape and urban structure are modeled very closely on the American city of Los Angeles. Researchers from the Alfred Wegener Institute and the University of Potsdam have explored whether this virtual representation is detailed enough to realistically depict the consequences of a potential rise in sea levels and make them approachable.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Grand Theft Auto V es uno de los videojuegos más conocidos del mundo. Está ambientado en Los Santos, y aunque la ciudad es ficticia, su paisaje y estructura urbana están modelados muy de cerca en la ciudad estadounidense de Los Ángeles. Investigadores del Instituto Alfred Wegener y de la Universidad de Potsdam han explorado si esta representación virtual es lo suficientemente detallada como para representar de manera realista las consecuencias de un posible aumento en el nivel del mar y hacerlas accesibles.",
+        "id": "e9d5a0bda8846643c53b",
+        "image_headline": "Las simulaciones de inundaciones de GTA V revelan cómo el aumento del nivel del mar podría remodelar Los Santos.",
+        "lang": "en",
+        "original_title": "GTA V flood simulations reveal how rising seas could reshape Los Santos",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Las simulaciones de inundaciones de GTA V revelan cómo el aumento del nivel del mar podría remodelar Los Santos.",
+        "url": "https://phys.org/news/2026-11-gta-simulations-reveal-seas-reshape.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nLas simulaciones de inundaciones de GTA V revelan cómo el aumento del nivel del mar podría remodelar Los Santos.\n\nGrand Theft Auto V es uno de los videojuegos más conocidos del mundo. Está ambientado en Los Santos, y aunque la ciudad es ficticia, su paisaje y estructura urbana están modelados muy de cerca en la ciudad estadounidense de Los Ángeles. Investigadores del Instituto Alfred Wegener y de la Universidad de Potsdam han explorado si esta representación virtual es lo suficientemente detallada como para representar de manera realista las consecuencias de un posible aumento en el nivel del mar y hacerlas accesibles.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "sea waves shore",
+        "sha256": "d56d8c0204a3850f7670c001a345ea215ca18d72cb05c054e742ada85d557b8b",
+        "source": "https://commons.wikimedia.org/wiki/File:WAVES_BREAKING_ALONG_A_CORRUGATED_SEA_WALL_IN_ZION,_ON_LAKE_MICHIGAN_-_NARA_-_547080.jpg",
+        "title": "File:WAVES BREAKING ALONG A CORRUGATED SEA WALL IN ZION, ON LAKE MICHIGAN - NARA - 547080.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f6/WAVES_BREAKING_ALONG_A_CORRUGATED_SEA_WALL_IN_ZION%2C_ON_LAKE_MICHIGAN_-_NARA_-_547080.jpg/1920px-WAVES_BREAKING_ALONG_A_CORRUGATED_SEA_WALL_IN_ZION%2C_ON_LAKE_MICHIGAN_-_NARA_-_547080.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/e9d5a0bda8846643c53b.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "eb7a23ae03c307b5b30e": {
       "article": {
         "category": "espacio",
