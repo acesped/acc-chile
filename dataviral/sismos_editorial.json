@@ -1881,6 +1881,16 @@
       "angle": "consecuencia",
       "time": "2026-11-23T09:02:28.850316+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-9a811233df6f",
+      "topic": "ondas:atenuacion:consecuencia",
+      "topic_key": "atenuacion",
+      "title": "¿Por qué importa la propagación de las ondas?",
+      "style": "pregunta_respuesta",
+      "angle": "consecuencia",
+      "time": "2026-11-23T12:09:27.388568+00:00",
+      "status": "publicado"
     }
   ]
 }
