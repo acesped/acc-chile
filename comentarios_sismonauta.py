@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SISMONAUTA 5.0 — Python 3.11+, requests. --test / --publish / preview."""
+"""SISMONAUTA 5.1 — Python 3.11+, requests. --test / --publish / preview."""
 import argparse, base64, json, os, re, sys, time, unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
@@ -154,8 +154,8 @@ class Engine:
         self.s,self.sha=reader.load() if reader else ({'comments':{}},None)
         if self.s.get('page_id') and str(self.s['page_id'])!=self.page: raise RuntimeError('Historial de otra página')
         if str(graph('me',self.token,{'fields':'id,name'}).get('id'))!=self.page: raise RuntimeError('Token de otra página')
-        self.s['page_id']=self.page; self.h=self.s['comments']; self.inv=self.s.setdefault('inventory',{}); self.scan=self.s.setdefault('scan',{}); self.known={str(v['reply_id']) for v in self.h.values() if isinstance(v,dict) and v.get('reply_id')}; self.seen=set()
-        self.stats=dict(published=0,preview=0,already_replied=0,own=0,previous=0,unknown_author=0,blocked=0,uncertain=0,errors=0,posts=0,ai_calls=0,gaps=0); self.rows=[]
+        log('PÁGINA VERIFICADA', self.page, '| PUBLICACIÓN REAL:', args.publish); self.s['page_id']=self.page; self.h=self.s['comments']; self.inv=self.s.setdefault('inventory',{}); self.scan=self.s.setdefault('scan',{}); self.known={str(v['reply_id']) for v in self.h.values() if isinstance(v,dict) and v.get('reply_id')}; self.seen=set()
+        self.stats=dict(comments_read=0,published=0,preview=0,already_replied=0,own=0,previous=0,unknown_author=0,blocked=0,uncertain=0,errors=0,posts=0,ai_calls=0,gaps=0); self.rows=[]
     def save(self):
         if self.gh: self.sha=self.gh.save(self.s,self.sha)
     def inventory(self):
@@ -178,6 +178,8 @@ class Engine:
                         if not oid: continue
                         old=self.inv.setdefault(str(oid),{}); old.update({k:v for k,v in {'message':p.get('message'),'created_time':p.get('created_time')}.items() if v}); old['id']=str(oid)
                 progress[edge]='done'; self.save(); log('INVENTARIO',edge,len(rows))
+                if self.inv and not all(progress.get(x)=='done' for x in EDGES):
+                    return  # process comments between inventory edges
             self.s['inventory_at']=time.time(); progress.clear(); self.save()
         if not self.inv: raise RuntimeError('Inventario vacío o inaccesible')
     def cap(self):
@@ -195,13 +197,21 @@ class Engine:
             except StopRun: raise
             except Exception as e: log('AUTOR',cid,safe(e))
         if author(c)==self.page: self.stats['own']+=1; return
-        if not author(c): self.stats['unknown_author']+=1; log('AUTOR INVISIBLE',cid); return
+        if not author(c): self.stats['unknown_author']+=1; log('AUTOR INVISIBLE',cid); self.rows.append(dict(comment_id=cid,status='unknown_author')); return
         rid=next((str(x['id']) for x in children if x.get('id') and (author(x)==self.page or str(x['id']) in self.known)),None)
         if rid:
             self.h[cid]=dict(status='published',reply_id=rid,updated_at=now(),recovered_from_meta=True); self.known.add(rid); self.stats['already_replied']+=1; self.save(); return
         if prev.get('status') in ('uncertain','pending_send'):
             self.stats['uncertain']+=1; log('ENVÍO INCIERTO; revisar',cid); return
-        if any(not author(x) for x in children): self.stats['unknown_author']+=1; log('VERIFICACIÓN INCIERTA',cid); return
+        for child in children:
+            if not author(child) and child.get('id'):
+                try: child.update(graph(str(child['id']),self.token,{'fields':'id,from{id}'}))
+                except StopRun: raise
+                except Exception as e: log('AUTOR RESPUESTA',child['id'],safe(e))
+        rid=next((str(x['id']) for x in children if x.get('id') and author(x)==self.page),None)
+        if rid:
+            self.h[cid]=dict(status='published',reply_id=rid,updated_at=now(),recovered_from_meta=True); self.known.add(rid); self.stats['already_replied']+=1; self.save(); return
+        if any(not author(x) for x in children): self.stats['unknown_author']+=1; log('VERIFICACIÓN INCIERTA',cid); self.rows.append(dict(comment_id=cid,status='unknown_reply_author')); return
         if c.get('can_comment') is False: self.stats['blocked']+=1; log('META BLOQUEA RESPUESTA',cid); return
         msg=clean(c.get('message')); reply,use_ai=fallback(msg)
         if use_ai and (AI_LIMIT<0 or self.stats['ai_calls']<AI_LIMIT):
@@ -233,6 +243,7 @@ class Engine:
             rows=read(pid+'/comments',self.token,FIELDS)
             for c in rows:
                 if c.get('id'): root[str(c['id'])]=c
+        self.stats['comments_read']+=len(root); log('COMENTARIOS RECUPERADOS',pid,len(root))
         queue=list(root.values()); visited=set(); failed=False
         while queue:
             self.cap(); c=queue.pop(0); cid=str(c.get('id') or '')
@@ -256,7 +267,11 @@ class Engine:
         self.inventory()
         # Oldest scan attempt first, with new posts first. Failed or partially
         # processed posts rotate too, preventing starvation of other posts.
-        order=sorted(self.inv,key=lambda k:(self.scan.get(k,0),k))
+        historical=sorted(self.inv,key=lambda k:(self.scan.get(k,0),k))
+        recent=sorted(self.inv,key=lambda k:(self.inv[k].get('created_time',''),k),reverse=True)[:10]
+        recent=sorted(recent,key=lambda k:self.scan.get(k,0))
+        # Alternate historical and recent; historical first ensures forward progress.
+        order=list(dict.fromkeys([x for pair in zip(historical,recent) for x in pair]+historical))
         for pid in order:
             self.cap()
             if POST_LIMIT>0 and self.stats['posts']>=POST_LIMIT: break
@@ -268,6 +283,7 @@ class Engine:
                 self.stats['errors']+=1; log('PUBLICACIÓN NO DISPONIBLE',pid,safe(e))
             # GitHub/state errors deliberately propagate and stop all writes.
             self.scan[pid]=time.time(); self.save()
+            log('PROGRESO',json.dumps(self.stats,ensure_ascii=False))
 
 def selftest():
     from unittest.mock import patch
@@ -290,5 +306,8 @@ def main():
     except Exception as x: status='error'; log('ERROR',safe(x)); return 1
     finally:
         out=Path(args.out); out.mkdir(parents=True,exist_ok=True); report=dict(at=now(),status=status,stats=e.stats if e else {},results=e.rows if e else []); tmp=out/'resumen.json.tmp'; tmp.write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8'); tmp.replace(out/'resumen.json'); log('AUDITORÍA',json.dumps(report['stats'],ensure_ascii=False))
+    if e and args.publish and not e.stats['published']:
+        log('SIN RESPUESTAS NUEVAS: revisar previous, own, unknown_author, blocked, uncertain, errors y comments_read')
+        if any(e.stats[k] for k in ('errors','unknown_author','blocked','uncertain')) or not e.stats['posts']: return 2
     return 0
 if __name__=='__main__': sys.exit(main())
