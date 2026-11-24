@@ -2434,6 +2434,43 @@
         }
       }
     },
+    "b0663b53949e29d7b36f": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-23T19:40:08+00:00",
+        "description": "Like humans, the ocean breathes. And when it does, a new study shows that far more is happening than researchers have previously assumed. \"We can see that the ocean's chemical breathing is far more diverse and dynamic than we previously thought,\" says Mehrshad Foroughan, a postdoctoral researcher at the Department of Biology who is the first author of the new study.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Y cuando lo hace, un nuevo estudio muestra que está ocurriendo mucho más de lo que los investigadores habían asumido anteriormente. \"Podemos ver que la respiración química del océano es mucho más diversa y dinámica de lo que pensábamos anteriormente\", dice Mehrshad Foroughan, un investigador postdoctoral del Departamento de Biología que es el primer autor del nuevo estudio.",
+        "id": "b0663b53949e29d7b36f",
+        "image_headline": "Mediciones en el Mar Báltico revelan intercambios océano-atmósfera más complejos de lo que se asumía anteriormente.",
+        "lang": "en",
+        "original_title": "Baltic Sea measurements reveal more complex ocean-atmosphere exchanges than previously assumed",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Mediciones en el Mar Báltico revelan intercambios océano-atmósfera más complejos de lo que se asumía anteriormente.",
+        "url": "https://phys.org/news/2026-11-baltic-sea-reveal-complex-ocean.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nMediciones en el Mar Báltico revelan intercambios océano-atmósfera más complejos de lo que se asumía anteriormente.\n\nY cuando lo hace, un nuevo estudio muestra que está ocurriendo mucho más de lo que los investigadores habían asumido anteriormente. \"Podemos ver que la respiración química del océano es mucho más diversa y dinámica de lo que pensábamos anteriormente\", dice Mehrshad Foroughan, un investigador postdoctoral del Departamento de Biología que es el primer autor del nuevo estudio.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "sea waves shore",
+        "sha256": "0cda9c4c3802026b42b96a62df7d20ed80cb23a48bc1b23713fe80a52da83ab4",
+        "source": "https://commons.wikimedia.org/wiki/File:Shore_cliffs_and_rock_ledges_with_breaking_waves,_looking_northeast,_Cap_Le_Moine,_Inverness_County,_Nova_Scotia.jpg",
+        "title": "File:Shore cliffs and rock ledges with breaking waves, looking northeast, Cap Le Moine, Inverness County, Nova Scotia.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/85/Shore_cliffs_and_rock_ledges_with_breaking_waves%2C_looking_northeast%2C_Cap_Le_Moine%2C_Inverness_County%2C_Nova_Scotia.jpg/1920px-Shore_cliffs_and_rock_ledges_with_breaking_waves%2C_looking_northeast%2C_Cap_Le_Moine%2C_Inverness_County%2C_Nova_Scotia.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/b0663b53949e29d7b36f.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "b114f068ccd28f3e0419": {
       "article": {
         "category": "espacio",
