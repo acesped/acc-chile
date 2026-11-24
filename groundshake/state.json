@@ -3245,6 +3245,13 @@
       "youtube_short": "publicado",
       "youtube_short_id": "j59UeqYwsBA",
       "youtube_video": "aplazado"
+    },
+    "sismos-a0992e5d4834": {
+      "topic": "fallas:falla_inversa:significado",
+      "topic_key": "falla_inversa",
+      "title": "¿Qué nos enseña una falla inversa?",
+      "reel": "enviando",
+      "updated_at": "2026-11-24T03:25:40.020255+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-25T00:15:37.648462+00:00"
