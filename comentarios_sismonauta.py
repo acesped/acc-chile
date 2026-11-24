@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SISMONAUTA 5.2 — Python 3.11+, requests. --test / --publish / preview."""
+"""SISMONAUTA 5.3 — Python 3.11+, requests. --test / --publish / preview."""
 import argparse, base64, json, os, re, sys, time, unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
@@ -156,7 +156,7 @@ class Engine:
         if self.s.get('page_id') and str(self.s['page_id'])!=self.page: raise RuntimeError('Historial de otra página')
         if str(graph('me',self.token,{'fields':'id,name'}).get('id'))!=self.page: raise RuntimeError('Token de otra página')
         log('PÁGINA VERIFICADA', self.page, '| PUBLICACIÓN REAL:', args.publish); self.s['page_id']=self.page; self.h=self.s['comments']; self.inv=self.s.setdefault('inventory',{}); self.scan=self.s.setdefault('scan',{}); self.known={str(v['reply_id']) for v in self.h.values() if isinstance(v,dict) and v.get('reply_id')}; self.seen=set()
-        self.stats=dict(comments_read=0,published=0,preview=0,already_replied=0,own=0,previous=0,unknown_author=0,blocked=0,uncertain=0,errors=0,posts=0,ai_calls=0,gaps=0,duplicates=0,unique_comments=0,recent_posts=0); self.rows=[]
+        self.stats=dict(comments_read=0,published=0,preview=0,already_replied=0,own=0,previous=0,unknown_author=0,blocked=0,uncertain=0,errors=0,posts=0,ai_calls=0,gaps=0,duplicates=0,unique_comments=0,recent_posts=0,anonymous_eligible=0); self.rows=[]
     def save(self):
         if self.gh: self.sha=self.gh.save(self.s,self.sha)
     def register(self,p,edge):
@@ -207,7 +207,7 @@ class Engine:
     def cap(self):
         guard()
         if LIMIT>0 and self.stats['published']+self.stats['preview']>=LIMIT: raise StopRun('Límite de respuestas por ejecución')
-    def reply(self,c,p,children):
+    def reply(self,c,p,children,top_level=False):
         self.cap(); cid=str(c.get('id') or '')
         if not cid: return
         if cid in self.seen:
@@ -221,7 +221,14 @@ class Engine:
             except StopRun: raise
             except Exception as e: log('AUTOR',cid,safe(e))
         if author(c)==self.page: self.stats['own']+=1; return
-        if not author(c): self.stats['unknown_author']+=1; log('AUTOR INVISIBLE',cid); self.rows.append(dict(comment_id=cid,status='unknown_author')); return
+        if not author(c):
+            # Only verified top-level comments may proceed anonymously. Never
+            # answer anonymous nested replies: they could be our own replies.
+            if not top_level or c.get('parent') or os.getenv('ALLOW_ANONYMOUS_TOPLEVEL','1') != '1':
+                self.stats['unknown_author']+=1; log('AUTOR INVISIBLE PENDIENTE',cid); self.rows.append(dict(comment_id=cid,status='unknown_author')); return
+            self.stats['anonymous_eligible']=self.stats.get('anonymous_eligible',0)+1
+            log('AUTOR INVISIBLE: VERIFICANDO POR ID',cid)
+
         rid=next((str(x['id']) for x in children if x.get('id') and (author(x)==self.page or str(x['id']) in self.known)),None)
         if rid:
             self.h[cid]=dict(status='published',reply_id=rid,updated_at=now(),recovered_from_meta=True); self.known.add(rid); self.stats['already_replied']+=1; self.save(); return
@@ -255,14 +262,16 @@ class Engine:
             status='rejected' if definitive else 'uncertain'; self.h[cid].update(status=status,error=safe(e),updated_at=now()); self.save(); row.update(status=status,error=safe(e)); self.stats['errors']+=1; log('POST',status,cid,safe(e)); return
         self.h[cid].update(status='published',reply_id=rid,updated_at=now()); self.known.add(rid); self.save(); self.stats['published']+=1; row.update(status='published',reply_id=rid); log('RESPUESTA PUBLICADA',cid,rid)
     def post(self,p):
-        pid=p['id']; root={}; success=False
+        pid=p['id']; root={}; success=False; top_ids=set(); nested_ids=set()
         # Stream plus top-level covers both flat and nested representations.
         for params in ({'filter':'stream'},{'filter':'toplevel'},{}):
             try: rows=read(pid+'/comments',self.token,FIELDS,params); success=True
             except StopRun: raise
             except Exception as e: log('LECTURA',pid,params,safe(e)); continue
             for c in rows:
-                if c.get('id'): root.setdefault(str(c['id']),{}).update(c)
+                if c.get('id'):
+                    cid=str(c['id']); root.setdefault(cid,{}).update(c)
+                    if params.get('filter')=='toplevel': top_ids.add(cid)
         if not success:
             rows=read(pid+'/comments',self.token,FIELDS)
             for c in rows:
@@ -281,7 +290,8 @@ class Engine:
             try: children=read(cid+'/comments',self.token,FIELDS)
             except StopRun: raise
             except Exception as e: self.stats['errors']+=1; failed=True; log('RESPUESTAS NO VERIFICADAS',cid,safe(e)); continue
-            queue.extend(children); self.reply(c,p,children)
+            nested_ids.update(str(x['id']) for x in children if x.get('id'))
+            queue.extend(children); self.reply(c,p,children,top_level=cid in top_ids and cid not in nested_ids)
         try:
             d=graph(pid+'/comments',self.token,{'filter':'stream','summary':'true','limit':1,'fields':'id'}); total=(d.get('summary') or {}).get('total_count')
             if total is not None and int(total)>len(visited): self.stats['gaps']+=1; log('BRECHA META',pid,total,len(visited))
@@ -319,6 +329,13 @@ def selftest():
     for cid in ('a','b','a'): e.reply({'id':cid,'from':{'id':'u'},'message':'👏'},{'id':'p'},[])
     assert e.stats['preview']==2
     e.reply({'id':'c','from':{'id':'u'},'message':'👏'},{'id':'p'},[{'id':'r','from':{'id':'page'}}]); assert e.h['c']['reply_id']=='r'
+    with patch(__name__+'.graph',return_value={'id':'anon'}):
+        e.reply({'id':'anon','message':'👏'},{'id':'p'},[],top_level=True)
+        assert e.stats['preview']==3
+        e.reply({'id':'nested','message':'👏'},{'id':'p'},[],top_level=False)
+        assert e.stats['preview']==3 and e.stats['unknown_author']==1
+        e.reply({'id':'anon2','message':'👏'},{'id':'p'},[{'id':'r','from':{'id':'page'}}],top_level=True)
+        assert e.stats['preview']==3 and e.h['anon2']['reply_id']=='r'
     log('PRUEBAS OFFLINE APROBADAS')
 
 def main():
