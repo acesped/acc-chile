@@ -2823,6 +2823,43 @@
         }
       }
     },
+    "c2ed882e2394db7b8f85": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-23T16:16:01+00:00",
+        "description": "ProTechnology Innovation Showcase: From the surface of the sun to the depths of the ocean\" – Use Cases in the Display and Communication of Complex NOAA Scientific Data November 23, 2026 A very successful ProTechnology Innovation Showcase was held on November 18, 2026, featuring “Use Cases in the Display and Communication of Complex NOAA Scientific Data”. We had over 200 attendees and featured presentations from six different ProTech Prime vendors and their teams. Please find a copy of their presentations here offsite link . We plan to hold future ProTechnology Innovation Showcases regularly, covering a variety of topics. For the latest updates, please visit our news and events page: news and events page . We value your input! If you have suggestions for a topic for our next event or wish to provide feedback on this gathering, please share your thoughts by completing this Google form: Link to Feedback Form offsite link . Thank you for your participation. We look forward to seeing you at the next ProTechnology Innovation Showcase. ProTech Acquisition & Grants ProTech 0 Off",
+        "editorial_mode": "documented_brief",
+        "explanation": "ProTechnology Innovation Showcase: \"Desde la superficie del sol hasta las profundidades del océano\" – Casos de uso en la exhibición y comunicación de datos científicos complejos de NOAA 23 de noviembre de 2026 Se llevó a cabo un muy exitoso ProTechnology Innovation Showcase el 18 de noviembre de 2026, con el tema “Casos de uso en la exhibición y comunicación de datos científicos complejos de NOAA”. Tuvimos más de 200 asistentes y presentaciones de seis diferentes proveedores ProTech Prime y sus equipos. Por favor, encuentre una copia de sus presentaciones aquí enlace externo. Planeamos realizar futuros ProTechnology Innovation Showcases regularmente, cubriendo una variedad de temas. Para las últimas actualizaciones, por favor visite nuestra página de noticias y eventos: página de noticias y eventos. Si tiene sugerencias para un tema para nuestro próximo evento o desea proporcionar comentarios sobre esta reunión, por favor comparta sus pensamientos completando este formulario de Google: Enlace al formulario de comentarios enlace externo.",
+        "id": "c2ed882e2394db7b8f85",
+        "image_headline": "\"Muestra de Innovación ProTechnology: Desde la superficie del sol hasta las profundidades del océano\" – Casos de uso en la visualización y comunicación de datos científicos complejos de la NOAA",
+        "lang": "en",
+        "original_title": "ProTechnology Innovation Showcase: From the surface of the sun to the depths of the ocean\" – Use Cases in the Display and Communication of Complex NOAA Scientific Data",
+        "search_category": "direct",
+        "source": "NOAA noticias",
+        "source_body": "",
+        "title": "\"Muestra de Innovación ProTechnology: Desde la superficie del sol hasta las profundidades del océano\" – Casos de uso en la visualización y comunicación de datos científicos complejos de la NOAA",
+        "url": "https://www.noaa.gov/acquisition-grants/protech/news/protechnology-innovation-showcase-from-surface-of-sun-to-depths-of-ocean-use-cases-in-display-and"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\n\"Muestra de Innovación ProTechnology: Desde la superficie del sol hasta las profundidades del océano\" – Casos de uso en la visualización y comunicación de datos científicos complejos de la NOAA\n\nProTechnology Innovation Showcase: \"Desde la superficie del sol hasta las profundidades del océano\" – Casos de uso en la exhibición y comunicación de datos científicos complejos de NOAA 23 de noviembre de 2026 Se llevó a cabo un muy exitoso ProTechnology Innovation Showcase el 18 de noviembre de 2026, con el tema “Casos de uso en la exhibición y comunicación de datos científicos complejos de NOAA”. Tuvimos más de 200 asistentes y presentaciones de seis diferentes proveedores ProTech Prime y sus equipos. Por favor, encuentre una copia de sus presentaciones aquí enlace externo. Planeamos realizar futuros ProTechnology Innovation Showcases regularmente, cubriendo una variedad de temas. Para las últimas actualizaciones, por favor visite nuestra página de noticias y eventos: página de noticias y eventos. Si tiene sugerencias para un tema para nuestro próximo evento o desea proporcionar comentarios sobre esta reunión, por favor comparta sus pensamientos completando este formulario de Google: Enlace al formulario de comentarios enlace externo.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "sea waves shore",
+        "sha256": "d50ce1defeabdbe981cf4e8ab16746cd1e9bc23c29077228d97c8c3d9bcf8c15",
+        "source": "https://commons.wikimedia.org/wiki/File:Caspian_Sea_Sunrise_Iran.jpg",
+        "title": "File:Caspian Sea Sunrise Iran.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/2/23/Caspian_Sea_Sunrise_Iran.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/c2ed882e2394db7b8f85.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "c58cf4ea6c951cb2fb0a": {
       "article": {
         "category": "espacio",
