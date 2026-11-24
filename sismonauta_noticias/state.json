@@ -507,7 +507,8 @@
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/2aab702626dfc3de9f10.jpg",
       "targets": {
         "facebook_feed": {
-          "status": "pending"
+          "started_at": "2026-11-24T17:01:56.997365+00:00",
+          "status": "uncertain"
         },
         "instagram": {
           "id": "18100613852410742",
