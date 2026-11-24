@@ -3301,6 +3301,13 @@
       "facebook_reel_id": "1840075357116971",
       "facebook_story": "publicado",
       "facebook_story_id": "1441426650999960"
+    },
+    "sismos-a8a98bc7386c": {
+      "topic": "riesgo:prediccion:interpretacion",
+      "topic_key": "prediccion",
+      "title": "¿Cómo interpretar correctamente las predicciones sísmicas?",
+      "reel": "enviando",
+      "updated_at": "2026-11-24T15:01:22.325305+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-25T00:15:37.648462+00:00"
