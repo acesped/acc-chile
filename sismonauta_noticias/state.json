@@ -478,6 +478,42 @@
         }
       }
     },
+    "2aab702626dfc3de9f10": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-24T16:51:27+00:00",
+        "description": "El Telescopio Espacial James Webb de la NASA revela el polvo caliente que compone Cassiopeia A (Cas A) en esta imagen de alta resolución en el infrarrojo medio publicada el 23 de noviembre de 2026. Restos como estos son las nubes de gas y polvo que quedan tras la explosión de una estrella masiva y eventualmente sembrarán una nueva generación de estrellas y […]",
+        "explanation": "**Webb Revela Nuevos Detalles en el Remanente de Supernova**\n\nEl Telescopio Espacial James Webb de la NASA ha proporcionado información valiosa sobre el remanente de supernova conocido como Cassiopeia A (Cas A). A través de imágenes de alta resolución en el infrarrojo medio, se ha podido identificar el polvo caliente que compone esta estructura. Este polvo no solo es fascinante por su naturaleza, sino que también ofrece pistas sobre la composición del estrella progenitora de Cas A.\n\nLos datos obtenidos sugieren que el interior de la estrella experimentó cambios drásticos, posiblemente horas antes de su explosión. Este hallazgo es significativo, ya que ayuda a los científicos a comprender mejor los procesos que llevan a la muerte de estrellas masivas y la formación de remanentes como Cas A.\n\nAdemás, estos restos de supernova son cruciales para el ciclo de vida estelar, ya que las nubes de gas y polvo resultantes eventualmente contribuirán a la formación de nuevas estrellas y planetas. La investigación en torno a Cas A continúa, y los datos del Webb son fundamentales para desentrañar los misterios del universo.",
+        "id": "2aab702626dfc3de9f10",
+        "image_headline": "El Telescopio Webb revela detalles sobre el polvo caliente en el remanente de la supernova Cassiopeia A.",
+        "lang": "en",
+        "original_title": "Webb Reveals New Details in Supernova Remnant",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "NASA’s James Webb Space Telescope reveals the hot dust that makes up Cassiopeia A. The composition of its dust provides clues to the structure of Cassiopeia A’s original star. NASA, ESA, CSA, STScI, Tea Temim (Columbia University), Rick Arendt (UMBC), Dan Milisavljevic (Purdue University); Image Processing: Joseph DePasquale (STScI) NASA’s James Webb Space Telescope reveals the hot dust that makes up Cassiopeia A (Cas A) in this high-resolution, mid-infrared image released on Nov. 23, 2026. Remnants like these are the clouds of gas and dust that remain following the explosion of a massive star and will eventually seed a new generation of stars and planets. The Webb data supports a scenario in which the interior of the star underwent a dramatic change, possibly just hours before its demise. See what scientists have learned about Cas A from Webb’s observation. Image credit: NASA, ESA, CSA, STScI, Tea Temim (Columbia University), Rick Arendt (UMBC), Dan Milisavljevic (Purdue University); Image Processing: Joseph DePasquale (STScI)",
+        "title": "Webb Revela Nuevos Detalles en el Remanente de Supernova",
+        "url": "https://www.nasa.gov/image-article/webb-reveals-new-details-in-supernova-remnant/"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nEl Telescopio Webb revela detalles sobre el polvo caliente en el remanente de la supernova Cassiopeia A.\n\nEl Telescopio Espacial James Webb de la NASA ha proporcionado información valiosa sobre el remanente de supernova conocido como Cassiopeia A (Cas A). A través de imágenes de alta resolución en el infrarrojo medio, se ha podido identificar el polvo caliente que compone esta estructura. Este polvo no solo es fascinante por su naturaleza, sino que también ofrece pistas sobre la composición del estrella progenitora de Cas A. Los datos obtenidos sugieren que el interior de la estrella experimentó cambios drásticos, posiblemente horas antes de su explosión. Este hallazgo es significativo, ya que ayuda a los científicos a comprender mejor los procesos que llevan a la muerte de estrellas masivas y la formación de remanentes como Cas A. Además, estos restos de supernova son cruciales para el ciclo de vida estelar, ya que las nubes de gas y polvo resultantes eventualmente contribuirán a la formación de nuevas estrellas y planetas. La investigación en torno a Cas A continúa, y los datos del Webb son fundamentales para desentrañar los misterios del universo.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "91ce2430e2c028f3c1f8a0e054e55094905d8e0c3369d10860106efed8092aa0",
+        "source": "https://commons.wikimedia.org/wiki/File:Earth_From_Mars_-_Flickr_-_NASA_Goddard_Photo_and_Video.jpg",
+        "title": "File:Earth From Mars - Flickr - NASA Goddard Photo and Video.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/8/88/Earth_From_Mars_-_Flickr_-_NASA_Goddard_Photo_and_Video.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/2aab702626dfc3de9f10.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "2bcbfa6e5996d67073d7": {
       "article": {
         "category": "espacio",
