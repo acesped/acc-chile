@@ -1931,6 +1931,16 @@
       "angle": "estudio",
       "time": "2026-11-24T00:12:34.033469+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-a0992e5d4834",
+      "topic": "fallas:falla_inversa:significado",
+      "topic_key": "falla_inversa",
+      "title": "¿Qué nos enseña una falla inversa?",
+      "style": "pregunta_respuesta",
+      "angle": "significado",
+      "time": "2026-11-24T03:25:37.050457+00:00",
+      "status": "publicado"
     }
   ]
 }
