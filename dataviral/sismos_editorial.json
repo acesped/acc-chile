@@ -1951,6 +1951,16 @@
       "angle": "evidencia",
       "time": "2026-11-24T06:01:19.868099+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-87be98ed2495",
+      "topic": "tectonica:divergencia:explicacion",
+      "topic_key": "divergencia",
+      "title": "La ciencia detrás de la separación de placas",
+      "style": "mapa_explicado",
+      "angle": "explicacion",
+      "time": "2026-11-24T09:01:43.231109+00:00",
+      "status": "publicado"
     }
   ]
 }
