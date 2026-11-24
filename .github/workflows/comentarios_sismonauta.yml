@@ -51,6 +51,8 @@ jobs:
         run: |
           args=(--out output_comentarios)
           if [[ "$PUBLISH" == 'true' ]]; then args+=(--publish); fi
+          echo "Modo publicación: $PUBLISH"
+          test -f comentarios_sismonauta.py
           python comentarios_sismonauta.py "${args[@]}"
       - name: Guardar auditoría
         if: always()
