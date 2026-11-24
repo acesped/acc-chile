@@ -1921,6 +1921,16 @@
       "angle": "sintesis",
       "time": "2026-11-23T21:06:40.305045+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-cba2cefe6639",
+      "topic": "fallas:ruptura_superficie:estudio",
+      "topic_key": "ruptura_superficie",
+      "title": "¿Cómo se estudia la ruptura superficial paso a paso?",
+      "style": "pregunta_respuesta",
+      "angle": "estudio",
+      "time": "2026-11-24T00:12:34.033469+00:00",
+      "status": "publicado"
     }
   ]
 }
