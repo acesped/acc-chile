@@ -1961,6 +1961,16 @@
       "angle": "explicacion",
       "time": "2026-11-24T09:01:43.231109+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-09dac4b4bd0b",
+      "topic": "geologia:rocas_deformadas:mecanismo",
+      "topic_key": "rocas_deformadas",
+      "title": "¿Cómo funciona la deformación de las rocas?",
+      "style": "pregunta_respuesta",
+      "angle": "mecanismo",
+      "time": "2026-11-24T12:01:46.129749+00:00",
+      "status": "publicado"
     }
   ]
 }
