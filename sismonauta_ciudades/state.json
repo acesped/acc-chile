@@ -600,7 +600,8 @@
       "source": "EMSC-CSEM",
       "targets": {
         "facebook_feed": {
-          "status": "uncertain"
+          "status": "published",
+          "id": "305263296226466_1165179446057286"
         },
         "instagram": {
           "status": "published",
