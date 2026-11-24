@@ -822,6 +822,43 @@
         }
       }
     },
+    "3da1574bf1b1c3be0761": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-24T08:00:00+00:00",
+        "description": "El telescopio espacial Euclid de la Agencia Espacial Europea ha descubierto el quásar más distante hasta la fecha: un raro núcleo galáctico de 360 millones de masas solares visto apenas 630 millones de años después del Big Bang. El descubrimiento rompe el propio récord anterior de Euclid, anunciado hace solo unos meses, al mirar hacia atrás en el tiempo 40 millones de años adicionales. También plantea una pregunta convincente: ¿cómo pudo formarse y crecer tan rápidamente un agujero negro tan enorme después del Big Bang?",
+        "explanation": "**Euclid rompe su propio récord de quásar por 40 millones de años**\n\nEl telescopio espacial Euclid de la Agencia Espacial Europea ha logrado un hito significativo al descubrir el quásar más distante conocido hasta la fecha, un núcleo galáctico de 360 millones de masas solares observado solo 630 millones de años después del Big Bang. Este descubrimiento supera el récord anterior de Euclid, anunciado hace pocos meses, al retroceder en el tiempo 40 millones de años adicionales.\n\nEl quásar, denominado J1504+6252 y apodado Dún Aonghasa, fue identificado en aproximadamente 18 meses de datos de Euclid entre millones de objetos. La confirmación de su naturaleza fue realizada por una campaña de seguimiento que incluyó observatorios como el Hubble y el James Webb. Este último reveló que el quásar es alimentado por un agujero negro de aproximadamente 360 millones de masas solares.\n\nDún Aonghasa es el primer quásar identificado más allá de un \"redshift\" de 8, alcanzando un valor de 8.13. Esto permite observar el universo tal como era hace aproximadamente 13.1 mil millones de años. La existencia de un agujero negro de tal magnitud en un periodo tan temprano plantea interrogantes sobre la formación y crecimiento de estos objetos. \n\nCon este descubrimiento, Euclid ha encontrado 12 nuevos quásares más allá del redshift 7, lo que representa un avance significativo en la exploración de los primeros tiempos del universo.",
+        "id": "3da1574bf1b1c3be0761",
+        "image_headline": "El telescopio Euclid descubre un quásar a 630 millones de años del Big Bang, estableciendo un nuevo récord.",
+        "lang": "en",
+        "original_title": "Euclid breaks own quasar record by 40 million years",
+        "resolved_source_url": "https://www.esa.int/articles/about-us/directorates/science/euclid/euclid-breaks-own-quasar-record-by-40-million-years",
+        "search_category": "direct",
+        "source": "ESA ciencia espacial",
+        "source_body": "",
+        "title": "Euclid rompe su propio récord de quásar por 40 millones de años.",
+        "url": "https://www.esa.int/articles/about-us/directorates/science/euclid/euclid-breaks-own-quasar-record-by-40-million-years"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nEl telescopio Euclid descubre un quásar a 630 millones de años del Big Bang, estableciendo un nuevo récord.\n\nEuclid rompe su propio récord de quásar por 40 millones de años El telescopio espacial Euclid de la Agencia Espacial Europea ha logrado un hito significativo al descubrir el quásar más distante conocido hasta la fecha, un núcleo galáctico de 360 millones de masas solares observado solo 630 millones de años después del Big Bang. Este descubrimiento supera el récord anterior de Euclid, anunciado hace pocos meses, al retroceder en el tiempo 40 millones de años adicionales. El quásar, denominado J1504+6252 y apodado Dún Aonghasa, fue identificado en aproximadamente 18 meses de datos de Euclid entre millones de objetos. La confirmación de su naturaleza fue realizada por una campaña de seguimiento que incluyó observatorios como el Hubble y el James Webb. Este último reveló que el quásar es alimentado por un agujero negro de aproximadamente 360 millones de masas solares. Dún Aonghasa es el primer quásar identificado más allá de un \"redshift\" de 8, alcanzando un valor de 8.13. Esto permite observar el universo tal como era hace aproximadamente 13.1 mil millones de años. La existencia de un agujero negro de tal magnitud en un periodo tan temprano plantea interrogantes sobre la formación y crecimiento de estos objetos. Con este descubrimiento, Euclid ha encontrado 12 nuevos quásares más allá del redshift 7, lo que representa un avance significativo en la exploración de los primeros tiempos del universo.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "2923924dffb946fe51765edd46143189b31a7ef102670bad2437210ea1403544",
+        "source": "https://commons.wikimedia.org/wiki/File:Skylab_and_Earth_Limb_-_GPN-2000-001055.jpg",
+        "title": "File:Skylab and Earth Limb - GPN-2000-001055.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/92/Skylab_and_Earth_Limb_-_GPN-2000-001055.jpg/1920px-Skylab_and_Earth_Limb_-_GPN-2000-001055.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/3da1574bf1b1c3be0761.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "3ddea7029f96e88c44b4": {
       "article": {
         "category": "espacio",
