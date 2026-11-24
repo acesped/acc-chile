@@ -603,7 +603,8 @@
           "status": "pending"
         },
         "instagram": {
-          "status": "uncertain"
+          "status": "published",
+          "id": "18145330096715859"
         },
         "facebook": {
           "status": "pending"
