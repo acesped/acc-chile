@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SISMONAUTA 5.1 — Python 3.11+, requests. --test / --publish / preview."""
+"""SISMONAUTA 5.2 — Python 3.11+, requests. --test / --publish / preview."""
 import argparse, base64, json, os, re, sys, time, unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
@@ -14,6 +14,7 @@ LIMIT=int(os.getenv('MAX_COMMENT_REPLIES','100'))
 AI_LIMIT=int(os.getenv('MAX_AI_REPLIES_PER_RUN','100'))
 RUNTIME=int(os.getenv('MAX_RUNTIME_SECONDS','720'))
 POST_LIMIT=int(os.getenv('MAX_POSTS_PER_RUN','50'))
+RECENT_LIMIT=max(1,int(os.getenv('RECENT_POSTS_PER_RUN','30')))
 REFRESH=int(os.getenv('INVENTORY_REFRESH_SECONDS','3600'))
 RETRIES=4
 SESSION=requests.Session()
@@ -155,31 +156,52 @@ class Engine:
         if self.s.get('page_id') and str(self.s['page_id'])!=self.page: raise RuntimeError('Historial de otra página')
         if str(graph('me',self.token,{'fields':'id,name'}).get('id'))!=self.page: raise RuntimeError('Token de otra página')
         log('PÁGINA VERIFICADA', self.page, '| PUBLICACIÓN REAL:', args.publish); self.s['page_id']=self.page; self.h=self.s['comments']; self.inv=self.s.setdefault('inventory',{}); self.scan=self.s.setdefault('scan',{}); self.known={str(v['reply_id']) for v in self.h.values() if isinstance(v,dict) and v.get('reply_id')}; self.seen=set()
-        self.stats=dict(comments_read=0,published=0,preview=0,already_replied=0,own=0,previous=0,unknown_author=0,blocked=0,uncertain=0,errors=0,posts=0,ai_calls=0,gaps=0); self.rows=[]
+        self.stats=dict(comments_read=0,published=0,preview=0,already_replied=0,own=0,previous=0,unknown_author=0,blocked=0,uncertain=0,errors=0,posts=0,ai_calls=0,gaps=0,duplicates=0,unique_comments=0,recent_posts=0); self.rows=[]
     def save(self):
         if self.gh: self.sha=self.gh.save(self.s,self.sha)
+    def register(self,p,edge):
+        if edge=='feed' and author(p) and author(p)!=self.page: return []
+        pid=str(p.get('id') or '')
+        if not pid: return []
+        ids=[pid,p.get('object_id')]+[(a.get('target') or {}).get('id') for a in (p.get('attachments') or {}).get('data',[]) if isinstance(a,dict)]
+        for oid in ids:
+            if not oid: continue
+            old=self.inv.setdefault(str(oid),{})
+            old.update({k:v for k,v in {'message':p.get('message'),'created_time':p.get('created_time')}.items() if v})
+            old['id']=str(oid)
+        return [str(x) for x in ids if x]
+    def recent(self):
+        # Fresh first page on every run, independent of historical cursor.
+        ids={}
+        for edge in ('posts','published_posts','feed','video_reels','videos','photos'):
+            for fields in POST_FIELDS:
+                try:
+                    d=graph(f'{self.page}/{edge}',self.token,{'fields':fields,'limit':25})
+                    if not isinstance(d.get('data'),list): raise ReadError('Sin data')
+                    for rank,p in enumerate(d['data']):
+                        for pid in self.register(p,edge): ids[pid]=min(rank,ids.get(pid,rank))
+                    log('INVENTARIO RECIENTE',edge,len(d['data'])); break
+                except StopRun: raise
+                except MetaError as e:
+                    if e.transient or e.code in (190,10,200):
+                        log('EDGE RECIENTE',edge,safe(e)); self.stats['errors']+=1; break
+                except Exception as e:
+                    log('EDGE RECIENTE',edge,safe(e)); self.stats['errors']+=1; break
+            else: log('EDGE RECIENTE NO DISPONIBLE',edge)
+        self.save()
+        return sorted(ids,key=lambda k:(self.inv[k].get('created_time',''),-ids[k]),reverse=True)
     def inventory(self):
-        # One edge at a time; preserve successful edges across interruptions.
         progress=self.s.setdefault('inventory_progress',{})
         if not self.inv or time.time()-self.s.get('inventory_at',0)>=REFRESH:
             for edge in EDGES:
                 guard()
                 if progress.get(edge)=='done': continue
-                try:
-                    rows=read(f'{self.page}/{edge}',self.token,POST_FIELDS)
+                try: rows=read(f'{self.page}/{edge}',self.token,POST_FIELDS)
                 except StopRun: raise
                 except Exception as e: log('EDGE NO DISPONIBLE',edge,safe(e)); self.stats['errors']+=1; continue
-                for p in rows:
-                    if edge=='feed' and author(p) and author(p)!=self.page: continue
-                    pid=str(p.get('id') or '')
-                    if not pid: continue
-                    ids=[pid,p.get('object_id')]+[(a.get('target') or {}).get('id') for a in (p.get('attachments') or {}).get('data',[]) if isinstance(a,dict)]
-                    for oid in ids:
-                        if not oid: continue
-                        old=self.inv.setdefault(str(oid),{}); old.update({k:v for k,v in {'message':p.get('message'),'created_time':p.get('created_time')}.items() if v}); old['id']=str(oid)
-                progress[edge]='done'; self.save(); log('INVENTARIO',edge,len(rows))
-                if self.inv and not all(progress.get(x)=='done' for x in EDGES):
-                    return  # process comments between inventory edges
+                for p in rows: self.register(p,edge)
+                progress[edge]='done'; self.save(); log('INVENTARIO HISTÓRICO',edge,len(rows))
+                if not all(progress.get(x)=='done' for x in EDGES): return
             self.s['inventory_at']=time.time(); progress.clear(); self.save()
         if not self.inv: raise RuntimeError('Inventario vacío o inaccesible')
     def cap(self):
@@ -187,8 +209,10 @@ class Engine:
         if LIMIT>0 and self.stats['published']+self.stats['preview']>=LIMIT: raise StopRun('Límite de respuestas por ejecución')
     def reply(self,c,p,children):
         self.cap(); cid=str(c.get('id') or '')
-        if not cid or cid in self.seen: return
-        self.seen.add(cid)
+        if not cid: return
+        if cid in self.seen:
+            self.stats['duplicates']=self.stats.get('duplicates',0)+1; return
+        self.seen.add(cid); self.stats['unique_comments']=self.stats.get('unique_comments',0)+1
         if cid in self.known or author(c)==self.page: self.stats['own']+=1; return
         prev=self.h.get(cid,{})
         if prev.get('status') in ('published','already_replied'): self.stats['previous']+=1; return
@@ -233,7 +257,7 @@ class Engine:
     def post(self,p):
         pid=p['id']; root={}; success=False
         # Stream plus top-level covers both flat and nested representations.
-        for params in ({'filter':'stream'},{'filter':'toplevel'}):
+        for params in ({'filter':'stream'},{'filter':'toplevel'},{}):
             try: rows=read(pid+'/comments',self.token,FIELDS,params); success=True
             except StopRun: raise
             except Exception as e: log('LECTURA',pid,params,safe(e)); continue
@@ -243,7 +267,7 @@ class Engine:
             rows=read(pid+'/comments',self.token,FIELDS)
             for c in rows:
                 if c.get('id'): root[str(c['id'])]=c
-        self.stats['comments_read']+=len(root); log('COMENTARIOS RECUPERADOS',pid,len(root))
+        self.stats['comments_read']+=len(root); log('COMENTARIOS RECUPERADOS',pid,len(root),'| fecha publicación:',p.get('created_time','desconocida'))
         queue=list(root.values()); visited=set(); failed=False
         while queue:
             self.cap(); c=queue.pop(0); cid=str(c.get('id') or '')
@@ -252,7 +276,8 @@ class Engine:
             # Do not re-query proven leaves already processed. Unanswered leaves
             # still get a fresh verification immediately before posting.
             old=self.h.get(cid,{}).get('status') in ('published','already_replied') or cid in self.known or author(c)==self.page
-            if old and c.get('comment_count')==0: continue
+            if old and c.get('comment_count')==0:
+                self.reply(c,p,[]); continue
             try: children=read(cid+'/comments',self.token,FIELDS)
             except StopRun: raise
             except Exception as e: self.stats['errors']+=1; failed=True; log('RESPUESTAS NO VERIFICADAS',cid,safe(e)); continue
@@ -264,26 +289,27 @@ class Engine:
         except Exception as e: log('TOTAL NO DISPONIBLE',pid,safe(e))
         return not failed
     def run(self):
-        self.inventory()
-        # Oldest scan attempt first, with new posts first. Failed or partially
-        # processed posts rotate too, preventing starvation of other posts.
-        historical=sorted(self.inv,key=lambda k:(self.scan.get(k,0),k))
-        recent=sorted(self.inv,key=lambda k:(self.inv[k].get('created_time',''),k),reverse=True)[:10]
-        recent=sorted(recent,key=lambda k:self.scan.get(k,0))
-        # Alternate historical and recent; historical first ensures forward progress.
-        order=list(dict.fromkeys([x for pair in zip(historical,recent) for x in pair]+historical))
-        for pid in order:
+        recent=self.recent()
+        done=set()
+        def process(pid,kind):
             self.cap()
-            if POST_LIMIT>0 and self.stats['posts']>=POST_LIMIT: break
-            self.stats['posts']+=1; log('EXPLORANDO',self.stats['posts'],pid)
+            self.stats['posts']+=1
+            log('EXPLORANDO',kind,self.stats['posts'],pid,self.inv[pid].get('created_time','sin fecha'))
             try: self.post(self.inv[pid])
-            except StopRun:
-                self.scan[pid]=time.time(); self.save(); raise
+            except StopRun: raise
             except (MetaError,requests.RequestException,ReadError) as e:
                 self.stats['errors']+=1; log('PUBLICACIÓN NO DISPONIBLE',pid,safe(e))
-            # GitHub/state errors deliberately propagate and stop all writes.
-            self.scan[pid]=time.time(); self.save()
+            self.scan[pid]=time.time(); done.add(pid); self.save()
             log('PROGRESO',json.dumps(self.stats,ensure_ascii=False))
+        # Reserve at least half of the post budget for historical coverage.
+        n=min(RECENT_LIMIT,max(1,POST_LIMIT//2)) if POST_LIMIT>0 else RECENT_LIMIT
+        for pid in recent[:n]:
+            process(pid,'RECIENTE'); self.stats['recent_posts']+=1
+        self.inventory()
+        historical=sorted((k for k in self.inv if k not in done),key=lambda k:(self.scan.get(k,0),k))
+        for pid in historical:
+            if POST_LIMIT>0 and self.stats['posts']>=POST_LIMIT: break
+            process(pid,'HISTÓRICO')
 
 def selftest():
     from unittest.mock import patch
