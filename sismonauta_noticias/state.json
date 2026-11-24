@@ -692,6 +692,43 @@
         }
       }
     },
+    "3b999354d63ea1857085": {
+      "article": {
+        "category": "sismos",
+        "date": "2026-11-23T18:00:08+00:00",
+        "description": "Understanding earthquake mechanisms and mitigating earthquake hazards remain a critical global challenge. For decades, seismologists have observed that seismic waves of large earthquakes can trigger seismic activity at distances of thousands of kilometers—a phenomenon known as remote (dynamic) triggering. Yet two puzzles persisted: Why do some triggered events occur long after the seismic waves have passed? And why do Rayleigh waves, which carry lower shear stresses than Love waves, appear more effective at triggering?",
+        "editorial_mode": "verified_summary",
+        "explanation": "Comprender los mecanismos de los terremotos y mitigar los riesgos sísmicos sigue siendo un desafío global crítico. Por",
+        "id": "3b999354d63ea1857085",
+        "image_headline": "Estudio de ingeniería redefine la comprensión de los terremotos gatillados a distancia.",
+        "lang": "en",
+        "original_title": "Engineering study reshapes understanding of remotely triggered earthquakes",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Estudio de ingeniería redefine la comprensión de los terremotos gatillados a distancia.",
+        "url": "https://phys.org/news/2026-11-reshapes-remotely-triggered-earthquakes.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA SÍSMICA\n\nEstudio de ingeniería redefine la comprensión de los terremotos gatillados a distancia.\n\nComprender los mecanismos de los terremotos y mitigar los riesgos sísmicos sigue siendo un desafío global crítico. Por\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Sismos #Terremotos #Sismologia #Geofisica #Tectonica",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "earthquake fault landscape",
+        "sha256": "ceffc243e7b03b770c489d7a34f0af7e95a83195fc457d86fd608f6dd79e36d2",
+        "source": "https://commons.wikimedia.org/wiki/File:-conservationlands15_Social_Media_Takeover,_Oct_15th,_King_Range_in_California_(21586166344).jpg",
+        "title": "File:-conservationlands15 Social Media Takeover, Oct 15th, King Range in California (21586166344).jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/0/0f/-conservationlands15_Social_Media_Takeover%2C_Oct_15th%2C_King_Range_in_California_%2821586166344%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/3b999354d63ea1857085.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "3c2df288338ed18daf19": {
       "article": {
         "category": "espacio",
