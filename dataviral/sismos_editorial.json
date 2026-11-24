@@ -1941,6 +1941,16 @@
       "angle": "significado",
       "time": "2026-11-24T03:25:37.050457+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-57781da51362",
+      "topic": "medicion:sismometros:evidencia",
+      "topic_key": "sismometros",
+      "title": "¿Qué señales deja los sismómetros?",
+      "style": "mito_realidad",
+      "angle": "evidencia",
+      "time": "2026-11-24T06:01:19.868099+00:00",
+      "status": "publicado"
     }
   ]
 }
