@@ -1433,6 +1433,43 @@
         }
       }
     },
+    "62e6420a16811059601e": {
+      "article": {
+        "category": "climatologia",
+        "date": "2026-11-23T19:40:06+00:00",
+        "description": "A research team has identified the essential conditions required for \"green budgeting\"—a core fiscal policy for tackling climate change—to succeed. The team was led by professor Rosa Minhyo Cho (with doctoral candidate Minjung Kim as first author) from the Graduate School of Governance at Sungkyunkwan University (SKKU).",
+        "editorial_mode": "documented_brief",
+        "explanation": "Un equipo de investigación ha identificado las condiciones esenciales requeridas para que el \"presupuesto verde\"—una política fiscal central para abordar el cambio climático—tenga éxito. El equipo fue liderado por la profesora Rosa Minhyo Cho (con la candidata a doctora Minjung Kim como primera autora) de la Escuela de Graduados en Gobernanza de la Universidad Sungkyunkwan (SKKU).",
+        "id": "62e6420a16811059601e",
+        "image_headline": "Se descubre la clave para un 'presupuesto verde' exitoso.",
+        "lang": "en",
+        "original_title": "Key to successful 'green budgeting' uncovered",
+        "search_category": "direct",
+        "source": "Phys.org Medio Ambiente",
+        "source_body": "",
+        "title": "Se descubre la clave para un 'presupuesto verde' exitoso.",
+        "url": "https://phys.org/news/2026-11-key-successful-green-uncovered.html"
+      },
+      "caption": "🌎 SISMONAUTA | CLIMATOLOGÍA\n\nSe descubre la clave para un 'presupuesto verde' exitoso.\n\nUn equipo de investigación ha identificado las condiciones esenciales requeridas para que el \"presupuesto verde\"—una política fiscal central para abordar el cambio climático—tenga éxito. El equipo fue liderado por la profesora Rosa Minhyo Cho (con la candidata a doctora Minjung Kim como primera autora) de la Escuela de Graduados en Gobernanza de la Universidad Sungkyunkwan (SKKU).\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Climatologia #Clima #CambioClimatico #Glaciares",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "glacier landscape",
+        "sha256": "9c52b195d014572a7cbbaaa300e299d0760a0dbeba215baf7562ec6686edb4c9",
+        "source": "https://commons.wikimedia.org/wiki/File:Clearing_Going-to-the-Sun_Road_in_April,_Glacier_National_Park,_Montana,_USA.jpg",
+        "title": "File:Clearing Going-to-the-Sun Road in April, Glacier National Park, Montana, USA.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d3/Clearing_Going-to-the-Sun_Road_in_April%2C_Glacier_National_Park%2C_Montana%2C_USA.jpg/1920px-Clearing_Going-to-the-Sun_Road_in_April%2C_Glacier_National_Park%2C_Montana%2C_USA.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/62e6420a16811059601e.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "6e494b32de360fdf8364": {
       "article": {
         "category": "oceanos",
