@@ -1388,6 +1388,43 @@
         }
       }
     },
+    "52ff4885cbc566c79bdd": {
+      "article": {
+        "category": "volcanes",
+        "date": "2026-11-23T05:53:36+00:00",
+        "description": "Los científicos han descubierto una inusual firma de carbono en rocas volcánicas hawaianas que sugiere que parte del carbono de la Tierra se originó en meteoritos antiguos y luego escapó desde lo profundo del núcleo del planeta. El descubrimiento plantea una asombrosa posibilidad: el carbono esencial para la vida puede haber viajado desde el espacio hasta las profundidades de la Tierra antes de emerger a través de volcanes miles de millones de años después.",
+        "explanation": "**El núcleo de la Tierra podría estar filtrando un secreto de 4.500 millones de años**\n\nUn reciente estudio sobre rocas volcánicas de Hawái sugiere que gran parte del carbono en la Tierra podría haber llegado a través de meteoritos antiguos durante la formación del planeta. Investigadores han encontrado evidencia química que indica que este carbono pudo quedar atrapado en el núcleo terrestre y luego ascender hacia la superficie.\n\nLos científicos analizaron muestras de magma de erupciones en Kīlauea y el Rift Tantalus, encontrando firmas isotópicas de carbono que difieren notablemente de las típicas del manto terrestre. En particular, las muestras de Kīlauea mostraron un valor isotópico inusual, lo que sugiere una posible contaminación por carbono del núcleo.\n\nEste hallazgo también ofrece pistas sobre el origen del carbono en la Tierra, sugiriendo que podría estar relacionado con meteoritos carbonáceos, que son materiales primitivos del sistema solar. Aunque los investigadores no han podido confirmar de manera definitiva que el carbono provenga del núcleo, los resultados abren la puerta a nuevas investigaciones sobre la historia del carbono en nuestro planeta y su conexión con la vida. \n\nA pesar de los avances, persisten preguntas sobre la cantidad de carbono que realmente provino de estos meteoritos y su relación con el carbono presente en los organismos vivos hoy en día.",
+        "id": "52ff4885cbc566c79bdd",
+        "image_headline": "Científicos hallan carbono en rocas hawaianas que sugiere su origen en meteoritos y el núcleo terrestre.",
+        "lang": "en",
+        "original_title": "Earth's core may be leaking a 4.5-billion-year-old secret",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261123005336.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "El núcleo de la Tierra podría estar filtrando un secreto de 4.500 millones de años.",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261123005336.htm"
+      },
+      "caption": "🌎 SISMONAUTA | ACTUALIDAD VOLCÁNICA\n\nCientíficos hallan carbono en rocas hawaianas que sugiere su origen en meteoritos y el núcleo terrestre.\n\nEl núcleo de la Tierra podría estar filtrando un secreto de 4.500 millones de años Un reciente estudio sobre rocas volcánicas de Hawái sugiere que gran parte del carbono en la Tierra podría haber llegado a través de meteoritos antiguos durante la formación del planeta. Investigadores han encontrado evidencia química que indica que este carbono pudo quedar atrapado en el núcleo terrestre y luego ascender hacia la superficie. Los científicos analizaron muestras de magma de erupciones en Kīlauea y el Rift Tantalus, encontrando firmas isotópicas de carbono que difieren notablemente de las típicas del manto terrestre. En particular, las muestras de Kīlauea mostraron un valor isotópico inusual, lo que sugiere una posible contaminación por carbono del núcleo. Este hallazgo también ofrece pistas sobre el origen del carbono en la Tierra, sugiriendo que podría estar relacionado con meteoritos carbonáceos, que son materiales primitivos del sistema solar. Aunque los investigadores no han podido confirmar de manera definitiva que el carbono provenga del núcleo, los resultados abren la puerta a nuevas investigaciones sobre la historia del carbono en nuestro planeta y su conexión con la vida. A pesar de los avances, persisten preguntas sobre la cantidad de carbono que realmente provino de estos meteoritos y su relación con el carbono presente en los organismos vivos hoy en día.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Volcanes #Erupciones #Volcanologia #Geologia",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "volcanic eruption",
+        "sha256": "2fc12171ab9213e813e4c279a476e0d6750c519d00b5b2c3ce072f8c7653e5f5",
+        "source": "https://commons.wikimedia.org/wiki/File:Krakatoa_eruption_lithograph.jpg",
+        "title": "File:Krakatoa eruption lithograph.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/49/Krakatoa_eruption_lithograph.jpg/1920px-Krakatoa_eruption_lithograph.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/52ff4885cbc566c79bdd.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "53b5900d42bdb49ff2bf": {
       "article": {
         "category": "oceanos",
