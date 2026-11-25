@@ -1516,6 +1516,42 @@
         }
       }
     },
+    "4faf732bcf0a12011b92": {
+      "article": {
+        "category": "geologia",
+        "date": "2026-11-25T16:21:04+00:00",
+        "description": "La Estructura Richat, también conocida como el “Ojo del Sahara”, es vista desde la Estación Espacial Internacional mientras orbita por encima el 14 de noviembre de 2026. Es un domo geológico erosionado de aproximadamente 100 millones de años de antigüedad creado por actividad ígnea y elevación en la nación de Mauritania. En este tipo de estructura geológica, las rocas […]",
+        "explanation": "**Ojo del Sahara: Un Fenómeno Geológico Fascinante**\n\nEl Ojo del Sahara, conocido también como la Estructura de Richat, es un impresionante dome geológico ubicado en Mauritania. Este fenómeno, que se puede observar desde el espacio, tiene aproximadamente 100 millones de años y se formó a través de actividad ígnea y procesos de elevación.\n\nLa estructura presenta un diseño en forma de \"diana\", donde las rocas en el centro son más antiguas que las que conforman los anillos exteriores. Este tipo de formación geológica es poco común y ha intrigado a científicos y geólogos por su singularidad y tamaño, alcanzando un diámetro de 45 kilómetros.\n\nEl Ojo del Sahara no solo es un atractivo visual desde el espacio, sino que también ofrece valiosa información sobre la historia geológica de la Tierra. Su estudio puede ayudar a comprender mejor los procesos de formación de estructuras similares en otros lugares del planeta. Además, su existencia resalta la diversidad geológica que se puede encontrar en el desierto del Sahara, un área que, a pesar de su aridez, es rica en historia y formación terrestre.",
+        "id": "4faf732bcf0a12011b92",
+        "image_headline": "La Estructura Richat, un domo geológico de 100 millones de años, fue fotografiada desde la Estación Espacial Internacional.",
+        "lang": "en",
+        "original_title": "Eye of the Sahara",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "NASA/Luke Delaney The Richat Structure, also known as the “Eye of the Sahara,” is seen from the International Space Station as it orbited above on Nov. 14, 2026. It is an eroded geological dome about 100 million years old created by igneous activity and uplift in the nation of Mauritania. In this type of geologic structure, rocks exposed in the center of the “bullseye” are older than rocks forming the outer rings. This structure measures 45 kilometers (28 miles) across and is made up of igneous and sedimentary rocks. Image credit: NASA/Luke Delaney",
+        "title": "Ojo del Sahara",
+        "url": "https://www.nasa.gov/image-article/eye-of-the-sahara/"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DE LA TIERRA\n\nLa Estructura Richat, un domo geológico de 100 millones de años, fue fotografiada desde la Estación Espacial Internacional.\n\nUn Fenómeno Geológico Fascinante El Ojo del Sahara, conocido también como la Estructura de Richat, es un impresionante dome geológico ubicado en Mauritania. Este fenómeno, que se puede observar desde el espacio, tiene aproximadamente 100 millones de años y se formó a través de actividad ígnea y procesos de elevación. La estructura presenta un diseño en forma de \"diana\", donde las rocas en el centro son más antiguas que las que conforman los anillos exteriores. Este tipo de formación geológica es poco común y ha intrigado a científicos y geólogos por su singularidad y tamaño, alcanzando un diámetro de 45 kilómetros. El Ojo del Sahara no solo es un atractivo visual desde el espacio, sino que también ofrece valiosa información sobre la historia geológica de la Tierra. Su estudio puede ayudar a comprender mejor los procesos de formación de estructuras similares en otros lugares del planeta. Además, su existencia resalta la diversidad geológica que se puede encontrar en el desierto del Sahara, un área que, a pesar de su aridez, es rica en historia y formación terrestre.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Geologia #PlanetaTierra #Geociencias #Investigacion",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "rock formations landscape",
+        "sha256": "7d01da40f748dc499825769dab329fb08811830dfd1b67889e70f1fc44e8b7ed",
+        "source": "https://commons.wikimedia.org/wiki/File:Seascape_inlet_with_rock_formations_--_11_of_33.jpg",
+        "title": "File:Seascape inlet with rock formations -- 11 of 33.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/78/Seascape_inlet_with_rock_formations_--_11_of_33.jpg/1920px-Seascape_inlet_with_rock_formations_--_11_of_33.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/4faf732bcf0a12011b92.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "52ff4885cbc566c79bdd": {
       "article": {
         "category": "volcanes",
