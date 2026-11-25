@@ -3315,7 +3315,7 @@
       "topic_key": "ondas_s",
       "title": "¿En qué contexto aparece las ondas S?",
       "reel": "publicado",
-      "updated_at": "2026-11-25T12:03:37.204482+00:00",
+      "updated_at": "2026-11-25T12:03:39.816327+00:00",
       "reel_id": "18145588492723299",
       "story": "publicado",
       "story_id": "18361781749220481",
@@ -3325,7 +3325,8 @@
       "facebook_story_id": "2389001008533786",
       "youtube_short": "publicado",
       "youtube_short_id": "lDvGggvx9Do",
-      "youtube_video": "enviando"
+      "youtube_video": "publicado",
+      "youtube_video_id": "a7plpl_BnXA"
     }
   },
   "youtube_upload_retry_after": "2026-11-25T00:15:37.648462+00:00"
