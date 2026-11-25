@@ -1418,6 +1418,7 @@
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/52ff4885cbc566c79bdd.jpg",
       "targets": {
         "facebook_feed": {
+          "error": "Meta HTTP 400: Missing or invalid image file",
           "started_at": "2026-11-25T05:02:00.259250+00:00",
           "status": "uncertain"
         },
