@@ -1900,8 +1900,10 @@
           "status": "pending"
         },
         "instagram": {
+          "id": "17918423889493801",
+          "published_at": "2026-11-25T01:02:07.727264+00:00",
           "started_at": "2026-11-25T01:01:48.115162+00:00",
-          "status": "uncertain"
+          "status": "published"
         }
       }
     },
