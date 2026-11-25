@@ -739,6 +739,40 @@
         }
       }
     },
+    "36ffb3b3539f571b760a": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-24T21:40:09+00:00",
+        "description": "Tropical cyclones frequently undergo rapid, complex structural changes within their inner cores, such as eyewall replacement and wind-field expansion, that strongly influence typhoon intensity and coastal hazards. However, capturing these multilayered transformations continuously from the ocean surface to the upper cloud tops remains a major observational challenge.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Los ciclones tropicales frecuentemente experimentan cambios estructurales rápidos y complejos dentro de sus núcleos internos, como el reemplazo de la pared del ojo y la expansión del campo de vientos, que influyen fuertemente en la intensidad de los tifones y los peligros costeros. Sin embargo, capturar estas transform",
+        "id": "36ffb3b3539f571b760a",
+        "image_headline": "Investigadores revelan la evolución estructural del núcleo interno del tifón Bavi mediante observaciones satelitales multisensores.",
+        "lang": "en",
+        "original_title": "Researchers reveal inner-core structural evolution of Typhoon Bavi using multisensor satellite observations",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Investigadores revelan la evolución estructural del núcleo interno del tifón Bavi mediante observaciones satelitales multisensores.",
+        "url": "https://phys.org/news/2026-11-reveal-core-evolution-typhoon-bavi.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nInvestigadores revelan la evolución estructural del núcleo interno del tifón Bavi mediante observaciones satelitales multisensores.\n\nLos ciclones tropicales frecuentemente experimentan cambios estructurales rápidos y complejos dentro de sus núcleos internos, como el reemplazo de la pared del ojo y la expansión del campo de vientos, que influyen fuertemente en la intensidad de los tifones y los peligros costeros. Sin embargo, capturar estas transform\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": true,
+        "license": "Obra original",
+        "title": "Arte original SISMONAUTA",
+        "url": ""
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/36ffb3b3539f571b760a.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "386dd6c1229be9573bf8": {
       "article": {
         "category": "espacio",
