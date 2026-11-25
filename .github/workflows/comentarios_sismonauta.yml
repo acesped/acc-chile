@@ -38,6 +38,8 @@ jobs:
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       FB_GRAPH_VERSION: 'v25.0'
       ALLOW_ANONYMOUS_TOPLEVEL: '1'
+      # Permite anidados sin autor si Meta informa can_comment=true.
+      ALLOW_ANONYMOUS_NESTED: '1'
       APPROVED_COMMENT_IDS: ${{ inputs.approved_comment_ids || '' }}
       MAX_RUNTIME_SECONDS: '1200'
       MAX_COMMENT_REPLIES: '100'
