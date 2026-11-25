@@ -2775,6 +2775,43 @@
         }
       }
     },
+    "9ef579dd41647e56e179": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-23T20:00:11+00:00",
+        "description": "From space, the Amazon rainforest looks like an unbroken expanse of green. But a new study conducted by researchers from the School of Biological Sciences at The University of Hong Kong (HKU), together with international collaborators, reveals seasonal leaf changes hidden within this seemingly constant canopy. Largely undetected by conventional satellite observations, these changes have significant implications for estimating the rainforest's carbon uptake.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Desde el espacio, la selva amazónica se ve como una vasta extensión ininterrumpida de verde. Pero un nuevo estudio realizado por investigadores de la Escuela de Ciencias Biológicas de la Universidad de Hong Kong (HKU), junto con colaboradores internacionales, revela cambios estacionales en las hojas ocultos dentro de este dosel aparentemente constante. En gran medida no detectados por observaciones satelitales convencionales, estos cambios tienen implicaciones significativas para estimar la absorción de carbono de la selva.",
+        "id": "9ef579dd41647e56e179",
+        "image_headline": "La dinámica oculta de las hojas podría mejorar las estimaciones de absorción de carbono de la selva amazónica.",
+        "lang": "en",
+        "original_title": "Hidden leaf dynamics could improve Amazon rainforest carbon uptake estimates",
+        "search_category": "direct",
+        "source": "Phys.org Medio Ambiente",
+        "source_body": "",
+        "title": "La dinámica oculta de las hojas podría mejorar las estimaciones de absorción de carbono de la selva amazónica.",
+        "url": "https://phys.org/news/2026-11-hidden-leaf-dynamics-amazon-rainforest.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nLa dinámica oculta de las hojas podría mejorar las estimaciones de absorción de carbono de la selva amazónica.\n\nDesde el espacio, la selva amazónica se ve como una vasta extensión ininterrumpida de verde. Pero un nuevo estudio realizado por investigadores de la Escuela de Ciencias Biológicas de la Universidad de Hong Kong (HKU), junto con colaboradores internacionales, revela cambios estacionales en las hojas ocultos dentro de este dosel aparentemente constante. En gran medida no detectados por observaciones satelitales convencionales, estos cambios tienen implicaciones significativas para estimar la absorción de carbono de la selva.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "2f05c66ffd661898816b2d1a03e5a19982267d81b3f11315e8bc9cd43909b7fd",
+        "source": "https://commons.wikimedia.org/wiki/File:Ending_Year_in_Space-_NASA_Goddard_Network_Maintains_Communications_from_Space_to_Ground_(25303994222).jpg",
+        "title": "File:Ending Year in Space- NASA Goddard Network Maintains Communications from Space to Ground (25303994222).jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5a/Ending_Year_in_Space-_NASA_Goddard_Network_Maintains_Communications_from_Space_to_Ground_%2825303994222%29.jpg/1920px-Ending_Year_in_Space-_NASA_Goddard_Network_Maintains_Communications_from_Space_to_Ground_%2825303994222%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/9ef579dd41647e56e179.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "a10b54ac4c772bba44fa": {
       "article": {
         "category": "desastres",
