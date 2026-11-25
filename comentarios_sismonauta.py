@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SISMONAUTA 5.6 — Python 3.11+, requests. --test / --publish / preview."""
+"""SISMONAUTA 5.7 — Python 3.11+, requests. --test / --publish / preview."""
 import argparse, base64, json, os, re, sys, time, unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
@@ -240,14 +240,14 @@ class Engine:
             except Exception as e: log('AUTOR',cid,safe(e))
         if author(c)==self.page: self.stats['own']+=1; return
         if not author(c):
-            # Only verified top-level comments may proceed anonymously. Never
-            # answer anonymous nested replies: they could be our own replies.
             approved = cid in approved_ids()
             parent = str((c.get('parent') or {}).get('id') or '')
-            if not approved and (not top_level or parent or os.getenv('ALLOW_ANONYMOUS_TOPLEVEL','1') != '1'):
+            nested = bool(parent) or not top_level
+            allowed = (os.getenv('ALLOW_ANONYMOUS_NESTED','0') == '1' if nested else os.getenv('ALLOW_ANONYMOUS_TOPLEVEL','1') == '1')
+            if not approved and (not allowed or (nested and c.get('can_comment') is not True)):
                 self.stats['unknown_author']+=1; log('AUTOR INVISIBLE PENDIENTE',cid,'top_level=',top_level,'parent=',parent or 'no informado','can_comment=',c.get('can_comment')); self.rows.append(dict(comment_id=cid,post_id=p['id'],status='unknown_author',top_level=top_level,parent_id=parent,can_comment=c.get('can_comment'))); return
             self.stats['anonymous_eligible']=self.stats.get('anonymous_eligible',0)+1
-            log('AUTOR INVISIBLE: VERIFICANDO POR ID',cid)
+            log('AUTOR INVISIBLE ELEGIBLE',cid,'anidado=',nested,'can_comment=',c.get('can_comment'))
 
         rid=next((str(x['id']) for x in children if x.get('id') and (author(x)==self.page or str(x['id']) in self.known)),None)
         if rid:
@@ -347,7 +347,7 @@ def selftest():
     for cid in ('a','b','a'): e.reply({'id':cid,'from':{'id':'u'},'message':'👏'},{'id':'p'},[])
     assert e.stats['preview']==2
     e.reply({'id':'c','from':{'id':'u'},'message':'👏'},{'id':'p'},[{'id':'r','from':{'id':'page'}}]); assert e.h['c']['reply_id']=='r'
-    with patch(__name__+'.graph',return_value={'id':'anon'}):
+    with patch.dict(os.environ,{'ALLOW_ANONYMOUS_NESTED':'0','APPROVED_COMMENT_IDS':''}), patch(__name__+'.graph',return_value={'id':'anon'}):
         e.reply({'id':'anon','message':'👏'},{'id':'p'},[],top_level=True)
         assert e.stats['preview']==3
         e.reply({'id':'nested','message':'👏'},{'id':'p'},[],top_level=False)
@@ -359,6 +359,17 @@ def selftest():
         assert e.stats['preview']==4
         e.reply({'id':'123_456','message':'👏'},{'id':'p'},[],top_level=False)
         assert e.stats['preview']==4
+    with patch.dict(os.environ,{'ALLOW_ANONYMOUS_NESTED':'1','APPROVED_COMMENT_IDS':''}), patch(__name__+'.graph',return_value={}):
+        for cid in ('n1','n2','n3'):
+            e.reply({'id':cid,'message':'👏','parent':{'id':'parent'},'can_comment':True},{'id':'p'},[],top_level=False)
+        assert e.stats['preview']==7
+        e.known.add('own_hidden')
+        e.reply({'id':'own_hidden','can_comment':True},{'id':'p'},[],top_level=False)
+        e.reply({'id':'n1','can_comment':True},{'id':'p'},[],top_level=False)
+        e.reply({'id':'blocked_nested','can_comment':False},{'id':'p'},[],top_level=False)
+        assert e.stats['preview']==7
+        e.reply({'id':'already_nested','can_comment':True},{'id':'p'},[{'id':'known_reply','from':{'id':'page'}}],top_level=False)
+        assert e.h['already_nested']['reply_id']=='known_reply' and e.stats['preview']==7
     end=timestamp('2026-11-25T10:00:00Z'); start=end-WINDOW_SECONDS
     assert in_window('2026-11-24T10:00:00Z',start,end)
     assert not in_window('2026-11-24T09:59:59Z',start,end)
@@ -383,6 +394,6 @@ def main():
         out=Path(args.out); out.mkdir(parents=True,exist_ok=True); report=dict(at=now(),status=status,stats=e.stats if e else {},results=e.rows if e else []); tmp=out/'resumen.json.tmp'; tmp.write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8'); tmp.replace(out/'resumen.json'); log('AUDITORÍA',json.dumps(report['stats'],ensure_ascii=False))
     if e and args.publish and not e.stats['published']:
         log('SIN RESPUESTAS NUEVAS: revisar previous, own, unknown_author, blocked, uncertain, errors y comments_read')
-        if any(e.stats[k] for k in ('errors','unknown_author','blocked','uncertain')) : return 2
+    if e and any(e.stats[k] for k in ('errors','unknown_author','blocked','uncertain','gaps')): return 2
     return 0
 if __name__=='__main__': sys.exit(main())
