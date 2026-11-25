@@ -3644,6 +3644,43 @@
         }
       }
     },
+    "c902e428cea97087af5f": {
+      "article": {
+        "category": "climatologia",
+        "date": "2026-11-24T16:40:13+00:00",
+        "description": "Some of the oldest clues to Earth's climate history lie surprisingly close to Antarctica's surface. Researchers at the Vrije Universiteit Brussel (VUB) are exploring the potential of these ancient archives, with a new scientific perspective coinciding with two Antarctic field expeditions.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Algunas de las pistas más antiguas sobre la historia climática de la Tierra se encuentran sorprendentemente cerca de la superficie de la Antártida. Investigadores de la Vrije Universiteit Brussel (VUB) están explorando el potencial de estos archivos antiguos, con una nueva perspectiva científica que coincide con dos expediciones de campo en la Antártida.",
+        "id": "c902e428cea97087af5f",
+        "image_headline": "El hielo cerca de la superficie de la Antártica podría revelar pistas climáticas de hace millones de años.",
+        "lang": "en",
+        "original_title": "Ice near Antarctica's surface could unlock climate clues millions of years old",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "El hielo cerca de la superficie de la Antártica podría revelar pistas climáticas de hace millones de años.",
+        "url": "https://phys.org/news/2026-11-ice-antarctica-surface-climate-clues.html"
+      },
+      "caption": "🌎 SISMONAUTA | CLIMATOLOGÍA\n\nEl hielo cerca de la superficie de la Antártica podría revelar pistas climáticas de hace millones de años.\n\nAlgunas de las pistas más antiguas sobre la historia climática de la Tierra se encuentran sorprendentemente cerca de la superficie de la Antártida. Investigadores de la Vrije Universiteit Brussel (VUB) están explorando el potencial de estos archivos antiguos, con una nueva perspectiva científica que coincide con dos expediciones de campo en la Antártida.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Climatologia #Clima #CambioClimatico #Glaciares",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "glacier landscape",
+        "sha256": "9da9d2ef388b403e56a9130c3c7a46092183cae688664cf8475b1dbecb9bf442",
+        "source": "https://commons.wikimedia.org/wiki/File:Glacier_National_Park_-_HCP_-_October_23,_2022_-_002.jpg",
+        "title": "File:Glacier National Park - HCP - October 23, 2022 - 002.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/14/Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_002.jpg/1920px-Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_002.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/c902e428cea97087af5f.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "ca223074d80a74fc5da8": {
       "article": {
         "category": "volcanes",
