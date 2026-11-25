@@ -1981,6 +1981,16 @@
       "angle": "contexto",
       "time": "2026-11-25T12:01:37.352555+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-35da181bc599",
+      "topic": "ondas:ondas_superficiales:riesgo",
+      "topic_key": "ondas_superficiales",
+      "title": "¿Por qué conviene conocer mejor las ondas superficiales?",
+      "style": "mito_realidad",
+      "angle": "riesgo",
+      "time": "2026-11-25T15:01:39.275928+00:00",
+      "status": "publicado"
     }
   ]
 }
