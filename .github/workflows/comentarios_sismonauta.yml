@@ -2,13 +2,20 @@ name: SISMONAUTA - Responder comentarios
 
 on:
   schedule:
-    - cron: '7,22,37,52 * * * *'
+    - cron: '2-57/5 * * * *'
+  repository_dispatch:
+    types: [sismonauta-minute]
   workflow_dispatch:
     inputs:
       publish:
         description: 'Publicar respuestas reales (desmarcar para vista previa)'
         type: boolean
         default: true
+      approved_comment_ids:
+        description: "IDs verificados como ajenos a la página, separados por comas"
+        type: string
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -31,12 +38,10 @@ jobs:
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       FB_GRAPH_VERSION: 'v25.0'
       ALLOW_ANONYMOUS_TOPLEVEL: '1'
+      APPROVED_COMMENT_IDS: ${{ inputs.approved_comment_ids || '' }}
       MAX_RUNTIME_SECONDS: '1200'
-      MAX_POSTS_PER_RUN: '100'
-      RECENT_POSTS_PER_RUN: '40'
       MAX_COMMENT_REPLIES: '100'
       MAX_AI_REPLIES_PER_RUN: '100'
-      INVENTORY_REFRESH_SECONDS: '3600'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -48,7 +53,7 @@ jobs:
         run: python comentarios_sismonauta.py --test
       - name: Responder comentarios
         env:
-          PUBLISH: ${{ github.event_name == 'schedule' || inputs.publish }}
+          PUBLISH: ${{ github.event_name == 'schedule' || github.event_name == 'repository_dispatch' || inputs.publish }}
         shell: bash
         run: |
           args=(--out output_comentarios)
