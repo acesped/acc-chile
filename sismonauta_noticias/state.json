@@ -1868,6 +1868,42 @@
         }
       }
     },
+    "7fd4552545e68fcebc0a": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-24T21:14:36+00:00",
+        "description": "La NASA anunció el lunes que el contenido de NASA+ ha encontrado su primera sala de cine en The Greenbelt Cinema en Greenbelt",
+        "explanation": "**Contenido de NASA+ llega a la pantalla grande en cine de Greenbelt, Maryland**\n\nNASA ha anunciado que su contenido de la plataforma NASA+ se proyectará en el cine Greenbelt en Maryland, marcando un nuevo hito en la difusión de sus misiones espaciales. Rebecca Sirmons, gerente general de NASA+, destacó la importancia de compartir la historia de la exploración espacial con el público, en línea con la misión de la agencia desde su creación en 1958.\n\nLa colaboración comenzará con la proyección del documental original \"The Europa Concept\", que explora la ciencia detrás de la futura exploración de Europa, una de las lunas de Júpiter. Las fechas de las proyecciones se anunciarán próximamente en el sitio web de NASA.\n\nEste esfuerzo se enmarca dentro de una estrategia más amplia de la agencia para aumentar la frecuencia de las misiones Artemis y avanzar en la construcción de la primera base lunar. Además, se prevé que el contenido de NASA+ incluya eventos en vivo relacionados con las misiones Artemis y más material sobre Europa.\n\nNASA+ seguirá siendo accesible de forma gratuita a través de su aplicación y sitio web, lo que permitirá que más personas se conecten con la ciencia y la exploración espacial.",
+        "id": "7fd4552545e68fcebc0a",
+        "image_headline": "NASA+ inicia su proyección en cines con el documental \"The Europa Concept\" en Greenbelt, Maryland.",
+        "lang": "en",
+        "original_title": "NASA+ Content Coming to Big Screen at Greenbelt, Maryland Cinema",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "Credit: NASA NASA announced Monday that NASA+ content has found its first theatrical home at The Greenbelt Cinema in Greenbelt, Maryland, expanding the agency’s reach across major viewing platforms and bringing space even closer to home. “The National Aeronautics and Space Act of 1958 calls us to share our story of space exploration with the broadest possible audience, and our partners help us accomplish that,” said Rebecca Sirmons, general manager of NASA+ at the agency’s Headquarters in Washington. “Artemis II captured the imagination of the Artemis generation, but we are just getting started. With Artemis III on the horizon and our sights set on building humanity’s first Moon Base, this is only the beginning of our story being told, and we’ll continue sharing transparent, engaging content every step of the way.” NASA and The Greenbelt Cinema will kick off their partnership with screenings of the NASA+ original documentary “The Europa Concept,” which follows NASA’s journey to investigate the science driving future exploration of Europa, Jupiter’s icy moon. Dates for screenings will be announced soon on NASA.gov. Future programming may include other NASA+ original content, in-person live streaming events of NASA’s Artemis missions, including the first crewed mission to the Moon under the Artemis program, additional Europa content, and more. NASA+ also will remain available for free, with no ads, through the NASA app and on the agency’s website . Earlier this year during its Ignition event, NASA outlined a bold path forward for the agency, including increasing the cadence of Artemis missions to the lunar surface, and building the first Moon Base , among other agency priorities. Partnerships like this one help NASA maximize engagement with communities around the world by making the agency’s missions and educational content available to viewers on their preferred devices and channels. For more information about NASA missions, visit: https://www.nasa.gov Share Details Last Updated Nov 24, 2026 Related Terms NASA+",
+        "title": "Contenido de NASA+ llega a la pantalla grande en cine de Greenbelt, Maryland",
+        "url": "https://www.nasa.gov/nasa/nasa-content-coming-to-big-screen-at-greenbelt-maryland-cinema/"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nNASA+ inicia su proyección en cines con el documental \"The Europa Concept\" en Greenbelt, Maryland.\n\nNASA ha anunciado que su contenido de la plataforma NASA+ se proyectará en el cine Greenbelt en Maryland, marcando un nuevo hito en la difusión de sus misiones espaciales. Rebecca Sirmons, gerente general de NASA+, destacó la importancia de compartir la historia de la exploración espacial con el público, en línea con la misión de la agencia desde su creación en 1958. La colaboración comenzará con la proyección del documental original \"The Europa Concept\", que explora la ciencia detrás de la futura exploración de Europa, una de las lunas de Júpiter. Las fechas de las proyecciones se anunciarán próximamente en el sitio web de NASA. Este esfuerzo se enmarca dentro de una estrategia más amplia de la agencia para aumentar la frecuencia de las misiones Artemis y avanzar en la construcción de la primera base lunar. Además, se prevé que el contenido de NASA+ incluya eventos en vivo relacionados con las misiones Artemis y más material sobre Europa. NASA+ seguirá siendo accesible de forma gratuita a través de su aplicación y sitio web, lo que permitirá que más personas se conecten con la ciencia y la exploración espacial.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "d14f0bdc2cd8a667cf9b81f7518e6615ebce3e5d72c1e946b65de1e8d1cee635",
+        "source": "https://commons.wikimedia.org/wiki/File:Ending_Year_in_Space-_NASA_Goddard_Network_Maintains_Communications_from_Space_to_Ground_(25329357161).jpg",
+        "title": "File:Ending Year in Space- NASA Goddard Network Maintains Communications from Space to Ground (25329357161).jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/90/Ending_Year_in_Space-_NASA_Goddard_Network_Maintains_Communications_from_Space_to_Ground_%2825329357161%29.jpg/1920px-Ending_Year_in_Space-_NASA_Goddard_Network_Maintains_Communications_from_Space_to_Ground_%2825329357161%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/7fd4552545e68fcebc0a.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "7fedd15ea542bbbfd7ba": {
       "article": {
         "category": "geologia",
