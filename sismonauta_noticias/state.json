@@ -2808,8 +2808,10 @@
           "status": "pending"
         },
         "instagram": {
+          "id": "18115940312173311",
+          "published_at": "2026-11-25T13:03:15.262068+00:00",
           "started_at": "2026-11-25T13:02:57.767321+00:00",
-          "status": "uncertain"
+          "status": "published"
         }
       }
     },
