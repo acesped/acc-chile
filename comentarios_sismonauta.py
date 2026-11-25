@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SISMONAUTA 5.3 — Python 3.11+, requests. --test / --publish / preview."""
+"""SISMONAUTA 5.6 — Python 3.11+, requests. --test / --publish / preview."""
 import argparse, base64, json, os, re, sys, time, unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
@@ -13,9 +13,12 @@ EDGES=tuple(dict.fromkeys(os.getenv('FB_COMMENT_EDGES','posts,feed,published_pos
 LIMIT=int(os.getenv('MAX_COMMENT_REPLIES','100'))
 AI_LIMIT=int(os.getenv('MAX_AI_REPLIES_PER_RUN','100'))
 RUNTIME=int(os.getenv('MAX_RUNTIME_SECONDS','720'))
-POST_LIMIT=int(os.getenv('MAX_POSTS_PER_RUN','50'))
-RECENT_LIMIT=max(1,int(os.getenv('RECENT_POSTS_PER_RUN','30')))
-REFRESH=int(os.getenv('INVENTORY_REFRESH_SECONDS','3600'))
+WINDOW_SECONDS=24*60*60
+PRIORITY_SECONDS=60
+
+def comment_priority(c, reference):
+    t=timestamp(c.get("created_time"))
+    return (0 if t is not None and t>=reference-PRIORITY_SECONDS else 1, -(t or 0), str(c.get("id", "")))
 RETRIES=4
 SESSION=requests.Session()
 DEADLINE=float('inf')
@@ -25,6 +28,17 @@ POST_FIELDS=('id,message,created_time,from{id},object_id,attachments{target{id}}
 
 def log(*x): print(*x,flush=True)
 def now(): return datetime.now(timezone.utc).isoformat()
+def timestamp(value):
+    try:
+        d=datetime.fromisoformat(str(value).replace('Z','+00:00'))
+        if d.tzinfo is None: return None
+        return d.timestamp()
+    except (ValueError,TypeError,OverflowError): return None
+
+def in_window(value,start,end):
+    t=timestamp(value)
+    return t is not None and start<=t<=end
+
 def clean(s): return re.sub(r'\s+',' ',str(s or '')).strip()
 def safe(e):
     s=str(e)
@@ -75,6 +89,9 @@ def read(path,token,fields,params=None):
         except MetaError as e:
             if e.transient or e.code in (190,10,200): raise
     raise ReadError('Campos no disponibles: '+path)
+def approved_ids():
+    return {x for x in re.split(r'[\s,;]+',os.getenv('APPROVED_COMMENT_IDS','')) if re.fullmatch(r'\d+_\d+',x)}
+
 def author(c): return str((c.get('from') or {}).get('id') or '')
 class Github:
     def __init__(self):
@@ -149,6 +166,7 @@ def ai(msg,post):
 
 class Engine:
     def __init__(self,args):
+        self.window_end=time.time(); self.window_start=self.window_end-WINDOW_SECONDS
         self.args=args; self.token=os.environ['FACEBOOK_PAGE_TOKEN']; self.page=os.environ['FACEBOOK_PAGE_ID']; self.gh=Github() if args.publish else None
         # Preview reads the real history if credentials are present, but never writes.
         reader=self.gh or (Github() if os.getenv('GH_TOKEN') and os.getenv('GITHUB_REPOSITORY') else None)
@@ -156,7 +174,7 @@ class Engine:
         if self.s.get('page_id') and str(self.s['page_id'])!=self.page: raise RuntimeError('Historial de otra página')
         if str(graph('me',self.token,{'fields':'id,name'}).get('id'))!=self.page: raise RuntimeError('Token de otra página')
         log('PÁGINA VERIFICADA', self.page, '| PUBLICACIÓN REAL:', args.publish); self.s['page_id']=self.page; self.h=self.s['comments']; self.inv=self.s.setdefault('inventory',{}); self.scan=self.s.setdefault('scan',{}); self.known={str(v['reply_id']) for v in self.h.values() if isinstance(v,dict) and v.get('reply_id')}; self.seen=set()
-        self.stats=dict(comments_read=0,published=0,preview=0,already_replied=0,own=0,previous=0,unknown_author=0,blocked=0,uncertain=0,errors=0,posts=0,ai_calls=0,gaps=0,duplicates=0,unique_comments=0,recent_posts=0,anonymous_eligible=0); self.rows=[]
+        self.stats=dict(outside_window=0,missing_post_date=0,eligible_posts=0,comments_read=0,published=0,preview=0,already_replied=0,own=0,previous=0,unknown_author=0,blocked=0,uncertain=0,errors=0,posts=0,ai_calls=0,gaps=0,duplicates=0,unique_comments=0,recent_posts=0,anonymous_eligible=0); self.rows=[]
     def save(self):
         if self.gh: self.sha=self.gh.save(self.s,self.sha)
     def register(self,p,edge):
@@ -171,39 +189,39 @@ class Engine:
             old['id']=str(oid)
         return [str(x) for x in ids if x]
     def recent(self):
-        # Fresh first page on every run, independent of historical cursor.
-        ids={}
-        for edge in ('posts','published_posts','feed','video_reels','videos','photos'):
-            for fields in POST_FIELDS:
+        # Fresh inventory; never trust a cached or manually approved old post.
+        self.inv.clear()
+        log('VENTANA UTC',datetime.fromtimestamp(self.window_start,timezone.utc).isoformat(),datetime.fromtimestamp(self.window_end,timezone.utc).isoformat())
+        dated_fields=tuple(f for f in POST_FIELDS if 'created_time' in f)
+        for edge in EDGES:
+            guard(); path=f'{self.page}/{edge}'
+            try:
                 try:
-                    d=graph(f'{self.page}/{edge}',self.token,{'fields':fields,'limit':25})
-                    if not isinstance(d.get('data'),list): raise ReadError('Sin data')
-                    for rank,p in enumerate(d['data']):
-                        for pid in self.register(p,edge): ids[pid]=min(rank,ids.get(pid,rank))
-                    log('INVENTARIO RECIENTE',edge,len(d['data'])); break
-                except StopRun: raise
-                except MetaError as e:
-                    if e.transient or e.code in (190,10,200):
-                        log('EDGE RECIENTE',edge,safe(e)); self.stats['errors']+=1; break
-                except Exception as e:
-                    log('EDGE RECIENTE',edge,safe(e)); self.stats['errors']+=1; break
-            else: log('EDGE RECIENTE NO DISPONIBLE',edge)
+                    rows=read(path,self.token,dated_fields,{'since':int(self.window_start),'until':int(self.window_end)+1})
+                except (MetaError,ReadError) as exc:
+                    if isinstance(exc,MetaError) and (exc.transient or exc.code in (190,10,200)): raise
+                    # Some media edges may not support date parameters. Only
+                    # enumerate metadata; never read comments outside the window.
+                    log('EDGE SIN FILTRO TEMPORAL',edge,safe(exc))
+                    rows=read(path,self.token,dated_fields)
+                count=0
+                for p in rows:
+                    t=timestamp(p.get('created_time'))
+                    if t is None:
+                        self.stats['missing_post_date']+=1; continue
+                    if not in_window(p.get('created_time'),self.window_start,self.window_end):
+                        self.stats['outside_window']+=1; continue
+                    if self.register(p,edge): count+=1
+                log('INVENTARIO 24H',edge,count,'de',len(rows))
+            except StopRun: raise
+            except Exception as exc:
+                self.stats['errors']+=1; log('EDGE NO DISPONIBLE',edge,safe(exc))
+        self.stats['eligible_posts']=len(self.inv)
+        # Least recently scanned first prevents starvation if the time budget ends.
+        self.scan={k:v for k,v in self.scan.items() if k in self.inv}
+        self.s['scan']=self.scan
         self.save()
-        return sorted(ids,key=lambda k:(self.inv[k].get('created_time',''),-ids[k]),reverse=True)
-    def inventory(self):
-        progress=self.s.setdefault('inventory_progress',{})
-        if not self.inv or time.time()-self.s.get('inventory_at',0)>=REFRESH:
-            for edge in EDGES:
-                guard()
-                if progress.get(edge)=='done': continue
-                try: rows=read(f'{self.page}/{edge}',self.token,POST_FIELDS)
-                except StopRun: raise
-                except Exception as e: log('EDGE NO DISPONIBLE',edge,safe(e)); self.stats['errors']+=1; continue
-                for p in rows: self.register(p,edge)
-                progress[edge]='done'; self.save(); log('INVENTARIO HISTÓRICO',edge,len(rows))
-                if not all(progress.get(x)=='done' for x in EDGES): return
-            self.s['inventory_at']=time.time(); progress.clear(); self.save()
-        if not self.inv: raise RuntimeError('Inventario vacío o inaccesible')
+        return sorted(self.inv,key=lambda k:(self.scan.get(k,0),-timestamp(self.inv[k]['created_time']),k))
     def cap(self):
         guard()
         if LIMIT>0 and self.stats['published']+self.stats['preview']>=LIMIT: raise StopRun('Límite de respuestas por ejecución')
@@ -224,8 +242,10 @@ class Engine:
         if not author(c):
             # Only verified top-level comments may proceed anonymously. Never
             # answer anonymous nested replies: they could be our own replies.
-            if not top_level or c.get('parent') or os.getenv('ALLOW_ANONYMOUS_TOPLEVEL','1') != '1':
-                self.stats['unknown_author']+=1; log('AUTOR INVISIBLE PENDIENTE',cid); self.rows.append(dict(comment_id=cid,status='unknown_author')); return
+            approved = cid in approved_ids()
+            parent = str((c.get('parent') or {}).get('id') or '')
+            if not approved and (not top_level or parent or os.getenv('ALLOW_ANONYMOUS_TOPLEVEL','1') != '1'):
+                self.stats['unknown_author']+=1; log('AUTOR INVISIBLE PENDIENTE',cid,'top_level=',top_level,'parent=',parent or 'no informado','can_comment=',c.get('can_comment')); self.rows.append(dict(comment_id=cid,post_id=p['id'],status='unknown_author',top_level=top_level,parent_id=parent,can_comment=c.get('can_comment'))); return
             self.stats['anonymous_eligible']=self.stats.get('anonymous_eligible',0)+1
             log('AUTOR INVISIBLE: VERIFICANDO POR ID',cid)
 
@@ -244,6 +264,7 @@ class Engine:
             self.h[cid]=dict(status='published',reply_id=rid,updated_at=now(),recovered_from_meta=True); self.known.add(rid); self.stats['already_replied']+=1; self.save(); return
         if any(not author(x) for x in children): self.stats['unknown_author']+=1; log('VERIFICACIÓN INCIERTA',cid); self.rows.append(dict(comment_id=cid,status='unknown_reply_author')); return
         if c.get('can_comment') is False: self.stats['blocked']+=1; log('META BLOQUEA RESPUESTA',cid); return
+        log('COMENTARIO NUEVO O PENDIENTE',cid,'fecha:',c.get('created_time','desconocida'))
         msg=clean(c.get('message')); reply,use_ai=fallback(msg)
         if use_ai and (AI_LIMIT<0 or self.stats['ai_calls']<AI_LIMIT):
             self.stats['ai_calls']+=1; reply=ai(msg,clean(p.get('message'))) or reply
@@ -277,7 +298,7 @@ class Engine:
             for c in rows:
                 if c.get('id'): root[str(c['id'])]=c
         self.stats['comments_read']+=len(root); log('COMENTARIOS RECUPERADOS',pid,len(root),'| fecha publicación:',p.get('created_time','desconocida'))
-        queue=list(root.values()); visited=set(); failed=False
+        queue=sorted(root.values(),key=lambda c: comment_priority(c,self.window_end)); visited=set(); failed=False
         while queue:
             self.cap(); c=queue.pop(0); cid=str(c.get('id') or '')
             if not cid or cid in visited: continue
@@ -291,7 +312,7 @@ class Engine:
             except StopRun: raise
             except Exception as e: self.stats['errors']+=1; failed=True; log('RESPUESTAS NO VERIFICADAS',cid,safe(e)); continue
             nested_ids.update(str(x['id']) for x in children if x.get('id'))
-            queue.extend(children); self.reply(c,p,children,top_level=cid in top_ids and cid not in nested_ids)
+            queue.extend(children); queue.sort(key=lambda c: comment_priority(c,self.window_end)); self.reply(c,p,children,top_level=cid in top_ids and cid not in nested_ids)
         try:
             d=graph(pid+'/comments',self.token,{'filter':'stream','summary':'true','limit':1,'fields':'id'}); total=(d.get('summary') or {}).get('total_count')
             if total is not None and int(total)>len(visited): self.stats['gaps']+=1; log('BRECHA META',pid,total,len(visited))
@@ -300,26 +321,23 @@ class Engine:
         return not failed
     def run(self):
         recent=self.recent()
-        done=set()
-        def process(pid,kind):
+        prefixes={x.split('_',1)[0] for x in approved_ids()}
+        # Approval changes author eligibility, never the publication date window.
+        recent.sort(key=lambda pid: (pid.rsplit('_',1)[-1] not in prefixes, self.scan.get(pid,0), -timestamp(self.inv[pid]['created_time'])))
+        for pid in recent:
             self.cap()
-            self.stats['posts']+=1
-            log('EXPLORANDO',kind,self.stats['posts'],pid,self.inv[pid].get('created_time','sin fecha'))
-            try: self.post(self.inv[pid])
+            p=self.inv[pid]
+            if not in_window(p.get('created_time'),self.window_start,self.window_end):
+                continue
+            self.stats['posts']+=1; self.stats['recent_posts']+=1
+            log('EXPLORANDO 24H',self.stats['posts'],pid,p['created_time'])
+            try:
+                if self.post(p): self.scan[pid]=time.time()
             except StopRun: raise
             except (MetaError,requests.RequestException,ReadError) as e:
                 self.stats['errors']+=1; log('PUBLICACIÓN NO DISPONIBLE',pid,safe(e))
-            self.scan[pid]=time.time(); done.add(pid); self.save()
+            self.save()
             log('PROGRESO',json.dumps(self.stats,ensure_ascii=False))
-        # Reserve at least half of the post budget for historical coverage.
-        n=min(RECENT_LIMIT,max(1,POST_LIMIT//2)) if POST_LIMIT>0 else RECENT_LIMIT
-        for pid in recent[:n]:
-            process(pid,'RECIENTE'); self.stats['recent_posts']+=1
-        self.inventory()
-        historical=sorted((k for k in self.inv if k not in done),key=lambda k:(self.scan.get(k,0),k))
-        for pid in historical:
-            if POST_LIMIT>0 and self.stats['posts']>=POST_LIMIT: break
-            process(pid,'HISTÓRICO')
 
 def selftest():
     from unittest.mock import patch
@@ -336,7 +354,21 @@ def selftest():
         assert e.stats['preview']==3 and e.stats['unknown_author']==1
         e.reply({'id':'anon2','message':'👏'},{'id':'p'},[{'id':'r','from':{'id':'page'}}],top_level=True)
         assert e.stats['preview']==3 and e.h['anon2']['reply_id']=='r'
-    log('PRUEBAS OFFLINE APROBADAS')
+    with patch.dict(os.environ,{'APPROVED_COMMENT_IDS':'123_456'}), patch(__name__+'.graph',return_value={'id':'123_456'}):
+        e.reply({'id':'123_456','message':'👏','parent':{'id':'p'}},{'id':'p'},[],top_level=False)
+        assert e.stats['preview']==4
+        e.reply({'id':'123_456','message':'👏'},{'id':'p'},[],top_level=False)
+        assert e.stats['preview']==4
+    end=timestamp('2026-11-25T10:00:00Z'); start=end-WINDOW_SECONDS
+    assert in_window('2026-11-24T10:00:00Z',start,end)
+    assert not in_window('2026-11-24T09:59:59Z',start,end)
+    assert not in_window('2026-11-25T10:00:01Z',start,end)
+    assert not in_window(None,start,end)
+    assert comment_priority({'created_time':'2026-11-25T09:59:30Z'},end)<comment_priority({'created_time':'2026-11-25T09:58:00Z'},end)
+    e.window_start=start; e.window_end=end; e.inv={'old':{'id':'old'}}; e.scan={}; e.s={}; e.stats.update(errors=0,missing_post_date=0,outside_window=0,eligible_posts=0)
+    with patch(__name__+'.read',return_value=[{'id':'new','created_time':'2026-11-25T09:00:00Z'},{'id':'old','created_time':'2026-11-23T09:00:00Z'},{'id':'unknown'}]):
+        assert e.recent()==['new'] and set(e.inv)=={'new'}
+    log('PRUEBAS OFFLINE APROBADAS: ventana 24H, historial, autores y deduplicación')
 
 def main():
     global DEADLINE
@@ -351,6 +383,6 @@ def main():
         out=Path(args.out); out.mkdir(parents=True,exist_ok=True); report=dict(at=now(),status=status,stats=e.stats if e else {},results=e.rows if e else []); tmp=out/'resumen.json.tmp'; tmp.write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8'); tmp.replace(out/'resumen.json'); log('AUDITORÍA',json.dumps(report['stats'],ensure_ascii=False))
     if e and args.publish and not e.stats['published']:
         log('SIN RESPUESTAS NUEVAS: revisar previous, own, unknown_author, blocked, uncertain, errors y comments_read')
-        if any(e.stats[k] for k in ('errors','unknown_author','blocked','uncertain')) or not e.stats['posts']: return 2
+        if any(e.stats[k] for k in ('errors','unknown_author','blocked','uncertain')) : return 2
     return 0
 if __name__=='__main__': sys.exit(main())
