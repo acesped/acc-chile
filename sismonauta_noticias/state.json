@@ -44,6 +44,43 @@
         }
       }
     },
+    "019bc076e23b1ab05ddf": {
+      "article": {
+        "category": "desastres",
+        "date": "2026-11-24T14:00:01+00:00",
+        "description": "Besides fires and floods, droughts and storms, another type of extreme weather may be getting more common due to climate change: lightning. Globally, in a future of high greenhouse gas emissions, lightning may get 76% to 140% more common by the end of the century than between 1995 and 2014, according to a new study published in Earth's Future.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Además de incendios e inundaciones, sequías y tormentas, otro tipo de clima extremo podría volverse más común debido al cambio climático: los rayos. A nivel global, en un futuro de altas emisiones de gases de efecto invernadero, los rayos podrían volverse entre un 76% y un 140% más comunes para fines de siglo que entre 1995 y 2014, según un nuevo estudio publicado en Earth's Future.",
+        "id": "019bc076e23b1ab05ddf",
+        "image_headline": "Los rayos podrían caer más del doble de veces en un mundo que se calienta.",
+        "lang": "en",
+        "original_title": "Lightning could strike more than twice as often in a warming world",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Los rayos podrían caer más del doble de veces en un mundo que se calienta.",
+        "url": "https://phys.org/news/2026-11-lightning-world.html"
+      },
+      "caption": "🌎 SISMONAUTA | RIESGOS NATURALES\n\nLos rayos podrían caer más del doble de veces en un mundo que se calienta.\n\nAdemás de incendios e inundaciones, sequías y tormentas, otro tipo de clima extremo podría volverse más común debido al cambio climático: los rayos. A nivel global, en un futuro de altas emisiones de gases de efecto invernadero, los rayos podrían volverse entre un 76% y un 140% más comunes para fines de siglo que entre 1995 y 2014, según un nuevo estudio publicado en Earth's Future.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #DesastresNaturales #Prevencion #RiesgosNaturales",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "landslide mountain",
+        "sha256": "a2768d848bdc5e292ec31a30e0e5c33b71a115b5a5c26921993883fb4eebb4e1",
+        "source": "https://commons.wikimedia.org/wiki/File:Myanmar_Landslide_2015_(before).jpg",
+        "title": "File:Myanmar Landslide 2015 (before).jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/c/ce/Myanmar_Landslide_2015_%28before%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/019bc076e23b1ab05ddf.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "02064300be721a665ef5": {
       "article": {
         "category": "meteorologia",
