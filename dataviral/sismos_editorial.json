@@ -2021,6 +2021,16 @@
       "angle": "lectura",
       "time": "2026-11-26T03:01:31.564116+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-7d60f42a57c1",
+      "topic": "tsunamis:origen_tsunami:mecanismo",
+      "topic_key": "origen_tsunami",
+      "title": "¿Cómo funciona el origen de los tsunamis?",
+      "style": "microdocumental",
+      "angle": "mecanismo",
+      "time": "2026-11-26T06:01:53.566360+00:00",
+      "status": "publicado"
     }
   ]
 }
