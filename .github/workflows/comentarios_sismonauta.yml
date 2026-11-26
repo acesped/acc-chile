@@ -45,6 +45,7 @@ jobs:
       ALLOW_ANONYMOUS_NESTED: '1'
       APPROVED_COMMENT_IDS: ${{ inputs.approved_comment_ids || '' }}
       MAX_RUNTIME_SECONDS: '1200'
+      INVENTORY_REFRESH_SECONDS: '3600'
       MAX_COMMENT_REPLIES: '100'
       MAX_AI_REPLIES_PER_RUN: '100'
     steps:
