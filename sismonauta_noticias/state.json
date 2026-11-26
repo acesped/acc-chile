@@ -598,8 +598,11 @@
           "status": "pending"
         },
         "instagram": {
+          "error": "GitHub PUT sismonauta_noticias/state.json: HTTP 409; revisar permisos Contents:write, reglas de rama y workflows simultáneos",
+          "id": "18124919221941995",
+          "published_at": "2026-11-26T15:02:32.115208+00:00",
           "started_at": "2026-11-26T15:02:13.925828+00:00",
-          "status": "uncertain"
+          "status": "published"
         }
       }
     },
