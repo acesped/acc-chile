@@ -4081,6 +4081,43 @@
         }
       }
     },
+    "c51b4a60376916b08c72": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-26T02:40:01+00:00",
+        "description": "New discoveries are made about the world every day—a species of deep-sea fish here, a new galaxy there. There's a saying, \"We know more about space than the ocean.\" But is this true? How do we determine knowing? Is it the number of things we have directly observed, or is it a matter of resolution?",
+        "editorial_mode": "documented_brief",
+        "explanation": "Se hacen nuevos descubrimientos sobre el mundo todos los días: una especie de pez de aguas profundas aquí, una nueva galaxia allá. Hay un dicho: \"Sabemos más sobre el espacio que sobre el océano.\" Pero, ¿es esto cierto? ¿Es la cantidad de cosas que hemos observado directamente, o es una cuestión de resolución?",
+        "id": "c51b4a60376916b08c72",
+        "image_headline": "¿Realmente sabemos más sobre el espacio que sobre el océano?",
+        "lang": "en",
+        "original_title": "Do we really know more about space than the ocean?",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "¿Realmente sabemos más sobre el espacio que sobre el océano?",
+        "url": "https://phys.org/news/2026-11-space-ocean.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\n¿Realmente sabemos más sobre el espacio que sobre el océano?\n\nSe hacen nuevos descubrimientos sobre el mundo todos los días: una especie de pez de aguas profundas aquí, una nueva galaxia allá. Hay un dicho: \"Sabemos más sobre el espacio que sobre el océano.\" Pero, ¿es esto cierto? ¿Es la cantidad de cosas que hemos observado directamente, o es una cuestión de resolución?\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "coastal landscape",
+        "sha256": "71eff8746dc8dd43a29cdb7c7a128d11ad8f13ec2f8fe8761848b82c187f6da6",
+        "source": "https://commons.wikimedia.org/wiki/File:Henry_Swinburne_-_Coastal_Landscape_-_B1977.14.3985_-_Yale_Center_for_British_Art.jpg",
+        "title": "File:Henry Swinburne - Coastal Landscape - B1977.14.3985 - Yale Center for British Art.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/e/ed/Henry_Swinburne_-_Coastal_Landscape_-_B1977.14.3985_-_Yale_Center_for_British_Art.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/c51b4a60376916b08c72.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "c58cf4ea6c951cb2fb0a": {
       "article": {
         "category": "espacio",
