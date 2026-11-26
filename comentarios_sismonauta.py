@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SISMONAUTA 5.8 — Python 3.11+, requests. --test / --publish / preview."""
+"""SISMONAUTA 6.0 — Python 3.11+, requests. --test / --publish / preview."""
 import argparse, base64, json, os, re, sys, time, unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
@@ -15,6 +15,7 @@ AI_LIMIT=int(os.getenv('MAX_AI_REPLIES_PER_RUN','100'))
 RUNTIME=int(os.getenv('MAX_RUNTIME_SECONDS','720'))
 WINDOW_SECONDS=24*60*60
 PRIORITY_SECONDS=60
+INVENTORY_REFRESH=int(os.getenv("INVENTORY_REFRESH_SECONDS","3600"))
 
 def comment_priority(c, reference):
     t=timestamp(c.get("created_time"))
@@ -206,7 +207,7 @@ class Engine:
         if self.s.get('page_id') and str(self.s['page_id'])!=self.page: raise RuntimeError('Historial de otra página')
         if str(graph('me',self.token,{'fields':'id,name'}).get('id'))!=self.page: raise RuntimeError('Token de otra página')
         log('PÁGINA VERIFICADA', self.page, '| PUBLICACIÓN REAL:', args.publish); self.s['page_id']=self.page; self.h=self.s['comments']; self.inv=self.s.setdefault('inventory',{}); self.scan=self.s.setdefault('scan',{}); self.known={str(v['reply_id']) for v in self.h.values() if isinstance(v,dict) and v.get('reply_id')}; self.seen=set()
-        self.stats=dict(outside_window=0,missing_post_date=0,eligible_posts=0,comments_read=0,published=0,preview=0,already_replied=0,own=0,previous=0,unknown_author=0,blocked=0,uncertain=0,errors=0,posts=0,ai_calls=0,gaps=0,duplicates=0,unique_comments=0,recent_posts=0,anonymous_eligible=0); self.rows=[]
+        self.stats=dict(outside_window=0,missing_post_date=0,eligible_posts=0,comments_read=0,published=0,preview=0,already_replied=0,own=0,previous=0,unknown_author=0,blocked=0,uncertain=0,errors=0,posts=0,ai_calls=0,gaps=0,duplicates=0,unique_comments=0,recent_posts=0,anonymous_eligible=0,missing_comment_date=0,outside_comment_window=0); self.rows=[]
     def save(self):
         if self.gh: self.sha=self.gh.save(self.s,self.sha)
     def register(self,p,edge):
@@ -221,45 +222,43 @@ class Engine:
             old['id']=str(oid)
         return [str(x) for x in ids if x]
     def recent(self):
-        # Fresh inventory; never trust a cached or manually approved old post.
-        self.inv.clear()
-        log('VENTANA UTC',datetime.fromtimestamp(self.window_start,timezone.utc).isoformat(),datetime.fromtimestamp(self.window_end,timezone.utc).isoformat())
-        dated_fields=tuple(f for f in POST_FIELDS if 'created_time' in f)
+        # The window applies to COMMENTS only. Preserve inventory and checkpoints.
+        log('VENTANA COMENTARIOS UTC',datetime.fromtimestamp(self.window_start,timezone.utc).isoformat(),datetime.fromtimestamp(self.window_end,timezone.utc).isoformat())
+        refresh=self.s.setdefault('inventory_refresh_v6',{})
         for edge in EDGES:
             guard(); path=f'{self.page}/{edge}'
+            full=time.time()-refresh.get(edge,0)>=INVENTORY_REFRESH or not self.inv
             try:
-                try:
-                    rows=read(path,self.token,dated_fields,{'since':int(self.window_start),'until':int(self.window_end)+1})
-                except (MetaError,ReadError) as exc:
-                    if isinstance(exc,MetaError) and (exc.transient or exc.code in (190,10,200)): raise
-                    # Some media edges may not support date parameters. Only
-                    # enumerate metadata; never read comments outside the window.
-                    log('EDGE SIN FILTRO TEMPORAL',edge,safe(exc))
-                    rows=read(path,self.token,dated_fields)
-                count=0
-                for p in rows:
-                    t=timestamp(p.get('created_time'))
-                    if t is None:
-                        self.stats['missing_post_date']+=1; continue
-                    if not in_window(p.get('created_time'),self.window_start,self.window_end):
-                        self.stats['outside_window']+=1; continue
-                    if self.register(p,edge): count+=1
-                log('INVENTARIO 24H',edge,count,'de',len(rows))
+                params={} if full else {'since':int(self.window_start)}
+                try: rows=read(path,self.token,POST_FIELDS,params)
+                except (MetaError,ReadError):
+                    if full: raise
+                    rows=read(path,self.token,POST_FIELDS)
+                for p in rows: self.register(p,edge)
+                if full: refresh[edge]=time.time()
+                log('INVENTARIO', 'COMPLETO' if full else 'ACTUALIZACIÓN',edge,len(rows))
+                self.save()
             except StopRun: raise
             except Exception as exc:
                 self.stats['errors']+=1; log('EDGE NO DISPONIBLE',edge,safe(exc))
         self.stats['eligible_posts']=len(self.inv)
-        # Least recently scanned first prevents starvation if the time budget ends.
-        self.scan={k:v for k,v in self.scan.items() if k in self.inv}
-        self.s['scan']=self.scan
-        self.save()
-        return sorted(self.inv,key=lambda k:(self.scan.get(k,0),-timestamp(self.inv[k]['created_time']),k))
+        return sorted(self.inv,key=lambda k:(self.scan.get(k,0),-(timestamp(self.inv[k].get('created_time')) or 0),k))
     def cap(self):
         guard()
         if LIMIT>0 and self.stats['published']+self.stats['preview']>=LIMIT: raise StopRun('Límite de respuestas por ejecución')
     def reply(self,c,p,children,top_level=False):
         self.cap(); cid=str(c.get('id') or '')
         if not cid: return
+        if hasattr(self,'window_start'):
+            if timestamp(c.get('created_time')) is None:
+                try: c.update(graph(cid,self.token,{'fields':'id,created_time'}))
+                except StopRun: raise
+                except Exception as exc: log('FECHA COMENTARIO',cid,safe(exc))
+            t=timestamp(c.get('created_time'))
+            if t is None:
+                self.stats['missing_comment_date']+=1; return
+            if not in_window(c.get('created_time'),self.window_start,self.window_end):
+                self.stats['outside_comment_window']+=1; return
         if cid in self.seen:
             self.stats['duplicates']=self.stats.get('duplicates',0)+1; return
         self.seen.add(cid); self.stats['unique_comments']=self.stats.get('unique_comments',0)+1
@@ -340,11 +339,15 @@ class Engine:
             # Do not re-query proven leaves already processed. Unanswered leaves
             # still get a fresh verification immediately before posting.
             old=self.h.get(cid,{}).get('status') in ('published','already_replied') or cid in self.known or author(c)==self.page
-            if old and c.get('comment_count')==0:
+            if (old or (timestamp(c.get('created_time')) or 0)<self.window_start) and c.get('comment_count')==0:
                 self.reply(c,p,[]); continue
             try: children=read(cid+'/comments',self.token,FIELDS)
             except StopRun: raise
             except Exception as e: self.stats['errors']+=1; failed=True; log('RESPUESTAS NO VERIFICADAS',cid,safe(e)); continue
+            new_ids={str(x['id']) for x in children if x.get('id')}-set(root)
+            self.stats['comments_read']+=len(new_ids)
+            for x in children:
+                if x.get('id'): root.setdefault(str(x['id']),{}).update(x)
             nested_ids.update(str(x['id']) for x in children if x.get('id'))
             queue.extend(children); queue.sort(key=lambda c: comment_priority(c,self.window_end)); self.reply(c,p,children,top_level=cid in top_ids and cid not in nested_ids)
         try:
@@ -359,14 +362,14 @@ class Engine:
         recent=self.recent()
         prefixes={x.split('_',1)[0] for x in approved_ids()}
         # Approval changes author eligibility, never the publication date window.
-        recent.sort(key=lambda pid: (pid.rsplit('_',1)[-1] not in prefixes, self.scan.get(pid,0), -timestamp(self.inv[pid]['created_time'])))
+        recent.sort(key=lambda pid: (pid.rsplit('_',1)[-1] not in prefixes, self.scan.get(pid,0), -(timestamp(self.inv[pid].get('created_time')) or 0)))
         for pid in recent:
             self.cap()
             p=self.inv[pid]
-            if not in_window(p.get('created_time'),self.window_start,self.window_end):
-                continue
             self.stats['posts']+=1; self.stats['recent_posts']+=1
-            log('EXPLORANDO 24H',self.stats['posts'],pid,p['created_time'])
+            log('EXPLORANDO SIN LÍMITE DE ANTIGÜEDAD',self.stats['posts'],pid,p.get('created_time'))
+            # Persist attempted position before reading to avoid starvation after cancellation.
+            self.scan[pid]=time.time(); self.save()
             try:
                 if self.post(p): self.scan[pid]=time.time()
             except StopRun: raise
@@ -414,8 +417,14 @@ def selftest():
     assert comment_priority({'created_time':'2026-11-25T09:59:30Z'},end)<comment_priority({'created_time':'2026-11-25T09:58:00Z'},end)
     e.window_start=start; e.window_end=end; e.inv={'old':{'id':'old'}}; e.scan={}; e.s={}; e.stats.update(errors=0,missing_post_date=0,outside_window=0,eligible_posts=0)
     with patch(__name__+'.read',return_value=[{'id':'new','created_time':'2026-11-25T09:00:00Z'},{'id':'old','created_time':'2026-11-23T09:00:00Z'},{'id':'unknown'}]):
-        assert e.recent()==['new'] and set(e.inv)=={'new'}
-    log('PRUEBAS OFFLINE APROBADAS: ventana 24H, historial, autores y deduplicación')
+        assert set(e.recent())=={'new','old','unknown'}
+    e.stats.update(missing_comment_date=0,outside_comment_window=0)
+    old_post={'id':'old','created_time':'2025-01-01T00:00:00Z'}
+    e.reply({'id':'fresh_old_post','created_time':'2026-11-25T09:59:45Z','from':{'id':'u'},'message':'👏'},old_post,[])
+    assert e.stats['preview']==8
+    e.reply({'id':'expired','created_time':'2026-11-24T09:59:59Z','from':{'id':'u'},'message':'👏'},old_post,[])
+    assert e.stats['preview']==8 and e.stats['outside_comment_window']==1
+    log('PRUEBAS OFFLINE APROBADAS: comentarios 24H en publicaciones de cualquier antigüedad, historial y deduplicación')
 
 def main():
     global DEADLINE
@@ -430,6 +439,6 @@ def main():
         out=Path(args.out); out.mkdir(parents=True,exist_ok=True); report=dict(at=now(),status=status,stats=e.stats if e else {},results=e.rows if e else []); tmp=out/'resumen.json.tmp'; tmp.write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8'); tmp.replace(out/'resumen.json'); log('AUDITORÍA',json.dumps(report['stats'],ensure_ascii=False))
     if e and args.publish and not e.stats['published']:
         log('SIN RESPUESTAS NUEVAS: revisar previous, own, unknown_author, blocked, uncertain, errors y comments_read')
-    if e and any(e.stats[k] for k in ('errors','unknown_author','blocked','uncertain','gaps')): return 2
+    if e and any(e.stats[k] for k in ('errors','unknown_author','blocked','uncertain','gaps','missing_comment_date')): return 2
     return 0
 if __name__=='__main__': sys.exit(main())
