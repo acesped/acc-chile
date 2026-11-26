@@ -595,8 +595,10 @@
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/25d993d985224b1f780c.jpg",
       "targets": {
         "facebook_feed": {
+          "id": "305263296226466_1167409539167610",
+          "published_at": "2026-11-26T15:05:06.181040+00:00",
           "started_at": "2026-11-26T15:04:59.639574+00:00",
-          "status": "uncertain"
+          "status": "published"
         },
         "instagram": {
           "error": "GitHub PUT sismonauta_noticias/state.json: HTTP 409; revisar permisos Contents:write, reglas de rama y workflows simultáneos",
