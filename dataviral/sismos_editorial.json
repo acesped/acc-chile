@@ -2031,6 +2031,16 @@
       "angle": "mecanismo",
       "time": "2026-11-26T06:01:53.566360+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-34ee8e8d4b6f",
+      "topic": "ondas:atenuacion:aprendizaje",
+      "topic_key": "atenuacion",
+      "title": "¿Qué podemos aprender hoy acerca de la propagación de las ondas?",
+      "style": "descubrimiento",
+      "angle": "aprendizaje",
+      "time": "2026-11-26T09:05:11.147780+00:00",
+      "status": "publicado"
     }
   ]
 }
