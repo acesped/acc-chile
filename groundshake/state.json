@@ -3419,6 +3419,13 @@
       "facebook_reel_id": "1621480229201870",
       "facebook_story": "publicado",
       "facebook_story_id": "1591081849703338"
+    },
+    "sismos-34ee8e8d4b6f": {
+      "topic": "ondas:atenuacion:aprendizaje",
+      "topic_key": "atenuacion",
+      "title": "¿Qué podemos aprender hoy acerca de la propagación de las ondas?",
+      "reel": "enviando",
+      "updated_at": "2026-11-26T09:05:14.647549+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-27T03:03:06.795596+00:00"
