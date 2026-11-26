@@ -4077,6 +4077,43 @@
         }
       }
     },
+    "cf65448d887d4341c259": {
+      "article": {
+        "category": "sismos",
+        "date": "2026-11-25T19:00:42+00:00",
+        "description": "Since the discovery of plate tectonics, the ultimate fate of the massive plates that sink into Earth's interior mantle at subduction zones has remained a major geological quest. Meanwhile, magma continuously rises from the deep mantle to form new oceanic crust, erupting as mid-ocean ridge basalts (MORB).",
+        "editorial_mode": "documented_brief",
+        "explanation": "Desde el descubrimiento de la tectónica de placas, el destino final de las enormes placas que se hunden en el manto interior de la Tierra en las zonas de subducción ha permanecido como una importante búsqueda geológica. Mientras tanto, el magma asciende continuamente desde el manto profundo para formar nueva corteza oceánica, erupcionando como basaltos de dorsal oceánica (MORB).",
+        "id": "cf65448d887d4341c259",
+        "image_headline": "Mapeando el inexplorado ciclo de la tectónica de placas: El camino oculto desde la destrucción de placas hasta la nueva corteza oceánica.",
+        "lang": "en",
+        "original_title": "Mapping the uncharted plate tectonic cycle: The hidden path from plate destruction to new oceanic crust",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Mapeando el inexplorado ciclo de la tectónica de placas: El camino oculto desde la destrucción de placas hasta la nueva corteza oceánica.",
+        "url": "https://phys.org/news/2026-11-uncharted-plate-tectonic-hidden-path.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA SÍSMICA\n\nMapeando el inexplorado ciclo de la tectónica de placas: El camino oculto desde la destrucción de placas hasta la nueva corteza oceánica.\n\nDesde el descubrimiento de la tectónica de placas, el destino final de las enormes placas que se hunden en el manto interior de la Tierra en las zonas de subducción ha permanecido como una importante búsqueda geológica. Mientras tanto, el magma asciende continuamente desde el manto profundo para formar nueva corteza oceánica, erupcionando como basaltos de dorsal oceánica (MORB).\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Sismos #Terremotos #Sismologia #Geofisica #Tectonica",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "earthquake fault landscape",
+        "sha256": "02d1c7dfba1ff73905379fa7eeddad73749fa4d891e7769b090373aa58544582",
+        "source": "https://commons.wikimedia.org/wiki/File:-conservationlands15_Social_Media_Takeover,_Oct_15th,_King_Range_in_California_(22182816986).jpg",
+        "title": "File:-conservationlands15 Social Media Takeover, Oct 15th, King Range in California (22182816986).jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/1/19/-conservationlands15_Social_Media_Takeover%2C_Oct_15th%2C_King_Range_in_California_%2822182816986%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/cf65448d887d4341c259.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "d1b45c6475bcc3818afa": {
       "article": {
         "category": "espacio",
