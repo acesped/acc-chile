@@ -44,6 +44,43 @@
         }
       }
     },
+    "012c7385914bacb8f5f0": {
+      "article": {
+        "category": "meteorologia",
+        "date": "2026-11-26T17:40:01+00:00",
+        "description": "Could leaks from future 5G networks interfere with satellite weather measurements and potentially alter forecasts? That's the concern of a group of researchers from the U.S. states of New Jersey and Maryland, with lead author Behzad Golparvar from Rutgers University in New Jersey.",
+        "editorial_mode": "documented_brief",
+        "explanation": "¿Podrían las filtraciones de las futuras redes 5G interferir con las mediciones meteorológicas satelitales y potencialmente alterar las previsiones? Esa es la preocupación de un grupo de investigadores de los estados de Nueva Jersey y Maryland, con el autor principal Behzad Golparvar de la Universidad de Rutgers en Nueva Jersey.",
+        "id": "012c7385914bacb8f5f0",
+        "image_headline": "La interferencia de la 5G puede alterar los pronósticos meteorológicos de alto impacto.",
+        "lang": "en",
+        "original_title": "5G interference can alter high-impact weather forecasts",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "La interferencia de la 5G puede alterar los pronósticos meteorológicos de alto impacto.",
+        "url": "https://phys.org/news/2026-11-5g-high-impact-weather.html"
+      },
+      "caption": "🌎 SISMONAUTA | METEOROLOGÍA\n\nLa interferencia de la 5G puede alterar los pronósticos meteorológicos de alto impacto.\n\n¿Podrían las filtraciones de las futuras redes 5G interferir con las mediciones meteorológicas satelitales y potencialmente alterar las previsiones? Esa es la preocupación de un grupo de investigadores de los estados de Nueva Jersey y Maryland, con el autor principal Behzad Golparvar de la Universidad de Rutgers en Nueva Jersey.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Meteorologia #Tiempo #Tormentas #Atmosfera",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "storm clouds landscape",
+        "sha256": "482f692830e07fa103b1d877d2de704fbb272f0ba66ca2267896e2061ddbc067",
+        "source": "https://commons.wikimedia.org/wiki/File:Storm_clouds_over_the_Oasis_of_Mara_(51184575183).jpg",
+        "title": "File:Storm clouds over the Oasis of Mara (51184575183).jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/af/Storm_clouds_over_the_Oasis_of_Mara_%2851184575183%29.jpg/1920px-Storm_clouds_over_the_Oasis_of_Mara_%2851184575183%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/012c7385914bacb8f5f0.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "019bc076e23b1ab05ddf": {
       "article": {
         "category": "desastres",
