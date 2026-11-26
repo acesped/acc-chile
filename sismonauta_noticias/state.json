@@ -305,6 +305,43 @@
         }
       }
     },
+    "1772eca465b312c77ed2": {
+      "article": {
+        "category": "desastres",
+        "date": "2026-11-25T19:00:38+00:00",
+        "description": "A growing share of New England's summer rain is falling in the form of heavy, heat-related showers and thunderstorms, raising the risk of flash flooding events across the region as the climate continues to warm. That's according to a new study by Brown University researchers published in Science Advances.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Una parte creciente de la lluvia de verano en Nueva Inglaterra está cayendo en forma de fuertes lluvias y tormentas eléctricas relacionadas con el calor, aumentando el riesgo de eventos de inundaciones repentinas en toda la región a medida que el clima continúa calentándose. Eso es según un nuevo estudio de investigadores de la Universidad de Brown publicado en Science Advances.",
+        "id": "1772eca465b312c77ed2",
+        "image_headline": "Las tormentas eléctricas de verano en Nueva Inglaterra se vuelven más cortas y más intensas, aumentando el riesgo de inundaciones repentinas.",
+        "lang": "en",
+        "original_title": "New England's summer thunderstorms grow shorter and heavier, raising flash flood risk",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Las tormentas eléctricas de verano en Nueva Inglaterra se vuelven más cortas y más intensas, aumentando el riesgo de inundaciones repentinas.",
+        "url": "https://phys.org/news/2026-11-england-summer-thunderstorms-shorter-heavier.html"
+      },
+      "caption": "🌎 SISMONAUTA | RIESGOS NATURALES\n\nLas tormentas eléctricas de verano en Nueva Inglaterra se vuelven más cortas y más intensas, aumentando el riesgo de inundaciones repentinas.\n\nUna parte creciente de la lluvia de verano en Nueva Inglaterra está cayendo en forma de fuertes lluvias y tormentas eléctricas relacionadas con el calor, aumentando el riesgo de eventos de inundaciones repentinas en toda la región a medida que el clima continúa calentándose. Eso es según un nuevo estudio de investigadores de la Universidad de Brown publicado en Science Advances.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #DesastresNaturales #Prevencion #RiesgosNaturales",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "landslide mountain",
+        "sha256": "bc50b577b90c9be6416b73baaf998e97f5116827268f4f32d24a96695e6bc2e1",
+        "source": "https://commons.wikimedia.org/wiki/File:Myanmar_Landslide_2015_(after).jpg",
+        "title": "File:Myanmar Landslide 2015 (after).jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/e/e6/Myanmar_Landslide_2015_%28after%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/1772eca465b312c77ed2.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "1b5a0c031330472e4001": {
       "article": {
         "category": "espacio",
