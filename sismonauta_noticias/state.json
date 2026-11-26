@@ -565,6 +565,43 @@
         }
       }
     },
+    "25d993d985224b1f780c": {
+      "article": {
+        "category": "meteorologia",
+        "date": "2026-11-20T00:40:01+00:00",
+        "description": "A week before Hurricane Melissa slammed into Jamaica last fall, the forecast models couldn't agree on where it was headed or how strong it would get. One got it right—an AI model from Google DeepMind, which called both the storm's path and its Category 5 strength.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Una semana antes de que el huracán Melissa golpeara Jamaica el otoño pasado, los modelos de pronóstico no podían ponerse de acuerdo sobre hacia dónde se dirigía ni cuán fuerte se volvería. Uno lo acertó: un modelo de IA de Google DeepMind, que predijo tanto la trayectoria de la tormenta como su fuerza de Categoría 5.",
+        "id": "25d993d985224b1f780c",
+        "image_headline": "Poniendo a prueba el modelo de huracanes de la IA de Google",
+        "lang": "en",
+        "original_title": "Putting Google's AI hurricane model to the test",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Poniendo a prueba el modelo de huracanes de la IA de Google",
+        "url": "https://phys.org/news/2026-11-google-ai-hurricane.html"
+      },
+      "caption": "🌎 SISMONAUTA | METEOROLOGÍA\n\nPoniendo a prueba el modelo de huracanes de la IA de Google\n\nUna semana antes de que el huracán Melissa golpeara Jamaica el otoño pasado, los modelos de pronóstico no podían ponerse de acuerdo sobre hacia dónde se dirigía ni cuán fuerte se volvería. Uno lo acertó: un modelo de IA de Google DeepMind, que predijo tanto la trayectoria de la tormenta como su fuerza de Categoría 5.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Meteorologia #Tiempo #Tormentas #Atmosfera",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "storm clouds landscape",
+        "sha256": "d973fead5864f2b38c5cddb5fe5312b61dc196c60862d38f5b283bc51ec8a867",
+        "source": "https://commons.wikimedia.org/wiki/File:Storm_clouds_over_the_Oasis_of_Mara_(51183673202).jpg",
+        "title": "File:Storm clouds over the Oasis of Mara (51183673202).jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b8/Storm_clouds_over_the_Oasis_of_Mara_%2851183673202%29.jpg/1920px-Storm_clouds_over_the_Oasis_of_Mara_%2851183673202%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/25d993d985224b1f780c.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "293aad544cc9ff3341f3": {
       "article": {
         "category": "oceanos",
