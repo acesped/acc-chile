@@ -3405,6 +3405,13 @@
       "facebook_story": "publicado",
       "facebook_story_id": "2215497233182745",
       "youtube_short": "aplazado"
+    },
+    "sismos-7d60f42a57c1": {
+      "topic": "tsunamis:origen_tsunami:mecanismo",
+      "topic_key": "origen_tsunami",
+      "title": "¿Cómo funciona el origen de los tsunamis?",
+      "reel": "enviando",
+      "updated_at": "2026-11-26T06:01:56.605009+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-27T03:03:06.795596+00:00"
