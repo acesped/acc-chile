@@ -1862,6 +1862,43 @@
         }
       }
     },
+    "616324e5bc977e483127": {
+      "article": {
+        "category": "volcanes",
+        "date": "2026-11-19T22:00:09+00:00",
+        "description": "Experts were puzzled when satellite observations showed a volcano in Ethiopia emitting huge quantities of methane despite not erupting, but a team of researchers led by the University of Bristol believe they have discovered why this happened—and their findings could have implications for historical climate change research.",
+        "editorial_mode": "verified_summary",
+        "explanation": "Los expertos quedaron desconcertados cuando las observaciones satelitales mostraron un volcán en Etiopía emitiendo enormes cantidades de metano a pesar de no estar en erupción, pero un equipo de investigadores liderado por la Universidad de Bristol cree haber descubierto por qué sucedió esto, y sus hallazgos podrían tener implicaciones para la investigación sobre el cambio climático histórico.",
+        "id": "616324e5bc977e483127",
+        "image_headline": "El misterioso estallido de metano de un volcán etíope podría tener un culpable: magma que nunca erupcionó.",
+        "lang": "en",
+        "original_title": "Ethiopian volcano's mysterious methane outburst may have a culprit—magma that never erupted",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "El misterioso estallido de metano de un volcán etíope podría tener un culpable: magma que nunca erupcionó.",
+        "url": "https://phys.org/news/2026-11-ethiopian-volcano-mysterious-methane-outburst.html"
+      },
+      "caption": "🌎 SISMONAUTA | ACTUALIDAD VOLCÁNICA\n\nEl misterioso estallido de metano de un volcán etíope podría tener un culpable: magma que nunca erupcionó.\n\nLos expertos quedaron desconcertados cuando las observaciones satelitales mostraron un volcán en Etiopía emitiendo enormes cantidades de metano a pesar de no estar en erupción, pero un equipo de investigadores liderado por la Universidad de Bristol cree haber descubierto por qué sucedió esto, y sus hallazgos podrían tener implicaciones para la investigación sobre el cambio climático histórico.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Volcanes #Erupciones #Volcanologia #Geologia",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "volcanic eruption",
+        "sha256": "982a0325ff3357ad92ab0e0c06125d545e0ba7ffca3ee8477bbd2f8bec27797c",
+        "source": "https://commons.wikimedia.org/wiki/File:Sarychev_Peak.jpg",
+        "title": "File:Sarychev Peak.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b4/Sarychev_Peak.jpg/1920px-Sarychev_Peak.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/616324e5bc977e483127.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "61c21dcf9f47423584a3": {
       "article": {
         "category": "meteorologia",
