@@ -2001,6 +2001,16 @@
       "angle": "significado",
       "time": "2026-11-25T21:01:40.926929+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-17ff74cd6908",
+      "topic": "fallas:escarpes:fundamentos",
+      "topic_key": "escarpes",
+      "title": "¿Qué principios científicos ayudan a explicar un escarpe de falla?",
+      "style": "mito_realidad",
+      "angle": "fundamentos",
+      "time": "2026-11-26T00:01:46.142277+00:00",
+      "status": "publicado"
     }
   ]
 }
