@@ -305,6 +305,42 @@
         }
       }
     },
+    "16703713c8893557b267": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-26T05:05:00+00:00",
+        "description": "APOD Ciencia APOD APOD: 26 de noviembre de 2026 – Ojo… Archivo de APOD Envíos Índice Búsqueda Calendario RSS Educación Acerca de Discutir APOD Imagen Astronómica del Día ¡Descubre el cosmos! Cada día se presenta una imagen o fotografía diferente de nuestro fascinante universo, junto con una breve explicación escrita por un astrónomo profesional. Ojo en […]",
+        "explanation": "**TITULAR: APOD: 26 de noviembre de 2026 – Ojo en el cielo: La Vía Láctea sobre Lençóis** La imagen destacada en el Astronomy Picture of the Day (APOD) del 26 de noviembre de 2026 muestra la majestuosa Vía Láctea sobre el Parque Nacional Lençóis Maranhenses, en Brasil. Este parque es conocido por sus impresionantes dunas de arena blanca y lagunas oscuras, que crean un paisaje único. La fotografía, capturada en julio desde una latitud de aproximadamente 2º sur, revela características notables de nuestra galaxia, como las oscuras bandas de polvo y coloridas nebulosas. Sin embargo, es importante señalar que la apariencia arqueada de la Vía Láctea no es un fenómeno natural, sino un efecto visual creado por el uso de un lente gran angular. Este enfoque artístico del fotógrafo permite que la galaxia se alinee con la forma de la laguna, generando la ilusión de un \"ojo cósmico\". Este tipo de imágenes no solo nos maravilla, sino que también nos invita a reflexionar sobre la belleza del universo y nuestra conexión con él. La fotografía es un recordatorio de que, a pesar de la distancia, el cosmos siempre está presente en nuestras vidas.",
+        "id": "16703713c8893557b267",
+        "image_headline": "La imagen de la Vía Láctea sobre Lençóis destaca la belleza del cosmos y su observación desde la Tierra.",
+        "lang": "en",
+        "original_title": "APOD: 2026 November 26 – Eye in the Sky: The Milky Way over Lençóis",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "APOD Science APOD APOD: 2026 November 26 – Eye… Today’s APOD Archive Submissions Index Search Calendar RSS Education About Discuss APOD Astronomy Picture of the Day Discover the cosmos! Each day a different image or photograph of our fascinating universe is featured, along with a brief explanation written by a professional astronomer. Eye in the Sky: The Milky Way over Lençóis Explanation: Beauty is in the eye of the beholder. And there is much to behold in today’s featured image . The Milky Way shines bright in the sky of Brazil , over the white sand dunes and dark lagoons of Lençóis Maranhenses National Park . We can see different parts of the Milky Way as it apparently rotates in the sky every night and throughout the year. This composite image was taken later in the night in July from a latitude of approximately 2º south. It shows some prominent Milky Way features, such as dark dust lanes and colorful nebulas . But does the Galaxy really appear arched like a rainbow in the sky? No, this is an artifact of a picture taken with a wide-angle lens. As the Galaxy was artfully framed by the photographer, it matches the contour of the dark lagoon creating the illusion of a cosmic eye , half in space and half on the ground. Is this eye in the sky looking back at you? Tomorrow’s picture: what’s next? Date November 26, 2026 Credit & Copyright Ignacio Fernández Authors & editors: Cecilia Chirenti, Robert Nemiroff, Jerry Bonnell, Keighley Rockcliffe A service of: ASD at NASA / GSFC , NASA Science Activation & Michigan Tech. U. Random APOD Generator Yesterday’s Image APOD: 2026 November 25 – SPHEREx Seeing Through Dust Tomorrow’s Image",
+        "title": "APOD: 26 de noviembre de 2026 – Ojo en el cielo: La Vía Láctea sobre Lençóis",
+        "url": "https://science.nasa.gov/image-article/apod-2026-november-26-eye-in-the-sky-the-milky-way-over-lencois/"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nLa imagen de la Vía Láctea sobre Lençóis destaca la belleza del cosmos y su observación desde la Tierra.\n\nLa imagen destacada en el Astronomy Picture of the Day (APOD) del 26 de noviembre de 2026 muestra la majestuosa Vía Láctea sobre el Parque Nacional Lençóis Maranhenses, en Brasil. Este parque es conocido por sus impresionantes dunas de arena blanca y lagunas oscuras, que crean un paisaje único. La fotografía, capturada en julio desde una latitud de aproximadamente 2º sur, revela características notables de nuestra galaxia, como las oscuras bandas de polvo y coloridas nebulosas. Sin embargo, es importante señalar que la apariencia arqueada de la Vía Láctea no es un fenómeno natural, sino un efecto visual creado por el uso de un lente gran angular. Este enfoque artístico del fotógrafo permite que la galaxia se alinee con la forma de la laguna, generando la ilusión de un \"ojo cósmico\". Este tipo de imágenes no solo nos maravilla, sino que también nos invita a reflexionar sobre la belleza del universo y nuestra conexión con él. La fotografía es un recordatorio de que, a pesar de la distancia, el cosmos siempre está presente en nuestras vidas.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "4a5cbad10a24a07b915a8dceff1e8da63d90c41d2c75a1cbfa48d6d272cbbfb1",
+        "source": "https://commons.wikimedia.org/wiki/File:NASA-EarlyEarth-PaleOrangeDot-20190802.jpg",
+        "title": "File:NASA-EarlyEarth-PaleOrangeDot-20190802.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9b/NASA-EarlyEarth-PaleOrangeDot-20190802.jpg/1920px-NASA-EarlyEarth-PaleOrangeDot-20190802.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/16703713c8893557b267.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "1772eca465b312c77ed2": {
       "article": {
         "category": "desastres",
