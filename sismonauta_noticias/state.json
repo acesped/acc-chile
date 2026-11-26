@@ -4556,6 +4556,43 @@
         }
       }
     },
+    "f54c0ca777a65229bbab": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-26T02:42:37+00:00",
+        "description": "A más de una milla bajo la superficie del Mar Rojo, los científicos han descubierto lagos submarinos raros que podrían revelar secretos sobre los océanos antiguos de la Tierra y la posibilidad de vida alienígena. Conocidos como estanques de salmuera, estos entornos extremadamente salinos y sin oxígeno están sorprendentemente llenos de vida microbiana, desafiando nuestra comprensión de dónde pueden sobrevivir los organismos vivos.",
+        "explanation": "**Científicos descubren lagos misteriosos a más de una milla debajo del Mar Rojo**\n\nInvestigadores de la Universidad de Miami han hallado lagos de salmuera en el Golfo de Aqaba, a más de 1,700 metros de profundidad. Este descubrimiento, realizado con un vehículo submarino operado remotamente, revela un ecosistema microbiano que sobrevive en condiciones extremas, lo que podría ofrecer pistas sobre la formación de los océanos de la Tierra y la búsqueda de vida en otros planetas.\n\nLos lagos de salmuera son entornos hostiles, con altas concentraciones de sal y ausencia de oxígeno, pero a pesar de esto, albergan una rica comunidad de microorganismos. Investigaciones previas han identificado moléculas biológicamente activas en estos microbios, que podrían tener propiedades anticancerígenas.\n\nAdemás de su importancia biológica, estos lagos actúan como archivos naturales de la historia geológica de la región. Su composición ayuda a preservar evidencias de eventos como tsunamis y terremotos ocurridos en el pasado. Este conocimiento es crucial para el desarrollo costero en países como Egipto y Arabia Saudita.\n\nEl estudio, publicado en Communications Earth & Environment, marca un hito en la exploración de estas profundidades marinas y abre nuevas vías para entender tanto la vida en la Tierra como la posibilidad de vida en otros mundos.",
+        "id": "f54c0ca777a65229bbab",
+        "image_headline": "Científicos descubren lagos misteriosos a más de una milla debajo del Mar Rojo.",
+        "lang": "en",
+        "original_title": "Scientists discover mysterious lakes more than a mile beneath the Red Sea",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261125045259.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "Científicos descubren lagos misteriosos a más de una milla debajo del Mar Rojo.",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261125045259.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nCientíficos descubren lagos misteriosos a más de una milla debajo del Mar Rojo.\n\nCientíficos descubren lagos misteriosos a más de una milla debajo del Mar Rojo Investigadores de la Universidad de Miami han hallado lagos de salmuera en el Golfo de Aqaba, a más de 1,700 metros de profundidad. Este descubrimiento, realizado con un vehículo submarino operado remotamente, revela un ecosistema microbiano que sobrevive en condiciones extremas, lo que podría ofrecer pistas sobre la formación de los océanos de la Tierra y la búsqueda de vida en otros planetas. Los lagos de salmuera son entornos hostiles, con altas concentraciones de sal y ausencia de oxígeno, pero a pesar de esto, albergan una rica comunidad de microorganismos. Investigaciones previas han identificado moléculas biológicamente activas en estos microbios, que podrían tener propiedades anticancerígenas. Además de su importancia biológica, estos lagos actúan como archivos naturales de la historia geológica de la región. Su composición ayuda a preservar evidencias de eventos como tsunamis y terremotos ocurridos en el pasado. Este conocimiento es crucial para el desarrollo costero en países como Egipto y Arabia Saudita. El estudio, publicado en Communications Earth & Environment, marca un hito en la exploración de estas profundidades marinas y abre nuevas vías para entender tanto la vida en la Tierra como la posibilidad de vida en otros mundos.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "coastal landscape",
+        "sha256": "69421434cbb376905ab39d6733f8e901cea9eb88a0bc3cf04590a49ce621b93d",
+        "source": "https://commons.wikimedia.org/wiki/File:Wilson,_Richard;_Weite_s%C3%BCdliche_K%C3%BCstenlandschaft_in_der_Abendd%C3%A4mmerung.jpg",
+        "title": "File:Wilson, Richard; Weite südliche Küstenlandschaft in der Abenddämmerung.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/69/Wilson%2C_Richard%3B_Weite_s%C3%BCdliche_K%C3%BCstenlandschaft_in_der_Abendd%C3%A4mmerung.jpg/1920px-Wilson%2C_Richard%3B_Weite_s%C3%BCdliche_K%C3%BCstenlandschaft_in_der_Abendd%C3%A4mmerung.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/f54c0ca777a65229bbab.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "f651cdfe890431eff24c": {
       "article": {
         "category": "espacio",
