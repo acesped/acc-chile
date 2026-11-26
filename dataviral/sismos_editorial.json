@@ -2011,6 +2011,16 @@
       "angle": "fundamentos",
       "time": "2026-11-26T00:01:46.142277+00:00",
       "status": "publicado"
+    },
+    {
+      "episode_id": "sismos-09dce256a888",
+      "topic": "medicion:epicentro:lectura",
+      "topic_key": "epicentro",
+      "title": "¿Cómo leer las pistas que deja el epicentro?",
+      "style": "pregunta_respuesta",
+      "angle": "lectura",
+      "time": "2026-11-26T03:01:31.564116+00:00",
+      "status": "publicado"
     }
   ]
 }
