@@ -3471,6 +3471,43 @@
         }
       }
     },
+    "b3e4c072b27cc9a72b47": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-25T19:00:06+00:00",
+        "description": "The world's oceans will not play the role of scrubbing harmful ozone pollution from the atmosphere as the planet warms in the way that was expected, new research suggests.",
+        "editorial_mode": "verified_summary",
+        "explanation": "Los océanos del mundo no desempeñarán el papel de eliminar la contaminación dañina por ozono de la atmósfera a medida que el planeta se calienta de la manera que se esperaba, sugiere una nueva investigación.",
+        "id": "b3e4c072b27cc9a72b47",
+        "image_headline": "El yodo del océano global no compensará la futura contaminación del aire, advierte un estudio.",
+        "lang": "en",
+        "original_title": "Global ocean iodine won't offset future air pollution, study warns",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "El yodo del océano global no compensará la futura contaminación del aire, advierte un estudio.",
+        "url": "https://phys.org/news/2026-11-global-ocean-iodine-wont-offset.html"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nEl yodo del océano global no compensará la futura contaminación del aire, advierte un estudio.\n\nLos océanos del mundo no desempeñarán el papel de eliminar la contaminación dañina por ozono de la atmósfera a medida que el planeta se calienta de la manera que se esperaba, sugiere una nueva investigación.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "coastal landscape",
+        "sha256": "474cfe473c3a0094e885b3a15bedd24ecd702f4b6e85bd1cd85747f6ab08a509",
+        "source": "https://commons.wikimedia.org/wiki/File:Girolamo_Nerli_-_Coastal_Landscape_-_Sarjeant_Gallery.jpg",
+        "title": "File:Girolamo Nerli - Coastal Landscape - Sarjeant Gallery.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/8/8f/Girolamo_Nerli_-_Coastal_Landscape_-_Sarjeant_Gallery.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/b3e4c072b27cc9a72b47.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "b8e2f8c049930a4c8a11": {
       "article": {
         "category": "espacio",
