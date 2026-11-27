@@ -3386,6 +3386,43 @@
         }
       }
     },
+    "a39abaade619575f3efc": {
+      "article": {
+        "category": "desastres",
+        "date": "2026-11-25T11:40:04+00:00",
+        "description": "Californians are preparing for a confluence of exceptionally high tides and El Niño-fueled weather that threatens coastal areas with extreme flooding during the busiest U.S. travel week of the year.",
+        "editorial_mode": "verified_summary",
+        "explanation": "Los californianos se están preparando para una confluencia de mareas excepcionalmente altas y un clima impulsado por El Niño que amenaza a las zonas costeras con inundaciones extremas durante la semana de viajes más concurrida del año en EE. UU.",
+        "id": "a39abaade619575f3efc",
+        "image_headline": "California se prepara ante amenaza de inundaciones por mareas gigantes y El Niño",
+        "lang": "en",
+        "original_title": "California braces for flooding threat from huge tides, El Niño",
+        "search_category": "direct",
+        "source": "Phys.org Medio Ambiente",
+        "source_body": "",
+        "title": "California se prepara ante amenaza de inundaciones por mareas gigantes y El Niño",
+        "url": "https://phys.org/news/2026-11-california-braces-threat-huge-tides.html"
+      },
+      "caption": "🌎 SISMONAUTA | RIESGOS NATURALES\n\nCalifornia se prepara ante amenaza de inundaciones por mareas gigantes y El Niño\n\nLos californianos se están preparando para una confluencia de mareas excepcionalmente altas y un clima impulsado por El Niño que amenaza a las zonas costeras con inundaciones extremas durante la semana de viajes más concurrida del año en EE. UU.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #DesastresNaturales #Prevencion #RiesgosNaturales",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "landslide mountain",
+        "sha256": "451b572d77dcfb8f752cdee242d1e92ce80813058cd886cd8fc840ef9b30203b",
+        "source": "https://commons.wikimedia.org/wiki/File:USGS_Khait_landslide.jpg",
+        "title": "File:USGS Khait landslide.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/5/5b/USGS_Khait_landslide.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/a39abaade619575f3efc.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "a5fc5c52168f38d6493f": {
       "article": {
         "category": "espacio",
