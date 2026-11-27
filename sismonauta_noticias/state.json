@@ -2862,6 +2862,42 @@
         }
       }
     },
+    "93f7f4c1e8b376b500e3": {
+      "article": {
+        "category": "espacio",
+        "date": "2026-11-27T14:22:00+00:00",
+        "description": "Experimentos de la NASA, incluyendo un sistema de producción de cultivos espaciales único en su tipo, viajarán a la",
+        "explanation": "**Misión NG-25 de la NASA lanzará investigación pionera de cultivos espaciales.**\n\nLa misión NG-25 de Northrop Grumman despegará hacia la Estación Espacial Internacional con experimentos clave de la NASA. Entre las investigaciones destaca la instalación Ohalo III, un prototipo de cámara de cultivo que busca validar tecnologías de suministro de agua y optimización de volumen en microgravedad.\n\nEste sistema es fundamental para el diseño de hábitats en la Luna y futuras misiones a Marte, donde los astronautas requerirán fuentes de alimento sostenibles. Además, los hallazgos documentados podrían mejorar prácticas agrícolas terrestres, como el cultivo vertical y los sistemas de producción en interiores.\n\nPor otro lado, la misión llevará modelos de cerebro humano llamados miBrains. El objetivo es validar un sistema de manejo de fluidos en miniatura para mantener vivos estos tejidos. Esta investigación permitirá identificar riesgos neurológicos del vuelo espacial y desarrollar estrategias para proteger la salud de",
+        "id": "93f7f4c1e8b376b500e3",
+        "image_headline": "Misión NG-25 de la NASA lanzará investigación pionera de cultivos espaciales.",
+        "lang": "en",
+        "original_title": "NASA’s NG-25 Mission to Launch Pioneering Space Crops Research",
+        "search_category": "direct",
+        "source": "NASA publicaciones",
+        "source_body": "Experiments in the Ohalo III facility (pictured above) aim to validate plant-water delivery, optimize volume, and advance crop-production research. These insights could inform the design of plant production systems for future deep-space missions. NASA NASA experiments, including a first-of-its-kind space crop production system, will travel to the International Space Station aboard Northrop Grumman’s 25th Commercial Resupply Services mission for the agency. Investigations from NASA’s Biological and Physical Sciences Division will advance research that benefits life on Earth and future exploration, expanding knowledge of space crops and human health. Groundbreaking space crops Astronauts will need sustainable sources of food to travel farther and stay longer in space. To help understand how crop production works in microgravity, NASA is launching a novel space crops experiment . The new prototype growth chamber will provide critical insights for developing safe, nutritious, and reliable crop production systems for future Moon Base habitats and Mars missions. Knowledge gained from the space crop production system also could help inform agricultural practices such as vertical farming and indoor growing systems. Researchers will use this investigation to validate the system’s water delivery and volume optimization technology aboard the space station. Tiny brain models aboard station A precision health investigation is the next step toward enabling long-duration studies of human brain tissues in space. The research builds on a previous investigation that sent small, lab-grown models of the human brain, called miBrains, to the space station. This experiment will validate a miniature fluid-handling system designed to mix, deliver, and maintain the nutrient-rich liquid needed to keep the tissues alive. Researchers could use the findings to help identify potential neurological risks associated with spaceflight and develop strategies to protect astronaut health. It also may advance human tissue research and neurological disease modeling on Earth. Biological & Physical Sciences Division NASA’s Biological and Physical Sciences Division pioneers scientific discovery and enables exploration by using space environments to conduct investigations not possible on Earth. Studying biological and physical phenomena under extreme conditions allows researchers to advance the fundamental scientific knowledge required to go farther and stay longer in space, while also benefitting life on Earth.",
+        "title": "Misión NG-25 de la NASA lanzará investigación pionera de cultivos espaciales.",
+        "url": "https://science.nasa.gov/science-research/biological-physical-sciences/nasas-ng-25-mission-to-launch-pioneering-space-crops-research/"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIA ESPACIAL\n\nMisión NG-25 de la NASA lanzará investigación pionera de cultivos espaciales.\n\nLa misión NG-25 de Northrop Grumman despegará hacia la Estación Espacial Internacional con experimentos clave de la NASA. Entre las investigaciones destaca la instalación Ohalo III, un prototipo de cámara de cultivo que busca validar tecnologías de suministro de agua y optimización de volumen en microgravedad. Este sistema es fundamental para el diseño de hábitats en la Luna y futuras misiones a Marte, donde los astronautas requerirán fuentes de alimento sostenibles. Además, los hallazgos documentados podrían mejorar prácticas agrícolas terrestres, como el cultivo vertical y los sistemas de producción en interiores. Por otro lado, la misión llevará modelos de cerebro humano llamados miBrains. El objetivo es validar un sistema de manejo de fluidos en miniatura para mantener vivos estos tejidos. Esta investigación permitirá identificar riesgos neurológicos del vuelo espacial y desarrollar estrategias para proteger la salud de\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Espacio #Astronomia #NASA #ExploracionEspacial",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "NASA Earth from space",
+        "sha256": "83906bdb82886dd421909bbe0db6f572409c1b3ab7d767fbe0a006c5505d6281",
+        "source": "https://commons.wikimedia.org/wiki/File:STS057-89-009_-_STS-057_-_Earth_observations_during_mission_STS-57_from_Space_Shuttle_Endeavour._-_DPLA_-_23cda1975b5457e98fcc45dc62e6b96c.jpg",
+        "title": "File:STS057-89-009 - STS-057 - Earth observations during mission STS-57 from Space Shuttle Endeavour. - DPLA - 23cda1975b5457e98fcc45dc62e6b96c.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/2/25/STS057-89-009_-_STS-057_-_Earth_observations_during_mission_STS-57_from_Space_Shuttle_Endeavour._-_DPLA_-_23cda1975b5457e98fcc45dc62e6b96c.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/93f7f4c1e8b376b500e3.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "96506e0e6e891f5aa789": {
       "article": {
         "category": "espacio",
