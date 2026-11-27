@@ -2256,6 +2256,43 @@
         }
       }
     },
+    "713d1ff2554a0925133b": {
+      "article": {
+        "category": "meteorologia",
+        "date": "2026-11-27T18:20:10+00:00",
+        "description": "Each spring, warmer temperatures can bring earlier leaf-out, while rising atmospheric carbon dioxide can stimulate plant growth, allowing land ecosystems to absorb more carbon. Yet a study published in Nature Plants on Nov. 27 finds that this climate-driven greening has an overlooked brake: fine particulate air pollution, or PM2.5.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Cada primavera, las temperaturas más cálidas pueden provocar una brotación más temprana, mientras que el aumento del dióxido de carbono atmosférico puede estimular el crecimiento de las plantas, permitiendo que los ecosistemas terrestres absorban más carbono. Sin embargo, un estudio publicado en Nature Plants el 27 de noviembre encuentra que este verdor impulsado por el clima tiene un freno pasado por alto: la contaminación del aire por partículas finas, o PM2.5.",
+        "id": "713d1ff2554a0925133b",
+        "image_headline": "La contaminación por partículas finas puede debilitar el verdor de la primavera al obstruir los poros de las hojas.",
+        "lang": "en",
+        "original_title": "Fine particle pollution may weaken spring greening by clogging leaf pores",
+        "search_category": "direct",
+        "source": "Phys.org Medio Ambiente",
+        "source_body": "",
+        "title": "La contaminación por partículas finas puede debilitar el verdor de la primavera al obstruir los poros de las hojas.",
+        "url": "https://phys.org/news/2026-11-fine-particle-pollution-weaken-greening.html"
+      },
+      "caption": "🌎 SISMONAUTA | METEOROLOGÍA\n\nLa contaminación por partículas finas puede debilitar el verdor de la primavera al obstruir los poros de las hojas.\n\nCada primavera, las temperaturas más cálidas pueden provocar una brotación más temprana, mientras que el aumento del dióxido de carbono atmosférico puede estimular el crecimiento de las plantas, permitiendo que los ecosistemas terrestres absorban más carbono. Sin embargo, un estudio publicado en Nature Plants el 27 de noviembre encuentra que este verdor impulsado por el clima tiene un freno pasado por alto: la contaminación del aire por partículas finas, o PM2.5.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Meteorologia #Tiempo #Tormentas #Atmosfera",
+      "image": {
+        "generated": false,
+        "license": "Public domain",
+        "query": "storm clouds landscape",
+        "sha256": "ea01de1cec897b534956988dc994b4f5393c008c48dcb00dd8abf8cdc2a5ab42",
+        "source": "https://commons.wikimedia.org/wiki/File:Storm_clouds_over_the_Oasis_of_Mara_(51184574738).jpg",
+        "title": "File:Storm clouds over the Oasis of Mara (51184574738).jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e9/Storm_clouds_over_the_Oasis_of_Mara_%2851184574738%29.jpg/1920px-Storm_clouds_over_the_Oasis_of_Mara_%2851184574738%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/713d1ff2554a0925133b.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "722eecf3b7db3041b630": {
       "article": {
         "category": "espacio",
