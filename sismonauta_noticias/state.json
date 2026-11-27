@@ -1940,8 +1940,10 @@
           "status": "pending"
         },
         "instagram": {
+          "id": "17915962317377685",
+          "published_at": "2026-11-27T07:01:43.124377+00:00",
           "started_at": "2026-11-27T07:01:16.113659+00:00",
-          "status": "uncertain"
+          "status": "published"
         }
       }
     },
