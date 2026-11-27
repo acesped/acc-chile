@@ -3449,6 +3449,13 @@
       "updated_at": "2026-11-27T00:01:55.743416+00:00",
       "reel_id": "18459026428130757",
       "story": "enviando"
+    },
+    "sismos-38b01b0007d9": {
+      "topic": "geologia:levantamiento:escala",
+      "topic_key": "levantamiento",
+      "title": "¿Por qué la escala importa al estudiar el levantamiento de montañas?",
+      "reel": "enviando",
+      "updated_at": "2026-11-27T09:01:14.856848+00:00"
     }
   },
   "youtube_upload_retry_after": "2026-11-27T03:03:06.795596+00:00"
