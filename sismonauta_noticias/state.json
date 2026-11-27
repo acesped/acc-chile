@@ -3430,6 +3430,43 @@
         }
       }
     },
+    "ac489eef7264ac15f79f": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-27T01:55:42+00:00",
+        "description": "El fondo marino ha sido considerado durante mucho tiempo un refugio seguro para la vida marina, pero nueva investigación genética sugiere que una crisis de biodiversidad oculta podría estar desarrollándose muy por debajo de las olas. Científicos que analizaron más de una década de datos genéticos de cinco especies de peces y camarones de aguas profundas en el Golfo descubrieron señales preocupantes de riesgo de extinción en cada especie examinada.",
+        "explanation": "**Científicos descubren señales de una crisis de extinción oculta en las profundidades del océano**\n\nInvestigaciones recientes han revelado que los animales marinos que habitan en las profundidades del Golfo de México podrían estar en mayor riesgo de extinción de lo que se pensaba. Un equipo de científicos de la Universidad Internacional de Florida (FIU) analizó datos genéticos durante 12 años y encontró signos preocupantes en cinco especies marinas, incluyendo tres tipos de peces linterna y dos especies de camarones de aguas profundas.\n\nLos resultados indican que todas las especies estudiadas presentan características genéticas asociadas a un mayor riesgo de extinción. Por ejemplo, el pez linterna Diaphus dumerilii mostró una reducción del 8% en su diversidad genética en solo 12 años. Este hallazgo es alarmante, ya que se asemeja a las disminuciones observadas en especies amenazadas a lo largo de períodos mucho más largos.\n\nAdemás, los modelos climáticos sugieren que para 2050 y 2100, cuatro de las cinco especies podrían enfrentar pérdidas de hábitat de hasta un 70%. Esto desafía la creencia de que las especies de aguas profundas son más resilientes debido a sus vastos entornos. Los científicos advierten que la pérdida de diversidad genética puede comprometer la capacidad de estas especies para adaptarse a cambios ambientales y recuperarse de perturbaciones.",
+        "id": "ac489eef7264ac15f79f",
+        "image_headline": "Investigaciones revelan que especies marinas profundas enfrentan riesgo de extinción debido a la pérdida de diversidad genética.",
+        "lang": "en",
+        "original_title": "Scientists discover signs of a hidden extinction crisis deep beneath the ocean",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261125045249.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "Científicos descubren señales de una crisis de extinción oculta en las profundidades del océano.",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261125045249.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nInvestigaciones revelan que especies marinas profundas enfrentan riesgo de extinción debido a la pérdida de diversidad genética.\n\nCientíficos descubren señales de una crisis de extinción oculta en las profundidades del océano Investigaciones recientes han revelado que los animales marinos que habitan en las profundidades del Golfo de México podrían estar en mayor riesgo de extinción de lo que se pensaba. Un equipo de científicos de la Universidad Internacional de Florida (FIU) analizó datos genéticos durante 12 años y encontró signos preocupantes en cinco especies marinas, incluyendo tres tipos de peces linterna y dos especies de camarones de aguas profundas. Los resultados indican que todas las especies estudiadas presentan características genéticas asociadas a un mayor riesgo de extinción. Por ejemplo, el pez linterna Diaphus dumerilii mostró una reducción del 8% en su diversidad genética en solo 12 años. Este hallazgo es alarmante, ya que se asemeja a las disminuciones observadas en especies amenazadas a lo largo de períodos mucho más largos. Además, los modelos climáticos sugieren que para 2050 y 2100, cuatro de las cinco especies podrían enfrentar pérdidas de hábitat de hasta un 70%. Esto desafía la creencia de que las especies de aguas profundas son más resilientes debido a sus vastos entornos. Los científicos advierten que la pérdida de diversidad genética puede comprometer la capacidad de estas especies para adaptarse a cambios ambientales y recuperarse de perturbaciones.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "coastal landscape",
+        "sha256": "38288f9c4067f8978bdb9f22d2a55d553b1b4437ebee8eb75443d5f20f2bb8b6",
+        "source": "https://commons.wikimedia.org/wiki/File:Frank_William_Warwick_Topham_-_Coastal_Landscape_-_B1977.14.4386_-_Yale_Center_for_British_Art.jpg",
+        "title": "File:Frank William Warwick Topham - Coastal Landscape - B1977.14.4386 - Yale Center for British Art.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Frank_William_Warwick_Topham_-_Coastal_Landscape_-_B1977.14.4386_-_Yale_Center_for_British_Art.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/ac489eef7264ac15f79f.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "b0663b53949e29d7b36f": {
       "article": {
         "category": "oceanos",
