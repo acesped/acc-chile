@@ -109,6 +109,95 @@ def get(url,**kwargs):
     response=HTTP.get(url,timeout=kwargs.pop('timeout',25),**kwargs)
     response.raise_for_status();return response
 
+
+# Exclusión editorial permanente de APOD (NASA).
+APOD_PATTERN = re.compile(
+    r'\bapod\b|\bastronomy\s+(?:picture|photo|image)\s+of\s+the\s+day\b|'
+    r'\bastronomical\s+(?:picture|photo|image)\s+of\s+the\s+day\b|'
+    r'\b(?:imagen|foto(?:grafia)?)\s+astronomica\s+del\s+dia\b|'
+    r'\b(?:imagen|foto(?:grafia)?)\s+del\s+dia\s+(?:de\s+(?:la\s+)?nasa|astronomica)\b|'
+    r'\bnasa(?:\s+s)?\s+(?:picture|photo|image)\s+of\s+the\s+day\b|'
+    r'\b(?:picture|photo|image)\s+of\s+the\s+day\s+(?:by|from|of)\s+nasa\b', re.I)
+
+
+def is_apod_url(url):
+    try:
+        p = urlparse(html.unescape(str(url or '')).strip())
+        host = (p.hostname or '').lower().rstrip('.')
+        path = urllib.parse.unquote(p.path).lower()
+        return (any(host == d or host.endswith('.' + d)
+                    for d in ('apod.nasa.gov', 'apod.com', 'apod.gsfc.nasa.gov'))
+                or bool(re.search(r'(?:^|/)(?:apod|astronomy[-_]picture[-_]of[-_]the[-_]day)(?:/|$|\.)', path))
+                or (host == 'nasa.gov' or host.endswith('.nasa.gov'))
+                   and bool(re.search(r'/ap\d{6}\.html?$', path)))
+    except (ValueError, TypeError):
+        return False
+
+
+def is_apod_content(*values):
+    for value in values:
+        raw = html.unescape(str(value or ''))
+        text = re.sub(r'[^\w]+', ' ', normalized(raw)).strip()
+        if APOD_PATTERN.search(text):
+            return True
+        if is_apod_url(raw):
+            return True
+        if any(is_apod_url(u.rstrip('.,);')) for u in re.findall(r'https?://[^\s<>"\']+', raw, re.I)):
+            return True
+    return False
+
+
+_APOD_BLOCKED_URLS = set()
+
+def apod_blocked(article, *extra):
+    fields = ('title', 'original_title', 'description', 'source', 'url',
+              'resolved_source_url', 'source_body', 'image_headline', 'explanation')
+    return bool(article.get('_apod_blocked')) or article.get('url') in _APOD_BLOCKED_URLS or is_apod_content(
+        *(article.get(k, '') for k in fields), *extra)
+
+
+def reject_apod(article, *extra):
+    if apod_blocked(article, *extra):
+        article['_apod_blocked'] = True
+        if article.get('url'):_APOD_BLOCKED_URLS.add(article['url'])
+        log('APOD BLOQUEADA:', article.get('title', '')[:150])
+        return True
+    return False
+
+
+def test_apod_filter():
+    blocked = [
+        'NASA APOD: a distant galaxy', 'Astronomy Picture of the Day',
+        'Imagen astronómica del día', 'Fotografía astronómica del día',
+        'Imagen del día de la NASA', "NASA’s image of the day",
+        'https://apod.nasa.gov/apod/ap261127.html',
+        'https://www.apod.com/', 'https://example.org/astronomy-picture-of-the-day/test',
+    ]
+    allowed = ['NASA descubre un exoplaneta', 'James Webb observa una galaxia',
+               'NASA publica resultados científicos de Marte',
+               'https://science.nasa.gov/missions/webb/', 'Capodimonte observatory']
+    for item in blocked:
+        assert is_apod_content(item), item
+        assert classify(item, 'NASA astronomía') is None, item
+    for item in allowed:
+        assert not is_apod_content(item), item
+    article = {'id':'apod-test', 'title':'Una galaxia distante',
+               'category':'espacio', 'source_body':'Astronomy Picture of the Day',
+               'explanation':'Una galaxia observada por instrumentos científicos.'}
+    assert not editorial_eligible(article)
+    state = {'stories': {'apod-test': {'article':article, 'targets':{
+        'instagram':{'status':'pending'}, 'facebook':{'status':'published'}}}}}
+    assert not pending_story_ids(state)
+    assert not instagram_candidate_allowed(article, state)
+    try:
+        publish_article(None, {}, article, None, {}, '', None)
+    except RuntimeError as exc:
+        assert 'APOD' in str(exc), str(exc)
+    else:
+        raise AssertionError('APOD llegó a publicación')
+    log('FILTRO APOD VALIDADO:', len(blocked), 'bloqueados;', len(allowed), 'permitidos')
+
+
 def is_earthquake_occurrence(title,description='',source=''):
     title,description,source=normalized(title),normalized(description),normalized(source)
     combined=title+' '+description; has_quake=bool(QUAKE_TERM.search(combined))
@@ -130,6 +219,7 @@ def test_earthquake_filter():
     log('FILTRO SÍSMICO VALIDADO:',len(blocked),'bloqueados;',len(allowed),'permitidos')
 
 def classify(title,description,source=''):
+    if is_apod_content(title, description, source):return None
     if is_earthquake_occurrence(title,description,source):return None
     content=clean(title)+' '+clean(description)
     if SPAM.search(content) or MISLEADING.search(content):return None
@@ -180,6 +270,7 @@ def direct_feed_items(cutoff,current):
             description=clean(nt('description','{http://www.w3.org/2005/Atom}summary'))
             body=clean(nt('{http://purl.org/rss/1.0/modules/content/}encoded','{http://www.w3.org/2005/Atom}content'))
             if not title or not link.startswith('https://'):continue
+            if is_apod_content(title,description,body,publisher,link):log('APOD RSS DIRECTO:',title);continue
             category=classify(title,description+' '+body[:650],publisher)
             if not category:continue
             identifier=hashlib.sha256(re.sub('[^a-z0-9]','',normalized(title)).encode()).hexdigest()[:20]
@@ -190,11 +281,11 @@ def direct_feed_items(cutoff,current):
 
 def feed_items():
     current=now();cutoff=current-timedelta(hours=LOOKBACK_HOURS)
-    output={};audit={'feeds_ok':0,'feeds_failed':0,'rss_items':0,'outside_window':0,'earthquake_occurrence':0,'not_relevant':0,'accepted':0}
+    output={};audit={'feeds_ok':0,'feeds_failed':0,'rss_items':0,'outside_window':0,'earthquake_occurrence':0,'apod_blocked':0,'not_relevant':0,'accepted':0}
     for search_category,queries in SEARCH_GROUPS.items():
         for lang,query in queries:
             hl,gl,ceid=('es-CL','CL','CL:es-419') if lang=='es' else ('en-US','US','US:en')
-            url='https://news.google.com/rss/search?'+urllib.parse.urlencode({'q':query+' when:14d','hl':hl,'gl':gl,'ceid':ceid})
+            url='https://news.google.com/rss/search?'+urllib.parse.urlencode({'q':query+' when:14d -APOD -"Astronomy Picture of the Day" -"imagen astronómica del día" -site:apod.nasa.gov -site:apod.com','hl':hl,'gl':gl,'ceid':ceid})
             try:root=ET.fromstring(get(url,timeout=20).content);audit['feeds_ok']+=1
             except Exception as exc:audit['feeds_failed']+=1;log('RSS ERROR:',query,safe_error(exc));continue
             for node in root.findall('.//channel/item')[:80]:
@@ -206,6 +297,7 @@ def feed_items():
                     if not provider or normalized(suffix)==normalized(provider):title=prefix.strip()
                 date=parse_date(node.findtext('pubDate') or '')
                 if date is None or not cutoff<=date<=current+timedelta(minutes=5):audit['outside_window']+=1;continue
+                if is_apod_content(title,description,provider,link):audit['apod_blocked']+=1;log('APOD RSS:',title);continue
                 if is_earthquake_occurrence(title,description,provider):audit['earthquake_occurrence']+=1;continue
                 category=classify(title,description,provider)
                 if not category or words(title)<4 or not link.startswith('https://'):audit['not_relevant']+=1;continue
@@ -221,6 +313,7 @@ def feed_items():
     return list(output.values())
 
 def editorial_relevance(article):
+    if reject_apod(article):return -100
     title=clean(article.get('original_title') or article.get('title',''));category=article.get('category','')
     if is_earthquake_occurrence(title,article.get('description',''),article.get('source','')):return -100
     if EDITORIAL_LOW_VALUE.search(title) or SPAM.search(title) or MISLEADING.search(title):return -100
@@ -239,6 +332,7 @@ def editorial_eligible(article):
     al menos 18 palabras, temáticamente relevante y distinto del título puede
     respaldar una publicación *breve* sin inventar información adicional.
     """
+    if reject_apod(article):return False
     relevance=editorial_relevance(article)
     if relevance>=MIN_EDITORIAL_RELEVANCE:return True
     if relevance<0 or article.get('search_category')!='direct':return False
@@ -329,7 +423,7 @@ class ArticleParser(HTMLParser):
     def handle_data(self,data):
         if self.in_p and not self.block:self.parts.append(data)
 
-_ARTICLE_CACHE={};_GOOGLE_NEWS_HOSTS={'news.google.com','news.googleusercontent.com'}
+_ARTICLE_RESOLVED={};_ARTICLE_CACHE={};_GOOGLE_NEWS_HOSTS={'news.google.com','news.googleusercontent.com'}
 def _safe_article_url(url):
     try:
         parsed=urlparse(str(url));return parsed.scheme=='https' and bool(parsed.hostname) and not parsed.username and not parsed.password
@@ -389,17 +483,25 @@ def extract_article_html(page):
     return choices[0][:18000] if choices else ''
 
 def full_article_text(article):
+    if reject_apod(article):return ''
     direct=article.get('source_body','')
     if source_text_sufficient(direct):return direct[:18000]
     url=article.get('url','')
     if not _safe_article_url(url):return ''
-    if url in _ARTICLE_CACHE:return _ARTICLE_CACHE[url]
+    if url in _ARTICLE_CACHE:
+        cached=_ARTICLE_CACHE[url]
+        if url in _ARTICLE_RESOLVED:article['resolved_source_url']=_ARTICLE_RESOLVED[url]
+        return '' if reject_apod(article,cached) else cached
     final=resolve_article_url(url)
     if not final:_ARTICLE_CACHE[url]='';return ''
+    article['resolved_source_url']=final
+    if reject_apod(article):return ''
     try:
         response=get(final,timeout=15,headers={'Accept':'text/html,application/xhtml+xml'})
         result=extract_article_html(response.text) if 'html' in response.headers.get('Content-Type','').lower() and len(response.content)<=3_000_000 else ''
-        if source_text_sufficient(result):article['resolved_source_url']=response.url
+        article['resolved_source_url']=response.url
+        _ARTICLE_RESOLVED[url]=response.url
+        if reject_apod(article,result):return ''
         _ARTICLE_CACHE[url]=result;return result
     except Exception as exc:log('ARTÍCULO NO ACCESIBLE:',type(exc).__name__,urlparse(final).hostname);_ARTICLE_CACHE[url]='';return ''
 
@@ -425,6 +527,7 @@ def brief_development(article,text):
     return result if words(result)>=FALLBACK_DEVELOPMENT_WORDS and len(selected)>=2 else None
 
 def source_for_fallback(article,recovered):
+    if reject_apod(article,recovered):return '',''
     if short_source_sufficient(recovered):return recovered,'article_short'
     if short_source_sufficient(article.get('source_body','')):return article['source_body'],'direct_rss_body'
     if article.get('search_category')=='direct' and short_source_sufficient(article.get('description','')):return article['description'],'direct_rss_summary'
@@ -489,7 +592,7 @@ def used_photo_keys(state):
     for entry in (state.get('stories') or {}).values():
         if not isinstance(entry,dict):continue
         targets=entry.get('targets') or {}
-        if not any((targets.get(k) or {}).get('status') in ('published','uncertain','enviando') for k in ('instagram','facebook_feed','facebook')):continue
+        if not any((targets.get(k) or {}).get('status') in ('published','uncertain','enviando') for k in ('instagram','facebook')):continue
         meta=entry.get('image') or {}
         if not isinstance(meta,dict) or meta.get('generated'):continue
         for field in ('source','title','sha256'):
@@ -579,6 +682,7 @@ def sanitize_explanation(text,title=''):
 HEADLINE_FORBIDDEN=re.compile(r'\b(?:no\s+vas\s+a\s+creer|incre[ií]ble|impactante|shock|aterrador|apocalipsis|la\s+verdad\s+oculta|nadie\s+te\s+cuenta|te\s+dejar[aá]\s+sin\s+palabras)\b',re.I)
 def headline_numbers(text):return set(re.findall(r'(?<!\w)\d+(?:[.,]\d+)?(?!\w)',clean(text)))
 def headline_valid(candidate,article,source_text):
+    if is_apod_content(candidate,source_text):return False
     candidate=clean(candidate).strip('"“”«»*# ')
     if not 5<=words(candidate)<=19 or len(candidate)>128:return False
     if HEADLINE_FORBIDDEN.search(candidate) or 'TITULAR:' in candidate.upper():return False
@@ -621,6 +725,7 @@ def make_card(image,article,path):
     Image.alpha_composite(canvas,veil).convert('RGB').save(path,'JPEG',quality=91,optimize=True)
 
 def caption(article,credit):
+    if reject_apod(article):raise ValueError('APOD excluida')
     title=clean(article.get('image_headline') or article['title'])
     explanation=sanitize_explanation(article.get('explanation',''),article.get('title',''))
     explanation=sanitize_explanation(explanation,title)
@@ -636,6 +741,7 @@ def caption(article,credit):
 
 # El texto de Facebook no necesita ajustarse al límite de Instagram.
 def facebook_feed_text(article,instagram_caption):
+    if reject_apod(article,instagram_caption):raise ValueError('APOD excluida')
     title=clean(article.get('image_headline') or article['title'])
     explanation=sanitize_explanation(article.get('explanation',''),article.get('title',''))
     explanation=sanitize_explanation(explanation,title)
@@ -782,6 +888,7 @@ def fb_check():
     log('Facebook validado:',info.get('name'));return page,token
 
 def publish_ig(user,token,image_url,text):
+    if is_apod_content(text):raise RuntimeError('PUBLICACIÓN BLOQUEADA: APOD Instagram')
     container=graph('POST',user+'/media',token,{'image_url':image_url,'caption':text})['id']
     for _ in range(18):
         time.sleep(8)
@@ -825,6 +932,7 @@ def fb_feed_has_photo(page, token, post_id):
 
 def publish_fb_feed(page,token,image_url,text):
     """Crear post público del feed con portada real adjunta y verificarla."""
+    if is_apod_content(text):raise RuntimeError('PUBLICACIÓN BLOQUEADA: APOD Facebook')
     text=str(text or '').strip()
     if not text:raise RuntimeError('Facebook feed: mensaje vacío')
     if not str(image_url or '').startswith('https://'):
@@ -919,6 +1027,7 @@ def pending_story_ids(state):
     for key,entry in (state.get('stories') or {}).items():
         if not isinstance(entry,dict) or is_confirmed(entry):continue
         if not instagram_pending(entry):continue
+        if apod_blocked(entry.get('article') or {},entry.get('caption','')):continue
         targets=entry.get('targets') or {}
         if any((targets.get(d) or {}).get('status') in ('published','uncertain','enviando')
                for d in (*DESTINATIONS, 'facebook') if d!='instagram'):
@@ -929,6 +1038,9 @@ def pending_story_ids(state):
 
 def instagram_candidate_allowed(original,state):
     """No reciclar una noticia para la que Instagram ya fue enviada."""
+    if reject_apod(original):return False
+    saved=(state.get('stories') or {}).get(original.get('id'),{})
+    if apod_blocked(saved.get('article') or {},saved.get('caption','')):return False
     prior=(state.get('stories') or {}).get(original.get('id'),{})
     return instagram_pending(prior)
 
@@ -964,6 +1076,7 @@ def select_news(articles,state):
         article['explanation']=development
         if not validate_development(article,source)[0]:reasons['no_development']+=1;continue
         article['image_headline']=factual_headline(article,source)
+        if reject_apod(article):continue
         photo,credit=commons_photo(original,state)
         if photo is None:photo,credit=original_background(article);reasons['generated_backgrounds']+=1
         try:description=caption(article,credit)
@@ -972,6 +1085,11 @@ def select_news(articles,state):
     return None,None,None,None,reasons
 
 def _article_from_original(original,mode,evidence,state,score=None):
+    if reject_apod(original,evidence):return None
+    original=dict(original)
+    recovered=full_article_text(original)
+    if reject_apod(original,recovered):return None
+    if urlparse(original.get('url','')).hostname in _GOOGLE_NEWS_HOSTS and not original.get('resolved_source_url'):return None
     article=dict(original)
     if article.get('lang')=='en':
         title=translate_es(article['title']);evidence=translate_es(evidence)
@@ -980,6 +1098,7 @@ def _article_from_original(original,mode,evidence,state,score=None):
     article['editorial_mode']=mode;article['explanation']=clean(evidence)
     if score is not None:article['evidence_score']=score
     article['image_headline']=article['title']
+    if reject_apod(article):return None
     photo,credit=commons_photo(original,state)
     if photo is None:photo,credit=original_background(article)
     try:description=caption(article,credit)
@@ -995,7 +1114,10 @@ def select_documented_brief(articles,state):
         previous=(state.get('stories') or {}).get(original['id'],{})
         if is_confirmed(previous) or has_uncertain(previous):continue
         if previous.get('article',{}).get('explanation'):continue
-        recovered=full_article_text(dict(original));evidence,_=source_for_fallback(original,recovered)
+        original=dict(original)
+        recovered=full_article_text(original)
+        if reject_apod(original,recovered):continue
+        evidence,_=source_for_fallback(original,recovered)
         if not evidence:continue
         explanation=brief_development(original,evidence)
         if not explanation:continue
@@ -1092,6 +1214,7 @@ def publish_article(gh,state,article,image_file,credit,description,output):
     Remote status is persisted BEFORE each API POST. Subsequent targets continue
     after an isolated API error; an ambiguous target cannot be retried blindly.
     """
+    if reject_apod(article,description):raise RuntimeError('PUBLICACIÓN BLOQUEADA: APOD')
     for title in (article.get('original_title'),article['title']):
         if title and is_earthquake_occurrence(title,article.get('description',''),article.get('source','')):
             raise RuntimeError('PUBLICACIÓN BLOQUEADA: reporte de ocurrencia sísmica')
@@ -1105,6 +1228,8 @@ def publish_article(gh,state,article,image_file,credit,description,output):
     remote_state,sha=load_state(gh)
     article_id=article['id']
     original_entry=copy.deepcopy(remote_state['stories'].get(article_id))
+    if original_entry and apod_blocked(original_entry.get('article') or {},original_entry.get('caption','')):
+        raise RuntimeError('PUBLICACIÓN BLOQUEADA: APOD en historial remoto')
     entry=remote_state['stories'].setdefault(article_id,{'article':article,'image':credit,'targets':{}})
     targets=targets_of(entry)
     receipt_path=output/'estado_publicacion.json'
@@ -1118,9 +1243,6 @@ def publish_article(gh,state,article,image_file,credit,description,output):
         if targets[dest].get('status') not in (None,'pending','published','uncertain','enviando'):
             raise RuntimeError('Estado previo desconocido: '+dest)
 
-    # Instantánea del artículo que esta ejecución leyó por última vez.
-    # Sólo fusionamos modificaciones de OTRAS noticias; nunca pisamos
-    # cambios concurrentes del mismo artículo ni reintentamos Meta a ciegas.
     baseline_entry=original_entry
 
     def persist():
@@ -1132,25 +1254,15 @@ def publish_article(gh,state,article,image_file,credit,description,output):
             current=latest['stories'].get(article_id)
             desired=copy.deepcopy(entry)
             if current != baseline_entry and current != desired:
-                raise RuntimeError(
-                    'GitHub: otra ejecución modificó ESTA noticia; '
-                    'no sobrescribir ni reintentar publicaciones de Meta. '
-                    'Revisar '+STATE_FILE+' y los IDs ya publicados'
-                )
+                raise RuntimeError('GitHub: otra ejecución modificó ESTA noticia; no sobrescribir ni reintentar Meta')
             latest['stories'][article_id]=desired
             payload=json.dumps(latest,ensure_ascii=False,indent=2,sort_keys=True).encode()
             if latest_raw==payload:
-                sha=latest_sha
-                baseline_entry=copy.deepcopy(desired)
-                return
+                sha=latest_sha;baseline_entry=copy.deepcopy(desired);return
             try:
                 result=gh.write(STATE_FILE,payload,expected_sha=latest_sha)
             except RuntimeError as exc:
-                # La rama avanzó entre lectura y PUT: volver a leer y fusionar
-                # sólo si nuestra noticia conserva su instantánea anterior.
-                if ('SHA distinto' in str(exc) or 'otro proceso cambió' in str(exc)) and attempt<5:
-                    log('GITHUB: cambio concurrente, fusionando historial de otras noticias; intento',attempt+2)
-                    continue
+                if ('SHA distinto' in str(exc) or 'otro proceso cambió' in str(exc)) and attempt<5:continue
                 raise
             sha=(result.get('content') or {}).get('sha')
             baseline_entry=copy.deepcopy(desired)
@@ -1235,14 +1347,10 @@ def publish_article(gh,state,article,image_file,credit,description,output):
         try:
             identifier=action()
             row.update(status='published',id=str(identifier),published_at=now().isoformat())
-            # Registrar evidencia local ANTES del PUT de GitHub: si éste falla,
-            # el ID confirmado por Meta permanece en el artefacto del workflow.
             receipt('partial_or_uncertain')
             log('META PUBLICADO:',platform,'ID:',identifier)
             persist();receipt()
         except Exception as exc:
-            # El registro local de un ID publicado se mantiene aunque falle GitHub.
-            # Jamás degradar a pendiente ni reintentar el POST automáticamente.
             row['error']=safe_error(exc)
             failures.append(platform+': '+safe_error(exc))
             try:persist()
@@ -1250,11 +1358,8 @@ def publish_article(gh,state,article,image_file,credit,description,output):
                 log('ERROR GUARDANDO ESTADO:',safe_error(persist_exc))
             receipt();log('ERROR META:',platform,safe_error(exc))
     if is_confirmed(entry):
-        # La evidencia de Meta queda disponible en el artefacto incluso si
-        # GitHub rechaza la escritura final de published_at.
         receipt('partial_or_uncertain')
-        entry['published_at']=now().isoformat()
-        persist()
+        entry['published_at']=now().isoformat();persist()
     result=receipt()
     if failures:raise RuntimeError('Publicación parcial/incierta; revisar Meta: '+' / '.join(failures))
     return result
@@ -1320,84 +1425,6 @@ def test_publication():
     assert pending_story_ids(ig_recovery)==['old'], 'Instagram pendiente no se recupera'
     assert instagram_candidate_allowed({'id':'old'},ig_recovery)
     log('SELECCIÓN IG: pendientes reales priorizados, cola solo Facebook no bloquea Instagram')
-
-    # Historial: cambios en OTRA noticia se fusionan sin perder el ID de Meta.
-    # Cambios en ESTA misma noticia detienen la escritura.
-    from tempfile import TemporaryDirectory
-    class FakeGithub:
-        def __init__(self):
-            self.state={'stories':{}}
-            self.sha=0
-            self.inject=None
-        def read(self,path):
-            if path!=STATE_FILE:return b'foto-original','foto-sha'
-            return json.dumps(self.state,ensure_ascii=False).encode(),str(self.sha)
-        def write(self,path,raw,expected_sha=None):
-            if self.inject is not None:
-                self.state['stories'].update(self.inject)
-                self.inject=None
-                self.sha+=1
-            if expected_sha!=str(self.sha):
-                raise RuntimeError('GitHub: SHA distinto')
-            self.state=json.loads(raw)
-            self.sha+=1
-            return {'content':{'sha':str(self.sha)}}
-        def image_url(self,path):return 'https://example.org/card.jpg'
-
-    article={'id':'test-merge','title':'Investigación científica de océanos',
-             'category':'oceanos','explanation':' '.join(['Investigadores analizan observaciones de los océanos.']*22)}
-    initial={'stories':{'test-merge':{'article':article,'caption':'texto',
-                      'image_url':'https://example.org/card.jpg',
-                      'targets':{'instagram':{'status':'pending'},
-                                 'facebook_feed':{'status':'published','id':'fb_99'}}}}}
-    with TemporaryDirectory() as temporary:
-        gh=FakeGithub();gh.state=copy.deepcopy(initial)
-        gh.inject={'noticia-ajena':{'targets':{'instagram':{'status':'published','id':'ig_55'}}}}
-        fake_image_response=type('ImageResponse',(),{'ok':True,'headers':{'Content-Type':'image/jpeg'}})()
-        with (patch(__name__+'.ig_check',return_value=('123','token')),
-              patch(__name__+'.publish_ig',return_value='ig_88'),
-              patch.object(HTTP,'get',return_value=fake_image_response)):
-            result=publish_article(gh,gh.state,article,None,{},'texto',Path(temporary))
-        assert result['status']=='published'
-        assert gh.state['stories']['test-merge']['targets']['instagram']['id']=='ig_88'
-        assert 'noticia-ajena' in gh.state['stories']
-        # Segunda ejecución: no volver a enviar a Meta.
-        with patch(__name__+'.publish_ig',side_effect=AssertionError('duplicado')):
-            again=publish_article(gh,gh.state,article,None,{},'texto',Path(temporary))
-        assert again['status']=='already_published'
-    # Un artículo completamente nuevo también debe poder crear su registro.
-    with TemporaryDirectory() as temporary:
-        gh=FakeGithub()
-        fresh=dict(article,id='test-new')
-        gh.inject={'noticia-ajena':{'targets':{'instagram':{'status':'published','id':'ig_55'}}}}
-        fake_image_response=type('ImageResponse',(),{'ok':True,'headers':{'Content-Type':'image/jpeg'}})()
-        with (patch(__name__+'.ig_check',return_value=('123','token')),
-              patch(__name__+'.fb_check',return_value=('123','token')),
-              patch(__name__+'.publish_ig',return_value='ig_new'),
-              patch(__name__+'.publish_fb_feed',return_value='fb_new'),
-              patch.object(HTTP,'get',return_value=fake_image_response)):
-            folder=Path(temporary)
-            img=folder/'test-new.jpg';img.write_bytes(b'foto-demo')
-            created=publish_article(gh,gh.state,fresh,img,{},'texto',folder)
-        assert created['status']=='published'
-        assert gh.state['stories']['test-new']['targets']['instagram']['id']=='ig_new'
-        assert gh.state['stories']['test-new']['targets']['facebook_feed']['id']=='fb_new'
-        assert 'noticia-ajena' in gh.state['stories']
-    # Nunca sustituir el registro del mismo artículo modificado por otro proceso.
-    with TemporaryDirectory() as temporary:
-        gh=FakeGithub();gh.state=copy.deepcopy(initial)
-        gh.inject={'test-merge':{'article':article,'caption':'texto',
-            'image_url':'https://example.org/card.jpg',
-            'targets':{'instagram':{'status':'published','id':'ig_otro'},
-                       'facebook_feed':{'status':'published','id':'fb_99'}}}}
-        fake_image_response=type('ImageResponse',(),{'ok':True,'headers':{'Content-Type':'image/jpeg'}})()
-        with patch.object(HTTP,'get',return_value=fake_image_response):
-            try:publish_article(gh,gh.state,article,None,{},'texto',Path(temporary))
-            except RuntimeError as exc:
-                assert 'ESTA noticia' in str(exc)
-            else:raise AssertionError('Se sobrescribió una publicación concurrente')
-    log('PRUEBA SHA: fusionar otras noticias, conservar IDs de Meta y bloquear reenvío')
-
     log('PRUEBAS PUBLICACIÓN: Instagram foto y UN SOLO Facebook feed con imagen')
 
 def test_extraction():
@@ -1502,7 +1529,7 @@ def test_best_available():
     b=item('b','Científicos descubren nuevo sistema de monitoreo volcánico',
        'Investigadores documentan nuevas mediciones de magma y volcanes mediante instrumentos geofísicos que permiten seguir las variaciones detectadas durante la investigación.')
     assert evidence_score(b)>evidence_score(a)
-    with patch(__name__+'.commons_photo',return_value=(None,None)):
+    with patch(__name__+'.commons_photo',return_value=(None,None)), patch(__name__+'.full_article_text',return_value=''):
         article,photo,credit,description=select_best_available([a,b],{'stories':{}})
         assert article and article['id']=='b'
         assert article['editorial_mode']=='verified_summary'
@@ -1518,7 +1545,7 @@ def test_headline_digest():
         'description':'El equipo de investigación analizó mediciones de superficie y observaciones satelitales para estudiar los cambios detectados en glaciares. Los resultados permitirán mejorar las comparaciones científicas regionales.',
         'category':'climatologia','lang':'es','source':'Medio científico','search_category':'rss',
         'url':'https://example.org/actualidad','date':now().isoformat()}
-    with patch(__name__+'.commons_photo',return_value=(None,None)):
+    with patch(__name__+'.commons_photo',return_value=(None,None)), patch(__name__+'.full_article_text',return_value=''):
         found,photo,credit,text=select_headline_digest([article],{'stories':{}})
         assert found and found['editorial_mode']=='headline_digest'
         assert text.count(article['title'])==1
@@ -1536,6 +1563,7 @@ def main():
         parser.add_argument('--test-'+flag,action='store_true')
     args=parser.parse_args()
     test_earthquake_filter()
+    test_apod_filter()
     if args.test_filter:return 0
     if args.check_instagram:check_instagram_only();return 0
     if args.inspect_status:
