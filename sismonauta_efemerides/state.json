@@ -92,6 +92,34 @@
           "status": "published"
         }
       }
+    },
+    "2026-11-27:a2a7654056d4e24e86": {
+      "caption": "UN DÍA COMO HOY, pero hace 81 años...\n\nEl 27/11/1945 ocurrió un terremoto de magnitud 8.0 en la zona de Makran Coast, Pakistán. El registro histórico consigna 300 personas fallecidas considerando los efectos asociados, incluido el tsunami cuando corresponde. Este episodio forma parte del registro histórico de terremotos significativos y permite recordar el impacto que pueden producir los grandes movimientos de la Tierra.\n\nTe leemos en los comentarios.\n\n#SISMONAUTA #EfemeridesSismicas #Terremotos #Sismologia #HistoriaSismica #CienciaDeLaTierra #PrevencionSismica",
+      "checked_at": "2026-11-27T12:00:39.406689+00:00",
+      "event": {
+        "date": "1945-11-27",
+        "deaths": 300,
+        "depth_km": 15.0,
+        "fatalities_type": "total",
+        "id": "a2a7654056d4e24e86",
+        "latitude": 24.5,
+        "location": "PAKISTAN: MAKRAN COAST",
+        "longitude": 63.0,
+        "magnitude": 8.0,
+        "tsunami_flag": false
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/92811e3aeb822968804a9afcb664ceae6ef41510/sismonauta_efemerides/images/2026-11-27_a2a7654056d4e24e86.jpg",
+      "targets": {
+        "facebook": {
+          "status": "pending"
+        },
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
     }
   }
 }
