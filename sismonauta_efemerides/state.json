@@ -113,7 +113,8 @@
         "facebook": {
           "attempt_id": "f9370d226ca44128bd282b615a01c6f4",
           "attempted_at": "2026-11-27T12:00:58.878081+00:00",
-          "status": "uncertain"
+          "id": "305263296226466_1168316579076906",
+          "status": "published"
         },
         "facebook_feed": {
           "status": "pending"
