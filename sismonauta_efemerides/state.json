@@ -111,7 +111,9 @@
       "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/92811e3aeb822968804a9afcb664ceae6ef41510/sismonauta_efemerides/images/2026-11-27_a2a7654056d4e24e86.jpg",
       "targets": {
         "facebook": {
-          "status": "pending"
+          "attempt_id": "f9370d226ca44128bd282b615a01c6f4",
+          "attempted_at": "2026-11-27T12:00:58.878081+00:00",
+          "status": "uncertain"
         },
         "facebook_feed": {
           "status": "pending"
