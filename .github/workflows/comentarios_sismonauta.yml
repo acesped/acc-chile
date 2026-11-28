@@ -27,7 +27,7 @@ concurrency:
 jobs:
   responder:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 12
     env:
       PYTHONUNBUFFERED: '1'
       FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
@@ -44,8 +44,7 @@ jobs:
       # Permite anidados sin autor si Meta informa can_comment=true.
       ALLOW_ANONYMOUS_NESTED: '1'
       APPROVED_COMMENT_IDS: ${{ inputs.approved_comment_ids || '' }}
-      MAX_RUNTIME_SECONDS: '1200'
-      INVENTORY_REFRESH_SECONDS: '3600'
+      MAX_RUNTIME_SECONDS: '300'
       GRAPH_BATCH_SIZE: '50'
       MAX_COMMENT_REPLIES: '0'
       MAX_AI_REPLIES_PER_RUN: '0'
@@ -69,7 +68,7 @@ jobs:
           test -f comentarios_sismonauta.py
           echo "Commit: $(git rev-parse HEAD)"
           sha256sum comentarios_sismonauta.py
-          grep -F 'BUILD="6.2"' comentarios_sismonauta.py
+          grep -F 'BUILD="6.3"' comentarios_sismonauta.py
           python comentarios_sismonauta.py "${args[@]}"
       - name: Guardar auditoría
         if: always()
