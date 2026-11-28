@@ -522,6 +522,43 @@
         }
       }
     },
+    "1ced2d983798d56a9c92": {
+      "article": {
+        "category": "climatologia",
+        "date": "2026-11-23T21:40:06+00:00",
+        "description": "Delivering on its promise, the European Space Agency's EarthCARE satellite is already yielding new insights into the role that clouds play in regulating Earth's climate. The latest findings shed light on one of the processes that leads to the breakup of vast, bright cloud formations that help keep our planet cool—with rain emerging as a key driver.",
+        "editorial_mode": "documented_brief",
+        "explanation": "Cumpliendo con su promesa, el satélite EarthCARE de la Agencia Espacial Europea ya está proporcionando nuevos conocimientos sobre el papel que juegan las nubes en la regulación del clima de la Tierra. Los últimos hallazgos arrojan luz sobre uno de los procesos que conduce a la descomposición de vastas y brillantes formaciones de nubes que ayudan a mantener nuestro planeta fresco, siendo la lluvia un factor clave.",
+        "id": "1ced2d983798d56a9c92",
+        "image_headline": "Observaciones satelitales muestran cómo la lluvia deshace los quitasoles naturales de la Tierra.",
+        "lang": "en",
+        "original_title": "Satellite observations show how rain breaks up Earth's natural sunshades",
+        "search_category": "direct",
+        "source": "Phys.org Ciencias de la Tierra",
+        "source_body": "",
+        "title": "Observaciones satelitales muestran cómo la lluvia deshace los quitasoles naturales de la Tierra.",
+        "url": "https://phys.org/news/2026-11-satellite-earth-natural-sunshades.html"
+      },
+      "caption": "🌎 SISMONAUTA | CLIMATOLOGÍA\n\nObservaciones satelitales muestran cómo la lluvia deshace los quitasoles naturales de la Tierra.\n\nCumpliendo con su promesa, el satélite EarthCARE de la Agencia Espacial Europea ya está proporcionando nuevos conocimientos sobre el papel que juegan las nubes en la regulación del clima de la Tierra. Los últimos hallazgos arrojan luz sobre uno de los procesos que conduce a la descomposición de vastas y brillantes formaciones de nubes que ayudan a mantener nuestro planeta fresco, siendo la lluvia un factor clave.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Climatologia #Clima #CambioClimatico #Glaciares",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "glacier landscape",
+        "sha256": "8c226e6576c26e6a0f5c5ac395e20ab271fdce65e0e11db2e2f8e04e0c609077",
+        "source": "https://commons.wikimedia.org/wiki/File:Glacier_National_Park_-_HCP_-_October_23,_2022_-_001.jpg",
+        "title": "File:Glacier National Park - HCP - October 23, 2022 - 001.jpg",
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d2/Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_001.jpg/1920px-Glacier_National_Park_-_HCP_-_October_23%2C_2022_-_001.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/1ced2d983798d56a9c92.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "1fe8cb1138d7808c96e0": {
       "article": {
         "category": "espacio",
