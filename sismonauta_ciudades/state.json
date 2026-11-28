@@ -684,7 +684,8 @@
       "source": "EMSC-CSEM",
       "targets": {
         "instagram": {
-          "status": "uncertain"
+          "status": "published",
+          "id": "17875933443649124"
         },
         "facebook_feed": {
           "status": "pending"
