@@ -4821,6 +4821,43 @@
         }
       }
     },
+    "e0e222b00fe57f53d99e": {
+      "article": {
+        "category": "oceanos",
+        "date": "2026-11-24T01:36:51+00:00",
+        "description": "El viaje de la Tierra desde un mundo con escasez de oxígeno hasta un planeta capaz de soportar vida compleja puede haber ocurrido de manera muy diferente a lo que los científicos creían anteriormente. Un nuevo análisis sugiere que el oxígeno se acumuló en la atmósfera en tres etapas principales, con los océanos tardando millones o incluso cientos de millones de años en ponerse al día.",
+        "explanation": "Los antiguos océanos de la Tierra pueden haber engañado a los científicos sobre la historia del oxígeno en nuestro planeta. Un análisis reciente realizado por geocientíficos de la Universidad de Tecnología de Chengdu sugiere que la acumulación de oxígeno en la atmósfera ocurrió en tres etapas principales, mientras que los océanos profundos tardaron mucho más en adaptarse a estos cambios.\n\nTradicionalmente, los científicos han utilizado la química de los sedimentos oceánicos para reconstruir los niveles de oxígeno atmosférico. Sin embargo, este enfoque puede ser engañoso, ya que la química del océano está influenciada por diversos factores, como la productividad biológica y la circulación oceánica. En cambio, los investigadores se centraron en el sulfato, un compuesto químico que puede preservar señales del oxígeno atmosférico.\n\nLos resultados indican que el primer aumento significativo de oxígeno ocurrió entre 2.4 y 2.1 mil millones de años atrás, seguido por otros incrementos importantes hace aproximadamente 1.3 y 0.44 mil millones de años. Estos hallazgos sugieren que las variaciones en los niveles de oxígeno en la atmósfera y en los océanos no siempre se sincronizaron, lo que podría cambiar la interpretación de fluctuaciones en el registro de oxígeno antiguo de la Tierra.",
+        "id": "e0e222b00fe57f53d99e",
+        "image_headline": "Los antiguos océanos de la Tierra pueden haber engañado a los científicos sobre su historia de oxígeno.",
+        "lang": "en",
+        "original_title": "Earth’s ancient oceans may have fooled scientists about its oxygen history",
+        "resolved_source_url": "https://www.sciencedaily.com/releases/2026/11/261122060340.htm",
+        "search_category": "direct",
+        "source": "ScienceDaily Tierra y Clima",
+        "source_body": "",
+        "title": "Los antiguos océanos de la Tierra pueden haber engañado a los científicos sobre su historia de oxígeno.",
+        "url": "https://www.sciencedaily.com/releases/2026/11/261122060340.htm"
+      },
+      "caption": "🌎 SISMONAUTA | CIENCIAS DEL OCÉANO\n\nLos antiguos océanos de la Tierra pueden haber engañado a los científicos sobre su historia de oxígeno.\n\nLos antiguos océanos de la Tierra pueden haber engañado a los científicos sobre la historia del oxígeno en nuestro planeta. Un análisis reciente realizado por geocientíficos de la Universidad de Tecnología de Chengdu sugiere que la acumulación de oxígeno en la atmósfera ocurrió en tres etapas principales, mientras que los océanos profundos tardaron mucho más en adaptarse a estos cambios. Tradicionalmente, los científicos han utilizado la química de los sedimentos oceánicos para reconstruir los niveles de oxígeno atmosférico. Sin embargo, este enfoque puede ser engañoso, ya que la química del océano está influenciada por diversos factores, como la productividad biológica y la circulación oceánica. En cambio, los investigadores se centraron en el sulfato, un compuesto químico que puede preservar señales del oxígeno atmosférico. Los resultados indican que el primer aumento significativo de oxígeno ocurrió entre 2.4 y 2.1 mil millones de años atrás, seguido por otros incrementos importantes hace aproximadamente 1.3 y 0.44 mil millones de años. Estos hallazgos sugieren que las variaciones en los niveles de oxígeno en la atmósfera y en los océanos no siempre se sincronizaron, lo que podría cambiar la interpretación de fluctuaciones en el registro de oxígeno antiguo de la Tierra.\n\n💬 ¿Qué opinas? Te leemos en los comentarios.\n\n#SISMONAUTA #Ciencia #Actualidad #Naturaleza #Investigacion #PlanetaTierra #DivulgacionCientifica #Oceanos #Oceanografia #Tsunamis #CienciaDelMar",
+      "image": {
+        "generated": false,
+        "license": "CC0",
+        "query": "coastal landscape",
+        "sha256": "95872e5991015c395a103e2b59c9995f0dbae96b60097bb44a3245b31d49011e",
+        "source": "https://commons.wikimedia.org/wiki/File:Henry_Swinburne_-_Coastal_Landscape_-_B1977.14.4019_-_Yale_Center_for_British_Art.jpg",
+        "title": "File:Henry Swinburne - Coastal Landscape - B1977.14.4019 - Yale Center for British Art.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/8/85/Henry_Swinburne_-_Coastal_Landscape_-_B1977.14.4019_-_Yale_Center_for_British_Art.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+      },
+      "image_url": "https://raw.githubusercontent.com/acesped/acc-chile/main/sismonauta_noticias/images/e0e222b00fe57f53d99e.jpg",
+      "targets": {
+        "facebook_feed": {
+          "status": "pending"
+        },
+        "instagram": {
+          "status": "pending"
+        }
+      }
+    },
     "e5bb943f942ab389a475": {
       "article": {
         "category": "oceanos",
