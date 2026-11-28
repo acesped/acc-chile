@@ -67,6 +67,9 @@ jobs:
           if [[ "$PUBLISH" == 'true' ]]; then args+=(--publish); fi
           echo "Modo publicación: $PUBLISH"
           test -f comentarios_sismonauta.py
+          echo "Commit: $(git rev-parse HEAD)"
+          sha256sum comentarios_sismonauta.py
+          grep -F 'BUILD="6.2"' comentarios_sismonauta.py
           python comentarios_sismonauta.py "${args[@]}"
       - name: Guardar auditoría
         if: always()
