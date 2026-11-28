@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SISMONAUTA 6.0 — Python 3.11+, requests. --test / --publish / preview."""
+"""SISMONAUTA 6.2 — Python 3.11+, requests. --test / --publish / preview."""
 import argparse, base64, json, os, re, sys, time, unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
@@ -14,7 +14,11 @@ LIMIT=int(os.getenv('MAX_COMMENT_REPLIES','100'))
 AI_LIMIT=int(os.getenv('MAX_AI_REPLIES_PER_RUN','100'))
 RUNTIME=int(os.getenv('MAX_RUNTIME_SECONDS','720'))
 WINDOW_SECONDS=24*60*60
+RECENT_POST_SECONDS=24*60*60
+BATCH_SIZE=max(1,min(50,int(os.getenv("GRAPH_BATCH_SIZE","50"))))
 PRIORITY_SECONDS=60
+ZERO_RECHECK_SECONDS=6*3600
+BUILD="6.2"
 INVENTORY_REFRESH=int(os.getenv("INVENTORY_REFRESH_SECONDS","3600"))
 
 def comment_priority(c, reference):
@@ -90,6 +94,33 @@ def read(path,token,fields,params=None):
         except MetaError as e:
             if e.transient or e.code in (190,10,200): raise
     raise ReadError('Campos no disponibles: '+path)
+def batch_counts(ids,token):
+    # Read-only operations inside a Graph batch. Unknown/error is not zero.
+    for start in range(0,len(ids),BATCH_SIZE):
+        guard(); group=ids[start:start+BATCH_SIZE]
+        batch=[{'method':'GET','relative_url':quote(pid,safe='')+'/comments?filter=stream&summary=true&limit=1&fields=id'} for pid in group]
+        try:
+            r=SESSION.post(BASE+'/',headers={'Authorization':'Bearer '+token},data={'batch':json.dumps(batch)},timeout=(8,25),allow_redirects=False)
+            r.raise_for_status(); results=r.json()
+            if not isinstance(results,list) or len(results)!=len(group): raise ReadError('Batch incompleto')
+            for pid,item in zip(group,results):
+                try:
+                    if item.get('code')!=200: continue
+                    n=json.loads(item['body']).get('summary',{}).get('total_count')
+                    if n is not None: yield pid,int(n)
+                except (ValueError,TypeError,KeyError,AttributeError): continue
+        except StopRun: raise
+        except Exception as exc:
+            log('BATCH NO DISPONIBLE; se conserva barrido',safe(exc)); return
+
+
+def recent_comments(path,token,start,end):
+    # Filter at source when possible; local date validation remains authoritative.
+    try: return read(path,token,FIELDS,{'filter':'stream','since':int(start),'until':int(end)+1})
+    except (MetaError,ReadError) as exc:
+        if isinstance(exc,MetaError) and (exc.transient or exc.code in (190,10,200)): raise
+        return read(path,token,FIELDS,{'filter':'stream'})
+
 def approved_ids():
     return {x for x in re.split(r'[\s,;]+',os.getenv('APPROVED_COMMENT_IDS','')) if re.fullmatch(r'\d+_\d+',x)}
 
@@ -297,7 +328,7 @@ class Engine:
         if c.get('can_comment') is False: self.stats['blocked']+=1; log('META BLOQUEA RESPUESTA',cid); return
         log('COMENTARIO NUEVO O PENDIENTE',cid,'fecha:',c.get('created_time','desconocida'))
         msg=clean(c.get('message')); reply,use_ai=fallback(msg)
-        if use_ai and (AI_LIMIT<0 or self.stats['ai_calls']<AI_LIMIT):
+        if use_ai and (AI_LIMIT<=0 or self.stats['ai_calls']<AI_LIMIT):
             self.stats['ai_calls']+=1; generated=ai(msg,clean(p.get('message')))
             self.stats['ai_success' if generated else 'ai_fallback']=self.stats.get('ai_success' if generated else 'ai_fallback',0)+1
             reply=generated or reply
@@ -316,12 +347,15 @@ class Engine:
             status='rejected' if definitive else 'uncertain'; self.h[cid].update(status=status,error=safe(e),updated_at=now()); self.save(); row.update(status=status,error=safe(e)); self.stats['errors']+=1; log('POST',status,cid,safe(e)); return
         self.h[cid].update(status='published',reply_id=rid,updated_at=now()); self.known.add(rid); self.save(); self.stats['published']+=1; row.update(status='published',reply_id=rid); log('RESPUESTA PUBLICADA',cid,rid)
     def post(self,p):
-        pid=p['id']; root={}; success=False; top_ids=set(); nested_ids=set()
+        pid=p['id']; root={}; success=False; top_ids=set(); nested_ids=set(); top_success=False
         # Stream plus top-level covers both flat and nested representations.
         for params in ({'filter':'stream'},{'filter':'toplevel'},{}):
-            try: rows=read(pid+'/comments',self.token,FIELDS,params); success=True
+            if not params and top_success: continue
+            try:
+                rows=(recent_comments(pid+'/comments',self.token,self.window_start,self.window_end) if params.get('filter')=='stream' else read(pid+'/comments',self.token,FIELDS,params)); success=True
             except StopRun: raise
             except Exception as e: log('LECTURA',pid,params,safe(e)); continue
+            if params.get('filter')=='toplevel': top_success=True
             for c in rows:
                 if c.get('id'):
                     cid=str(c['id']); root.setdefault(cid,{}).update(c)
@@ -331,7 +365,7 @@ class Engine:
             for c in rows:
                 if c.get('id'): root[str(c['id'])]=c
         self.stats['comments_read']+=len(root); log('COMENTARIOS RECUPERADOS',pid,len(root),'| fecha publicación:',p.get('created_time','desconocida'))
-        queue=sorted(root.values(),key=lambda c: comment_priority(c,self.window_end)); visited=set(); failed=False; published_before=self.stats['published']
+        queue=sorted(root.values(),key=lambda c: comment_priority(c,self.window_end)); visited=set(); failed=not top_success; published_before=self.stats['published']
         while queue:
             self.cap(); c=queue.pop(0); cid=str(c.get('id') or '')
             if not cid or cid in visited: continue
@@ -340,7 +374,9 @@ class Engine:
             # still get a fresh verification immediately before posting.
             old=self.h.get(cid,{}).get('status') in ('published','already_replied') or cid in self.known or author(c)==self.page
             if (old or (timestamp(c.get('created_time')) or 0)<self.window_start) and c.get('comment_count')==0:
-                self.reply(c,p,[]); continue
+                if old or in_window(c.get('created_time'),self.window_start,self.window_end): self.reply(c,p,[])
+                else: self.stats['outside_comment_window']+=1
+                continue
             try: children=read(cid+'/comments',self.token,FIELDS)
             except StopRun: raise
             except Exception as e: self.stats['errors']+=1; failed=True; log('RESPUESTAS NO VERIFICADAS',cid,safe(e)); continue
@@ -359,24 +395,73 @@ class Engine:
         except Exception as e: log('TOTAL NO DISPONIBLE',pid,safe(e))
         return not failed
     def run(self):
-        recent=self.recent()
+        ids=self.recent()
         prefixes={x.split('_',1)[0] for x in approved_ids()}
-        # Approval changes author eligibility, never the publication date window.
-        recent.sort(key=lambda pid: (pid.rsplit('_',1)[-1] not in prefixes, self.scan.get(pid,0), -(timestamp(self.inv[pid].get('created_time')) or 0)))
-        for pid in recent:
-            self.cap()
-            p=self.inv[pid]
-            self.stats['posts']+=1; self.stats['recent_posts']+=1
-            log('EXPLORANDO SIN LÍMITE DE ANTIGÜEDAD',self.stats['posts'],pid,p.get('created_time'))
-            # Persist attempted position before reading to avoid starvation after cancellation.
-            self.scan[pid]=time.time(); self.save()
-            try:
-                if self.post(p): self.scan[pid]=time.time()
-            except StopRun: raise
-            except (MetaError,requests.RequestException,ReadError) as e:
-                self.stats['errors']+=1; log('PUBLICACIÓN NO DISPONIBLE',pid,safe(e))
-            self.save()
+        counts=self.s.setdefault('comment_counts_v61',{})
+        activity=self.s.setdefault('activity_v61',{})
+        recent=[pid for pid in ids if (timestamp(self.inv[pid].get('created_time')) or 0)>=self.window_end-RECENT_POST_SECONDS or pid.rsplit('_',1)[-1] in prefixes]
+        recent.sort(key=lambda pid:(pid.rsplit('_',1)[-1] not in prefixes,-(timestamp(self.inv[pid].get('created_time')) or 0)))
+        recent_set=set(recent); historical=[pid for pid in ids if pid not in recent_set]
+        self.stats.update(batch_counts_ok=0,activity_changed=0,scan_completed=0,scan_remaining=len(ids))
+        self.stats.update(batch_zero=0,batch_unknown=0,deep_scans=0,recent_comments_found=0)
+        done=set()
+        def visit(pid,kind,total=None):
+            self.cap(); p=self.inv[pid]; self.stats['posts']+=1
+            if kind=='RECIENTE': self.stats['recent_posts']+=1
+            # A successful zero summary is a fast check, not a permanent exclusion.
+            # Do not advance the deep-scan clock on a fast check.
+            if total==0 and time.time()-self.scan.get(pid,0)<ZERO_RECHECK_SECONDS:
+                self.stats['batch_zero']+=1; done.add(pid)
+                log('SIN ACTIVIDAD META (BATCH)',pid)
+            else:
+                self.stats['deep_scans']+=1
+                log('EXPLORANDO',kind,self.stats['posts'],pid,p.get('created_time'))
+                try:
+                    before=self.stats['gaps']
+                    if self.post(p) and self.stats['gaps']==before:
+                        self.scan[pid]=time.time(); done.add(pid)
+                except StopRun: raise
+                except (MetaError,requests.RequestException,ReadError) as e:
+                    self.stats['errors']+=1; log('PUBLICACIÓN NO DISPONIBLE',pid,safe(e))
+            self.stats['scan_completed']=len(done)
+            self.stats['scan_remaining']=len(ids)-len(done)
+            self.stats['recent_comments_found']=self.stats['unique_comments']
+            if self.stats['posts']%10==0: self.save()
             log('PROGRESO',json.dumps(self.stats,ensure_ascii=False))
+        try:
+            # Recent objects first. Historical objects rotate by last successful
+            # deep check; active objects are interleaved, never exclusive.
+            active=sorted([pid for pid in historical if activity.get(pid,0)>=self.window_start],key=lambda pid:(self.scan.get(pid,0),-activity[pid]))
+            active_set=set(active)
+            rotation=iter([pid for pid in historical if pid not in active_set]); active_iter=iter(active)
+            order=list(recent); kinds={pid:'RECIENTE' for pid in recent}
+            while True:
+                progressed=False
+                for iterator,kind in ((active_iter,'ACTIVIDAD'),(rotation,'ROTATIVO')):
+                    pid=next(iterator,None)
+                    if pid is not None:
+                        order.append(pid); kinds[pid]=kind; progressed=True
+                if not progressed: break
+            # Process each batch immediately rather than waiting for the entire inventory.
+            for offset in range(0,len(order),BATCH_SIZE):
+                guard(); group=order[offset:offset+BATCH_SIZE]
+                totals=dict(batch_counts(group,self.token))
+                for pid in group:
+                    if pid not in totals:
+                        self.stats['batch_unknown']+=1; continue
+                    total=totals[pid]; old=counts.get(pid,{}).get('total')
+                    counts[pid]={'total':total,'checked':time.time()}
+                    self.stats['batch_counts_ok']+=1
+                    if (old is not None and old!=total) or (old is None and total>0):
+                        activity[pid]=time.time(); self.stats['activity_changed']+=1
+                # Positive/changed objects first inside the batch; zero and unknown
+                # are still visited, so unchanged counters never exclude comments.
+                for pid in sorted(group,key=lambda pid:(0 if totals.get(pid,0)>0 else 1,group.index(pid))):
+                    visit(pid,kinds[pid],totals.get(pid))
+        finally:
+            self.stats['scan_remaining']=len(ids)-len(done)
+            self.save()
+
 
 def selftest():
     from unittest.mock import patch
@@ -429,6 +514,7 @@ def selftest():
 def main():
     global DEADLINE
     ap=argparse.ArgumentParser(description=__doc__); ap.add_argument('--test',action='store_true'); ap.add_argument('--publish',action='store_true'); ap.add_argument('--out',default='output_comentarios'); args=ap.parse_args()
+    log('SISMONAUTA BUILD',BUILD,'| ventana comentarios 24H')
     if args.test: selftest(); return 0
     DEADLINE=time.monotonic()+RUNTIME if RUNTIME>0 else float('inf'); e=None; status='completed'
     try:
@@ -438,7 +524,8 @@ def main():
     finally:
         out=Path(args.out); out.mkdir(parents=True,exist_ok=True); report=dict(at=now(),status=status,stats=e.stats if e else {},results=e.rows if e else []); tmp=out/'resumen.json.tmp'; tmp.write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8'); tmp.replace(out/'resumen.json'); log('AUDITORÍA',json.dumps(report['stats'],ensure_ascii=False))
     if e and args.publish and not e.stats['published']:
-        log('SIN RESPUESTAS NUEVAS: revisar previous, own, unknown_author, blocked, uncertain, errors y comments_read')
+        log('SIN RESPUESTAS NUEVAS EN OBJETOS CONSULTADOS; cobertura:',e.stats.get('scan_completed',0),'/',e.stats.get('eligible_posts',0))
+    if status=='checkpoint': log('COBERTURA PARCIAL: se conserva progreso; no equivale a inventario completo')
     if e and any(e.stats[k] for k in ('errors','unknown_author','blocked','uncertain','gaps','missing_comment_date')): return 2
     return 0
 if __name__=='__main__': sys.exit(main())
